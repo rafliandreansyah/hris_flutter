@@ -12,34 +12,63 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# Environment / Secrets (Sangat Penting!)
+.env*
+!.env.example
+
+# IntelliJ / Android Studio
 *.iml
 *.ipr
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
+# VS Code
 #.vscode/
 
-# Flutter/Dart/Pub related
+# Flutter / Dart / Pub
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
 
-# Symbolication related
-app.*.symbols
+# Code Generation (misal: flutter_gen, freez, json_serializable)
+# Un-comment jika kamu TIDAK ingin meng-commit file hasil generate (*.g.dart / *.gen.dart)
+# *.g.dart
+# *.gen.dart
 
-# Obfuscation related
+# Symbolication & Obfuscation
+app.*.symbols
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# Android
 /android/app/debug
 /android/app/profile
 /android/app/release
+.gradle/
+/android/captures/
+/android/local.properties
+**/android/app/key.properties
+**/android/app/*.keystore
+**/android/app/*.jks
+
+# iOS / macOS / CocoaPods
+**/ios/Pods/
+**/ios/Runner.xcworkspace/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.fltdefinition
+**/ios/DerivedData/
+**/macOS/Pods/
+**/macOS/Runner.xcworkspace/
+**/macOS/Flutter/ephemeral/
+
+# Fastlane
+**/fastlane/report.xml
+**/fastlane/Preview.html
