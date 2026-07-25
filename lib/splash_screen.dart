@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
 
 class SplashScreenPage extends StatefulWidget {
@@ -9,6 +12,15 @@ class SplashScreenPage extends StatefulWidget {
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(seconds: 2), () {
+      if (!mounted) return;
+      context.goNamed(Routes.LOGIN);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,25 +46,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.only(bottom: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'OASISH HRIS • POWERED BY MURATECH',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Versi: 1.0.0',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+              child: AppNameVersionText(),
             ),
           ),
         ],

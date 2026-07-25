@@ -1,16 +1,27 @@
 import 'package:go_router/go_router.dart';
-import 'package:hris_flutter/splash_screen_page.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/features/login/presentation/pages/login_screen.dart';
+import 'package:hris_flutter/splash_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/splash_screen',
+    initialLocation: Routes.SPLASH,
     routes: [
       GoRoute(
-        path: '/splash_screen',
-        name: 'splash_screen',
+        path: Routes.SPLASH,
+        name: Routes.SPLASH,
         builder: (context, state) {
           return SplashScreenPage();
         },
+        routes: [
+          GoRoute(
+            path: Routes.LOGIN,
+            name: Routes.LOGIN,
+            builder: (context, state) {
+              return const LoginScreen();
+            },
+          ),
+        ],
       ),
       // Contoh Nested/Shell Route atau Route lainnya
     ],
