@@ -17,7 +17,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     super.initState();
     Future.delayed(Duration(seconds: 2), () {
       if (!mounted) return;
-      context.goNamed(Routes.LOGIN);
+      context.replaceNamed(Routes.LOGIN);
     });
   }
 
