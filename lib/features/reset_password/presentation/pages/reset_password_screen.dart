@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
-import 'package:hris_flutter/gen/assets.gen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -34,10 +32,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                          width: 1,
+                        ),
                       ),
                       child: Icon(
                         LucideIcons.chevronLeft,
+                        size: 20,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
@@ -50,9 +53,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
@@ -61,22 +62,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'Reset Password',
-                    style: Theme.of(context).textTheme.headlineLarge,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     'Enter your registered email address to reset your password',
                     textAlign: TextAlign.center,
-
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                   ),
-                  SizedBox(height: 60),
+                  const SizedBox(height: 48),
                   TextField(
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -97,16 +99,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   SizedBox(height: 16),
                   Card(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                       ),
                     ),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     child: Padding(
-                      padding: EdgeInsetsGeometry.all(20),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -115,16 +115,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             size: 20,
                             color: Theme.of(context).colorScheme.primary,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'Pastikan email Anda aktif. Kami akan mengirimkan tautan unik yang hanya berlaku selama 60 menit demi keamanan akun Anda.',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    fontWeight: FontWeight.w400,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w500,
                                   ),
                             ),
                           ),
@@ -132,10 +129,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 40),
+                  const SizedBox(height: 32),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 55),
+                      minimumSize: const Size(double.infinity, 52),
                     ),
                     onPressed: () {},
                     child: Row(
@@ -144,13 +141,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       children: [
                         Text(
                           'Kirim Tautan Reset',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.w600,
                               ),
                         ),
-                        SizedBox(width: 8),
-                        Icon(LucideIcons.sendHorizonal),
+                        const SizedBox(width: 8),
+                        const Icon(LucideIcons.sendHorizonal, size: 18),
                       ],
                     ),
                   ),

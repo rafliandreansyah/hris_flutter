@@ -32,17 +32,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     Text(
                       'Oasish',
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
-                    SizedBox(height: 4),
-                    Text('Your Tropical Professional Workspace'),
-                    SizedBox(height: 60),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your Tropical Professional Workspace',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                    const SizedBox(height: 48),
                     TextField(
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 14,
-                        ),
                         hintText: 'Email Address',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.only(left: 8),
@@ -54,13 +58,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     TextField(
+                      obscureText: true,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 14,
-                        ),
                         hintText: 'Password',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.only(left: 8),
@@ -83,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -93,26 +94,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           child: Text(
                             'Forgot Password?',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 55),
+                        minimumSize: const Size(double.infinity, 52),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        context.go(Routes.DASHBOARD);
+                      },
                       child: Text(
                         'Sign In',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
                     ),

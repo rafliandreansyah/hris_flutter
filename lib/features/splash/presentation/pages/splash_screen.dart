@@ -33,9 +33,11 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(Assets.icons.logo.path, width: 180, height: 180),
+                const SizedBox(height: 8),
                 Text(
                   'Oasish',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),

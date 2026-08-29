@@ -1,8 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
-import 'package:hris_flutter/features/login/presentation/pages/login_screen.dart';
-import 'package:hris_flutter/features/reset_password/presentation/pages/reset_password_screen.dart';
-import 'package:hris_flutter/splash_screen.dart';
+import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
+import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
+import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -27,6 +28,11 @@ class AppRouter {
         path: Routes.RESET,
         name: Routes.RESET,
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: Routes.DASHBOARD,
+        name: Routes.DASHBOARD,
+        builder: (context, state) => const DashboardScreen(),
       ),
 
       // Jika nanti ada Main/Dashboard dengan BottomNavBar, baru pakai ShellRoute di sini

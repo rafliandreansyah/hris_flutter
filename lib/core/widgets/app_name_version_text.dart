@@ -17,10 +17,12 @@ class AppNameVersionText extends StatelessWidget {
         Text(
           appName,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           appVersion,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(

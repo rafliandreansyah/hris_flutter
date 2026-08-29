@@ -15,6 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Oasish',
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light, // Default light, can be set to ThemeMode.system
       routerConfig: AppRouter.router, // Menggunakan GoRouter
       debugShowCheckedModeBanner: false,
     );

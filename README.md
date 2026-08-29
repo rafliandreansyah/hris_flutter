@@ -1,17 +1,27 @@
-# hris_flutter
+# 📱 Muratech HRIS Mobile (Oasish)
 
-A new Flutter project.
+Aplikasi mobile Human Resource Information System (HRIS) Muratech berbasis Flutter.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📚 Dokumentasi
 
-A few resources to get you started if this is your first Flutter project:
+Dokumentasi lengkap project telah dipindahkan ke direktori [`docs/`](docs/):
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+* **[Developer Onboarding Guide](docs/ONBOARDING.md)**: Setup environment lokal, menjalankan app, koneksi ke backend.
+* **[Architecture & Code Standards](docs/ARCHITECTURE.md)**: Struktur folder *Feature-First Clean Architecture*, alur pembuatan fitur baru, dan panduan coding.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## ⚡ Quick Start
+
+```bash
+# 1. Install dependencies
+flutter pub get
+
+# 2. Generate assets / code
+dart run build_runner build --delete-conflicting-outputs
+
+# 3. Jalankan aplikasi
+flutter run
+```
