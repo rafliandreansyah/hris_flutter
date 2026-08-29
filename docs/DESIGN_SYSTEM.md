@@ -89,19 +89,39 @@ AppTypography.labelSmall
 
 ---
 
-## 🧩 5. ThemeExtension (`context.customColors`)
+## 🧩 5. Global Reusable Widgets (`lib/core/widgets/`)
 
-Untuk token warna kustom yang berada di luar ColorScheme standar Material 3, gunakan extension `AppCustomColors`:
+Untuk memastikan konsistensi visual dan menghindari duplikasi kode, gunakan widget global berikut di seluruh layar aplikasi:
 
-```dart
-import 'package:hris_flutter/app/config/app_theme_extension.dart';
+### 1. `AppButton` (`lib/core/widgets/app_button.dart`)
+* **Varian:** `AppButtonVariant.primary`, `secondary`, `outlined`, `ghost`, `danger`.
+* **Fitur:** Auto-loading state indicator (`isLoading`), leading & trailing icons, `StadiumBorder` (pill button), full width / hug content.
+* **Contoh Penggunaan:**
+  ```dart
+  AppButton(
+    text: 'Login',
+    trailingIcon: LucideIcons.arrowRight,
+    isLoading: state is AuthLoading,
+    onPressed: _onLoginPressed,
+  )
+  ```
 
-// Akses warna kustom:
-final brandTeal = context.customColors.brandTeal;
-final mutedBorder = context.customColors.outlineMuted;
-final subtleBg = context.customColors.backgroundSubtle;
-final lightTealAccent = context.customColors.accentTealLight;
-```
+### 2. `AppTextField` (`lib/core/widgets/app_text_field.dart`)
+* **Fitur:** Label di atas input, trailing action di baris label (`labelTrailing`), obscure password toggle otomatis (`isPassword: true`), prefix & suffix icons, border radius `12px`, validasi form, dark-mode aware.
+* **Contoh Penggunaan:**
+  ```dart
+  AppTextField(
+    label: 'Password',
+    labelTrailing: GestureDetector(
+      onTap: () => context.push(Routes.RESET),
+      child: Text('Forgot Password?', style: TextStyle(color: AppColors.brandTeal)),
+    ),
+    controller: _passwordController,
+    isPassword: true,
+    prefixIcon: LucideIcons.lock,
+    validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+  )
+  ```
 
 ---
 
@@ -122,43 +142,9 @@ final lightTealAccent = context.customColors.accentTealLight;
 
 ---
 
-## 🛠️ 7. Panduan Penggunaan Komponen
+## 💡 7. Rekomendasi Pemakaian Token (Do's & Don'ts)
 
-### 1. Tombol Utama (Primary Action)
-```dart
-ElevatedButton(
-  onPressed: () {},
-  child: const Text('Simpan Perubahan'),
-)
-// Otomatis berbentuk Stadium (pill), background #0D9488, dan teks putih semibold.
-```
-
-### 2. Kartu Informasi (Cards)
-```dart
-Card(
-  child: Padding(
-    padding: const EdgeInsets.all(16),
-    child: Text('Konten Kartu'),
-  ),
-)
-// Otomatis berlatar putih (#FFFFFF), radius 16px, dengan border 1px #E2E8F0 tanpa bayangan tebal.
-```
-
-### 3. Kolom Input (TextFields)
-```dart
-TextField(
-  decoration: InputDecoration(
-    hintText: 'Masukkan email',
-    prefixIcon: Icon(LucideIcons.mail, size: 18),
-  ),
-)
-// Otomatis beradius 12px dengan border #E2E8F0 dan fokus garis brand teal #0D9488.
-```
-
-### 4. Status Tag / Filter Chips
-```dart
-Chip(
-  label: Text('Approved'),
-)
-// Otomatis berlatar #F0FDFA dengan teks #115E59 dan bentuk StadiumBorder.
-```
+* ✅ **DO**: Selalu gunakan `AppColors.brandTeal`, `AppColors.primary`, dan `AppTypography.headlineLargeMobile`.
+* ✅ **DO**: Gunakan `AppButton` dan `AppTextField` untuk form input dan aksi tombol di semua layar.
+* ❌ **DON'T**: Jangan menggunakan *hardcoded color* seperti `Colors.teal` atau `Color(0xFF00685F)` langsung di dalam view UI.
+* ❌ **DON'T**: Hindari `ElevatedButton` polos tanpa tema terstandar.

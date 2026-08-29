@@ -1,6 +1,6 @@
 # 🏛️ Architecture & Code Standards Guide
 
-Dokumen ini menjelaskan arsitektur perangkat lunak, pembagian layer, dan alur kerja pembuatan fitur baru pada project **Muratech HRIS (Oasish)**.
+Dokumen ini menjelaskan arsitektur perangkat lunak, pembagian layer, integrasi jaringan (Dio & Logging), dan alur kerja pembuatan fitur baru pada project **Muratech HRIS (Oasish)**.
 
 ---
 
@@ -29,19 +29,70 @@ features/[feature_name]/
 
 ---
 
-## 📂 2. Tanggung Jawab Folder Global
+## 🌐 2. Network Client (Dio & PrettyDioLogger)
+
+Semua komunikasi HTTP REST API ditangani melalui layer terpusat di `lib/core/network/`:
+
+* **`ApiClient` (`lib/core/network/api_client.dart`)**:
+  * Singleton client berbasis `Dio` dengan base URL dinamis (mendukung Android Emulator `10.0.2.2`, iOS Simulator `localhost`, dan real device).
+  * Method terstandar: `get()`, `post()`, `put()`, `patch()`, `delete()`.
+  * Menangani error otomatis dan mengembalikannya dalam bentuk `ApiException`.
+
+* **`PrettyDioLogger` (`lib/core/network/interceptors/logging_interceptor.dart`)**:
+  * Logging HTTP request dan response yang rapi, berwarna, dan informatif di console (hanya aktif pada `kDebugMode`).
+
+* **`AuthInterceptor` (`lib/core/network/interceptors/auth_interceptor.dart`)**:
+  * Otomatis menyisipkan header `Authorization: Bearer <token>` pada setiap request.
+  * Mendeteksi response `401 Unauthorized` untuk penanganan *session expired* / auto-logout.
+
+* **`ApiException` (`lib/core/network/api_exception.dart`)**:
+  * Memetakan error HTTP (`400`, `401`, `403`, `404`, `422`, `500`, `Connection Timeout`, `Connection Error`) menjadi pesan yang ramah pengguna (*user-friendly*).
+
+* **`ApiEndpoints` (`lib/core/constants/api_endpoints.dart`)**:
+  * Daftar konstanta URL endpoint terpusat untuk seluruh fitur (`/auth/login`, `/attendance`, `/leave-requests`, `/overtime`, dll).
+
+---
+
+### Contoh Pemanggilan API dengan `ApiClient`
+
+```dart
+import 'package:hris_flutter/core/constants/api_endpoints.dart';
+import 'package:hris_flutter/core/network/api_client.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+
+Future<void> loginUser(String email, String password) async {
+  try {
+    final response = await ApiClient.instance.post(
+      ApiEndpoints.login,
+      data: {
+        'email': email,
+        'password': password,
+      },
+    );
+
+    final token = response.data['data']['token'];
+    ApiClient.instance.setAuthToken(token);
+  } on ApiException catch (e) {
+    print('Gagal login: ${e.message} (Status: ${e.statusCode})');
+  }
+}
+```
+
+---
+
+## 📂 3. Tanggung Jawab Folder Global
 
 ### `lib/app/`
 Folder untuk konfigurasi dasar seluruh aplikasi:
-* **`app/config/`**: Definisi tema Material 3 (`app_theme.dart`), token warna (`app_colors.dart`), tipografi font (`app_typography.dart`), dan dimensi komponen (`app_design.dart`).
+* **`app/config/`**: Definisi tema Material 3 (`app_theme.dart`), token warna (`app_colors.dart`), tipografi font (`app_typography.dart`), token desain (`app_design.dart`), dan ThemeExtension (`app_theme_extension.dart`).
 * **`app/routes/`**: Konfigurasi navigasi deklaratif menggunakan `GoRouter` (`app_router.dart`) dan konstanta rute (`route_name.dart`).
 
 ### `lib/core/`
 Folder untuk kode utilitas yang dipakai lintas fitur:
-* **`core/constants/`**: Konstanta global seperti URL endpoint, key penyimpanan, timeout limit.
-* **`core/network/`**: Client wrapper untuk HTTP request, interceptor header autentikasi JWT, dan error handling.
-* **`core/utils/`**: Format tanggal/mata uang (Intl), validator form (email, password), extensions (Dart helper methods).
-* **`core/widgets/`**: Widget umum yang dapat dipakai di berbagai fitur (misal: `AppNameVersionText`, Custom Button, Shimmer Loading, Custom Dialog).
+* **`core/constants/`**: `api_endpoints.dart`, `app_constants.dart`.
+* **`core/network/`**: `api_client.dart`, `api_exception.dart`, `api_response.dart`, `interceptors/`.
+* **`core/utils/`**: Format tanggal/mata uang, validator form, extensions.
+* **`core/widgets/`**: Shared widgets (misal: `AppNameVersionText`, custom buttons, dll).
 
 ### `lib/gen/`
 Folder yang dikelola secara otomatis oleh `flutter_gen` dan `build_runner`.  
@@ -49,11 +100,11 @@ Folder yang dikelola secara otomatis oleh `flutter_gen` dan `build_runner`.
 
 ---
 
-## 🚦 3. Alur Pembuatan Fitur Baru (Step-by-Step)
+## 🚦 4. Alur Pembuatan Fitur Baru (Step-by-Step)
 
 Ketika Anda menambahkan modul fitur baru (contoh: `attendance` / absensi):
 
-1. **Buat Struktur Folder Fitur:**
+1. **Buat Folder Fitur:**
    ```bash
    mkdir -p lib/features/attendance/data \
             lib/features/attendance/domain \
@@ -63,42 +114,20 @@ Ketika Anda menambahkan modul fitur baru (contoh: `attendance` / absensi):
    ```
 
 2. **Definisikan Data Layer:**
-   * Buat Model JSON di `data/models/attendance_model.dart` dengan method `fromJson` dan `toJson`.
-   * Buat Data Source di `data/datasources/attendance_remote_datasource.dart`.
-   * Buat Repository implementation di `data/repositories/attendance_repository_impl.dart`.
+   * Buat Model JSON di `data/models/attendance_model.dart`.
+   * Panggil `ApiClient.instance` di `data/datasources/attendance_remote_datasource.dart`.
+   * Buat implementasi Repository di `data/repositories/attendance_repository_impl.dart`.
 
 3. **Definisikan Presentation Layer:**
-   * Buat State Manager (BLoC/Cubit/ViewModel) di `presentation/bloc/`.
+   * Buat State Manager (BLoC/Cubit/Notifier) di `presentation/bloc/`.
    * Buat Halaman Screen di `presentation/pages/attendance_screen.dart`.
    * Ekstrak komponen berulang ke `presentation/widgets/`.
 
 4. **Daftarkan Rute di `AppRouter`:**
-   * Tambahkan konstanta rute di `lib/app/routes/route_name.dart`:
-     ```dart
-     static const String attendance = '/attendance';
-     ```
-   * Daftarkan `GoRoute` di `lib/app/routes/app_router.dart`:
-     ```dart
-     GoRoute(
-       path: Routes.attendance,
-       name: Routes.attendance,
-       builder: (context, state) => const AttendanceScreen(),
-     ),
-     ```
+   * Daftarkan nama rute di `lib/app/routes/route_name.dart`.
+   * Tambahkan `GoRoute` di `lib/app/routes/app_router.dart`.
 
 5. **Validasi & Linter:**
-   Jalankan pemeriksaan static analyzer:
    ```bash
    dart analyze
    ```
-
----
-
-## 🔒 4. Keamanan & Penanganan Token
-
-* Token autentikasi disimpan secara terenkripsi menggunakan `flutter_secure_storage` atau wrapper aman lainnya.
-* Interceptor HTTP secara otomatis menyisipkan header:
-  ```http
-  Authorization: Bearer <access_token>
-  ```
-* Jika server mengembalikan status code `401 Unauthorized`, interceptor akan otomatis mengarahkan user kembali ke `Routes.LOGIN`.

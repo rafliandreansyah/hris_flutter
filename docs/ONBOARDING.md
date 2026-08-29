@@ -162,6 +162,26 @@ Semua nilai warna, typography, dan spacing wajib mengacu ke konfigurasi di `lib/
 
 ---
 
+## 🔔 Setup Firebase & Push Notifications (FCM)
+
+Project ini telah dilengkapi dengan **`firebase_core`**, **`firebase_messaging`**, dan **`flutter_local_notifications`** (`lib/core/services/notification_service.dart`).
+
+### Langkah Menghubungkan ke Firebase Console:
+1. **Otomatis (Menggunakan FlutterFire CLI):**
+   ```bash
+   # Install FlutterFire CLI jika belum ada
+   dart pub global activate flutterfire_cli
+
+   # Hubungkan ke proyek Firebase
+   flutterfire configure
+   ```
+2. **Manual:**
+   * **Android:** Unduh file `google-services.json` dari Firebase Console dan letakkan di `android/app/google-services.json`.
+   * **iOS:** Unduh file `GoogleService-Info.plist` dan masukkan ke `ios/Runner/GoogleService-Info.plist` via Xcode.
+3. Token FCM perangkat otomatis diambil saat user melakukan Login dan diteruskan ke backend untuk notifikasi persetujuan cuti, lembur, dan absensi.
+
+---
+
 ## 🛡️ Standar & Best Practices
 
 1. **Gunakan Type-Safe Assets:**  
