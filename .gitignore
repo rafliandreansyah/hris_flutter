@@ -1,33 +1,6 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# Environment / Secrets (Sangat Penting!)
-.env*
-!.env.example
-
-# IntelliJ / Android Studio
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# VS Code
-#.vscode/
-
-# Flutter / Dart / Pub
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ==========================================
+# --- 📱 FLUTTER & DART CORE ---
+# ==========================================
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -35,40 +8,117 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
-
-# Code Generation (misal: flutter_gen, freez, json_serializable)
-# Un-comment jika kamu TIDAK ingin meng-commit file hasil generate (*.g.dart / *.gen.dart)
-# *.g.dart
-# *.gen.dart
+doc/api/
 
 # Symbolication & Obfuscation
 app.*.symbols
 app.*.map.json
 
-# Android
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ==========================================
+# --- 🔐 ENVIRONMENT & SECRETS ---
+# ==========================================
+.env*
+!.env.example
+*.pem
+*.p12
+*.cer
+*.mobileprovision
+
+# ==========================================
+# --- 🔥 FIREBASE LOGS & ARTIFACTS ---
+# ==========================================
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# ==========================================
+# --- 🤖 ANDROID ---
+# ==========================================
 .gradle/
-/android/captures/
-/android/local.properties
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/android/captures/
 **/android/app/key.properties
 **/android/app/*.keystore
 **/android/app/*.jks
 
-# iOS / macOS / CocoaPods
+# ==========================================
+# --- 🍏 IOS & SWIFT PACKAGE MANAGER (SPM) ---
+# ==========================================
+**/ios/.symlinks/
 **/ios/Pods/
-**/ios/Runner.xcworkspace/
+**/ios/DerivedData/
+**/ios/Flutter/.last_build_id
 **/ios/Flutter/App.framework
 **/ios/Flutter/Flutter.framework
 **/ios/Flutter/Flutter.podspec
 **/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
 **/ios/Flutter/app.fltdefinition
-**/ios/DerivedData/
-**/macOS/Pods/
-**/macOS/Runner.xcworkspace/
-**/macOS/Flutter/ephemeral/
+.swiftpm/
+**/Runner.xcworkspace/xcuserdata/
+**/Runner.xcodeproj/xcuserdata/
+**/Runner.xcodeproj/project.xcworkspace/xcuserdata/
 
-# Fastlane
+# ==========================================
+# --- 💻 MACOS, LINUX & WINDOWS DESKTOP ---
+# ==========================================
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/Generated.xcconfig
+**/macos/Flutter/flutter_export_environment.sh
+**/macos/Pods/
+**/macos/Runner.xcworkspace/xcuserdata/
+**/macos/Runner.xcodeproj/xcuserdata/
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# ==========================================
+# --- 🛠️ IDE & EDITORS ---
+# ==========================================
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ==========================================
+# --- 🗑️ OPERATING SYSTEM MISC ---
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.class
+*.log
+*.pyc
+*.swp
+*~
+.history/
+.atom/
+.build/
+.buildlog/
+.svn/
+migrate_working_dir/
+
+# ==========================================
+# --- 🚀 FASTLANE ---
+# ==========================================
 **/fastlane/report.xml
 **/fastlane/Preview.html
+**/fastlane/screenshots/
+**/fastlane/test_output/
