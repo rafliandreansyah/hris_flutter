@@ -49,6 +49,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.1.0
   flutter_secure_storage: ^11.0.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,14 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/logo_app.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF" # Warna latar icon (bisa diganti sesuai tema)
+  adaptive_icon_foreground: "assets/icons/logo_app.png"
 
 flutter_gen:
   output: lib/gen/ # Optional (default: lib/gen/)
