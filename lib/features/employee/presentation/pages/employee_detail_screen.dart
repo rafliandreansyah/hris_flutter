@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/account_settings_bottom_sheet.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employment_data_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/leave_balances_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/manager_info_card.dart';
@@ -19,9 +20,13 @@ class EmployeeDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
+    final bgCol = isDark
+        ? AppColors.darkBackground
+        : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final labelCol = isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+    final labelCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -31,11 +36,7 @@ class EmployeeDetailScreen extends StatelessWidget {
         scrolledUnderElevation: 1,
         shadowColor: Colors.black.withValues(alpha: 0.05),
         leading: IconButton(
-          icon: Icon(
-            LucideIcons.arrowLeft,
-            color: textCol,
-            size: 22,
-          ),
+          icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () {
             context.pop();
           },
@@ -68,23 +69,13 @@ class EmployeeDetailScreen extends StatelessWidget {
                 const SnackBar(content: Text('Membagikan profil karyawan...')),
               );
             },
-            icon: Icon(
-              LucideIcons.share2,
-              size: 20,
-              color: textCol,
-            ),
+            icon: Icon(LucideIcons.share2, size: 20, color: textCol),
           ),
           IconButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Form edit profil segera dibuka')),
-              );
+              showAccountSettingsBottomSheet(context);
             },
-            icon: Icon(
-              LucideIcons.pencil,
-              size: 20,
-              color: textCol,
-            ),
+            icon: Icon(LucideIcons.pencil, size: 20, color: textCol),
           ),
         ],
       ),
@@ -161,7 +152,7 @@ class EmployeeDetailScreen extends StatelessWidget {
               SizedBox(height: 32),
 
               // 8. Brand Version Footer
-              AppNameVersionText(),
+              Center(child: AppNameVersionText()),
               SizedBox(height: 16),
             ],
           ),
