@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="hris_flutter"
+        android:label="Oasish"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

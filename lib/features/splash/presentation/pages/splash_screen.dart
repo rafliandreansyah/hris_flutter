@@ -53,9 +53,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
                 const SizedBox(height: 8),
                 Text(
                   'Oasish',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],

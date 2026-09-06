@@ -17,12 +17,28 @@ class $AssetsIconsGen {
   /// File path: assets/icons/logo.png
   AssetGenImage get logo => const AssetGenImage('assets/icons/logo.png');
 
+  /// File path: assets/icons/logo_app.png
+  AssetGenImage get logoApp => const AssetGenImage('assets/icons/logo_app.png');
+
   /// List of all assets
-  List<AssetGenImage> get values => [logo];
+  List<AssetGenImage> get values => [logo, logoApp];
 }
 
-abstract final class Assets {
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/.gitkeep
+  String get aGitkeep => 'assets/images/.gitkeep';
+
+  /// List of all assets
+  List<String> get values => [aGitkeep];
+}
+
+class Assets {
+  const Assets._();
+
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
 }
 
 class AssetGenImage {
