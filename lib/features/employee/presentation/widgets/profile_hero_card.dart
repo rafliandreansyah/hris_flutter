@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Hero Card Profil Karyawan (Teal Oasis)
@@ -112,21 +113,14 @@ class ProfileHeroCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Avatar Image with Teal Ring
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.brandTeal, width: 2.5),
-            ),
-            padding: const EdgeInsets.all(2),
-            child: CircleAvatar(
-              radius: 36,
-              backgroundImage: NetworkImage(
-                avatarUrl ??
-                    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
-              ),
-            ),
+          AppAvatar(
+            imageUrl: avatarUrl,
+            name: name,
+            size: 76,
+            showBorder: true,
+            borderColor: AppColors.brandTeal,
+            borderWidth: 2.5,
+            fontSize: 24,
           ),
           const SizedBox(height: 12),
 

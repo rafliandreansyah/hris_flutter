@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
@@ -19,6 +20,28 @@ class AuthRepositoryImpl implements AuthRepository {
         _localDataSource = localDataSource ?? AuthLocalDataSourceImpl(),
         _apiClient = apiClient ?? ApiClient.instance;
 
+  String? _extractEmployeeIdFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      var normalized = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      switch (normalized.length % 4) {
+        case 2:
+          normalized += '==';
+          break;
+        case 3:
+          normalized += '=';
+          break;
+      }
+      final payloadStr = utf8.decode(base64.decode(normalized));
+      final payload = jsonDecode(payloadStr) as Map<String, dynamic>;
+      return (payload['employeeId'] ?? payload['id'] ?? payload['sub'])
+          ?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Future<LoginResponseData> login(LoginRequestModel request) async {
     final response = await _remoteDataSource.login(request);
@@ -29,7 +52,13 @@ class AuthRepositoryImpl implements AuthRepository {
       // 1. Simpan token secara aman ke iOS Keychain / Android Encrypted KeyStore
       await _localDataSource.saveToken(token);
 
-      // 2. Set token global di ApiClient untuk request API berikutnya
+      // 2. Ekstrak & simpan Employee ID jika tersedia di payload JWT
+      final empId = _extractEmployeeIdFromJwt(token);
+      if (empId != null && empId.isNotEmpty) {
+        await _localDataSource.saveEmployeeId(empId);
+      }
+
+      // 3. Set token global di ApiClient untuk request API berikutnya
       _apiClient.setAuthToken(token);
 
       return response.data!;

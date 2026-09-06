@@ -27,12 +27,22 @@ abstract class ApiEndpoints {
   static const String changePassword = '/auth/change-password';
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
+  static const String authMenus = '/auth/menus';
 
   // ==========================================
   // --- 👤 EMPLOYEE ENDPOINTS ---
   // ==========================================
   static const String employees = '/employees';
+  static const String employee = '/employee';
   static const String employeeProfile = '/employees/profile';
+  static const String employeeDashboard = '/employee/dashboard';
+
+  // ==========================================
+  // --- 🏢 ORGANIZATION FILTER ENDPOINTS ---
+  // ==========================================
+  static const String companies = '/companies';
+  static const String departments = '/departments';
+  static const String positions = '/positions';
 
   // ==========================================
   // --- ⏱️ ATTENDANCE ENDPOINTS ---

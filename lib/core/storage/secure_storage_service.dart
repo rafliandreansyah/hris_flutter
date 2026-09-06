@@ -47,6 +47,19 @@ class SecureStorageService {
     return await _storage.read(key: AppConstants.refreshTokenKey);
   }
 
+  /// Menyimpan Employee ID yang sedang login
+  Future<void> saveEmployeeId(String employeeId) async {
+    await _storage.write(
+      key: AppConstants.employeeIdKey,
+      value: employeeId,
+    );
+  }
+
+  /// Mengambil Employee ID yang tersimpan
+  Future<String?> getEmployeeId() async {
+    return await _storage.read(key: AppConstants.employeeIdKey);
+  }
+
   /// Memeriksa apakah user memiliki access token tersimpan
   Future<bool> hasToken() async {
     final token = await getAccessToken();
@@ -58,6 +71,7 @@ class SecureStorageService {
     await _storage.delete(key: AppConstants.accessTokenKey);
     await _storage.delete(key: AppConstants.refreshTokenKey);
     await _storage.delete(key: AppConstants.userProfileKey);
+    await _storage.delete(key: AppConstants.employeeIdKey);
   }
 
   /// Menghapus seluruh data di secure storage

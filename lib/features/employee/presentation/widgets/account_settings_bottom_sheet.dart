@@ -3,20 +3,34 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Menampilkan Bottom Sheet dialog "Account Settings" sesuai spesifikasi Google Stitch
 /// (Project: Oasish Flutter M3 HRIS - ID: 17152850901645837896, Screen ID: 155d605db9dc42838aa0f1a1ab950b2c).
-Future<void> showAccountSettingsBottomSheet(BuildContext context) {
+Future<void> showAccountSettingsBottomSheet(
+  BuildContext context, {
+  String? name,
+  String? role,
+  String? employeeId,
+  String? status,
+  String? avatarUrl,
+}) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: false,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.45),
-    builder: (context) => const AccountSettingsBottomSheet(),
+    builder: (context) => AccountSettingsBottomSheet(
+      name: name ?? 'Sarah Jenkins',
+      role: role ?? 'Senior Frontend Engineer',
+      employeeId: employeeId ?? 'EMP-2024-019',
+      status: status ?? 'Active',
+      avatarUrl: avatarUrl,
+    ),
   );
 }
 
@@ -116,23 +130,14 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                   child: Row(
                     children: [
                       // Avatar
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: borderCol, width: 1.5),
-                        ),
-                        child: ClipOval(
-                          child: (avatarUrl != null && avatarUrl!.isNotEmpty)
-                              ? Image.network(
-                                  avatarUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      _buildAvatarFallback(isDark),
-                                )
-                              : _buildAvatarFallback(isDark),
-                        ),
+                      AppAvatar(
+                        imageUrl: avatarUrl,
+                        name: name,
+                        size: 56,
+                        showBorder: true,
+                        borderColor: borderCol,
+                        borderWidth: 1.5,
+                        fontSize: 18,
                       ),
                       const SizedBox(width: 14),
 
@@ -391,20 +396,6 @@ class AccountSettingsBottomSheet extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAvatarFallback(bool isDark) {
-    return Container(
-      color: isDark
-          ? AppColors.darkPrimaryContainer
-          : AppColors.primaryContainer,
-      alignment: Alignment.center,
-      child: Icon(
-        LucideIcons.user,
-        size: 28,
-        color: isDark ? AppColors.darkPrimary : AppColors.brandTeal,
       ),
     );
   }

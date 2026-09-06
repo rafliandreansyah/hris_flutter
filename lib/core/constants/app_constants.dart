@@ -9,6 +9,7 @@ abstract class AppConstants {
   static const String accessTokenKey = 'muratech_access_token';
   static const String refreshTokenKey = 'muratech_refresh_token';
   static const String userProfileKey = 'muratech_user_profile';
+  static const String employeeIdKey = 'muratech_employee_id';
   static const String themeModeKey = 'muratech_theme_mode';
 
   // --- HTTP Headers ---

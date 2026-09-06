@@ -3,6 +3,8 @@ import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
   Future<String?> getToken();
+  Future<void> saveEmployeeId(String employeeId);
+  Future<String?> getEmployeeId();
   Future<void> clearToken();
   Future<bool> hasToken();
 }
@@ -21,6 +23,16 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<String?> getToken() async {
     return await _storageService.getAccessToken();
+  }
+
+  @override
+  Future<void> saveEmployeeId(String employeeId) async {
+    await _storageService.saveEmployeeId(employeeId);
+  }
+
+  @override
+  Future<String?> getEmployeeId() async {
+    return await _storageService.getEmployeeId();
   }
 
   @override
