@@ -73,6 +73,10 @@ class QuickAccessGrid extends StatelessWidget {
         lower.contains('pegawai') ||
         lower.contains('karyawan')) {
       context.push(Routes.EMPLOYEE_DIRECTORY);
+    } else if (lower.contains('act') ||
+        lower.contains('aktivitas') ||
+        lower.contains('activity')) {
+      context.push(Routes.ACTIVITY);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Menu $title segera hadir')),

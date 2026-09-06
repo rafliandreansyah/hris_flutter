@@ -7,4 +7,7 @@ abstract class Routes {
   static const String DASHBOARD = '/dashboard';
   static const String EMPLOYEE_DIRECTORY = '/employee-directory';
   static const String EMPLOYEE_DETAIL = '/employee-detail';
+  static const String ACTIVITY = '/activity';
+  static const String ACTIVITY_DETAIL = '/activity-detail';
+  static const String CREATE_ACTIVITY = '/create-activity';
 }

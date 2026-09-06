@@ -302,7 +302,20 @@ void main() {
       expect(find.text('Batal'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
 
-      // Tap on Departemen selector
+      // Verify department and position are disabled with helper text before company is chosen
+      expect(find.text('Pilih perusahaan terlebih dahulu'), findsNWidgets(2));
+
+      // Select company first
+      await tester.tap(find.text('Semua Perusahaan'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('Pilih Perusahaan'), findsOneWidget);
+      await tester.tap(find.text('PT Oasish Group'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Now department is enabled, tap on Departemen selector
       await tester.tap(find.text('Semua Departemen'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
