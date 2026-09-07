@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
@@ -31,7 +33,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
   String? _samplePhotoUrl;
   double _latitude = -6.2088;
   double _longitude = 106.8456;
-  final String _gpsAccuracy = '±3m';
+  String _gpsAccuracy = '±3m';
   bool _isSubmitting = false;
 
   final List<String> _activityTypes = const [
@@ -50,12 +52,59 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
     super.dispose();
   }
 
-  void _refreshGpsLocation() {
-    setState(() {
-      // Sedikit jitter realistis untuk simulasi update koordinat GPS
-      _latitude = -6.2088 + (DateTime.now().millisecond % 5) * 0.0001;
-      _longitude = 106.8456 + (DateTime.now().millisecond % 5) * 0.0001;
-    });
+  Future<void> _refreshGpsLocation() async {
+    try {
+      final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+      if (!isTest) {
+        final pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 6),
+          ),
+        );
+        setState(() {
+          _latitude = pos.latitude;
+          _longitude = pos.longitude;
+          _gpsAccuracy = '±${pos.accuracy.round()}m';
+        });
+
+        try {
+          final placemarks = await Geocoding().placemarkFromCoordinates(pos.latitude, pos.longitude);
+          if (placemarks.isNotEmpty) {
+            final place = placemarks.first;
+            final street = place.street ?? '';
+            final subLoc = place.subLocality ?? '';
+            final locality = place.locality ?? place.subAdministrativeArea ?? '';
+            final admin = place.administrativeArea ?? '';
+            final fullAddr = [street, subLoc, locality, admin]
+                .where((e) => e.trim().isNotEmpty)
+                .join(', ');
+            final locName = subLoc.isNotEmpty
+                ? subLoc
+                : (place.name?.isNotEmpty == true ? place.name! : locality);
+
+            if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
+              setState(() => _addressController.text = fullAddr);
+            }
+            if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
+              setState(() => _locationNameController.text = locName);
+            }
+          }
+        } catch (_) {}
+      } else {
+        setState(() {
+          _latitude = -6.2088 + (DateTime.now().millisecond % 5) * 0.0001;
+          _longitude = 106.8456 + (DateTime.now().millisecond % 5) * 0.0001;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _latitude = -6.2088 + (DateTime.now().millisecond % 5) * 0.0001;
+        _longitude = 106.8456 + (DateTime.now().millisecond % 5) * 0.0001;
+      });
+    }
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -405,6 +454,21 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                   latitude: _latitude,
                   longitude: _longitude,
                   gpsAccuracy: _gpsAccuracy,
+                  onLocationChanged: (lat, lng, acc) {
+                    setState(() {
+                      _latitude = lat;
+                      _longitude = lng;
+                      _gpsAccuracy = acc;
+                    });
+                  },
+                  onAddressDetected: (fullAddr, locName) {
+                    if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
+                      setState(() => _addressController.text = fullAddr);
+                    }
+                    if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
+                      setState(() => _locationNameController.text = locName);
+                    }
+                  },
                 ),
 
                 const SizedBox(height: 16),

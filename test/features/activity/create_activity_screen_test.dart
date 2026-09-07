@@ -58,8 +58,8 @@ void main() {
       expect(find.text('-6.2088° S, 106.8456° E'), findsOneWidget);
       expect(find.text('Real-time'), findsOneWidget);
 
-      // Verify omitted elements (no external maps button or full address text in map card)
-      expect(find.text('Buka di Maps'), findsNothing);
+      // Verify Buka di Maps button exists
+      expect(find.text('Buka di Maps'), findsOneWidget);
     });
 
     testWidgets('Form validation alerts user when required fields are missing', (
