@@ -3,13 +3,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 
 /// Varian gaya tombol global Oasish
-enum AppButtonVariant {
-  primary,
-  secondary,
-  outlined,
-  ghost,
-  danger,
-}
+enum AppButtonVariant { primary, secondary, outlined, ghost, danger }
 
 /// Widget tombol standar global Oasish HRIS yang konsisten di seluruh aplikasi.
 class AppButton extends StatelessWidget {
@@ -56,12 +50,20 @@ class AppButton extends StatelessWidget {
         defaultFg = foregroundColor ?? AppColors.onPrimary;
         break;
       case AppButtonVariant.secondary:
-        defaultBg = backgroundColor ?? (isDark ? AppColors.darkPrimaryContainer : AppColors.primaryContainer);
-        defaultFg = foregroundColor ?? (isDark ? AppColors.inversePrimary : AppColors.onPrimaryContainer);
+        defaultBg =
+            backgroundColor ??
+            (isDark
+                ? AppColors.darkPrimaryContainer
+                : AppColors.primaryContainer);
+        defaultFg =
+            foregroundColor ??
+            (isDark ? AppColors.inversePrimary : AppColors.onPrimaryContainer);
         break;
       case AppButtonVariant.outlined:
         defaultBg = backgroundColor ?? Colors.transparent;
-        defaultFg = foregroundColor ?? (isDark ? AppColors.inversePrimary : AppColors.brandTeal);
+        defaultFg =
+            foregroundColor ??
+            (isDark ? AppColors.inversePrimary : AppColors.brandTeal);
         borderSide = BorderSide(
           color: isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted,
           width: 1.5,
@@ -69,7 +71,9 @@ class AppButton extends StatelessWidget {
         break;
       case AppButtonVariant.ghost:
         defaultBg = backgroundColor ?? Colors.transparent;
-        defaultFg = foregroundColor ?? (isDark ? AppColors.darkOnSurface : AppColors.onSurface);
+        defaultFg =
+            foregroundColor ??
+            (isDark ? AppColors.darkOnSurface : AppColors.onSurface);
         break;
       case AppButtonVariant.danger:
         defaultBg = backgroundColor ?? AppColors.errorRed;
@@ -82,7 +86,8 @@ class AppButton extends StatelessWidget {
       side: borderSide ?? BorderSide.none,
     );
 
-    final resolvedTextStyle = textStyle ??
+    final resolvedTextStyle =
+        textStyle ??
         AppTypography.labelMedium.copyWith(
           color: defaultFg,
           fontWeight: FontWeight.w700,
@@ -93,10 +98,7 @@ class AppButton extends StatelessWidget {
         ? SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(defaultFg),
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2.5),
           )
         : Row(
             mainAxisSize: width == null ? MainAxisSize.min : MainAxisSize.max,
@@ -107,10 +109,7 @@ class AppButton extends StatelessWidget {
                 Icon(leadingIcon, size: 18, color: defaultFg),
                 const SizedBox(width: 8),
               ],
-              Text(
-                text,
-                style: resolvedTextStyle,
-              ),
+              Text(text, style: resolvedTextStyle),
               if (trailingIcon != null) ...[
                 const SizedBox(width: 8),
                 Icon(trailingIcon, size: 18, color: defaultFg),

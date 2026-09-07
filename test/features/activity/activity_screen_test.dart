@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
+import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 void main() {
@@ -234,8 +238,8 @@ void main() {
       expect(find.text('Perusahaan (Company)'), findsOneWidget);
       expect(find.text('Departemen (Division)'), findsOneWidget);
       expect(find.text('Jabatan (Position)'), findsOneWidget);
-      // Status field is removed as requested
-      expect(find.text('Status Aktivitas'), findsNothing);
+      // Status field is added as requested (ongoing, completed, canceled)
+      expect(find.text('Status Aktivitas'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
       expect(find.text('Reset Filter'), findsOneWidget);
       expect(find.text('Batal'), findsOneWidget);
@@ -468,4 +472,391 @@ void main() {
       expect(copied.dateRange, isNotNull);
     });
   });
+
+  group('ActivityScreen API Integration, 403 Forbidden & Paging Tests', () {
+    testWidgets('Tab 0 loads with approver: false and Tab 1 loads with approver: true', (
+      WidgetTester tester,
+    ) async {
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          bool approver = false,
+        }) async {
+          if (!approver) {
+            return ActivityListResponse(
+              success: true,
+              message: 'OK',
+              data: [
+                ActivityItem(
+                  id: 'MY-1',
+                  title: 'Aktivitasku Hari Ini',
+                  description: 'Mengerjakan fitur HRIS',
+                  userName: 'Sarah Jenkins',
+                  userRole: 'Frontend Engineer',
+                  department: 'Engineering',
+                  company: 'PT Oasish',
+                  initials: 'SJ',
+                  status: ActivityStatus.completed,
+                  location: 'HQ Office',
+                  time: '09:00',
+                  date: DateTime(2026, 9, 7),
+                  isMyActivity: true,
+                ),
+              ],
+              meta: const ActivityPaginationMeta(page: 1, limit: 20, total: 1, totalPages: 1),
+            );
+          } else {
+            return ActivityListResponse(
+              success: true,
+              message: 'OK',
+              data: [
+                ActivityItem(
+                  id: 'TEAM-1',
+                  title: 'Aktivitas Rekan Tim',
+                  description: 'Inspeksi lapangan proyek',
+                  userName: 'Budi Santoso',
+                  userRole: 'Site Supervisor',
+                  department: 'Operations',
+                  company: 'PT Oasish',
+                  initials: 'BS',
+                  status: ActivityStatus.inProgress,
+                  location: 'SCBD',
+                  time: '10:30',
+                  date: DateTime(2026, 9, 7),
+                  isMyActivity: false,
+                ),
+              ],
+              meta: const ActivityPaginationMeta(page: 1, limit: 20, total: 1, totalPages: 1),
+            );
+          }
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: ActivityScreen(activityRepository: mockRepo),
+      ));
+      await tester.pumpAndSettle();
+
+      // Tab 0 verified: approver == false was requested
+      expect(mockRepo.requestedApprovers.contains(false), isTrue);
+      expect(find.text('Aktivitasku Hari Ini'), findsOneWidget);
+
+      // Switch to Tab 1 (Team Activities)
+      await tester.tap(find.text('Team Activities'));
+      await tester.pumpAndSettle();
+
+      // Tab 1 verified: approver == true was requested
+      expect(mockRepo.requestedApprovers.contains(true), isTrue);
+      expect(find.text('Aktivitas Rekan Tim'), findsOneWidget);
+    });
+
+    testWidgets('Displays dedicated 403 Forbidden state when Team Activities returns HTTP 403', (
+      WidgetTester tester,
+    ) async {
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          bool approver = false,
+        }) async {
+          if (approver) {
+            throw const ApiException(
+              message: 'Anda tidak memiliki hak akses pada pegawai.',
+              statusCode: 403,
+            );
+          }
+          return const ActivityListResponse(
+            success: true,
+            message: 'OK',
+            data: [],
+            meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+          );
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: ActivityScreen(activityRepository: mockRepo),
+      ));
+      await tester.pumpAndSettle();
+
+      // Switch to Team Activities
+      await tester.tap(find.text('Team Activities'));
+      await tester.pumpAndSettle();
+
+      // Verify 403 Forbidden state UI
+      expect(find.byIcon(LucideIcons.shieldAlert), findsOneWidget);
+      expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
+      expect(
+        find.textContaining('tidak memiliki hak akses pada pegawai'),
+        findsOneWidget,
+      );
+      expect(find.text('Coba Lagi'), findsOneWidget);
+      expect(find.text('Aktivitasku'), findsOneWidget);
+
+      // Tap 'Aktivitasku' button -> animates back to Tab 0
+      await tester.tap(find.text('Aktivitasku'));
+      await tester.pumpAndSettle();
+
+      // Now back to Tab 0 (FAB is visible)
+      expect(find.byKey(const ValueKey('add_activity_fab')), findsOneWidget);
+    });
+
+    testWidgets('Displays informative empty states on both tabs when list is empty', (
+      WidgetTester tester,
+    ) async {
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          bool approver = false,
+        }) async {
+          return const ActivityListResponse(
+            success: true,
+            message: 'OK',
+            data: [],
+            meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+          );
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: ActivityScreen(activityRepository: mockRepo),
+      ));
+      await tester.pumpAndSettle();
+
+      // Tab 0 Empty State
+      expect(find.text('Belum Ada Aktivitas Saya'), findsOneWidget);
+      expect(
+        find.text('Catat progres atau laporan pekerjaan harian Anda menggunakan tombol di bawah.'),
+        findsOneWidget,
+      );
+
+      // Switch to Tab 1
+      await tester.tap(find.text('Team Activities'));
+      await tester.pumpAndSettle();
+
+      // Tab 1 Empty State
+      expect(find.text('Belum Ada Aktivitas Pegawai Lain'), findsOneWidget);
+      expect(
+        find.text('Saat ini belum ada log aktivitas yang dikirimkan oleh rekan kerja Anda.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Triggers pagination when scrolling to bottom threshold', (
+      WidgetTester tester,
+    ) async {
+      final manyItems = List.generate(
+        30,
+        (i) => ActivityItem(
+          id: 'PAGE-1-$i',
+          title: 'Activity Page 1 Item $i',
+          description: 'Description for item $i',
+          userName: 'Sarah Jenkins',
+          userRole: 'Frontend Engineer',
+          department: 'Engineering',
+          company: 'PT Oasish',
+          initials: 'SJ',
+          status: ActivityStatus.completed,
+          location: 'HQ',
+          time: '10:00',
+          date: DateTime(2026, 9, 7),
+          isMyActivity: true,
+        ),
+      );
+
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          bool approver = false,
+        }) async {
+          if (page == 1) {
+            return ActivityListResponse(
+              success: true,
+              message: 'OK',
+              data: manyItems,
+              meta: const ActivityPaginationMeta(page: 1, limit: 30, total: 60, totalPages: 2),
+            );
+          } else {
+            return ActivityListResponse(
+              success: true,
+              message: 'OK',
+              data: [
+                ActivityItem(
+                  id: 'PAGE-2-0',
+                  title: 'Activity Page 2 Item 0',
+                  description: 'Loaded via infinite scroll',
+                  userName: 'Sarah Jenkins',
+                  userRole: 'Frontend Engineer',
+                  department: 'Engineering',
+                  company: 'PT Oasish',
+                  initials: 'SJ',
+                  status: ActivityStatus.completed,
+                  location: 'HQ',
+                  time: '11:00',
+                  date: DateTime(2026, 9, 7),
+                  isMyActivity: true,
+                ),
+              ],
+              meta: const ActivityPaginationMeta(page: 2, limit: 30, total: 60, totalPages: 2),
+            );
+          }
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: ActivityScreen(activityRepository: mockRepo),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(mockRepo.requestedPages, [1]);
+      expect(find.text('Activity Page 1 Item 0'), findsOneWidget);
+
+      // Scroll to bottom of list via controller to trigger pagination
+      final listView = tester.widget<ListView>(find.byType(ListView).first);
+      listView.controller!.jumpTo(listView.controller!.position.maxScrollExtent);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Page 2 should have been requested
+      expect(mockRepo.requestedPages.contains(2), isTrue);
+      expect(find.text('Activity Page 2 Item 0'), findsOneWidget);
+    });
+  });
 }
+
+class _MockActivityRepository implements ActivityRepository {
+  final Future<ActivityListResponse> Function({
+    required int page,
+    required int size,
+    String? companyId,
+    String? departmentId,
+    String? positionId,
+    String? search,
+    String? status,
+    bool approver,
+  })? onGetActivities;
+
+  final List<int> requestedPages = [];
+  final List<bool> requestedApprovers = [];
+  final List<String?> requestedStatuses = [];
+
+  _MockActivityRepository({this.onGetActivities});
+
+  @override
+  Future<ActivityListResponse> getActivities({
+    required int page,
+    required int size,
+    String? companyId,
+    String? departmentId,
+    String? positionId,
+    String? search,
+    String? status,
+    bool approver = false,
+  }) async {
+    requestedPages.add(page);
+    requestedApprovers.add(approver);
+    requestedStatuses.add(status);
+    if (onGetActivities != null) {
+      return onGetActivities!(
+        page: page,
+        size: size,
+        companyId: companyId,
+        departmentId: departmentId,
+        positionId: positionId,
+        search: search,
+        status: status,
+        approver: approver,
+      );
+    }
+    return const ActivityListResponse(
+      success: true,
+      message: 'OK',
+      data: [],
+      meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+    );
+  }
+
+  @override
+  Future<ActivityDetailResponse> getActivityDetail(String id) async {
+    return ActivityDetailResponse(
+      success: true,
+      message: 'OK',
+      data: {'id': id, 'status': 'ongoing'},
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> finishActivity({
+    required String id,
+    required String notes,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(
+      success: true,
+      message: 'Aktivitas berhasil diselesaikan',
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> cancelActivity({
+    required String id,
+    required String notes,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(
+      success: true,
+      message: 'Aktivitas berhasil dibatalkan',
+    );
+  }
+
+  @override
+  Future<ActivityTypesResponse> getActivityTypes() async {
+    return const ActivityTypesResponse(
+      success: true,
+      message: 'OK',
+      data: [],
+    );
+  }
+
+  @override
+  Future<CreateActivityResponse> createActivity({
+    required String activityTypeId,
+    required double latitude,
+    required double longitude,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    String status = 'ongoing',
+    XFile? file,
+  }) async {
+    return const CreateActivityResponse(
+      success: true,
+      message: 'OK',
+      data: {},
+    );
+  }
+}
+

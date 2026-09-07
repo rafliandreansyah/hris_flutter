@@ -1,66 +1,148 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
+import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
+import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_bloc.dart';
+import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_event.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Halaman Daftar Aktivitas (Activity Reports / Team Activity Feed) sesuai Google Stitch.
-class ActivityScreen extends StatefulWidget {
+/// Halaman Daftar Aktivitas (Activity Reports / Team Activity Feed) sesuai Clean Architecture & BLoC.
+/// State bisnis (pemuatan data, filtering, tabs, infinite scroll, 403 error) dikelola oleh [ActivityListBloc].
+class ActivityScreen extends StatelessWidget {
   final List<ActivityItem>? customActivities;
+  final ActivityRepository? activityRepository;
+  final ActivityListBloc? activityListBloc;
 
-  const ActivityScreen({super.key, this.customActivities});
+  const ActivityScreen({
+    super.key,
+    this.customActivities,
+    this.activityRepository,
+    this.activityListBloc,
+  });
 
   @override
-  State<ActivityScreen> createState() => _ActivityScreenState();
+  Widget build(BuildContext context) {
+    if (activityListBloc != null) {
+      return BlocProvider<ActivityListBloc>.value(
+        value: activityListBloc!,
+        child: _ActivityScreenView(customActivities: customActivities),
+      );
+    }
+    return BlocProvider<ActivityListBloc>(
+      create: (context) => ActivityListBloc(
+        repository: activityRepository,
+      )..add(ActivityListStarted(customActivities: customActivities)),
+      child: _ActivityScreenView(customActivities: customActivities),
+    );
+  }
 }
 
-class _ActivityScreenState extends State<ActivityScreen>
+class _ActivityScreenView extends StatefulWidget {
+  final List<ActivityItem>? customActivities;
+
+  const _ActivityScreenView({this.customActivities});
+
+  @override
+  State<_ActivityScreenView> createState() => _ActivityScreenViewState();
+}
+
+class _ActivityScreenViewState extends State<_ActivityScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  ActivityFilterCriteria _filterCriteria = const ActivityFilterCriteria();
-  bool _isLoading = false;
+  final ScrollController _myScrollController = ScrollController();
+  final ScrollController _teamScrollController = ScrollController();
+  Timer? _debounceTimer;
   bool _isSearchVisible = true;
-
-  late List<ActivityItem> _activities;
 
   @override
   void initState() {
     super.initState();
-    _activities = List.from(
-      widget.customActivities ?? ActivityItem.sampleActivities,
-    );
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {});
-      }
-    });
+    _tabController.addListener(_onTabChanged);
+    _myScrollController.addListener(_onMyScroll);
+    _teamScrollController.addListener(_onTeamScroll);
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _searchController.dispose();
+    _myScrollController.removeListener(_onMyScroll);
+    _myScrollController.dispose();
+    _teamScrollController.removeListener(_onTeamScroll);
+    _teamScrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleRefresh() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      setState(() {
-        _activities = List.from(
-          widget.customActivities ?? ActivityItem.sampleActivities,
-        );
-        _isLoading = false;
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      setState(() {});
+      context
+          .read<ActivityListBloc>()
+          .add(ActivityListTabChanged(_tabController.index));
+    }
+  }
+
+  void _onMyScroll() {
+    if (_myScrollController.hasClients &&
+        _myScrollController.position.pixels >=
+            _myScrollController.position.maxScrollExtent - 250) {
+      context
+          .read<ActivityListBloc>()
+          .add(const ActivityListLoadMoreRequested(isTeam: false));
+    }
+  }
+
+  void _onTeamScroll() {
+    if (_teamScrollController.hasClients &&
+        _teamScrollController.position.pixels >=
+            _teamScrollController.position.maxScrollExtent - 250) {
+      context
+          .read<ActivityListBloc>()
+          .add(const ActivityListLoadMoreRequested(isTeam: true));
+    }
+  }
+
+  void _onSearchChanged(String val) {
+    if (widget.customActivities != null) {
+      context.read<ActivityListBloc>().add(ActivityListSearchChanged(val));
+    } else {
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+        if (!mounted) return;
+        context.read<ActivityListBloc>().add(ActivityListSearchChanged(val));
       });
     }
+  }
+
+  Future<void> _handleRefresh() async {
+    final isTeam = _tabController.index == 1;
+    context.read<ActivityListBloc>().add(
+          ActivityListFetchRequested(isRefresh: true, isTeam: isTeam),
+        );
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
+  void _loadMyActivities({required int page, bool isRefresh = false}) {
+    context.read<ActivityListBloc>().add(
+          ActivityListFetchRequested(isRefresh: isRefresh, isTeam: false),
+        );
+  }
+
+  void _loadTeamActivities({required int page, bool isRefresh = false}) {
+    context.read<ActivityListBloc>().add(
+          ActivityListFetchRequested(isRefresh: isRefresh, isTeam: true),
+        );
   }
 
   Future<void> _handleCreateActivity() async {
@@ -69,9 +151,9 @@ class _ActivityScreenState extends State<ActivityScreen>
           await context.push<ActivityItem>(Routes.CREATE_ACTIVITY);
       if (!mounted) return;
       if (newActivity != null) {
-        setState(() {
-          _activities.insert(0, newActivity);
-        });
+        context
+            .read<ActivityListBloc>()
+            .add(ActivityListActivityAdded(newActivity));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -104,100 +186,21 @@ class _ActivityScreenState extends State<ActivityScreen>
   }
 
   Future<void> _openFilterBottomSheet() async {
+    final bloc = context.read<ActivityListBloc>();
     final result = await showActivityFilterBottomSheet(
       context,
-      initialCriteria: _filterCriteria,
+      initialCriteria: bloc.state.filterCriteria,
     );
     if (result != null && mounted) {
-      setState(() {
-        _filterCriteria = result;
-      });
+      bloc.add(ActivityListFilterApplied(result));
     }
-  }
-
-  List<ActivityItem> _getFilteredActivities({required bool myActivitiesOnly}) {
-    return _activities.where((item) {
-      // 1. Tab filter (left: My Activities, right: Team Activities)
-      if (myActivitiesOnly && !item.isMyActivity) {
-        return false;
-      }
-
-      // 2. Search query filter
-      if (_searchQuery.trim().isNotEmpty) {
-        final q = _searchQuery.toLowerCase().trim();
-        final matchUser = item.userName.toLowerCase().contains(q);
-        final matchRole = item.userRole.toLowerCase().contains(q);
-        final matchDept = item.department.toLowerCase().contains(q);
-        final matchTitle = item.title.toLowerCase().contains(q);
-        final matchDesc = item.description.toLowerCase().contains(q);
-        final matchLoc = item.location.toLowerCase().contains(q);
-
-        if (!matchUser &&
-            !matchRole &&
-            !matchDept &&
-            !matchTitle &&
-            !matchDesc &&
-            !matchLoc) {
-          return false;
-        }
-      }
-
-      // 3. Company filter
-      if (_filterCriteria.company != null &&
-          _filterCriteria.company != 'Semua Perusahaan') {
-        if (!item.company.toLowerCase().contains(
-          _filterCriteria.company!.toLowerCase(),
-        )) {
-          return false;
-        }
-      }
-
-      // 4. Department filter
-      if (_filterCriteria.department != null &&
-          _filterCriteria.department != 'Semua Departemen') {
-        if (!item.department.toLowerCase().contains(
-          _filterCriteria.department!.toLowerCase(),
-        )) {
-          return false;
-        }
-      }
-
-      // 5. Position filter
-      if (_filterCriteria.position != null &&
-          _filterCriteria.position != 'Semua Jabatan') {
-        if (!item.userRole.toLowerCase().contains(
-          _filterCriteria.position!.toLowerCase(),
-        )) {
-          return false;
-        }
-      }
-
-      // 6. Date range filter
-      if (_filterCriteria.dateRange != null) {
-        final start = DateTime(
-          _filterCriteria.dateRange!.start.year,
-          _filterCriteria.dateRange!.start.month,
-          _filterCriteria.dateRange!.start.day,
-        );
-        final end = DateTime(
-          _filterCriteria.dateRange!.end.year,
-          _filterCriteria.dateRange!.end.month,
-          _filterCriteria.dateRange!.end.day,
-          23,
-          59,
-          59,
-        );
-        if (item.date.isBefore(start) || item.date.isAfter(end)) {
-          return false;
-        }
-      }
-
-      return true;
-    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<ActivityListBloc>().state;
+    final filterCriteria = state.filterCriteria;
+    final searchQuery = state.searchQuery;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark
         ? AppColors.darkBackground
@@ -257,10 +260,10 @@ class _ActivityScreenState extends State<ActivityScreen>
               children: [
                 Icon(
                   LucideIcons.slidersHorizontal,
-                  color: _filterCriteria.hasActiveFilter ? brandColor : textCol,
+                  color: filterCriteria.hasActiveFilter ? brandColor : textCol,
                   size: 20,
                 ),
-                if (_filterCriteria.hasActiveFilter)
+                if (filterCriteria.hasActiveFilter)
                   Positioned(
                     right: -2,
                     top: -2,
@@ -446,9 +449,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                         color: textCol,
                         fontSize: 14,
                       ),
-                      onChanged: (val) {
-                        setState(() => _searchQuery = val);
-                      },
+                      onChanged: _onSearchChanged,
                       decoration: InputDecoration(
                         hintText: 'Search by employee name or keyword...',
                         hintStyle: AppTypography.bodyMedium.copyWith(
@@ -460,7 +461,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                           size: 18,
                           color: subtitleCol,
                         ),
-                        suffixIcon: _searchQuery.isNotEmpty
+                        suffixIcon: searchQuery.isNotEmpty
                             ? IconButton(
                                 icon: Icon(
                                   LucideIcons.x,
@@ -469,7 +470,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                                 ),
                                 onPressed: () {
                                   _searchController.clear();
-                                  setState(() => _searchQuery = '');
+                                  _onSearchChanged('');
                                 },
                               )
                             : null,
@@ -485,7 +486,7 @@ class _ActivityScreenState extends State<ActivityScreen>
               ),
             ),
 
-            // 5. TabBarView for Content (Left: My Activities, Right: Team Activities) with Scroll Notification Listener
+            // 5. TabBarView for Content (Left: My Activities, Right: Team Activities)
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
@@ -499,13 +500,13 @@ class _ActivityScreenState extends State<ActivityScreen>
                         setState(() => _isSearchVisible = true);
                       }
                     }
-                    // Saat scroll ke atas (content bergerak ke atas / offset membesar) -> sembunyikan search bar
+                    // Saat scroll ke atas -> sembunyikan search bar
                     else if (delta > 3) {
                       if (_isSearchVisible) {
                         setState(() => _isSearchVisible = false);
                       }
                     }
-                    // Saat scroll ke bawah (content bergerak ke bawah / offset mengecil) -> tampilkan search bar
+                    // Saat scroll ke bawah -> tampilkan search bar
                     else if (delta < -3) {
                       if (!_isSearchVisible) {
                         setState(() => _isSearchVisible = true);
@@ -517,8 +518,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildActivityListView(
-                      myActivitiesOnly: true,
+                    _buildMyActivitiesTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,
                       textCol: textCol,
@@ -526,8 +526,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                       borderCol: borderCol,
                       brandColor: brandColor,
                     ),
-                    _buildActivityListView(
-                      myActivitiesOnly: false,
+                    _buildTeamActivitiesTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,
                       textCol: textCol,
@@ -545,8 +544,8 @@ class _ActivityScreenState extends State<ActivityScreen>
     );
   }
 
-  Widget _buildActivityListView({
-    required bool myActivitiesOnly,
+  /// Tampilan Tab 0: Aktivitasku
+  Widget _buildMyActivitiesTab({
     required bool isDark,
     required Color surfaceCol,
     required Color textCol,
@@ -554,12 +553,21 @@ class _ActivityScreenState extends State<ActivityScreen>
     required Color borderCol,
     required Color brandColor,
   }) {
-    final filteredList = _getFilteredActivities(
-      myActivitiesOnly: myActivitiesOnly,
-    );
+    final state = context.watch<ActivityListBloc>().state;
+    final filteredList = state.myActivities;
+    final isMyLoading = state.isMyLoading;
+    final isMyLoadingMore = state.isMyLoadingMore;
+    final myActivities = state.myActivities;
+    final filterCriteria = state.filterCriteria;
+    final searchQuery = state.searchQuery;
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (isMyLoading && myActivities.isEmpty) {
+      return Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+        ),
+      );
     }
 
     if (filteredList.isEmpty) {
@@ -589,9 +597,9 @@ class _ActivityScreenState extends State<ActivityScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    myActivitiesOnly
-                        ? 'Belum Ada Aktivitas Saya'
-                        : 'Tidak Ada Aktivitas Ditemukan',
+                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
+                        ? 'Tidak Ada Aktivitas Ditemukan'
+                        : 'Belum Ada Aktivitas Saya',
                     style: AppTypography.titleMedium.copyWith(
                       color: textCol,
                       fontWeight: FontWeight.w700,
@@ -601,38 +609,104 @@ class _ActivityScreenState extends State<ActivityScreen>
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    myActivitiesOnly &&
-                            !_filterCriteria.hasActiveFilter &&
-                            _searchQuery.isEmpty
-                        ? 'Catat progres atau laporan pekerjaan harian Anda menggunakan tombol di bawah.'
-                        : 'Coba ubah kata kunci pencarian atau sesuaikan filter Anda.',
+                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
+                        ? 'Tidak ada aktivitas Anda yang sesuai dengan kata kunci pencarian atau filter yang dipilih.'
+                        : 'Catat progres atau laporan pekerjaan harian Anda menggunakan tombol di bawah.',
                     style: AppTypography.bodySmall.copyWith(
                       color: subtitleCol,
                       fontSize: 13,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (_filterCriteria.hasActiveFilter ||
-                      _searchQuery.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
+                  const SizedBox(height: 16),
+                  if (filterCriteria.hasActiveFilter ||
+                      searchQuery.isNotEmpty)
+                    OutlinedButton(
                       onPressed: () {
                         _searchController.clear();
-                        setState(() {
-                          _searchQuery = '';
-                          _filterCriteria = const ActivityFilterCriteria();
-                        });
+                        context
+                            .read<ActivityListBloc>()
+                            .add(const ActivityListSearchChanged(''));
+                        context
+                            .read<ActivityListBloc>()
+                            .add(const ActivityListFilterApplied(
+                                ActivityFilterCriteria()));
                       },
-                      icon: const Icon(LucideIcons.rotateCcw, size: 14),
-                      label: const Text('Reset Pencarian & Filter'),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: borderCol),
+                        foregroundColor: brandColor,
+                        side: BorderSide(color: brandColor),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        alignment: Alignment.center,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.rotateCcw, size: 14, color: brandColor),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Reset Pencarian & Filter',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: brandColor,
+                              fontWeight: FontWeight.w600,
+                              height: 1.0,
+                              leadingDistribution: TextLeadingDistribution.even,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+
+                    ElevatedButton(
+                      onPressed: _handleCreateActivity,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brandColor,
+                        foregroundColor:
+                            isDark ? const Color(0xFF003732) : Colors.white,
+                        shape: const StadiumBorder(),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        alignment: Alignment.center,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.plus,
+                            size: 16,
+                            color:
+                                isDark ? const Color(0xFF003732) : Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Tambah Aktivitas',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: isDark
+                                  ? const Color(0xFF003732)
+                                  : Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
+                              height: 1.0,
+                              leadingDistribution: TextLeadingDistribution.even,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+
                 ],
               ),
             ),
@@ -645,21 +719,391 @@ class _ActivityScreenState extends State<ActivityScreen>
       onRefresh: _handleRefresh,
       color: brandColor,
       child: ListView.builder(
+        controller: _myScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
-        itemCount: filteredList.length + 1,
+        itemCount: filteredList.length + (isMyLoadingMore ? 2 : 1),
         itemBuilder: (context, index) {
           if (index < filteredList.length) {
             final item = filteredList[index];
             return ActivityCard(
               activity: item,
-              onTap: () {
-                context.push(Routes.ACTIVITY_DETAIL, extra: item);
+              onTap: () async {
+                final result =
+                    await context.push(Routes.ACTIVITY_DETAIL, extra: item);
+                if (result == true && mounted) {
+                  _loadMyActivities(page: 1, isRefresh: true);
+                }
               },
+            );
+          }
+          if (isMyLoadingMore && index == filteredList.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+                  ),
+                ),
+              ),
             );
           }
           return const SizedBox(height: 16);
         },
+      ),
+    );
+  }
+
+  /// Tampilan Tab 1: Aktivitas Pegawai Lain (dengan penanganan error 403 Forbidden)
+  Widget _buildTeamActivitiesTab({
+    required bool isDark,
+    required Color surfaceCol,
+    required Color textCol,
+    required Color subtitleCol,
+    required Color borderCol,
+    required Color brandColor,
+  }) {
+    final state = context.watch<ActivityListBloc>().state;
+    final filteredList = state.teamActivities;
+    final isTeamLoading = state.isTeamLoading;
+    final isTeamLoadingMore = state.isTeamLoadingMore;
+    final isTeamForbidden = state.isTeamForbidden;
+    final teamActivities = state.teamActivities;
+    final filterCriteria = state.filterCriteria;
+    final searchQuery = state.searchQuery;
+
+    // 1. Penanganan Khusus HTTP 403 Forbidden
+    if (isTeamForbidden) {
+      return _buildForbiddenState(
+        isDark: isDark,
+        surfaceCol: surfaceCol,
+        textCol: textCol,
+        subtitleCol: subtitleCol,
+        borderCol: borderCol,
+        brandColor: brandColor,
+      );
+    }
+
+    // 2. Loading Awal / Refresh
+    if (isTeamLoading && teamActivities.isEmpty) {
+      return Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+        ),
+      );
+    }
+
+    // 3. Status Kosong (Empty State)
+    if (filteredList.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: brandColor,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: brandColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.users,
+                      color: brandColor,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
+                        ? 'Tidak Ada Aktivitas Ditemukan'
+                        : 'Belum Ada Aktivitas Pegawai Lain',
+                    style: AppTypography.titleMedium.copyWith(
+                      color: textCol,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
+                        ? 'Tidak ada aktivitas pegawai lain yang cocok dengan kata kunci atau kriteria filter.'
+                        : 'Saat ini belum ada log aktivitas yang dikirimkan oleh rekan kerja Anda.',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: subtitleCol,
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (filterCriteria.hasActiveFilter ||
+                      searchQuery.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: () {
+                        _searchController.clear();
+                        context
+                            .read<ActivityListBloc>()
+                            .add(const ActivityListSearchChanged(''));
+                        context
+                            .read<ActivityListBloc>()
+                            .add(const ActivityListFilterApplied(
+                                ActivityFilterCriteria()));
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: brandColor,
+                        side: BorderSide(color: brandColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        alignment: Alignment.center,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.rotateCcw, size: 14, color: brandColor),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Reset Pencarian & Filter',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: brandColor,
+                              fontWeight: FontWeight.w600,
+                              height: 1.0,
+                              leadingDistribution: TextLeadingDistribution.even,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 4. Daftar Kartu Aktivitas Tim dengan Infinite Scroll
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: brandColor,
+      child: ListView.builder(
+        controller: _teamScrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
+        itemCount: filteredList.length + (isTeamLoadingMore ? 2 : 1),
+        itemBuilder: (context, index) {
+          if (index < filteredList.length) {
+            final item = filteredList[index];
+            return ActivityCard(
+              activity: item,
+              onTap: () async {
+                final result =
+                    await context.push(Routes.ACTIVITY_DETAIL, extra: item);
+                if (result == true && mounted) {
+                  _loadTeamActivities(page: 1, isRefresh: true);
+                }
+              },
+            );
+          }
+          if (isTeamLoadingMore && index == filteredList.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+                  ),
+                ),
+              ),
+            );
+          }
+          return const SizedBox(height: 16);
+        },
+      ),
+    );
+  }
+
+  /// Tampilan Khusus jika terjadi Error 403 (Tidak Memiliki Hak Akses Pegawai)
+  Widget _buildForbiddenState({
+    required bool isDark,
+    required Color surfaceCol,
+    required Color textCol,
+    required Color subtitleCol,
+    required Color borderCol,
+    required Color brandColor,
+  }) {
+    return RefreshIndicator(
+      onRefresh: () async => _loadTeamActivities(page: 1, isRefresh: true),
+      color: brandColor,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: surfaceCol,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.shieldAlert,
+                      color: Color(0xFFD97706),
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    'Tidak Memiliki Hak Akses',
+                    style: AppTypography.titleMedium.copyWith(
+                      color: textCol,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Anda tidak memiliki hak akses pada pegawai! Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: subtitleCol,
+                      fontSize: 13,
+                      height: 1.45,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () =>
+                            _loadTeamActivities(page: 1, isRefresh: true),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: textCol,
+                          side: BorderSide(color: borderCol),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          alignment: Alignment.center,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(LucideIcons.rotateCcw, size: 14, color: textCol),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Coba Lagi',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: textCol,
+                                fontWeight: FontWeight.w600,
+                                height: 1.0,
+                                leadingDistribution: TextLeadingDistribution.even,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () {
+                          _tabController.animateTo(0);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brandColor,
+                          foregroundColor:
+                              isDark ? const Color(0xFF003732) : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          alignment: Alignment.center,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.arrowLeft,
+                              size: 14,
+                              color: isDark ? const Color(0xFF003732) : Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Aktivitasku',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: isDark ? const Color(0xFF003732) : Colors.white,
+                                fontWeight: FontWeight.w700,
+                                height: 1.0,
+                                leadingDistribution: TextLeadingDistribution.even,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -685,6 +1129,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     final descController = TextEditingController();
     final locationController = TextEditingController();
     ActivityStatus selectedStatus = ActivityStatus.completed;
+    final bloc = context.read<ActivityListBloc>();
 
     showModalBottomSheet(
       context: context,
@@ -1018,9 +1463,7 @@ class _ActivityScreenState extends State<ActivityScreen>
                                       isMyActivity: true,
                                     );
 
-                                    setState(() {
-                                      _activities.insert(0, newActivity);
-                                    });
+                                    bloc.add(ActivityListActivityAdded(newActivity));
 
                                     Navigator.of(sheetContext).pop();
 

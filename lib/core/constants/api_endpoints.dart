@@ -78,4 +78,14 @@ abstract class ApiEndpoints {
   // ==========================================
   static const String announcements = '/announcements';
   static const String auditLogs = '/audit-logs/my';
+
+  // ==========================================
+  // --- 📋 ACTIVITY ENDPOINTS ---
+  // ==========================================
+  static const String activity = '/activity';
+  static const String activityTypes = '/activity/types';
+  static String activityDetail(String id) => '/activity/$id';
+  static String activityFinish(String id) => '/activity/$id/finish';
+  static String activityCancel(String id) => '/activity/$id/cancel';
 }
+

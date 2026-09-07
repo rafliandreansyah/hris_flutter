@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-/// Status aktivitas kerja pada Oasish HRIS
+/// Status aktivitas kerja pada Oasish HRIS (StatusEmployeeActivity)
 enum ActivityStatus {
+  planned,
+  ongoing,
   completed,
-  inProgress,
-  pendingReview,
+  canceled,
+  pendingReview;
+
+  /// Alias backward compatibility untuk kode lama
+  static const ActivityStatus inProgress = ActivityStatus.ongoing;
 }
 
 extension ActivityStatusExtension on ActivityStatus {
   String get label {
     switch (this) {
+      case ActivityStatus.planned:
+        return 'Planned';
+      case ActivityStatus.ongoing:
+        return 'Ongoing';
       case ActivityStatus.completed:
         return 'Completed';
-      case ActivityStatus.inProgress:
-        return 'In Progress';
+      case ActivityStatus.canceled:
+        return 'Canceled';
       case ActivityStatus.pendingReview:
         return 'Pending Review';
     }
@@ -21,10 +31,14 @@ extension ActivityStatusExtension on ActivityStatus {
 
   Color get textColor {
     switch (this) {
+      case ActivityStatus.planned:
+        return const Color(0xFF475569); // Slate 600
+      case ActivityStatus.ongoing:
+        return const Color(0xFFB45309); // Amber 700
       case ActivityStatus.completed:
         return const Color(0xFF166534); // Green 800
-      case ActivityStatus.inProgress:
-        return const Color(0xFFB45309); // Amber 700
+      case ActivityStatus.canceled:
+        return const Color(0xFF991B1B); // Red 800
       case ActivityStatus.pendingReview:
         return const Color(0xFF0369A1); // Sky 700
     }
@@ -32,10 +46,14 @@ extension ActivityStatusExtension on ActivityStatus {
 
   Color get backgroundColor {
     switch (this) {
+      case ActivityStatus.planned:
+        return const Color(0xFFF1F5F9); // Slate 100
+      case ActivityStatus.ongoing:
+        return const Color(0xFFFEF3C7); // Amber 100
       case ActivityStatus.completed:
         return const Color(0xFFDCFCE7); // Green 100
-      case ActivityStatus.inProgress:
-        return const Color(0xFFFEF3C7); // Amber 100
+      case ActivityStatus.canceled:
+        return const Color(0xFFFEE2E2); // Red 100
       case ActivityStatus.pendingReview:
         return const Color(0xFFE0F2FE); // Sky 100
     }
@@ -43,10 +61,14 @@ extension ActivityStatusExtension on ActivityStatus {
 
   Color get dotColor {
     switch (this) {
+      case ActivityStatus.planned:
+        return const Color(0xFF64748B);
+      case ActivityStatus.ongoing:
+        return const Color(0xFFF59E0B);
       case ActivityStatus.completed:
         return const Color(0xFF16A34A);
-      case ActivityStatus.inProgress:
-        return const Color(0xFFF59E0B);
+      case ActivityStatus.canceled:
+        return const Color(0xFFEF4444);
       case ActivityStatus.pendingReview:
         return const Color(0xFF0284C7);
     }
@@ -99,6 +121,16 @@ class ActivityItem {
   final bool isGpsVerified;
   final List<ActivityPhaseItem>? phases;
 
+  // Additional detail fields dari API
+  final String? employeeId;
+  final String? filePath;
+  final String? filePath2;
+  final String? notes;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final DateTime? updatedAt;
+  final String? rawStatus;
+
   const ActivityItem({
     required this.id,
     required this.title,
@@ -123,13 +155,159 @@ class ActivityItem {
     this.gpsAccuracy = '±3m',
     this.isGpsVerified = true,
     this.phases,
+    this.employeeId,
+    this.filePath,
+    this.filePath2,
+    this.notes,
+    this.startTime,
+    this.endTime,
+    this.updatedAt,
+    this.rawStatus,
   });
+
+  ActivityItem copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? userName,
+    String? userRole,
+    String? department,
+    String? company,
+    String? avatarUrl,
+    String? initials,
+    ActivityStatus? status,
+    String? location,
+    String? time,
+    DateTime? date,
+    bool? isMyActivity,
+    String? category,
+    double? latitude,
+    double? longitude,
+    String? fullAddress,
+    String? districtCity,
+    String? gpsAccuracy,
+    bool? isGpsVerified,
+    List<ActivityPhaseItem>? phases,
+    String? employeeId,
+    String? filePath,
+    String? filePath2,
+    String? notes,
+    DateTime? startTime,
+    DateTime? endTime,
+    DateTime? updatedAt,
+    String? rawStatus,
+  }) {
+    return ActivityItem(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      userName: userName ?? this.userName,
+      userRole: userRole ?? this.userRole,
+      department: department ?? this.department,
+      company: company ?? this.company,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      initials: initials ?? this.initials,
+      status: status ?? this.status,
+      location: location ?? this.location,
+      time: time ?? this.time,
+      date: date ?? this.date,
+      isMyActivity: isMyActivity ?? this.isMyActivity,
+      category: category ?? this.category,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      fullAddress: fullAddress ?? this.fullAddress,
+      districtCity: districtCity ?? this.districtCity,
+      gpsAccuracy: gpsAccuracy ?? this.gpsAccuracy,
+      isGpsVerified: isGpsVerified ?? this.isGpsVerified,
+      phases: phases ?? this.phases,
+      employeeId: employeeId ?? this.employeeId,
+      filePath: filePath ?? this.filePath,
+      filePath2: filePath2 ?? this.filePath2,
+      notes: notes ?? this.notes,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rawStatus: rawStatus ?? this.rawStatus,
+    );
+  }
 
   /// Mengembalikan list fase progres aktivitas default jika tidak di-override
   List<ActivityPhaseItem> get activePhases {
     if (phases != null && phases!.isNotEmpty) {
       return phases!;
     }
+
+    // Jika memiliki data aktual dari API detail (filePath / startTime / notes / filePath2)
+    final hasApiDetailData = filePath != null ||
+        filePath2 != null ||
+        notes != null ||
+        startTime != null ||
+        updatedAt != null ||
+        endTime != null;
+
+    if (hasApiDetailData) {
+      final startDt = (startTime ?? date).toLocal();
+      final phase1TimeStr =
+          DateFormat('HH:mm, dd MMM yyyy').format(startDt);
+
+      final phase1 = ActivityPhaseItem(
+        phaseNumber: 1,
+        title: 'Phase 1: Start & Check-In',
+        time: phase1TimeStr,
+        label: 'Initial Description / Task Scope',
+        notes: description.isNotEmpty
+            ? description
+            : 'Memulai aktivitas kerja di lokasi.',
+        imageUrl: filePath,
+        imageDescription: 'Foto bukti mulai aktivitas',
+      );
+
+      final endDt = (endTime ?? updatedAt ?? date).toLocal();
+      final phase2TimeStr =
+          DateFormat('HH:mm, dd MMM yyyy').format(endDt);
+
+      ActivityPhaseItem phase2;
+      if (status == ActivityStatus.completed) {
+        phase2 = ActivityPhaseItem(
+          phaseNumber: 2,
+          title: 'Phase 2: Completion & Report',
+          time: phase2TimeStr,
+          label: 'Completion Notes / Outcome',
+          notes: notes?.isNotEmpty == true
+              ? notes!
+              : 'Aktivitas telah selesai dikerjakan.',
+          imageUrl: filePath2,
+          imageDescription: 'Foto bukti penyelesaian aktivitas',
+        );
+      } else if (status == ActivityStatus.canceled) {
+        phase2 = ActivityPhaseItem(
+          phaseNumber: 2,
+          title: 'Phase 2: Activity Canceled',
+          time: phase2TimeStr,
+          label: 'Alasan Pembatalan',
+          notes: notes?.isNotEmpty == true
+              ? notes!
+              : 'Aktivitas dibatalkan oleh pengguna.',
+          imageUrl: filePath2,
+          imageDescription: 'Foto bukti pembatalan aktivitas',
+        );
+      } else {
+        // Ongoing / Planned
+        phase2 = const ActivityPhaseItem(
+          phaseNumber: 2,
+          title: 'Phase 2: Completion & Report',
+          time: 'Sedang Berlangsung',
+          label: 'Status Saat Ini',
+          notes: 'Aktivitas sedang berjalan dan belum diselesaikan.',
+          imageUrl: null,
+          imageDescription: null,
+        );
+      }
+
+      return [phase1, phase2];
+    }
+
+    // Fallback data sample stitch
     return [
       ActivityPhaseItem(
         phaseNumber: 1,

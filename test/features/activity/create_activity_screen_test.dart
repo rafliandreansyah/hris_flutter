@@ -5,10 +5,115 @@ import 'package:hris_flutter/features/activity/presentation/pages/create_activit
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
+import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
+import 'package:image_picker/image_picker.dart';
+
+class _MockActivityRepository implements ActivityRepository {
+  @override
+  Future<ActivityListResponse> getActivities({
+    required int page,
+    required int size,
+    String? companyId,
+    String? departmentId,
+    String? positionId,
+    String? search,
+    String? status,
+    bool approver = false,
+  }) async {
+    return const ActivityListResponse(
+      success: true,
+      message: 'OK',
+      data: [],
+      meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+    );
+  }
+
+  @override
+  Future<ActivityDetailResponse> getActivityDetail(String id) async {
+    return ActivityDetailResponse(
+      success: true,
+      message: 'OK',
+      data: {'id': id},
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> finishActivity({
+    required String id,
+    required String notes,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(success: true, message: 'OK');
+  }
+
+  @override
+  Future<ActivityActionResponse> cancelActivity({
+    required String id,
+    required String notes,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(success: true, message: 'OK');
+  }
+
+  @override
+  Future<ActivityTypesResponse> getActivityTypes() async {
+    return const ActivityTypesResponse(
+      success: true,
+      message: 'OK',
+      data: [
+        ActivityTypeModel(
+          id: 'type-site-inspection',
+          name: 'Site Inspection',
+          code: 'SI',
+        ),
+        ActivityTypeModel(
+          id: 'type-client-meeting',
+          name: 'Client Meeting',
+          code: 'CM',
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<CreateActivityResponse> createActivity({
+    required String activityTypeId,
+    required double latitude,
+    required double longitude,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    String status = 'ongoing',
+    XFile? file,
+  }) async {
+    return CreateActivityResponse(
+      success: true,
+      message: 'Activity created',
+      data: {
+        'id': 'ACT-NEW-001',
+        'activityTypeId': activityTypeId,
+        'locationName': locationName,
+        'locationAddress': locationAddress,
+        'description': description,
+        'status': 'ongoing',
+        'startTime': '2026-09-07T08:00:00.000Z',
+        'activityType': {
+          'id': activityTypeId,
+          'name': 'Site Inspection',
+          'code': 'SI',
+        },
+      },
+    );
+  }
+}
+
 void main() {
-  Widget createDirectTestWidget() {
-    return const MaterialApp(
-      home: CreateActivityScreen(),
+  Widget createDirectTestWidget({ActivityRepository? repo}) {
+    return MaterialApp(
+      home: CreateActivityScreen(
+        repository: repo ?? _MockActivityRepository(),
+      ),
     );
   }
 
@@ -140,7 +245,9 @@ void main() {
                     final result = await Navigator.push<ActivityItem>(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const CreateActivityScreen(),
+                        builder: (_) => CreateActivityScreen(
+                          repository: _MockActivityRepository(),
+                        ),
                       ),
                     );
                     returnedActivity = result;

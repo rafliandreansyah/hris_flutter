@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
-import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
+import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/account_settings_bottom_sheet.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employment_data_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/leave_balances_card.dart';
@@ -19,13 +19,12 @@ import 'package:hris_flutter/features/employee/presentation/widgets/work_locatio
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Detail Pegawai Oasish HRIS (Enhanced Leave View) sesuai Google Stitch.
-/// Memuat data dari API endpoint `/employee/{id}`:
-/// - Jika dari profil pengguna yang login: menggunakan employee ID yang tersimpan di storage lokal.
-/// - Jika dari item Employee Directory: memuat berdasarkan ID spesifik pegawai terkait.
-class EmployeeDetailScreen extends StatefulWidget {
+/// Menggunakan Clean Architecture + Flutter BLoC (EmployeeDetailBloc).
+class EmployeeDetailScreen extends StatelessWidget {
   final EmployeeDirectoryItem? employee;
   final String? employeeId;
   final EmployeeRepository? repository;
+  final EmployeeDetailBloc? employeeDetailBloc;
   final bool? isFromDirectory;
 
   const EmployeeDetailScreen({
@@ -33,61 +32,48 @@ class EmployeeDetailScreen extends StatefulWidget {
     this.employee,
     this.employeeId,
     this.repository,
+    this.employeeDetailBloc,
     this.isFromDirectory,
   });
 
   @override
-  State<EmployeeDetailScreen> createState() => _EmployeeDetailScreenState();
+  Widget build(BuildContext context) {
+    if (employeeDetailBloc != null) {
+      return BlocProvider<EmployeeDetailBloc>.value(
+        value: employeeDetailBloc!,
+        child: _EmployeeDetailView(
+          employee: employee,
+          employeeId: employeeId,
+          isFromDirectory: isFromDirectory,
+        ),
+      );
+    }
+
+    return BlocProvider<EmployeeDetailBloc>(
+      create: (ctx) => EmployeeDetailBloc(repository: repository)
+        ..add(EmployeeDetailStarted(
+          employeeId: employeeId,
+          employee: employee,
+        )),
+      child: _EmployeeDetailView(
+        employee: employee,
+        employeeId: employeeId,
+        isFromDirectory: isFromDirectory,
+      ),
+    );
+  }
 }
 
-class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
-  late final EmployeeRepository _repository;
-  EmployeeDetailData? _detailData;
-  bool _isLoading = true;
+class _EmployeeDetailView extends StatelessWidget {
+  final EmployeeDirectoryItem? employee;
+  final String? employeeId;
+  final bool? isFromDirectory;
 
-  @override
-  void initState() {
-    super.initState();
-    _repository = widget.repository ?? EmployeeRepositoryImpl();
-    _fetchEmployeeDetail();
-  }
-
-  Future<void> _fetchEmployeeDetail() async {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-
-    String? targetId = widget.employeeId;
-
-    // 1. Jika ada employee dari item directory, gunakan rawId atau id
-    if (targetId == null || targetId.isEmpty) {
-      targetId = widget.employee?.rawId ?? widget.employee?.id;
-    }
-
-    // 2. Jika tidak ada (misal dibuka dari profile user yang login di Dashboard),
-    // ambil employee ID dari local storage
-    if (targetId == null || targetId.isEmpty) {
-      targetId = await SecureStorageService.instance.getEmployeeId();
-    }
-
-    if (targetId != null && targetId.isNotEmpty) {
-      try {
-        final data = await _repository.getEmployeeDetail(targetId);
-        if (mounted) {
-          setState(() {
-            _detailData = data;
-            _isLoading = false;
-          });
-        }
-        return;
-      } catch (_) {
-        // Graceful fallback ke data awal / sample jika unauthenticated / error
-      }
-    }
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
-  }
+  const _EmployeeDetailView({
+    this.employee,
+    this.employeeId,
+    this.isFromDirectory,
+  });
 
   String _formatDate(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '-';
@@ -147,31 +133,34 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
         : AppColors.onSurfaceVariant;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
-    final detail = _detailData;
+    final state = context.watch<EmployeeDetailBloc>().state;
+    final detail = state.detail;
+    final isLoading = state.isLoading;
 
     final displayName = detail?.fullName.isNotEmpty == true
         ? detail!.fullName
-        : (widget.employee?.name ?? 'Sarah Jenkins');
+        : (employee?.name ?? 'Sarah Jenkins');
 
     final displayRole = detail?.position?.name.isNotEmpty == true
         ? detail!.position!.name
-        : (widget.employee?.role ?? 'Senior Frontend Engineer');
+        : (employee?.role ?? 'Senior Frontend Engineer');
 
     final displayDept = detail?.department?.name.isNotEmpty == true
         ? detail!.department!.name
-        : (widget.employee?.department ?? 'Engineering');
+        : (employee?.department ?? 'Engineering');
 
     final displayId = detail?.employeeNumber?.isNotEmpty == true
         ? detail!.employeeNumber!
-        : (widget.employee?.id ?? 'EMP-2024-019');
+        : (employee?.id ?? 'EMP-2024-019');
 
     final displayCompany = detail?.company?.name.isNotEmpty == true
         ? detail!.company!.name
-        : (widget.employee?.company ?? 'PT Oasish Tech Nusantara');
+        : (employee?.company ?? 'PT Oasish Tech Nusantara');
 
-    final displayAvatar = detail?.photoUrl ?? widget.employee?.avatarUrl;
+    final displayAvatar = detail?.photoUrl ?? employee?.avatarUrl;
 
-    final isFromDirectory = widget.isFromDirectory ?? (widget.employee != null);
+    final effectiveIsFromDirectory =
+        isFromDirectory ?? (employee != null);
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -214,7 +203,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
             },
             icon: Icon(LucideIcons.share2, size: 20, color: textCol),
           ),
-          if (!isFromDirectory)
+          if (!effectiveIsFromDirectory)
             IconButton(
               onPressed: () {
                 showAccountSettingsBottomSheet(
@@ -234,7 +223,11 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _fetchEmployeeDetail,
+          onRefresh: () async {
+            context
+                .read<EmployeeDetailBloc>()
+                .add(const EmployeeDetailRefreshed());
+          },
           color: brandColor,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -243,7 +236,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Loading banner if fetching in background
-                if (_isLoading && detail == null)
+                if (isLoading && detail == null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: LinearProgressIndicator(
@@ -265,7 +258,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                   contractType: detail?.employmentType ?? 'Permanent / Tetap',
                   avatarUrl: displayAvatar,
                   onCall: () {
-                    final ph = detail?.phone ?? widget.employee?.phone;
+                    final ph = detail?.phone ?? employee?.phone;
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -278,7 +271,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                     );
                   },
                   onEmail: () {
-                    final em = detail?.email ?? widget.employee?.email;
+                    final em = detail?.email ?? employee?.email;
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Mengirim email ke $em')),

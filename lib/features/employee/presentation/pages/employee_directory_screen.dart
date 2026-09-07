@@ -1,52 +1,75 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
-import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
+import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_filter_bottom_sheet.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Direktori Pegawai Oasish HRIS sesuai Google Stitch.
-/// Menampilkan daftar pegawai dari API `/employee` dengan paginasi (default 30),
-/// filter cascading, infinite scroll, dan search input interaktif yang otomatis
-/// menyembunyikan diri saat scroll ke atas dan muncul kembali saat scroll ke bawah.
-class EmployeeDirectoryScreen extends StatefulWidget {
+/// Dibangun dengan Clean Architecture + Flutter BLoC (EmployeeListBloc).
+class EmployeeDirectoryScreen extends StatelessWidget {
   final List<EmployeeDirectoryItem>? customEmployees;
   final EmployeeRepository? employeeRepository;
+  final EmployeeListBloc? employeeListBloc;
 
   const EmployeeDirectoryScreen({
     super.key,
     this.customEmployees,
     this.employeeRepository,
+    this.employeeListBloc,
   });
 
   @override
-  State<EmployeeDirectoryScreen> createState() =>
-      _EmployeeDirectoryScreenState();
+  Widget build(BuildContext context) {
+    if (employeeListBloc != null) {
+      return BlocProvider<EmployeeListBloc>.value(
+        value: employeeListBloc!,
+        child: _EmployeeDirectoryView(
+          customEmployees: customEmployees,
+          employeeRepository: employeeRepository,
+        ),
+      );
+    }
+
+    return BlocProvider<EmployeeListBloc>(
+      create: (ctx) => EmployeeListBloc(
+        repository: employeeRepository,
+        initialCustomEmployees: customEmployees,
+      )..add(EmployeeListStarted(customEmployees: customEmployees)),
+      child: _EmployeeDirectoryView(
+        customEmployees: customEmployees,
+        employeeRepository: employeeRepository,
+      ),
+    );
+  }
 }
 
-class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
+class _EmployeeDirectoryView extends StatefulWidget {
+  final List<EmployeeDirectoryItem>? customEmployees;
+  final EmployeeRepository? employeeRepository;
+
+  const _EmployeeDirectoryView({
+    this.customEmployees,
+    this.employeeRepository,
+  });
+
+  @override
+  State<_EmployeeDirectoryView> createState() => _EmployeeDirectoryViewState();
+}
+
+class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  late final EmployeeRepository _repository;
   Timer? _debounceTimer;
-
-  String _searchQuery = '';
-  EmployeeFilterCriteria _filterCriteria = const EmployeeFilterCriteria();
-
-  List<EmployeeDirectoryItem> _employees = [];
-  bool _isLoading = false;
-  bool _isLoadingMore = false;
-
-  int _currentPage = 1;
-  int _totalPages = 1;
-  static const int _defaultPageSize = 30;
+  String _localSearchQuery = '';
 
   // Interaktivitas Search Input: menyembunyikan saat scroll ke atas (reverse),
   // dan tampil lagi saat scroll ke bawah (forward)
@@ -55,14 +78,6 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
   @override
   void initState() {
     super.initState();
-    _repository = widget.employeeRepository ?? EmployeeRepositoryImpl();
-
-    if (widget.customEmployees != null) {
-      _employees = List.from(widget.customEmployees!);
-    } else {
-      _loadEmployees(page: 1, isRefresh: true);
-    }
-
     _scrollController.addListener(_onScroll);
   }
 
@@ -79,80 +94,29 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
     if (_scrollController.hasClients &&
         _scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 250) {
-      if (!_isLoading && !_isLoadingMore && _currentPage < _totalPages) {
-        _loadEmployees(page: _currentPage + 1, isRefresh: false);
-      }
-    }
-  }
-
-  Future<void> _loadEmployees({
-    required int page,
-    bool isRefresh = false,
-  }) async {
-    // Jika customEmployees disediakan untuk testing lokal, gunakan data tersebut
-    if (widget.customEmployees != null) {
-      return;
-    }
-
-    if (!mounted) return;
-    setState(() {
-      if (isRefresh) {
-        _isLoading = true;
-      } else {
-        _isLoadingMore = true;
-      }
-    });
-
-    try {
-      final response = await _repository.getEmployees(
-        page: page,
-        size: _defaultPageSize,
-        companyId: _filterCriteria.companyId,
-        departmentId: _filterCriteria.departmentId,
-        positionId: _filterCriteria.positionId,
-        search: _searchQuery.trim().isNotEmpty ? _searchQuery.trim() : null,
-      );
-
-      if (mounted) {
-        setState(() {
-          if (isRefresh) {
-            _employees = response.data;
-          } else {
-            _employees.addAll(response.data);
-          }
-          _currentPage = response.meta.page;
-          _totalPages = response.meta.totalPages;
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          // Graceful fallback ke sample data jika unauthenticated atau offline
-          if (isRefresh && _employees.isEmpty) {
-            _employees = List.from(EmployeeDirectoryItem.sampleEmployees);
-          }
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
+      final state = context.read<EmployeeListBloc>().state;
+      if (!state.isLoading &&
+          !state.isLoadingMore &&
+          state.currentPage < state.totalPages) {
+        context.read<EmployeeListBloc>().add(const EmployeeListLoadMore());
       }
     }
   }
 
   void _onSearchChanged(String val) {
     setState(() {
-      _searchQuery = val;
+      _localSearchQuery = val;
     });
+
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      _loadEmployees(page: 1, isRefresh: true);
+      context.read<EmployeeListBloc>().add(EmployeeListSearchChanged(val));
     });
   }
 
-  List<String> get _availableCompanies {
-    final comps = _employees
+  List<String> _availableCompanies(List<EmployeeDirectoryItem> employees) {
+    final comps = employees
         .map((e) => e.company)
         .whereType<String>()
         .toSet()
@@ -161,25 +125,26 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
     return ['Semua Perusahaan', ...comps];
   }
 
-  List<String> get _availableDepartments {
-    final depts = _employees.map((e) => e.department).toSet().toList();
+  List<String> _availableDepartments(List<EmployeeDirectoryItem> employees) {
+    final depts = employees.map((e) => e.department).toSet().toList();
     depts.sort();
     return ['Semua Departemen', ...depts];
   }
 
-  List<String> get _availablePositions {
-    final roles = _employees.map((e) => e.role).toSet().toList();
+  List<String> _availablePositions(List<EmployeeDirectoryItem> employees) {
+    final roles = employees.map((e) => e.role).toSet().toList();
     roles.sort();
     return ['Semua Jabatan', ...roles];
   }
 
-  List<EmployeeDirectoryItem> get _filteredEmployees {
-    // Jika data berasal dari server atau fallback lokal,
-    // kita juga terapkan client-side filtering untuk memastikan instant UI response
-    return _employees.where((emp) {
+  List<EmployeeDirectoryItem> _getFilteredEmployees({
+    required List<EmployeeDirectoryItem> source,
+    required EmployeeFilterCriteria filterCriteria,
+  }) {
+    return source.where((emp) {
       // 1. Filter by search query
-      if (_searchQuery.trim().isNotEmpty) {
-        final q = _searchQuery.toLowerCase().trim();
+      if (_localSearchQuery.trim().isNotEmpty) {
+        final q = _localSearchQuery.toLowerCase().trim();
         final matches = emp.name.toLowerCase().contains(q) ||
             emp.role.toLowerCase().contains(q) ||
             emp.department.toLowerCase().contains(q) ||
@@ -189,29 +154,29 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
       }
 
       // 2. Filter by Company
-      if (_filterCriteria.company != null &&
-          _filterCriteria.company != 'Semua Perusahaan') {
+      if (filterCriteria.company != null &&
+          filterCriteria.company != 'Semua Perusahaan') {
         if (emp.company != null &&
             emp.company!.toLowerCase() !=
-                _filterCriteria.company!.toLowerCase()) {
+                filterCriteria.company!.toLowerCase()) {
           return false;
         }
       }
 
       // 3. Filter by Department
-      if (_filterCriteria.department != null &&
-          _filterCriteria.department != 'Semua Departemen') {
+      if (filterCriteria.department != null &&
+          filterCriteria.department != 'Semua Departemen') {
         if (emp.department.toLowerCase() !=
-            _filterCriteria.department!.toLowerCase()) {
+            filterCriteria.department!.toLowerCase()) {
           return false;
         }
       }
 
       // 4. Filter by Position / Role
-      if (_filterCriteria.position != null &&
-          _filterCriteria.position != 'Semua Jabatan') {
+      if (filterCriteria.position != null &&
+          filterCriteria.position != 'Semua Jabatan') {
         if (emp.role.toLowerCase() !=
-            _filterCriteria.position!.toLowerCase()) {
+            filterCriteria.position!.toLowerCase()) {
           return false;
         }
       }
@@ -282,7 +247,11 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
     final brandColor =
         isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
-    final filteredList = _filteredEmployees;
+    final state = context.watch<EmployeeListBloc>().state;
+    final filteredList = _getFilteredEmployees(
+      source: state.employees,
+      filterCriteria: state.filterCriteria,
+    );
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -323,16 +292,15 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
             onPressed: () async {
               final result = await showEmployeeFilterBottomSheet(
                 context,
-                initialCriteria: _filterCriteria,
-                availableCompanies: _availableCompanies,
-                availableDepartments: _availableDepartments,
-                availablePositions: _availablePositions,
+                initialCriteria: state.filterCriteria,
+                availableCompanies: _availableCompanies(state.employees),
+                availableDepartments: _availableDepartments(state.employees),
+                availablePositions: _availablePositions(state.employees),
               );
-              if (result != null) {
-                setState(() {
-                  _filterCriteria = result;
-                });
-                _loadEmployees(page: 1, isRefresh: true);
+              if (result != null && context.mounted) {
+                context
+                    .read<EmployeeListBloc>()
+                    .add(EmployeeListFilterApplied(result));
               }
             },
             icon: Stack(
@@ -340,10 +308,11 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
               children: [
                 Icon(
                   LucideIcons.slidersHorizontal,
-                  color: _filterCriteria.hasActiveFilter ? brandColor : textCol,
+                  color:
+                      state.filterCriteria.hasActiveFilter ? brandColor : textCol,
                   size: 20,
                 ),
-                if (_filterCriteria.hasActiveFilter)
+                if (state.filterCriteria.hasActiveFilter)
                   Positioned(
                     right: -2,
                     top: -2,
@@ -368,8 +337,6 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
         child: Column(
           children: [
             // 1. Dynamic Hide/Show Search Bar on Scroll
-            // Menutup ketika scroll ke atas (content bergerak ke atas)
-            // dan tampil lagi saat scroll ke bawah (content bergerak ke bawah)
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
@@ -403,9 +370,11 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                       onSubmitted: (val) {
                         _debounceTimer?.cancel();
                         setState(() {
-                          _searchQuery = val;
+                          _localSearchQuery = val;
                         });
-                        _loadEmployees(page: 1, isRefresh: true);
+                        context
+                            .read<EmployeeListBloc>()
+                            .add(EmployeeListSearchChanged(val));
                       },
                       style: AppTypography.bodyMedium.copyWith(color: textCol),
                       decoration: InputDecoration(
@@ -420,7 +389,7 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                           color: subtitleCol,
                           size: 20,
                         ),
-                        suffixIcon: _searchQuery.isNotEmpty
+                        suffixIcon: _localSearchQuery.isNotEmpty
                             ? IconButton(
                                 icon: Icon(
                                   LucideIcons.x,
@@ -430,6 +399,9 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                                 onPressed: () {
                                   _searchController.clear();
                                   _onSearchChanged('');
+                                  context
+                                      .read<EmployeeListBloc>()
+                                      .add(const EmployeeListSearchChanged(''));
                                 },
                               )
                             : null,
@@ -450,7 +422,7 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
                   if (notification is ScrollUpdateNotification &&
-                      notification.metrics.axis == Axis.vertical) {
+                       notification.metrics.axis == Axis.vertical) {
                     final delta = notification.scrollDelta ?? 0;
 
                     // Jika berada di dekat batas atas, selalu tampilkan search bar
@@ -459,13 +431,13 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                         setState(() => _isSearchVisible = true);
                       }
                     }
-                    // Saat scroll ke atas (content bergerak ke atas / offset membesar) -> sembunyikan search bar
+                    // Saat scroll ke atas (content bergerak ke atas) -> sembunyikan search bar
                     else if (delta > 3) {
                       if (_isSearchVisible) {
                         setState(() => _isSearchVisible = false);
                       }
                     }
-                    // Saat scroll ke bawah (content bergerak ke bawah / offset mengecil) -> tampilkan search bar
+                    // Saat scroll ke bawah (content bergerak ke bawah) -> tampilkan search bar
                     else if (delta < -3) {
                       if (!_isSearchVisible) {
                         setState(() => _isSearchVisible = true);
@@ -475,14 +447,18 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                   return false;
                 },
                 child: RefreshIndicator(
-                  onRefresh: () => _loadEmployees(page: 1, isRefresh: true),
+                  onRefresh: () async {
+                    context
+                        .read<EmployeeListBloc>()
+                        .add(const EmployeeListRefreshed());
+                  },
                   color: brandColor,
                   child: CustomScrollView(
                     controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       // Active Filter Chips Row
-                      if (_filterCriteria.hasActiveFilter)
+                      if (state.filterCriteria.hasActiveFilter)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -490,73 +466,76 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                               scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
-                                  if (_filterCriteria.company != null &&
-                                      _filterCriteria.company !=
+                                  if (state.filterCriteria.company != null &&
+                                      state.filterCriteria.company !=
                                           'Semua Perusahaan')
                                     _buildActiveFilterChip(
-                                      label: _filterCriteria.company!,
+                                      label: state.filterCriteria.company!,
                                       icon: LucideIcons.building,
                                       onDeleted: () {
-                                        setState(() {
-                                          _filterCriteria =
-                                              _filterCriteria.copyWith(
-                                            company: 'Semua Perusahaan',
-                                            companyId: '',
-                                          );
-                                        });
-                                        _loadEmployees(
-                                            page: 1, isRefresh: true);
+                                        final newCriteria =
+                                            state.filterCriteria.copyWith(
+                                          company: 'Semua Perusahaan',
+                                          companyId: '',
+                                        );
+                                        context.read<EmployeeListBloc>().add(
+                                              EmployeeListFilterApplied(
+                                                newCriteria,
+                                              ),
+                                            );
                                       },
                                       brandColor: brandColor,
                                       textCol: textCol,
                                     ),
-                                  if (_filterCriteria.department != null &&
-                                      _filterCriteria.department !=
+                                  if (state.filterCriteria.department != null &&
+                                      state.filterCriteria.department !=
                                           'Semua Departemen')
                                     _buildActiveFilterChip(
-                                      label: _filterCriteria.department!,
+                                      label: state.filterCriteria.department!,
                                       icon: LucideIcons.layers,
                                       onDeleted: () {
-                                        setState(() {
-                                          _filterCriteria =
-                                              _filterCriteria.copyWith(
-                                            department: 'Semua Departemen',
-                                            departmentId: '',
-                                          );
-                                        });
-                                        _loadEmployees(
-                                            page: 1, isRefresh: true);
+                                        final newCriteria =
+                                            state.filterCriteria.copyWith(
+                                          department: 'Semua Departemen',
+                                          departmentId: '',
+                                        );
+                                        context.read<EmployeeListBloc>().add(
+                                              EmployeeListFilterApplied(
+                                                newCriteria,
+                                              ),
+                                            );
                                       },
                                       brandColor: brandColor,
                                       textCol: textCol,
                                     ),
-                                  if (_filterCriteria.position != null &&
-                                      _filterCriteria.position !=
+                                  if (state.filterCriteria.position != null &&
+                                      state.filterCriteria.position !=
                                           'Semua Jabatan')
                                     _buildActiveFilterChip(
-                                      label: _filterCriteria.position!,
+                                      label: state.filterCriteria.position!,
                                       icon: LucideIcons.idCard,
                                       onDeleted: () {
-                                        setState(() {
-                                          _filterCriteria =
-                                              _filterCriteria.copyWith(
-                                            position: 'Semua Jabatan',
-                                            positionId: '',
-                                          );
-                                        });
-                                        _loadEmployees(
-                                            page: 1, isRefresh: true);
+                                        final newCriteria =
+                                            state.filterCriteria.copyWith(
+                                          position: 'Semua Jabatan',
+                                          positionId: '',
+                                        );
+                                        context.read<EmployeeListBloc>().add(
+                                              EmployeeListFilterApplied(
+                                                newCriteria,
+                                              ),
+                                            );
                                       },
                                       brandColor: brandColor,
                                       textCol: textCol,
                                     ),
                                   TextButton(
                                     onPressed: () {
-                                      setState(() {
-                                        _filterCriteria =
-                                            const EmployeeFilterCriteria();
-                                      });
-                                      _loadEmployees(page: 1, isRefresh: true);
+                                      context.read<EmployeeListBloc>().add(
+                                            const EmployeeListFilterApplied(
+                                              EmployeeFilterCriteria(),
+                                            ),
+                                          );
                                     },
                                     child: Text(
                                       'Hapus Semua',
@@ -574,7 +553,7 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                         ),
 
                       // Loading First Page Indicator
-                      if (_isLoading && _employees.isEmpty)
+                      if (state.isLoading && state.employees.isEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 60),
@@ -600,64 +579,73 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: 56,
-                                    height: 56,
+                                    width: 72,
+                                    height: 72,
                                     decoration: BoxDecoration(
-                                      color: brandColor.withValues(alpha: 0.1),
+                                      color: isDark
+                                          ? AppColors.darkSurfaceContainer
+                                          : AppColors.surfaceContainer,
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      LucideIcons.userX,
-                                      size: 28,
-                                      color: brandColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  Text(
-                                    'Pegawai tidak ditemukan',
-                                    style: AppTypography.titleSmall.copyWith(
-                                      color: textCol,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _filterCriteria.hasActiveFilter &&
-                                            _searchQuery.isNotEmpty
-                                        ? 'Tidak ada pegawai yang cocok dengan kata kunci "$_searchQuery" dan filter yang aktif.'
-                                        : _filterCriteria.hasActiveFilter
-                                            ? 'Tidak ada pegawai yang cocok dengan kriteria filter yang dipilih.'
-                                            : 'Tidak ada pegawai yang cocok dengan kata kunci "$_searchQuery".',
-                                    textAlign: TextAlign.center,
-                                    style: AppTypography.bodySmall.copyWith(
+                                      LucideIcons.users,
+                                      size: 32,
                                       color: subtitleCol,
                                     ),
                                   ),
-                                  if (_filterCriteria.hasActiveFilter ||
-                                      _searchQuery.isNotEmpty) ...[
-                                    const SizedBox(height: 16),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _localSearchQuery.isNotEmpty ||
+                                            state.filterCriteria.hasActiveFilter
+                                        ? 'Pegawai tidak ditemukan'
+                                        : 'Belum Ada Data Pegawai',
+                                    style: AppTypography.titleMedium.copyWith(
+                                      color: textCol,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    state.filterCriteria.hasActiveFilter &&
+                                            _localSearchQuery.isNotEmpty
+                                        ? 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery" dan filter yang aktif.'
+                                        : state.filterCriteria.hasActiveFilter
+                                            ? 'Tidak ada pegawai yang cocok dengan kriteria filter yang dipilih.'
+                                            : 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery".',
+                                    style: AppTypography.bodySmall.copyWith(
+                                      color: subtitleCol,
+                                      fontSize: 13,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  if (_localSearchQuery.isNotEmpty ||
+                                      state.filterCriteria.hasActiveFilter) ...[
+                                    const SizedBox(height: 18),
                                     OutlinedButton.icon(
                                       onPressed: () {
-                                        setState(() {
-                                          _searchController.clear();
-                                          _searchQuery = '';
-                                          _filterCriteria =
-                                              const EmployeeFilterCriteria();
-                                        });
-                                        _loadEmployees(
-                                            page: 1, isRefresh: true);
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                        context.read<EmployeeListBloc>().add(
+                                              const EmployeeListFilterApplied(
+                                                EmployeeFilterCriteria(),
+                                              ),
+                                            );
                                       },
                                       icon: const Icon(LucideIcons.rotateCcw,
                                           size: 15),
-                                      label: const Text(
-                                          'Reset Filter & Pencarian'),
+                                      label: const Text('Reset Pencarian'),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: brandColor,
-                                        side: BorderSide(color: brandColor),
+                                        side: BorderSide(
+                                          color:
+                                              brandColor.withValues(alpha: 0.5),
+                                        ),
                                         shape: const StadiumBorder(),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
-                                          vertical: 9,
+                                          vertical: 8,
                                         ),
                                       ),
                                     ),
@@ -669,19 +657,16 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                         )
                       else
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
-                                final employee = filteredList[index];
+                                final emp = filteredList[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: EmployeeCard(
-                                    employee: employee,
-                                    onTap: () => _onEmployeeTapped(employee),
+                                    employee: emp,
+                                    onTap: () => _onEmployeeTapped(emp),
                                   ),
                                 );
                               },
@@ -690,36 +675,36 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                           ),
                         ),
 
-                      // Infinite Scroll Loading Indicator: hanya tampil jika sedang memuat halaman berikutnya (_isLoadingMore)
-                      if (_isLoadingMore)
+                      // Infinite Scroll Pagination Indicator
+                      if (state.isLoadingMore)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Center(
                               child: SizedBox(
-                                width: 26,
-                                height: 26,
+                                width: 24,
+                                height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(brandColor),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      brandColor),
                                 ),
                               ),
                             ),
                           ),
                         )
-                      else if (!_isLoading &&
-                          _currentPage >= _totalPages &&
-                          filteredList.isNotEmpty)
+                      else if (!state.isLoading &&
+                          state.employees.isNotEmpty &&
+                          state.currentPage >= state.totalPages)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             child: Center(
                               child: Text(
                                 'Semua data pegawai telah ditampilkan',
                                 style: AppTypography.labelSmall.copyWith(
-                                  color: subtitleCol.withValues(alpha: 0.7),
-                                  fontSize: 11.5,
+                                  color: subtitleCol,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),

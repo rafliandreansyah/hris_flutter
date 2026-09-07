@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
-import 'package:hris_flutter/features/employee/data/repositories/organization_filter_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
+import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Kriteria filter untuk daftar log aktivitas kerja Oasish HRIS.
@@ -15,6 +16,7 @@ class ActivityFilterCriteria {
   final String? department;
   final String? positionId;
   final String? position;
+  final String? status; // 'ongoing' (default), 'completed', 'canceled'
 
   const ActivityFilterCriteria({
     this.dateRange,
@@ -24,6 +26,7 @@ class ActivityFilterCriteria {
     this.department,
     this.positionId,
     this.position,
+    this.status = 'ongoing',
   });
 
   bool get hasActiveFilter =>
@@ -33,7 +36,8 @@ class ActivityFilterCriteria {
       (department != null && department != 'Semua Departemen') ||
       (departmentId != null && departmentId!.isNotEmpty) ||
       (position != null && position != 'Semua Jabatan') ||
-      (positionId != null && positionId!.isNotEmpty);
+      (positionId != null && positionId!.isNotEmpty) ||
+      (status != null && status != 'ongoing');
 
   int get activeFilterCount {
     int count = 0;
@@ -50,6 +54,9 @@ class ActivityFilterCriteria {
         (positionId != null && positionId!.isNotEmpty)) {
       count++;
     }
+    if (status != null && status != 'ongoing') {
+      count++;
+    }
     return count;
   }
 
@@ -62,6 +69,7 @@ class ActivityFilterCriteria {
     String? department,
     String? positionId,
     String? position,
+    String? status,
   }) {
     return ActivityFilterCriteria(
       dateRange: clearDateRange ? null : (dateRange ?? this.dateRange),
@@ -71,16 +79,19 @@ class ActivityFilterCriteria {
       department: department ?? this.department,
       positionId: positionId ?? this.positionId,
       position: position ?? this.position,
+      status: status ?? this.status,
     );
   }
 }
 
 /// Menampilkan Modal Bottom Sheet "Filter Aktivitas"
-/// Mengintegrasikan pemuatan data dari API Backend yang sama (/companies, /departments, /positions).
+/// Mengintegrasikan pemuatan data dari API Backend yang sama (/companies, /departments, /positions)
+/// via OrganizationFilterBloc (dengan in-memory caching).
 Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
   BuildContext context, {
   required ActivityFilterCriteria initialCriteria,
   OrganizationFilterRepository? repository,
+  OrganizationFilterBloc? organizationFilterBloc,
   List<String>? availableCompanies,
   List<String>? availableDepartments,
   List<String>? availablePositions,
@@ -91,19 +102,37 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
     showDragHandle: false,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.5),
-    builder: (context) => ActivityFilterBottomSheet(
-      initialCriteria: initialCriteria,
-      repository: repository,
-      availableCompanies: availableCompanies,
-      availableDepartments: availableDepartments,
-      availablePositions: availablePositions,
-    ),
+    builder: (sheetContext) {
+      final sheetWidget = ActivityFilterBottomSheet(
+        initialCriteria: initialCriteria,
+        repository: repository,
+        organizationFilterBloc: organizationFilterBloc,
+        availableCompanies: availableCompanies,
+        availableDepartments: availableDepartments,
+        availablePositions: availablePositions,
+      );
+
+      if (organizationFilterBloc != null) {
+        return BlocProvider<OrganizationFilterBloc>.value(
+          value: organizationFilterBloc,
+          child: sheetWidget,
+        );
+      }
+
+      return BlocProvider<OrganizationFilterBloc>(
+        create: (ctx) => OrganizationFilterBloc(
+          repository: repository,
+        )..add(const OrganizationFilterStarted()),
+        child: sheetWidget,
+      );
+    },
   );
 }
 
 class ActivityFilterBottomSheet extends StatefulWidget {
   final ActivityFilterCriteria initialCriteria;
   final OrganizationFilterRepository? repository;
+  final OrganizationFilterBloc? organizationFilterBloc;
   final List<String>? availableCompanies;
   final List<String>? availableDepartments;
   final List<String>? availablePositions;
@@ -112,6 +141,7 @@ class ActivityFilterBottomSheet extends StatefulWidget {
     super.key,
     required this.initialCriteria,
     this.repository,
+    this.organizationFilterBloc,
     this.availableCompanies,
     this.availableDepartments,
     this.availablePositions,
@@ -123,8 +153,6 @@ class ActivityFilterBottomSheet extends StatefulWidget {
 }
 
 class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
-  late final OrganizationFilterRepository _repository;
-
   late DateTimeRange? _selectedDateRange;
 
   String? _selectedCompanyId;
@@ -136,13 +164,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   String? _selectedPositionId;
   late String _selectedPosition;
 
-  List<CompanyItem> _companiesFromApi = [];
-  List<DepartmentItem> _departmentsFromApi = [];
-  List<PositionItem> _positionsFromApi = [];
-
-  bool _isLoadingCompanies = false;
-  bool _isLoadingDepartments = false;
-  bool _isLoadingPositions = false;
+  late String _selectedStatus;
 
   static const List<String> _defaultCompanies = [
     'Semua Perusahaan',
@@ -174,12 +196,12 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _repository = widget.repository ?? OrganizationFilterRepositoryImpl();
 
     _selectedDateRange = widget.initialCriteria.dateRange;
 
     _selectedCompanyId = widget.initialCriteria.companyId;
     _selectedCompany = widget.initialCriteria.company ?? 'Semua Perusahaan';
+    _selectedStatus = widget.initialCriteria.status ?? 'ongoing';
 
     if (_isCompanySelected) {
       _selectedDepartmentId = widget.initialCriteria.departmentId;
@@ -188,106 +210,31 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
 
       _selectedPositionId = widget.initialCriteria.positionId;
       _selectedPosition = widget.initialCriteria.position ?? 'Semua Jabatan';
-
-      _fetchFilterData();
     } else {
       _selectedDepartmentId = null;
       _selectedDepartment = 'Semua Departemen';
       _selectedPositionId = null;
       _selectedPosition = 'Semua Jabatan';
-
-      _loadCompanies();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final bloc = context.read<OrganizationFilterBloc>();
+        bloc.add(const OrganizationFilterStarted());
+        if (_isCompanySelected && _selectedCompanyId != null) {
+          bloc.add(OrganizationFilterCompanySelected(companyId: _selectedCompanyId));
+        }
+      }
+    });
   }
 
   bool get _isCompanySelected =>
       _selectedCompany != 'Semua Perusahaan' &&
       _selectedCompany.trim().isNotEmpty;
 
-  Future<void> _fetchFilterData() async {
-    await Future.wait([
-      _loadCompanies(),
-      if (_isCompanySelected) ...[
-        _loadDepartments(companyId: _selectedCompanyId),
-        _loadPositions(
-          companyId: _selectedCompanyId,
-          departmentId: _selectedDepartmentId,
-        ),
-      ],
-    ]);
-  }
-
-  Future<void> _loadCompanies({String? search}) async {
-    if (!mounted) return;
-    setState(() => _isLoadingCompanies = true);
-
-    try {
-      final list = await _repository.getCompanies(search: search);
-      if (mounted) {
-        setState(() {
-          _companiesFromApi = list;
-          _isLoadingCompanies = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingCompanies = false);
-      }
-    }
-  }
-
-  Future<void> _loadDepartments({String? companyId, String? search}) async {
-    if (!mounted) return;
-    setState(() => _isLoadingDepartments = true);
-
-    try {
-      final list = await _repository.getDepartments(
-        companyId: companyId,
-        search: search,
-      );
-      if (mounted) {
-        setState(() {
-          _departmentsFromApi = list;
-          _isLoadingDepartments = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingDepartments = false);
-      }
-    }
-  }
-
-  Future<void> _loadPositions({
-    String? companyId,
-    String? departmentId,
-    String? search,
-  }) async {
-    if (!mounted) return;
-    setState(() => _isLoadingPositions = true);
-
-    try {
-      final list = await _repository.getPositions(
-        companyId: companyId,
-        departmentId: departmentId,
-        search: search,
-      );
-      if (mounted) {
-        setState(() {
-          _positionsFromApi = list;
-          _isLoadingPositions = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingPositions = false);
-      }
-    }
-  }
-
-  List<String> get _companiesList {
-    if (_companiesFromApi.isNotEmpty) {
-      return ['Semua Perusahaan', ..._companiesFromApi.map((c) => c.name)];
+  List<String> _getCompaniesList(List<CompanyItem> companies) {
+    if (companies.isNotEmpty) {
+      return ['Semua Perusahaan', ...companies.map((c) => c.name)];
     }
     final fallback = [
       'Semua Perusahaan',
@@ -299,12 +246,12 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     return fallback;
   }
 
-  List<String> get _departmentsList {
+  List<String> _getDepartmentsList(List<DepartmentItem> departments) {
     if (!_isCompanySelected) {
       return ['Semua Departemen'];
     }
-    if (_departmentsFromApi.isNotEmpty) {
-      return ['Semua Departemen', ..._departmentsFromApi.map((d) => d.name)];
+    if (departments.isNotEmpty) {
+      return ['Semua Departemen', ...departments.map((d) => d.name)];
     }
     final fallback = [
       'Semua Departemen',
@@ -318,12 +265,12 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     return fallback;
   }
 
-  List<String> get _positionsList {
+  List<String> _getPositionsList(List<PositionItem> positions) {
     if (!_isCompanySelected) {
       return ['Semua Jabatan'];
     }
-    if (_positionsFromApi.isNotEmpty) {
-      return ['Semua Jabatan', ..._positionsFromApi.map((p) => p.name)];
+    if (positions.isNotEmpty) {
+      return ['Semua Jabatan', ...positions.map((p) => p.name)];
     }
     final fallback = [
       'Semua Jabatan',
@@ -344,10 +291,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
       _selectedDepartment = 'Semua Departemen';
       _selectedPositionId = null;
       _selectedPosition = 'Semua Jabatan';
-      _departmentsFromApi = [];
-      _positionsFromApi = [];
+      _selectedStatus = 'ongoing';
     });
-    _loadCompanies();
+    context.read<OrganizationFilterBloc>().add(
+      const OrganizationFilterCompanySelected(companyId: null),
+    );
   }
 
   void _applyFilters() {
@@ -361,6 +309,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
           : _selectedDepartment,
       positionId: _selectedPositionId,
       position: _selectedPosition == 'Semua Jabatan' ? null : _selectedPosition,
+      status: _selectedStatus,
     );
     Navigator.of(context).pop(result);
   }
@@ -791,6 +740,54 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     );
   }
 
+  Widget _buildStatusChip({
+    required String label,
+    required String value,
+    required String selectedValue,
+    required Color brandColor,
+    required Color textCol,
+    required Color labelCol,
+    required Color borderCol,
+    required Color fieldBg,
+    required bool isDark,
+    required VoidCallback onSelected,
+  }) {
+    final isSelected = value.toLowerCase() == selectedValue.toLowerCase();
+    final chipBg = isSelected
+        ? (isDark ? brandColor.withValues(alpha: 0.18) : const Color(0xFFF0FDFA))
+        : fieldBg;
+    final chipBorder = isSelected ? brandColor : borderCol;
+    final chipTextCol =
+        isSelected ? (isDark ? brandColor : const Color(0xFF0D9488)) : labelCol;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onSelected,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: chipBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: chipBorder,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: AppTypography.bodySmall.copyWith(
+              color: chipTextCol,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -808,6 +805,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final fieldBg = isDark
         ? AppColors.darkBackgroundSubtle
         : AppColors.backgroundSubtle;
+
+    final orgState = context.watch<OrganizationFilterBloc>().state;
+    final companiesList = _getCompaniesList(orgState.companies);
+    final departmentsList = _getDepartmentsList(orgState.departments);
+    final positionsList = _getPositionsList(orgState.positions);
 
     return Container(
       decoration: BoxDecoration(
@@ -942,13 +944,13 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         textCol: textCol,
                         labelCol: labelCol,
                         brandColor: brandColor,
-                        isLoading: _isLoadingCompanies,
+                        isLoading: orgState.isLoadingCompanies,
                         helperText:
                             'Mencakup PT Oasish Group & Seluruh Unit Usaha',
                         onTap: () {
                           _showOptionSelector(
                             title: 'Pilih Perusahaan',
-                            options: _companiesList,
+                            options: companiesList,
                             selectedValue: _selectedCompany,
                             onSelected: (val) {
                               setState(() {
@@ -959,10 +961,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   _selectedDepartment = 'Semua Departemen';
                                   _selectedPositionId = null;
                                   _selectedPosition = 'Semua Jabatan';
-                                  _departmentsFromApi = [];
-                                  _positionsFromApi = [];
                                 } else {
-                                  final found = _companiesFromApi.where(
+                                  final found = orgState.companies.where(
                                     (c) => c.name == val,
                                   );
                                   _selectedCompanyId = found.isNotEmpty
@@ -975,10 +975,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   _selectedPosition = 'Semua Jabatan';
                                 }
                               });
-                              if (_isCompanySelected) {
-                                _loadDepartments(companyId: _selectedCompanyId);
-                                _loadPositions(companyId: _selectedCompanyId);
-                              }
+                              context.read<OrganizationFilterBloc>().add(
+                                OrganizationFilterCompanySelected(
+                                  companyId: _selectedCompanyId,
+                                ),
+                              );
                             },
                           );
                         },
@@ -995,7 +996,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         textCol: textCol,
                         labelCol: labelCol,
                         brandColor: brandColor,
-                        isLoading: _isLoadingDepartments,
+                        isLoading: orgState.isLoadingDepartments,
                         isEnabled: _isCompanySelected,
                         helperText: _isCompanySelected
                             ? 'Filter berdasarkan divisi organisasi kerja'
@@ -1003,7 +1004,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         onTap: () {
                           _showOptionSelector(
                             title: 'Pilih Departemen',
-                            options: _departmentsList,
+                            options: departmentsList,
                             selectedValue: _selectedDepartment,
                             onSelected: (val) {
                               setState(() {
@@ -1011,7 +1012,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 if (val == 'Semua Departemen') {
                                   _selectedDepartmentId = null;
                                 } else {
-                                  final found = _departmentsFromApi.where(
+                                  final found = orgState.departments.where(
                                     (d) => d.name == val,
                                   );
                                   _selectedDepartmentId = found.isNotEmpty
@@ -1021,9 +1022,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 _selectedPositionId = null;
                                 _selectedPosition = 'Semua Jabatan';
                               });
-                              _loadPositions(
-                                companyId: _selectedCompanyId,
-                                departmentId: _selectedDepartmentId,
+                              context.read<OrganizationFilterBloc>().add(
+                                OrganizationFilterDepartmentSelected(
+                                  companyId: _selectedCompanyId,
+                                  departmentId: _selectedDepartmentId,
+                                ),
                               );
                             },
                           );
@@ -1041,7 +1044,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         textCol: textCol,
                         labelCol: labelCol,
                         brandColor: brandColor,
-                        isLoading: _isLoadingPositions,
+                        isLoading: orgState.isLoadingPositions,
                         isEnabled: _isCompanySelected,
                         helperText: _isCompanySelected
                             ? 'Filter aktivitas berdasarkan jabatan atau peran pegawai'
@@ -1049,7 +1052,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         onTap: () {
                           _showOptionSelector(
                             title: 'Pilih Jabatan',
-                            options: _positionsList,
+                            options: positionsList,
                             selectedValue: _selectedPosition,
                             onSelected: (val) {
                               setState(() {
@@ -1057,7 +1060,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 if (val == 'Semua Jabatan') {
                                   _selectedPositionId = null;
                                 } else {
-                                  final found = _positionsFromApi.where(
+                                  final found = orgState.positions.where(
                                     (p) => p.name == val,
                                   );
                                   _selectedPositionId = found.isNotEmpty
@@ -1068,6 +1071,79 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                             },
                           );
                         },
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Field 5: Status Aktivitas (StatusEmployeeActivity: ongoing, completed, canceled)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Status Aktivitas',
+                            style: AppTypography.labelMedium.copyWith(
+                              color: textCol,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _buildStatusChip(
+                                label: 'Ongoing',
+                                value: 'ongoing',
+                                selectedValue: _selectedStatus,
+                                brandColor: brandColor,
+                                textCol: textCol,
+                                labelCol: labelCol,
+                                borderCol: borderCol,
+                                fieldBg: fieldBg,
+                                isDark: isDark,
+                                onSelected: () {
+                                  setState(() => _selectedStatus = 'ongoing');
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              _buildStatusChip(
+                                label: 'Complete',
+                                value: 'completed',
+                                selectedValue: _selectedStatus,
+                                brandColor: brandColor,
+                                textCol: textCol,
+                                labelCol: labelCol,
+                                borderCol: borderCol,
+                                fieldBg: fieldBg,
+                                isDark: isDark,
+                                onSelected: () {
+                                  setState(() => _selectedStatus = 'completed');
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              _buildStatusChip(
+                                label: 'Canceled',
+                                value: 'canceled',
+                                selectedValue: _selectedStatus,
+                                brandColor: brandColor,
+                                textCol: textCol,
+                                labelCol: labelCol,
+                                borderCol: borderCol,
+                                fieldBg: fieldBg,
+                                isDark: isDark,
+                                onSelected: () {
+                                  setState(() => _selectedStatus = 'canceled');
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Default memuat aktivitas yang sedang berjalan (Ongoing)',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: labelCol,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
 

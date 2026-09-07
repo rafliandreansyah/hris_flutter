@@ -1,48 +1,64 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API)
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
+import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
+import 'package:hris_flutter/features/activity/presentation/bloc/create_activity/create_activity_bloc.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:dotted_border/dotted_border.dart';
+import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 
 /// Halaman Create Activity Form sesuai Google Stitch Oasish Flutter M3 HRIS
-class CreateActivityScreen extends StatefulWidget {
-  const CreateActivityScreen({super.key});
+class CreateActivityScreen extends StatelessWidget {
+  final ActivityRepository? repository;
+  final CreateActivityBloc? bloc;
+
+  const CreateActivityScreen({super.key, this.repository, this.bloc});
 
   @override
-  State<CreateActivityScreen> createState() => _CreateActivityScreenState();
+  Widget build(BuildContext context) {
+    if (bloc != null) {
+      return BlocProvider<CreateActivityBloc>.value(
+        value: bloc!,
+        child: const _CreateActivityView(),
+      );
+    }
+    return BlocProvider(
+      create: (_) =>
+          CreateActivityBloc(repository: repository)
+            ..add(const CreateActivityStarted()),
+      child: const _CreateActivityView(),
+    );
+  }
 }
 
-class _CreateActivityScreenState extends State<CreateActivityScreen> {
+class _CreateActivityView extends StatefulWidget {
+  const _CreateActivityView();
+
+  @override
+  State<_CreateActivityView> createState() => _CreateActivityViewState();
+}
+
+class _CreateActivityViewState extends State<_CreateActivityView> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
-  final TextEditingController _locationNameController =
-      TextEditingController();
+  final TextEditingController _locationNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  // State
-  String? _selectedActivityType;
+  // State (UI-only, non-business logic)
+  ActivityTypeModel? _selectedActivityType;
   XFile? _pickedPhoto;
   String? _samplePhotoUrl;
   double _latitude = -6.2088;
   double _longitude = 106.8456;
   String _gpsAccuracy = '±3m';
-  bool _isSubmitting = false;
-
-  final List<String> _activityTypes = const [
-    'Client Meeting',
-    'Site Inspection',
-    'Architecture Review',
-    'Field Maintenance',
-    'General Operational',
-  ];
 
   @override
   void dispose() {
@@ -67,30 +83,30 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
           _longitude = pos.longitude;
           _gpsAccuracy = '±${pos.accuracy.round()}m';
         });
+        // Hide dulu karena ada biayanya untuk geocoding
+        // try {
+        //   final placemarks = await Geocoding().placemarkFromCoordinates(pos.latitude, pos.longitude);
+        //   if (placemarks.isNotEmpty) {
+        //     final place = placemarks.first;
+        //     final street = place.street ?? '';
+        //     final subLoc = place.subLocality ?? '';
+        //     final locality = place.locality ?? place.subAdministrativeArea ?? '';
+        //     final admin = place.administrativeArea ?? '';
+        //     final fullAddr = [street, subLoc, locality, admin]
+        //         .where((e) => e.trim().isNotEmpty)
+        //         .join(', ');
+        //     final locName = subLoc.isNotEmpty
+        //         ? subLoc
+        //         : (place.name?.isNotEmpty == true ? place.name! : locality);
 
-        try {
-          final placemarks = await Geocoding().placemarkFromCoordinates(pos.latitude, pos.longitude);
-          if (placemarks.isNotEmpty) {
-            final place = placemarks.first;
-            final street = place.street ?? '';
-            final subLoc = place.subLocality ?? '';
-            final locality = place.locality ?? place.subAdministrativeArea ?? '';
-            final admin = place.administrativeArea ?? '';
-            final fullAddr = [street, subLoc, locality, admin]
-                .where((e) => e.trim().isNotEmpty)
-                .join(', ');
-            final locName = subLoc.isNotEmpty
-                ? subLoc
-                : (place.name?.isNotEmpty == true ? place.name! : locality);
-
-            if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
-              setState(() => _addressController.text = fullAddr);
-            }
-            if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
-              setState(() => _locationNameController.text = locName);
-            }
-          }
-        } catch (_) {}
+        //     if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
+        //       setState(() => _addressController.text = fullAddr);
+        //     }
+        //     if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
+        //       setState(() => _locationNameController.text = locName);
+        //     }
+        //   }
+        // } catch (_) {}
       } else {
         setState(() {
           _latitude = -6.2088 + (DateTime.now().millisecond % 5) * 0.0001;
@@ -154,11 +170,100 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
   }
 
   void _useSamplePhoto() {
-    setState(() {
-      _pickedPhoto = null;
-      _samplePhotoUrl =
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag';
-    });
+    try {
+      final tempFile = File(
+        '${Directory.systemTemp.path}/sample_activity_proof.jpg',
+      );
+      if (!tempFile.existsSync()) {
+        final dummyBytes = [
+          0xFF,
+          0xD8,
+          0xFF,
+          0xE0,
+          0x00,
+          0x10,
+          0x4A,
+          0x46,
+          0x49,
+          0x46,
+          0x00,
+          0x01,
+          0x01,
+          0x01,
+          0x00,
+          0x48,
+          0x00,
+          0x48,
+          0x00,
+          0x00,
+          0xFF,
+          0xDB,
+          0x00,
+          0x43,
+          0x00,
+          0xFF,
+          0xC0,
+          0x00,
+          0x0B,
+          0x08,
+          0x00,
+          0x01,
+          0x00,
+          0x01,
+          0x01,
+          0x01,
+          0x11,
+          0x00,
+          0xFF,
+          0xC4,
+          0x00,
+          0x14,
+          0x00,
+          0x01,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x00,
+          0x09,
+          0xFF,
+          0xDA,
+          0x00,
+          0x08,
+          0x01,
+          0x01,
+          0x00,
+          0x00,
+          0x3F,
+          0x00,
+          0x7F,
+          0x00,
+          0xFF,
+          0xD9,
+        ];
+        tempFile.writeAsBytesSync(dummyBytes);
+      }
+      setState(() {
+        _pickedPhoto = XFile(tempFile.path);
+        _samplePhotoUrl =
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag';
+      });
+    } catch (_) {
+      setState(() {
+        _samplePhotoUrl =
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag';
+      });
+    }
   }
 
   void _showPhotoOptionsSheet() {
@@ -232,6 +337,9 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
 
   void _showActivityTypePicker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final createState = context.read<CreateActivityBloc>().state;
+    final types = createState.activityTypes;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark
@@ -249,7 +357,10 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   child: Text(
                     'Pilih Jenis Aktivitas',
                     style: AppTypography.titleMedium.copyWith(
@@ -258,19 +369,41 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                   ),
                 ),
                 const Divider(),
-                ..._activityTypes.map((type) {
-                  final isSelected = _selectedActivityType == type;
+                if (types.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: Text('Tidak ada jenis aktivitas tersedia.'),
+                    ),
+                  ),
+                ...types.map((type) {
+                  final isSelected = _selectedActivityType?.id == type.id;
                   return ListTile(
                     title: Text(
-                      type,
+                      type.name,
                       style: TextStyle(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected ? const Color(0xFF0D9488) : null,
                       ),
                     ),
+                    subtitle: type.code != null && type.code!.isNotEmpty
+                        ? Text(
+                            type.code!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColors.darkOnSurfaceVariant
+                                  : AppColors.onSurfaceVariant,
+                            ),
+                          )
+                        : null,
                     trailing: isSelected
-                        ? const Icon(LucideIcons.check, color: Color(0xFF0D9488))
+                        ? const Icon(
+                            LucideIcons.check,
+                            color: Color(0xFF0D9488),
+                          )
                         : null,
                     onTap: () {
                       setState(() => _selectedActivityType = type);
@@ -304,52 +437,22 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
       _showWarningSnackBar('Deskripsi agenda / tujuan aktivitas wajib diisi.');
       return;
     }
-    if (_pickedPhoto == null && _samplePhotoUrl == null) {
+    if (_pickedPhoto == null) {
       _showWarningSnackBar('Silakan upload Start Proof Photo aktivitas.');
       return;
     }
 
-    setState(() => _isSubmitting = true);
-
-    final now = DateTime.now();
-    final timeStr = DateFormat('HH:mm').format(now);
-    final dateFormatted = DateFormat('dd MMM yyyy').format(now);
-
-    final newActivity = ActivityItem(
-      id: 'ACT-${now.millisecondsSinceEpoch.toString().substring(7)}',
-      title: _selectedActivityType!,
-      description: _descriptionController.text.trim(),
-      userName: 'Sarah Jenkins',
-      userRole: 'Frontend Engineer',
-      department: 'Engineering',
-      company: 'PT Oasish Tech Nusantara',
-      initials: 'SJ',
-      status: ActivityStatus.inProgress,
-      location: _locationNameController.text.trim(),
-      time: timeStr,
-      date: now,
-      isMyActivity: true,
-      category: _selectedActivityType!,
-      latitude: _latitude,
-      longitude: _longitude,
-      fullAddress: _addressController.text.trim(),
-      districtCity: 'Jakarta Selatan, DKI Jakarta',
-      gpsAccuracy: _gpsAccuracy,
-      isGpsVerified: true,
-      phases: [
-        ActivityPhaseItem(
-          phaseNumber: 1,
-          title: 'Phase 1: Start & Check-In',
-          time: '$timeStr PM, $dateFormatted',
-          label: 'Initial Description / Task Scope',
-          notes: _descriptionController.text.trim(),
-          imageUrl: _samplePhotoUrl ?? _pickedPhoto?.path,
-          imageDescription: 'Field verification proof photo',
-        ),
-      ],
+    context.read<CreateActivityBloc>().add(
+      CreateActivitySubmitted(
+        activityTypeId: _selectedActivityType!.id,
+        latitude: _latitude,
+        longitude: _longitude,
+        locationName: _locationNameController.text.trim(),
+        locationAddress: _addressController.text.trim(),
+        description: _descriptionController.text.trim(),
+        file: _pickedPhoto,
+      ),
     );
-
-    Navigator.of(context).pop(newActivity);
   }
 
   void _showWarningSnackBar(String message) {
@@ -379,314 +482,369 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
     final inputBg = isDark
         ? AppColors.darkSurfaceContainer
         : AppColors.backgroundSubtle;
 
-    return Scaffold(
-      backgroundColor: bgCol,
-      // 1. TopAppBar
-      appBar: AppBar(
+    return BlocListener<CreateActivityBloc, CreateActivityState>(
+      listener: (context, createState) {
+        if (createState.status == CreateActivityStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(LucideIcons.checkCircle2, color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Expanded(child: Text('Aktivitas berhasil dibuat!')),
+                ],
+              ),
+              backgroundColor: const Color(0xFF16A34A),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          Navigator.of(context).pop(createState.createdActivity);
+        } else if (createState.status == CreateActivityStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(
+                    LucideIcons.alertCircle,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      createState.errorMessage.isNotEmpty
+                          ? createState.errorMessage
+                          : 'Gagal membuat aktivitas.',
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
         backgroundColor: bgCol,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: Icon(
-            LucideIcons.arrowLeft,
-            color: textCol,
-            size: 20,
+        // 1. TopAppBar
+        appBar: AppBar(
+          backgroundColor: bgCol,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 20),
+            onPressed: () => Navigator.of(context).maybePop(),
+            tooltip: 'Kembali',
           ),
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'Kembali',
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Create Activity',
-              style: AppTypography.titleMedium.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textCol,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create Activity',
+                style: AppTypography.titleMedium.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textCol,
+                ),
               ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              'Phase 1: Log initial activity & check-in',
-              style: AppTypography.labelSmall.copyWith(
-                fontSize: 11,
-                color: subtitleCol,
+              const SizedBox(height: 1),
+              Text(
+                'Phase 1: Log initial activity & check-in',
+                style: AppTypography.labelSmall.copyWith(
+                  fontSize: 11,
+                  color: subtitleCol,
+                ),
               ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(LucideIcons.locateFixed, color: textCol, size: 20),
+              tooltip: 'Perbarui Lokasi GPS',
+              onPressed: _refreshGpsLocation,
             ),
+            const SizedBox(width: 8),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              LucideIcons.locateFixed,
-              color: textCol,
-              size: 20,
-            ),
-            tooltip: 'Perbarui Lokasi GPS',
-            onPressed: _refreshGpsLocation,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
 
-      // 2. Main Scrollable Form Content
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Live GPS Map View Card
-                CreateActivityMapCard(
-                  latitude: _latitude,
-                  longitude: _longitude,
-                  gpsAccuracy: _gpsAccuracy,
-                  onLocationChanged: (lat, lng, acc) {
-                    setState(() {
-                      _latitude = lat;
-                      _longitude = lng;
-                      _gpsAccuracy = acc;
-                    });
-                  },
-                  onAddressDetected: (fullAddr, locName) {
-                    if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
-                      setState(() => _addressController.text = fullAddr);
-                    }
-                    if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
-                      setState(() => _locationNameController.text = locName);
-                    }
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Form Fields Container Card
-                Container(
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: borderCol, width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+        // 2. Main Scrollable Form Content
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Live GPS Map View Card
+                  CreateActivityMapCard(
+                    latitude: _latitude,
+                    longitude: _longitude,
+                    gpsAccuracy: _gpsAccuracy,
+                    onLocationChanged: (lat, lng, acc) {
+                      setState(() {
+                        _latitude = lat;
+                        _longitude = lng;
+                        _gpsAccuracy = acc;
+                      });
+                    },
+                    // onAddressDetected: (fullAddr, locName) {
+                    //   // Disabled sementara karena geocoding API berbayar
+                    //   if (_addressController.text.trim().isEmpty &&
+                    //       fullAddr.isNotEmpty) {
+                    //     setState(() => _addressController.text = fullAddr);
+                    //   }
+                    //   if (_locationNameController.text.trim().isEmpty &&
+                    //       locName.isNotEmpty) {
+                    //     setState(() => _locationNameController.text = locName);
+                    //   }
+                    // },
                   ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Field 1: Activity Type Selector
-                      _buildFieldLabel(
-                        label: 'Activity Type',
-                        isRequired: true,
-                        textCol: textCol,
-                      ),
-                      const SizedBox(height: 6),
-                      InkWell(
-                        onTap: _showActivityTypePicker,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 13,
+
+                  const SizedBox(height: 16),
+
+                  // Form Fields Container Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: borderCol, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.2 : 0.03,
                           ),
-                          decoration: BoxDecoration(
-                            color: inputBg,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: borderCol, width: 1),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                LucideIcons.shapes,
-                                size: 18,
-                                color: subtitleCol,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  _selectedActivityType ??
-                                      'Select activity type...',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: _selectedActivityType != null
-                                        ? textCol
-                                        : subtitleCol,
-                                    fontSize: 14,
-                                    fontWeight: _selectedActivityType != null
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Field 1: Activity Type Selector
+                        _buildFieldLabel(
+                          label: 'Activity Type',
+                          isRequired: true,
+                          textCol: textCol,
+                        ),
+                        const SizedBox(height: 6),
+                        InkWell(
+                          onTap: _showActivityTypePicker,
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 13,
+                            ),
+                            decoration: BoxDecoration(
+                              color: inputBg,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: borderCol, width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.shapes,
+                                  size: 18,
+                                  color: subtitleCol,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    _selectedActivityType?.name ??
+                                        'Select activity type...',
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: _selectedActivityType != null
+                                          ? textCol
+                                          : subtitleCol,
+                                      fontSize: 14,
+                                      fontWeight: _selectedActivityType != null
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronDown,
-                                size: 18,
-                                color: subtitleCol,
-                              ),
-                            ],
+                                Icon(
+                                  LucideIcons.chevronDown,
+                                  size: 18,
+                                  color: subtitleCol,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // Field 2: Location / Venue Name Input
-                      _buildFieldLabel(
-                        label: 'Location / Venue Name',
-                        isRequired: true,
-                        textCol: textCol,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildTextInput(
-                        controller: _locationNameController,
-                        hintText: 'e.g., SCBD Tower 2 - Meeting Room 4A',
-                        prefixIcon: LucideIcons.building2,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        inputBg: inputBg,
-                        borderCol: borderCol,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Field 3: Address (Alamat Lengkap) Input
-                      _buildFieldLabel(
-                        label: 'Address (Alamat Lengkap)',
-                        isRequired: true,
-                        textCol: textCol,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildTextInput(
-                        controller: _addressController,
-                        hintText:
-                            'e.g., Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
-                        prefixIcon: LucideIcons.mapPin,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        inputBg: inputBg,
-                        borderCol: borderCol,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Field 4: Description / Task Objective Input
-                      _buildFieldLabel(
-                        label: 'Description / Task Objective',
-                        isRequired: true,
-                        textCol: textCol,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildTextInput(
-                        controller: _descriptionController,
-                        hintText:
-                            'Describe the purpose of this activity, agenda, or initial scope...',
-                        prefixIcon: LucideIcons.alignLeft,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        inputBg: inputBg,
-                        borderCol: borderCol,
-                        maxLines: 4,
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Field 5: Start Proof Photo Area
-                      _buildFieldLabel(
-                        label: 'Start Proof Photo',
-                        isRequired: true,
-                        textCol: textCol,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Take a selfie or capture venue photo',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 11,
+                        // Field 2: Location / Venue Name Input
+                        _buildFieldLabel(
+                          label: 'Location / Venue Name',
+                          isRequired: true,
+                          textCol: textCol,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildPhotoPickerBox(
-                        isDark: isDark,
-                        borderCol: borderCol,
-                        subtitleCol: subtitleCol,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+                        const SizedBox(height: 6),
+                        _buildTextInput(
+                          controller: _locationNameController,
+                          hintText: 'e.g., SCBD Tower 2 - Meeting Room 4A',
+                          prefixIcon: LucideIcons.building2,
+                          textCol: textCol,
+                          subtitleCol: subtitleCol,
+                          inputBg: inputBg,
+                          borderCol: borderCol,
+                        ),
 
-      // 3. Bottom Sticky Action Button
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        decoration: BoxDecoration(
-          color: (isDark
-                  ? AppColors.darkSurfaceContainerLowest
-                  : Colors.white)
-              .withValues(alpha: 0.95),
-          border: Border(
-            top: BorderSide(color: borderCol, width: 1),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton.icon(
-            onPressed: _isSubmitting ? null : _handleSubmit,
-            icon: _isSubmitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+                        const SizedBox(height: 16),
+
+                        // Field 3: Address (Alamat Lengkap) Input
+                        _buildFieldLabel(
+                          label: 'Address (Alamat Lengkap)',
+                          isRequired: true,
+                          textCol: textCol,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTextInput(
+                          controller: _addressController,
+                          hintText:
+                              'e.g., Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
+                          prefixIcon: LucideIcons.mapPin,
+                          textCol: textCol,
+                          subtitleCol: subtitleCol,
+                          inputBg: inputBg,
+                          borderCol: borderCol,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Field 4: Description / Task Objective Input
+                        _buildFieldLabel(
+                          label: 'Description / Task Objective',
+                          isRequired: true,
+                          textCol: textCol,
+                        ),
+                        const SizedBox(height: 6),
+                        _buildTextInput(
+                          controller: _descriptionController,
+                          hintText:
+                              'Describe the purpose of this activity, agenda, or initial scope...',
+                          prefixIcon: LucideIcons.alignLeft,
+                          textCol: textCol,
+                          subtitleCol: subtitleCol,
+                          inputBg: inputBg,
+                          borderCol: borderCol,
+                          maxLines: 4,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Field 5: Start Proof Photo Area
+                        _buildFieldLabel(
+                          label: 'Start Proof Photo',
+                          isRequired: true,
+                          textCol: textCol,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Take a selfie or capture venue photo',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: subtitleCol,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildPhotoPickerBox(
+                          isDark: isDark,
+                          borderCol: borderCol,
+                          subtitleCol: subtitleCol,
+                        ),
+                      ],
                     ),
-                  )
-                : const Icon(
-                    LucideIcons.checkCircle2,
-                    size: 20,
-                    color: Colors.white,
                   ),
-            label: Text(
-              _isSubmitting ? 'Memproses...' : 'Submit & Start Activity',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
+                ],
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(26),
+          ),
+        ),
+
+        // 3. Bottom Sticky Action Button
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color:
+                (isDark ? AppColors.darkSurfaceContainerLowest : Colors.white)
+                    .withValues(alpha: 0.95),
+            border: Border(top: BorderSide(color: borderCol, width: 1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: BlocBuilder<CreateActivityBloc, CreateActivityState>(
+                builder: (context, createState) {
+                  final isSubmitting = createState.isSubmitting;
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: isSubmitting ? null : _handleSubmit,
+                      icon: isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              LucideIcons.checkCircle2,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                      label: Text(
+                        isSubmitting ? 'Memproses...' : 'Submit & Start Activity',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -744,10 +902,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
       child: TextField(
         controller: controller,
         maxLines: maxLines,
-        style: AppTypography.bodyMedium.copyWith(
-          color: textCol,
-          fontSize: 14,
-        ),
+        style: AppTypography.bodyMedium.copyWith(color: textCol, fontSize: 14),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: AppTypography.bodyMedium.copyWith(
@@ -796,10 +951,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
           fit: StackFit.expand,
           children: [
             if (_pickedPhoto != null)
-              Image.file(
-                File(_pickedPhoto!.path),
-                fit: BoxFit.cover,
-              )
+              Image.file(File(_pickedPhoto!.path), fit: BoxFit.cover)
             else if (_samplePhotoUrl != null)
               Image.network(
                 _samplePhotoUrl!,
@@ -880,46 +1032,48 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
         onTap: _showPhotoOptionsSheet,
         borderRadius: BorderRadius.circular(12),
         splashColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
-        child: Container(
-          height: 120,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF0D9488).withValues(alpha: 0.08)
-                : const Color(0xFFF0FDFA),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF0D9488),
-              width: 1.5,
-              style: BorderStyle.solid,
-            ),
+        child: DottedBorder(
+          options: RoundedRectDottedBorderOptions(
+            color: const Color(0xFF0D9488),
+            strokeWidth: 1.5,
+            dashPattern: [6, 4], // Atur panjang garis putus-putus dan jaraknya
+            radius: const Radius.circular(12),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                LucideIcons.camera,
-                size: 32,
-                color: Color(0xFF0D9488),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Tap to Capture or Upload Photo',
-                style: TextStyle(
+          childOnTop: true,
+          child: Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF0D9488).withValues(alpha: 0.08)
+                  : const Color(0xFFF0FDFA),
+              borderRadius: BorderRadius.circular(12),
+              // Hapus border dari BoxDecoration di sini karena sudah dihandle oleh DottedBorder
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  LucideIcons.camera,
+                  size: 32,
                   color: Color(0xFF0D9488),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Supports JPG, PNG up to 5MB',
-                style: TextStyle(
-                  color: subtitleCol,
-                  fontSize: 11,
+                const SizedBox(height: 6),
+                const Text(
+                  'Tap to Capture or Upload Photo',
+                  style: TextStyle(
+                    color: Color(0xFF0D9488),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  'Supports JPG, PNG up to 5MB',
+                  style: TextStyle(color: subtitleCol, fontSize: 11),
+                ),
+              ],
+            ),
           ),
         ),
       ),

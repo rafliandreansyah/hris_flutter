@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
+// import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API Google)
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -196,34 +196,35 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
       accuracyText,
     );
 
-    _reverseGeocode(position.latitude, position.longitude);
+    // _reverseGeocode(position.latitude, position.longitude); // Disabled sementara (biaya API Google)
   }
 
-  Future<void> _reverseGeocode(double lat, double lng) async {
-    try {
-      if (_isTestEnvironment) return;
-      final placemarks = await Geocoding().placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty && mounted) {
-        final place = placemarks.first;
-        final street = place.street ?? '';
-        final subLoc = place.subLocality ?? '';
-        final locality = place.locality ?? place.subAdministrativeArea ?? '';
-        final admin = place.administrativeArea ?? '';
-
-        final fullAddr = [
-          street,
-          subLoc,
-          locality,
-          admin,
-        ].where((element) => element.trim().isNotEmpty).join(', ');
-        final locName = subLoc.isNotEmpty
-            ? subLoc
-            : (place.name?.isNotEmpty == true ? place.name! : locality);
-
-        widget.onAddressDetected?.call(fullAddr, locName);
-      }
-    } catch (_) {}
-  }
+  // Future<void> _reverseGeocode(double lat, double lng) async {
+  //   // Disabled sementara karena geocoding API Google berbayar dan mahal
+  //   try {
+  //     if (_isTestEnvironment) return;
+  //     final placemarks = await Geocoding().placemarkFromCoordinates(lat, lng);
+  //     if (placemarks.isNotEmpty && mounted) {
+  //       final place = placemarks.first;
+  //       final street = place.street ?? '';
+  //       final subLoc = place.subLocality ?? '';
+  //       final locality = place.locality ?? place.subAdministrativeArea ?? '';
+  //       final admin = place.administrativeArea ?? '';
+  //
+  //       final fullAddr = [
+  //         street,
+  //         subLoc,
+  //         locality,
+  //         admin,
+  //       ].where((element) => element.trim().isNotEmpty).join(', ');
+  //       final locName = subLoc.isNotEmpty
+  //           ? subLoc
+  //           : (place.name?.isNotEmpty == true ? place.name! : locality);
+  //
+  //       widget.onAddressDetected?.call(fullAddr, locName);
+  //     }
+  //   } catch (_) {}
+  // }
 
   void _animateCameraToCurrent() {
     _mapController?.animateCamera(

@@ -63,9 +63,12 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: AppNameVersionText(),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: AppNameVersionText(),
+              ),
             ),
           ),
         ],
