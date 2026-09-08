@@ -123,13 +123,18 @@ class ActivityItem {
 
   // Additional detail fields dari API
   final String? employeeId;
+  final String? activityTypeId;
   final String? filePath;
   final String? filePath2;
   final String? notes;
   final DateTime? startTime;
   final DateTime? endTime;
+  final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? rawStatus;
+  final String? userEmail;
+  final String? employeeNumber;
+  final String? userLevel;
 
   const ActivityItem({
     required this.id,
@@ -156,13 +161,18 @@ class ActivityItem {
     this.isGpsVerified = true,
     this.phases,
     this.employeeId,
+    this.activityTypeId,
     this.filePath,
     this.filePath2,
     this.notes,
     this.startTime,
     this.endTime,
+    this.createdAt,
     this.updatedAt,
     this.rawStatus,
+    this.userEmail,
+    this.employeeNumber,
+    this.userLevel,
   });
 
   ActivityItem copyWith({
@@ -189,13 +199,18 @@ class ActivityItem {
     bool? isGpsVerified,
     List<ActivityPhaseItem>? phases,
     String? employeeId,
+    String? activityTypeId,
     String? filePath,
     String? filePath2,
     String? notes,
     DateTime? startTime,
     DateTime? endTime,
+    DateTime? createdAt,
     DateTime? updatedAt,
     String? rawStatus,
+    String? userEmail,
+    String? employeeNumber,
+    String? userLevel,
   }) {
     return ActivityItem(
       id: id ?? this.id,
@@ -221,13 +236,18 @@ class ActivityItem {
       isGpsVerified: isGpsVerified ?? this.isGpsVerified,
       phases: phases ?? this.phases,
       employeeId: employeeId ?? this.employeeId,
+      activityTypeId: activityTypeId ?? this.activityTypeId,
       filePath: filePath ?? this.filePath,
       filePath2: filePath2 ?? this.filePath2,
       notes: notes ?? this.notes,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
+      createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rawStatus: rawStatus ?? this.rawStatus,
+      userEmail: userEmail ?? this.userEmail,
+      employeeNumber: employeeNumber ?? this.employeeNumber,
+      userLevel: userLevel ?? this.userLevel,
     );
   }
 
@@ -242,11 +262,12 @@ class ActivityItem {
         filePath2 != null ||
         notes != null ||
         startTime != null ||
+        createdAt != null ||
         updatedAt != null ||
         endTime != null;
 
     if (hasApiDetailData) {
-      final startDt = (startTime ?? date).toLocal();
+      final startDt = (startTime ?? createdAt ?? date).toLocal();
       final phase1TimeStr =
           DateFormat('HH:mm, dd MMM yyyy').format(startDt);
 

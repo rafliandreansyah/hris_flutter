@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
+import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:hris_flutter/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:hris_flutter/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:hris_flutter/features/dashboard/presentation/bloc/dashboard_state.dart';
@@ -19,12 +21,16 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// Halaman Utama Dashboard Oasish HRIS dengan integrasi data backend,
 /// realtime server clock (termasuk detik), dan shimmer loading.
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final DashboardRepository? repository;
+
+  const DashboardScreen({super.key, this.repository});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DashboardBloc>(
-      create: (_) => DashboardBloc()..add(const DashboardFetchRequested()),
+      create: (_) => DashboardBloc(
+        dashboardRepository: repository,
+      )..add(const DashboardFetchRequested()),
       child: const _DashboardView(),
     );
   }
@@ -234,7 +240,23 @@ class _DashboardViewState extends State<_DashboardView> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<DashboardBloc, DashboardState>(
+        child: BlocConsumer<DashboardBloc, DashboardState>(
+          listener: (context, state) {
+            if (state is DashboardError) {
+              AppDialogUtil.showError(
+                context,
+                title: 'Gagal Memuat Dashboard',
+                message: state.message,
+                retryText: 'Coba Lagi',
+                closeText: 'Tutup',
+                onRetry: () {
+                  context.read<DashboardBloc>().add(
+                    const DashboardFetchRequested(),
+                  );
+                },
+              );
+            }
+          },
           builder: (context, state) {
             // 1. Shimmer Loading State
             if (state is DashboardLoading || state is DashboardInitial) {
@@ -313,8 +335,8 @@ class _DashboardViewState extends State<_DashboardView> {
                         ? '${shift.startTime} - ${shift.endTime}'
                         : (shift.isFlexibleTime
                               ? 'Flexible Shift'
-                              : '09:00 - 18:00'))
-                  : '09:00 - 18:00';
+                              : 'No Work Schedule'))
+                  : 'No Work Schedule';
 
               // Lokasi Perusahaan
               final locationStr = data.company?.name ?? 'HQ, Building A';
@@ -352,16 +374,7 @@ class _DashboardViewState extends State<_DashboardView> {
                         clockOutTime: outTime,
                         isClockedIn: isClockedIn,
                         onClockPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isClockedIn
-                                    ? 'Form Clock Out segera dibuka'
-                                    : 'Form Clock In segera dibuka',
-                              ),
-                              backgroundColor: AppColors.brandTeal,
-                            ),
-                          );
+                          context.push(Routes.ATTENDANCE);
                         },
                       ),
                       const SizedBox(height: 24),

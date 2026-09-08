@@ -17,14 +17,14 @@ class AttendanceHeroCard extends StatelessWidget {
 
   const AttendanceHeroCard({
     super.key,
-    this.currentTime = '08:45',
-    this.currentDate = 'Kamis, 27 Ags',
-    this.location = 'HQ, Building A',
-    this.schedule = '09:00 - 18:00',
-    this.timezone = 'Asia/Jakarta',
-    this.clockInTime = '08:30',
+    this.currentTime = '--:--',
+    this.currentDate = '--',
+    this.location = 'Empty Work Location',
+    this.schedule = '--:-- - --:--',
+    this.timezone = '--:--',
+    this.clockInTime = '--:--',
     this.clockOutTime = '--:--',
-    this.isClockedIn = true,
+    this.isClockedIn = false,
     this.onClockPressed,
   });
 
@@ -113,7 +113,10 @@ class AttendanceHeroCard extends StatelessWidget {
 
                   // Location Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(100),

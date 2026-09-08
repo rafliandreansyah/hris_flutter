@@ -10,3 +10,11 @@
 4. **Testing Standards**:
    - Every BLoC must have comprehensive unit tests using standard `test` and `bloc_test` patterns.
    - Maintain 100% passing rate across all widget and unit test suites.
+5. **Error Handling & API Feedback Standards**:
+   - **Always verify and handle error states** across all screens (Dashboard, Attendance, Activity, Employee, etc.) during feature development, refactoring, and pair programming.
+   - Catch `ApiException` from network requests and propagate the `message` and `statusCode` through BLoC failure/error states.
+   - **API Error Messages**: Always extract and display the error message directly from the API (`e.message` / `state.message`) rather than hardcoding static error texts, as the backend already configures the default language based on the employee/user profile.
+   - **Consistent User Feedback**: Display standardized error popups using `AppDialogUtil.showError` (`pro_dialog`) alongside in-screen error/empty states.
+   - **Special HTTP Status Codes**:
+     - **401 Unauthorized**: Handled globally by `ApiClient` auto-logout (clear secure storage, clear in-memory token, delete FCM token via `NotificationService`, show session expired dialog, and redirect to login).
+     - **404 Not Found**: For schedule or specific missing resource errors, provide only a "Kembali" option without retry buttons.

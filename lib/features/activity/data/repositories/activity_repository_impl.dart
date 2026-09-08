@@ -63,9 +63,22 @@ class ActivityRepositoryImpl implements ActivityRepository {
     );
   }
 
+  List<ActivityTypeModel>? _cachedActivityTypes;
+
   @override
-  Future<ActivityTypesResponse> getActivityTypes() {
-    return _remoteDataSource.getActivityTypes();
+  Future<ActivityTypesResponse> getActivityTypes() async {
+    if (_cachedActivityTypes != null && _cachedActivityTypes!.isNotEmpty) {
+      return ActivityTypesResponse(
+        success: true,
+        message: 'OK',
+        data: _cachedActivityTypes!,
+      );
+    }
+    final res = await _remoteDataSource.getActivityTypes();
+    if (res.success && res.data.isNotEmpty) {
+      _cachedActivityTypes = res.data;
+    }
+    return res;
   }
 
   @override

@@ -1,10 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hris_flutter/app/routes/app_router.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/constants/app_constants.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/network/interceptors/auth_interceptor.dart';
 import 'package:hris_flutter/core/network/interceptors/logging_interceptor.dart';
+import 'package:hris_flutter/core/services/notification_service.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
 
 /// Client jaringan utama berbasis Dio untuk mengelola semua HTTP request ke backend Muratech HRIS.
 class ApiClient {
@@ -30,13 +35,60 @@ class ApiClient {
     );
 
     _dio = Dio(baseOptions);
-    _authInterceptor = AuthInterceptor();
+    _authInterceptor = AuthInterceptor(
+      onUnauthorized: _handleGlobalUnauthorized,
+    );
 
     _dio.interceptors.add(_authInterceptor);
 
     // Logging hanya aktif saat mode Debug
     if (kDebugMode) {
       _dio.interceptors.add(LoggingInterceptor.instance);
+    }
+  }
+
+  bool _isHandlingUnauthorized = false;
+
+  /// Penanganan global untuk HTTP 401 Unauthorized di seluruh API.
+  /// Menghapus sesi lokal, token FCM, menampilkan dialog sesi berakhir, dan redirect ke halaman Login.
+  void _handleGlobalUnauthorized() async {
+    if (_isHandlingUnauthorized) return;
+    _isHandlingUnauthorized = true;
+
+    try {
+      // 1. Bersihkan token dari secure storage
+      await AuthLocalDataSourceImpl().clearToken();
+
+      // 2. Bersihkan token dari memory ApiClient
+      clearAuthToken();
+
+      // 3. Hapus FCM Token perangkat jika ada
+      try {
+        await NotificationService.instance.deleteFcmToken();
+      } catch (_) {}
+
+      // 4. Tampilkan dialog sesi berakhir dan arahkan ke Login
+      final context = AppRouter.rootNavigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        AppDialogUtil.showError(
+          context,
+          title: 'Sesi Berakhir',
+          message:
+              'Sesi login Anda telah berakhir atau tidak valid (401). Silakan masuk kembali.',
+          closeText: 'Login Kembali',
+          onClose: () {
+            AppRouter.router.go(Routes.LOGIN);
+          },
+        );
+      } else {
+        AppRouter.router.go(Routes.LOGIN);
+      }
+    } catch (_) {
+      AppRouter.router.go(Routes.LOGIN);
+    } finally {
+      Future.delayed(const Duration(seconds: 3), () {
+        _isHandlingUnauthorized = false;
+      });
     }
   }
 

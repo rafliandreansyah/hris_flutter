@@ -187,6 +187,19 @@ class NotificationService {
     }
   }
 
+  /// Menghapus FCM Device Token saat logout agar perangkat tidak menerima push notification dari akun sebelumnya
+  Future<void> deleteFcmToken() async {
+    try {
+      final fcm = _fcm;
+      if (fcm != null) {
+        await fcm.deleteToken();
+        debugPrint('🗑️ [FCM Device Token]: Token FCM berhasil dihapus.');
+      }
+    } catch (e) {
+      debugPrint('ℹ️ [FCM Delete Token Note]: $e');
+    }
+  }
+
   /// Stream listener ketika token FCM diperbarui
   Stream<String> get onTokenRefresh {
     final fcm = _fcm;

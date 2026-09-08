@@ -74,6 +74,17 @@ class ActivityDetailBloc
     }
   }
 
+  Future<String?> _resolveActivityTypeName(String? typeId) async {
+    if (typeId == null || typeId.trim().isEmpty) return null;
+    try {
+      final typesRes = await _repository.getActivityTypes();
+      final match = typesRes.data.where((t) => t.id == typeId).firstOrNull;
+      return match?.name;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _onFetchRequested(
     ActivityDetailFetchRequested event,
     Emitter<ActivityDetailState> emit,
@@ -84,9 +95,14 @@ class ActivityDetailBloc
 
     try {
       final response = await _repository.getActivityDetail(event.id);
+      final resolvedTypeName = await _resolveActivityTypeName(
+        response.data.activityTypeId,
+      );
       final updatedItem = response.toActivityItem(
         isMyActivity: state.activity.isMyActivity,
         currentEmployeeId: state.currentEmployeeId,
+        activityTypeName: resolvedTypeName,
+        existingItem: state.activity,
       );
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
 
@@ -123,9 +139,14 @@ class ActivityDetailBloc
       );
       try {
         final response = await _repository.getActivityDetail(event.id);
+        final resolvedTypeName = await _resolveActivityTypeName(
+          response.data.activityTypeId,
+        );
         updatedItem = response.toActivityItem(
           isMyActivity: state.activity.isMyActivity,
           currentEmployeeId: state.currentEmployeeId,
+          activityTypeName: resolvedTypeName,
+          existingItem: state.activity,
         );
       } catch (_) {}
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
@@ -165,9 +186,14 @@ class ActivityDetailBloc
       );
       try {
         final response = await _repository.getActivityDetail(event.id);
+        final resolvedTypeName = await _resolveActivityTypeName(
+          response.data.activityTypeId,
+        );
         updatedItem = response.toActivityItem(
           isMyActivity: state.activity.isMyActivity,
           currentEmployeeId: state.currentEmployeeId,
+          activityTypeName: resolvedTypeName,
+          existingItem: state.activity,
         );
       } catch (_) {}
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);

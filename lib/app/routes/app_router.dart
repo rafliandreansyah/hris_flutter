@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/create_activity_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
@@ -13,7 +15,11 @@ import 'package:hris_flutter/features/employee/presentation/pages/employee_direc
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'root');
+
   static final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: Routes.SPLASH,
     routes: [
       // 1. Splash Screen
@@ -102,6 +108,13 @@ class AppRouter {
         path: Routes.CREATE_ACTIVITY,
         name: Routes.CREATE_ACTIVITY,
         builder: (context, state) => const CreateActivityScreen(),
+      ),
+
+      // 10. Attendance & Check-In Screen (Oasish Google Stitch)
+      GoRoute(
+        path: Routes.ATTENDANCE,
+        name: Routes.ATTENDANCE,
+        builder: (context, state) => const AttendanceScreen(),
       ),
     ],
     redirect: (context, state) {

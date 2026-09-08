@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:hris_flutter/features/auth/data/models/login_request_model.dart';
@@ -97,5 +98,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
     // 2. Bersihkan token dari memory ApiClient
     _apiClient.clearAuthToken();
+
+    // 3. Hapus token FCM jika ada
+    try {
+      await NotificationService.instance.deleteFcmToken();
+    } catch (_) {}
   }
 }

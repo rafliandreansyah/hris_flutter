@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/dashboard/data/models/dashboard_response_model.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
+import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_shimmer_loading.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/leave_balance_preview_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
@@ -216,5 +220,88 @@ void main() {
       expect(find.text('Hari ini · Pengumuman'), findsOneWidget);
       expect(find.text('Tidak ada pengumuman'), findsNothing);
     });
+
+    testWidgets(
+        'DashboardScreen displays error state and error dialog on repository error with English message', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final repo = MockFailureDashboardRepository(
+        message: 'Server connection timeout. Please try again.',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(repository: repo),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verifies error UI on screen displays API message directly
+      expect(find.text('Server connection timeout. Please try again.'), findsAtLeast(1));
+      expect(find.text('Coba Lagi'), findsAtLeast(1));
+
+      // Dismiss dialog by tapping Coba Lagi to clean up dialog animation timers
+      await tester.tap(find.text('Coba Lagi').last, warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets(
+        'DashboardScreen displays error state and error dialog on repository error in Indonesian', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final repo = MockFailureDashboardRepository(
+        message: 'Gagal memuat data dari server backend.',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(repository: repo),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verifies error UI on screen
+      expect(find.text('Gagal memuat data dari server backend.'), findsAtLeast(1));
+      expect(find.text('Coba Lagi'), findsAtLeast(1));
+
+      await tester.tap(find.text('Coba Lagi').last, warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+    });
   });
+}
+
+class MockFailureDashboardRepository implements DashboardRepository {
+  final String message;
+  final int? statusCode;
+
+  MockFailureDashboardRepository({
+    this.message = 'Network connection failed',
+    this.statusCode = 500,
+  });
+
+  @override
+  Future<DashboardData> getDashboardData() async {
+    throw ApiException(message: message, statusCode: statusCode);
+  }
+
+  @override
+  Future<List<MenuItemModel>> getMenus() async {
+    throw ApiException(message: message, statusCode: statusCode);
+  }
 }

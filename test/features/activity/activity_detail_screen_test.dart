@@ -220,7 +220,6 @@ void main() {
           findsOneWidget,
         );
         expect(find.text('-6.2253° S, 106.8097° E'), findsOneWidget);
-        expect(find.text('• Zona Terverifikasi'), findsOneWidget);
       },
     );
 
@@ -245,28 +244,6 @@ void main() {
         expect(find.byIcon(LucideIcons.check), findsOneWidget);
       },
     );
-
-    testWidgets('renders Export Activity Summary PDF button and handles tap', (
-      tester,
-    ) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      final exportBtn = find.text('Export Activity Summary (PDF)');
-      expect(exportBtn, findsOneWidget);
-
-      // Scroll to button and tap
-      await tester.ensureVisible(exportBtn);
-      await tester.tap(exportBtn);
-      await tester.pump();
-
-      // Check snackbar appeared
-      expect(
-        find.text('Mengunduh ringkasan PDF untuk aktivitas ACT-002...'),
-        findsOneWidget,
-      );
-    });
 
     testWidgets('tap on photo opens preview dialog with close button', (
       tester,

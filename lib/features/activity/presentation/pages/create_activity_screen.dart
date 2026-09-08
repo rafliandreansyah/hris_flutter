@@ -5,12 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/create_activity/create_activity_bloc.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 
 /// Halaman Create Activity Form sesuai Google Stitch Oasish Flutter M3 HRIS
@@ -55,6 +57,8 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
   // State (UI-only, non-business logic)
   ActivityTypeModel? _selectedActivityType;
   XFile? _pickedPhoto;
+  ImageCompressResult? _compressResult;
+  bool _isCompressingPhoto = false;
   String? _samplePhotoUrl;
   double _latitude = -6.2088;
   double _longitude = 106.8456;
@@ -151,10 +155,38 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
         maxHeight: 1600,
         imageQuality: 85,
       );
-      if (photo != null) {
+      if (photo != null && mounted) {
         setState(() {
           _pickedPhoto = photo;
           _samplePhotoUrl = null;
+        });
+
+        // Kompres di background thread tanpa memblokir UI
+        ImageCompressUtil.compressXFile(
+          photo,
+          quality: 75,
+          minWidth: 1600,
+          minHeight: 1600,
+          onLoadingChanged: (isCompressing) {
+            if (mounted) {
+              setState(() => _isCompressingPhoto = isCompressing);
+            }
+          },
+        ).then((result) {
+          if (mounted) {
+            setState(() {
+              _pickedPhoto = result.file;
+              _compressResult = result;
+            });
+            debugPrint(
+              '📸 [CreateActivity] Foto berhasil dikompresi:\n'
+              '   • Sebelum (RAW) : ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)\n'
+              '   • Sesudah (OPT) : ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)\n'
+              '   • Efisiensi     : Hemat ${result.savedPercentage.toStringAsFixed(1)}% '
+              '(${ImageCompressResult.formatBytes(result.originalSizeBytes - result.compressedSizeBytes > 0 ? result.originalSizeBytes - result.compressedSizeBytes : 0)})\n'
+              '   • Waktu         : ${result.compressionDuration.inMilliseconds} ms',
+            );
+          }
         });
       }
     } catch (e) {
@@ -255,8 +287,33 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
       }
       setState(() {
         _pickedPhoto = XFile(tempFile.path);
-        _samplePhotoUrl =
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag';
+        _samplePhotoUrl = null;
+      });
+
+      // Jalankan kompresi di background untuk foto sampel
+      ImageCompressUtil.compressXFile(
+        XFile(tempFile.path),
+        quality: 75,
+        onLoadingChanged: (isCompressing) {
+          if (mounted) {
+            setState(() => _isCompressingPhoto = isCompressing);
+          }
+        },
+      ).then((result) {
+        if (mounted) {
+          setState(() {
+            _pickedPhoto = result.file;
+            _compressResult = result;
+          });
+          debugPrint(
+            '📸 [CreateActivity] Foto sampel berhasil dikompresi:\n'
+            '   • Sebelum (RAW) : ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)\n'
+            '   • Sesudah (OPT) : ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)\n'
+            '   • Efisiensi     : Hemat ${result.savedPercentage.toStringAsFixed(1)}% '
+            '(${ImageCompressResult.formatBytes(result.originalSizeBytes - result.compressedSizeBytes > 0 ? result.originalSizeBytes - result.compressedSizeBytes : 0)})\n'
+            '   • Waktu         : ${result.compressionDuration.inMilliseconds} ms',
+          );
+        }
       });
     } catch (_) {
       setState(() {
@@ -811,37 +868,11 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                   return SizedBox(
                     width: double.infinity,
                     height: 52,
-                    child: ElevatedButton.icon(
+                    child: AppButton(
+                      text: 'Submit & Start Activity',
+                      leadingIcon: LucideIcons.checkCircle2,
                       onPressed: isSubmitting ? null : _handleSubmit,
-                      icon: isSubmitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(
-                              LucideIcons.checkCircle2,
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                      label: Text(
-                        isSubmitting ? 'Memproses...' : 'Submit & Start Activity',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D9488),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(26),
-                        ),
-                      ),
+                      isLoading: isSubmitting,
                     ),
                   );
                 },
@@ -935,8 +966,10 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
   }) {
     final hasPhoto = _pickedPhoto != null || _samplePhotoUrl != null;
 
+    final Widget boxContent;
+
     if (hasPhoto) {
-      return Container(
+      boxContent = Container(
         height: 140,
         width: double.infinity,
         decoration: BoxDecoration(
@@ -961,6 +994,42 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                 ),
               ),
 
+            // Top Left: Compressed file size badge
+            if (_compressResult != null)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        LucideIcons.fileCheck,
+                        size: 12,
+                        color: AppColors.brandTealSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_compressResult!.compressedSizeFormatted} (-${_compressResult!.savedPercentage.toStringAsFixed(0)}%)',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // Top Right: Remove Photo Button
             Positioned(
               top: 8,
@@ -969,6 +1038,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                 onTap: () {
                   setState(() {
                     _pickedPhoto = null;
+                    _compressResult = null;
                     _samplePhotoUrl = null;
                   });
                 },
@@ -1023,60 +1093,66 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
           ],
         ),
       );
-    }
-
-    // Dashed Upload Placeholder Box (sesuai Google Stitch)
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _showPhotoOptionsSheet,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
-        child: DottedBorder(
-          options: RoundedRectDottedBorderOptions(
-            color: const Color(0xFF0D9488),
-            strokeWidth: 1.5,
-            dashPattern: [6, 4], // Atur panjang garis putus-putus dan jaraknya
-            radius: const Radius.circular(12),
-          ),
-          childOnTop: true,
-          child: Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF0D9488).withValues(alpha: 0.08)
-                  : const Color(0xFFF0FDFA),
-              borderRadius: BorderRadius.circular(12),
-              // Hapus border dari BoxDecoration di sini karena sudah dihandle oleh DottedBorder
+    } else {
+      // Dashed Upload Placeholder Box (sesuai Google Stitch)
+      boxContent = Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _showPhotoOptionsSheet,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
+          child: DottedBorder(
+            options: RoundedRectDottedBorderOptions(
+              color: const Color(0xFF0D9488),
+              strokeWidth: 1.5,
+              dashPattern: const [6, 4],
+              radius: const Radius.circular(12),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  LucideIcons.camera,
-                  size: 32,
-                  color: Color(0xFF0D9488),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Tap to Capture or Upload Photo',
-                  style: TextStyle(
+            childOnTop: true,
+            child: Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF0D9488).withValues(alpha: 0.08)
+                    : const Color(0xFFF0FDFA),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    LucideIcons.camera,
+                    size: 32,
                     color: Color(0xFF0D9488),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Supports JPG, PNG up to 5MB',
-                  style: TextStyle(color: subtitleCol, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Tap to Capture or Upload Photo',
+                    style: TextStyle(
+                      color: Color(0xFF0D9488),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Supports JPG, PNG • Auto Compressed',
+                    style: TextStyle(color: subtitleCol, fontSize: 11),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+      );
+    }
+
+    return NonBlockingCompressIndicator(
+      isCompressing: _isCompressingPhoto,
+      borderRadius: 12,
+      message: 'Mengompres foto...',
+      child: boxContent,
     );
   }
 }

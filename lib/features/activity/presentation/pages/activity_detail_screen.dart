@@ -46,16 +46,19 @@ class ActivityDetailScreen extends StatelessWidget {
       );
     }
     return BlocProvider<ActivityDetailBloc>(
-      create: (context) => ActivityDetailBloc(
-        repository: activityRepository,
-        initialActivity: ActivityDetailBloc.resolveInitialActivity(
-          activity: activity,
-          activityId: activityId,
-        ),
-      )..add(ActivityDetailStarted(
-          initialActivity: activity,
-          activityId: activityId,
-        )),
+      create: (context) =>
+          ActivityDetailBloc(
+            repository: activityRepository,
+            initialActivity: ActivityDetailBloc.resolveInitialActivity(
+              activity: activity,
+              activityId: activityId,
+            ),
+          )..add(
+            ActivityDetailStarted(
+              initialActivity: activity,
+              activityId: activityId,
+            ),
+          ),
       child: const _ActivityDetailView(),
     );
   }
@@ -86,12 +89,13 @@ class _ActivityDetailView extends StatelessWidget {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(LucideIcons.checkCircle2,
-                      color: Colors.white, size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(state.actionMessage!),
+                  const Icon(
+                    LucideIcons.checkCircle2,
+                    color: Colors.white,
+                    size: 18,
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(state.actionMessage!)),
                 ],
               ),
               backgroundColor: state.actionMessage!.contains('selesai')
@@ -99,7 +103,8 @@ class _ActivityDetailView extends StatelessWidget {
                   : const Color(0xFFDC2626),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         } else if (state.status == ActivityDetailStatus.failure &&
@@ -122,15 +127,18 @@ class _ActivityDetailView extends StatelessWidget {
         final cardBg = isDark
             ? AppColors.darkSurfaceContainerLowest
             : AppColors.surfaceContainerLowest;
-        final borderCol =
-            isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+        final borderCol = isDark
+            ? AppColors.darkOutlineMuted
+            : AppColors.outlineMuted;
         final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-        final subtitleCol =
-            isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+        final subtitleCol = isDark
+            ? AppColors.darkOnSurfaceVariant
+            : AppColors.onSurfaceVariant;
 
         // Periksa status ongoing & loading
         final isOngoing = item.status == ActivityStatus.ongoing;
-        final isLoading = state.status == ActivityDetailStatus.loading ||
+        final isLoading =
+            state.status == ActivityDetailStatus.loading ||
             state.status == ActivityDetailStatus.submitting;
 
         return PopScope(
@@ -149,11 +157,7 @@ class _ActivityDetailView extends StatelessWidget {
               scrolledUnderElevation: 0,
               centerTitle: false,
               leading: IconButton(
-                icon: Icon(
-                  LucideIcons.arrowLeft,
-                  color: textCol,
-                  size: 20,
-                ),
+                icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 20),
                 onPressed: () => _handlePop(context, state.hasChanged),
                 tooltip: 'Kembali',
               ),
@@ -191,11 +195,7 @@ class _ActivityDetailView extends StatelessWidget {
                     ),
                   ),
                 IconButton(
-                  icon: Icon(
-                    LucideIcons.share2,
-                    color: textCol,
-                    size: 20,
-                  ),
+                  icon: Icon(LucideIcons.share2, color: textCol, size: 20),
                   tooltip: 'Bagikan Aktivitas',
                   onPressed: () => _handleShare(context, item),
                 ),
@@ -209,17 +209,19 @@ class _ActivityDetailView extends StatelessWidget {
               child: RefreshIndicator(
                 onRefresh: () async {
                   context.read<ActivityDetailBloc>().add(
-                        ActivityDetailFetchRequested(
-                          id: item.id,
-                          showLoading: false,
-                        ),
-                      );
+                    ActivityDetailFetchRequested(
+                      id: item.id,
+                      showLoading: false,
+                    ),
+                  );
                 },
                 color: AppColors.brandTeal,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -243,12 +245,6 @@ class _ActivityDetailView extends StatelessWidget {
 
                       // Section 3: 2-Phase Progress Timeline
                       ActivityTimelineSection(phases: item.activePhases),
-
-                      const SizedBox(height: 24),
-
-                      // Section 4: Export Summary Button (PDF)
-                      _buildExportButton(
-                          context, item, cardBg, borderCol, isDark),
 
                       const SizedBox(height: 32),
                     ],
@@ -276,8 +272,9 @@ class _ActivityDetailView extends StatelessWidget {
     final barBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -310,14 +307,14 @@ class _ActivityDetailView extends StatelessWidget {
                   icon: const Icon(LucideIcons.xCircle, size: 18),
                   label: const Text(
                     'Batalkan',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFDC2626),
-                    side: const BorderSide(color: Color(0xFFF87171), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFF87171),
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -342,10 +339,7 @@ class _ActivityDetailView extends StatelessWidget {
                   icon: const Icon(LucideIcons.checkCircle2, size: 18),
                   label: const Text(
                     'Selesaikan',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brandTeal,
@@ -377,18 +371,24 @@ class _ActivityDetailView extends StatelessWidget {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
-    final fieldBg =
-        isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
-    final actionColor =
-        isFinish ? AppColors.brandTeal : const Color(0xFFDC2626);
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
+    final fieldBg = isDark
+        ? AppColors.darkBackgroundSubtle
+        : AppColors.backgroundSubtle;
+    final actionColor = isFinish
+        ? AppColors.brandTeal
+        : const Color(0xFFDC2626);
 
     XFile? selectedFile;
     final notesController = TextEditingController(
-      text: isFinish ? 'Aktivitas meeting dengan klien selesai dikerjakan.' : '',
+      text: isFinish
+          ? 'Aktivitas meeting dengan klien selesai dikerjakan.'
+          : '',
     );
     String? errorText;
 
@@ -402,8 +402,9 @@ class _ActivityDetailView extends StatelessWidget {
             return Container(
               decoration: BoxDecoration(
                 color: surfaceColor,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
@@ -483,8 +484,11 @@ class _ActivityDetailView extends StatelessWidget {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(LucideIcons.x,
-                                  color: subtitleCol, size: 20),
+                              icon: Icon(
+                                LucideIcons.x,
+                                color: subtitleCol,
+                                size: 20,
+                              ),
                               onPressed: () => Navigator.of(sheetCtx).pop(),
                             ),
                           ],
@@ -526,13 +530,18 @@ class _ActivityDetailView extends StatelessWidget {
                                       );
                                       if (picked != null) {
                                         setModalState(
-                                            () => selectedFile = picked);
+                                          () => selectedFile = picked,
+                                        );
                                       }
                                     },
-                                    icon: const Icon(LucideIcons.camera,
-                                        size: 16),
-                                    label: const Text('Kamera',
-                                        style: TextStyle(fontSize: 13)),
+                                    icon: const Icon(
+                                      LucideIcons.camera,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Kamera',
+                                      style: TextStyle(fontSize: 13),
+                                    ),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: textCol,
                                       side: BorderSide(color: borderCol),
@@ -555,13 +564,18 @@ class _ActivityDetailView extends StatelessWidget {
                                       );
                                       if (picked != null) {
                                         setModalState(
-                                            () => selectedFile = picked);
+                                          () => selectedFile = picked,
+                                        );
                                       }
                                     },
-                                    icon: const Icon(LucideIcons.image,
-                                        size: 16),
-                                    label: const Text('Galeri',
-                                        style: TextStyle(fontSize: 13)),
+                                    icon: const Icon(
+                                      LucideIcons.image,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Galeri',
+                                      style: TextStyle(fontSize: 13),
+                                    ),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: textCol,
                                       side: BorderSide(color: borderCol),
@@ -581,8 +595,9 @@ class _ActivityDetailView extends StatelessWidget {
                               color: fieldBg,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                  color: actionColor.withValues(alpha: 0.5),
-                                  width: 1),
+                                color: actionColor.withValues(alpha: 0.5),
+                                width: 1,
+                              ),
                             ),
                             child: Row(
                               children: [
@@ -594,18 +609,24 @@ class _ActivityDetailView extends StatelessWidget {
                                           width: 52,
                                           height: 52,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) =>
-                                              const Icon(LucideIcons.image,
-                                                  size: 30),
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                                    LucideIcons.image,
+                                                    size: 30,
+                                                  ),
                                         )
                                       : Image.file(
                                           File(selectedFile!.path),
                                           width: 52,
                                           height: 52,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) =>
-                                              const Icon(LucideIcons.image,
-                                                  size: 30),
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                                    LucideIcons.image,
+                                                    size: 30,
+                                                  ),
                                         ),
                                 ),
                                 const SizedBox(width: 12),
@@ -618,8 +639,7 @@ class _ActivityDetailView extends StatelessWidget {
                                         selectedFile!.name.isNotEmpty
                                             ? selectedFile!.name
                                             : 'Foto bukti terpilih',
-                                        style:
-                                            AppTypography.bodySmall.copyWith(
+                                        style: AppTypography.bodySmall.copyWith(
                                           fontWeight: FontWeight.bold,
                                           color: textCol,
                                         ),
@@ -629,18 +649,21 @@ class _ActivityDetailView extends StatelessWidget {
                                       const SizedBox(height: 2),
                                       Text(
                                         'Foto siap diunggah',
-                                        style:
-                                            AppTypography.labelSmall.copyWith(
-                                          color: const Color(0xFF10B981),
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
+                                              color: const Color(0xFF10B981),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(LucideIcons.trash2,
-                                      color: Color(0xFFEF4444), size: 18),
+                                  icon: const Icon(
+                                    LucideIcons.trash2,
+                                    color: Color(0xFFEF4444),
+                                    size: 18,
+                                  ),
                                   onPressed: () {
                                     setModalState(() => selectedFile = null);
                                   },
@@ -668,14 +691,16 @@ class _ActivityDetailView extends StatelessWidget {
                           controller: notesController,
                           maxLines: 4,
                           minLines: 3,
-                          style:
-                              AppTypography.bodyMedium.copyWith(color: textCol),
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: textCol,
+                          ),
                           decoration: InputDecoration(
                             hintText: isFinish
                                 ? 'Contoh: Aktivitas meeting dengan klien selesai dikerjakan.'
                                 : 'Tuliskan alasan pembatalan aktivitas...',
-                            hintStyle: AppTypography.bodySmall
-                                .copyWith(color: subtitleCol),
+                            hintStyle: AppTypography.bodySmall.copyWith(
+                              color: subtitleCol,
+                            ),
                             filled: true,
                             fillColor: fieldBg,
                             contentPadding: const EdgeInsets.all(14),
@@ -689,8 +714,10 @@ class _ActivityDetailView extends StatelessWidget {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                   BorderSide(color: actionColor, width: 1.5),
+                              borderSide: BorderSide(
+                                color: actionColor,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -726,17 +753,21 @@ class _ActivityDetailView extends StatelessWidget {
                               Navigator.of(sheetCtx).pop();
 
                               if (isFinish) {
-                                bloc.add(ActivityDetailFinishSubmitted(
-                                  id: item.id,
-                                  notes: notes,
-                                  file: selectedFile,
-                                ));
+                                bloc.add(
+                                  ActivityDetailFinishSubmitted(
+                                    id: item.id,
+                                    notes: notes,
+                                    file: selectedFile,
+                                  ),
+                                );
                               } else {
-                                bloc.add(ActivityDetailCancelSubmitted(
-                                  id: item.id,
-                                  notes: notes,
-                                  file: selectedFile,
-                                ));
+                                bloc.add(
+                                  ActivityDetailCancelSubmitted(
+                                    id: item.id,
+                                    notes: notes,
+                                    file: selectedFile,
+                                  ),
+                                );
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -805,8 +836,10 @@ class _ActivityDetailView extends StatelessWidget {
             children: [
               // Category Chip
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.15)
@@ -825,8 +858,10 @@ class _ActivityDetailView extends StatelessWidget {
 
               // Status Badge
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: item.status.backgroundColor,
                   borderRadius: BorderRadius.circular(20),
@@ -887,7 +922,10 @@ class _ActivityDetailView extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      item.userRole,
+                      (item.userLevel != null &&
+                              item.userLevel!.trim().isNotEmpty)
+                          ? '${item.userRole} (${item.userLevel})'
+                          : item.userRole,
                       style: AppTypography.bodySmall.copyWith(
                         fontSize: 12,
                         color: subtitleCol,
@@ -915,9 +953,7 @@ class _ActivityDetailView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.only(top: 12),
             decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: borderCol, width: 1),
-              ),
+              border: Border(top: BorderSide(color: borderCol, width: 1)),
             ),
             child: Row(
               children: [
@@ -941,69 +977,6 @@ class _ActivityDetailView extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// Tombol Export PDF
-  Widget _buildExportButton(
-    BuildContext context,
-    ActivityItem item,
-    Color cardBg,
-    Color borderCol,
-    bool isDark,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.fileText,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Mengunduh ringkasan PDF untuk aktivitas ${item.id}...',
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.brandTeal,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        },
-        icon: const Icon(
-          LucideIcons.download,
-          size: 18,
-          color: Color(0xFF0D9488),
-        ),
-        label: const Text(
-          'Export Activity Summary (PDF)',
-          style: TextStyle(
-            color: Color(0xFF0D9488),
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-        style: OutlinedButton.styleFrom(
-          backgroundColor: cardBg,
-          side: BorderSide(color: borderCol, width: 1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
       ),
     );
   }
