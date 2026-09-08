@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Menampilkan Bottom Sheet dialog "Account Settings" sesuai spesifikasi Google Stitch
@@ -53,6 +56,12 @@ class AccountSettingsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currentLocale =
+        context.watch<LocaleBloc?>()?.state.locale ?? const Locale('id');
+    final isEn = currentLocale.languageCode == 'en';
+    final languageBadge = isEn ? 'EN (English)' : 'ID (Bahasa)';
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark
         ? AppColors.darkSurfaceContainerLowest
@@ -109,7 +118,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
 
                 // 2. Title
                 Text(
-                  'Account Settings',
+                  l10n?.accountSettings ?? 'Account Settings',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
                     fontSize: 18,
@@ -240,7 +249,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
 
                 // 4. Section Label: PENGATURAN & PREFERENSI
                 Text(
-                  'PENGATURAN & PREFERENSI',
+                  l10n?.settingsAndPreferences ?? 'PENGATURAN & PREFERENSI',
                   style: AppTypography.labelMedium.copyWith(
                     color: labelCol,
                     fontSize: 11.5,
@@ -265,8 +274,9 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         icon: LucideIcons.keyRound,
                         iconBg: iconCircleBg,
                         iconColor: textCol,
-                        title: 'Ganti Password',
-                        subtitle: 'Perbarui kata sandi akun keamanan Anda',
+                        title: l10n?.changePassword ?? 'Ganti Password',
+                        subtitle: l10n?.changePasswordSubtitle ??
+                            'Perbarui kata sandi akun keamanan Anda',
                         onTap: () {
                           Navigator.of(context).pop();
                           context.push(Routes.RESET);
@@ -279,9 +289,10 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         icon: LucideIcons.bellRing,
                         iconBg: iconCircleBg,
                         iconColor: textCol,
-                        title: 'Notifikasi',
-                        subtitle: 'Pengingat absen, izin, lembur & broadcast',
-                        badgeText: 'Aktif',
+                        title: l10n?.notifications ?? 'Notifikasi',
+                        subtitle: l10n?.notificationsSubtitle ??
+                            'Pengingat absen, izin, lembur & broadcast',
+                        badgeText: l10n?.active ?? 'Aktif',
                         badgeBg: const Color(0xFFDCFCE7),
                         badgeFg: const Color(0xFF15803D),
                         onTap: () {
@@ -302,9 +313,10 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         icon: LucideIcons.languages,
                         iconBg: iconCircleBg,
                         iconColor: textCol,
-                        title: 'Bahasa (Language)',
-                        subtitle: 'Pilih bahasa tampilan aplikasi',
-                        badgeText: 'ID (Bahasa)',
+                        title: l10n?.language ?? 'Bahasa (Language)',
+                        subtitle: l10n?.languageSubtitle ??
+                            'Pilih bahasa tampilan aplikasi',
+                        badgeText: languageBadge,
                         badgeBg: AppColors.brandTeal,
                         badgeFg: Colors.white,
                         onTap: () {
@@ -362,7 +374,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Keluar dari Akun (Logout)',
+                                    l10n?.logout ?? 'Keluar dari Akun (Logout)',
                                     style: AppTypography.bodyLarge.copyWith(
                                       color: const Color(0xFFDC2626),
                                       fontWeight: FontWeight.w600,
@@ -371,7 +383,8 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Keluar dari sesi login perangkat ini',
+                                    l10n?.logoutSubtitle ??
+                                        'Keluar dari sesi login perangkat ini',
                                     style: AppTypography.bodyMedium.copyWith(
                                       color: isDark
                                           ? const Color(0xFFF87171)
@@ -401,24 +414,65 @@ class AccountSettingsBottomSheet extends StatelessWidget {
   }
 
   void _showLanguageDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currentLocale =
+        context.read<LocaleBloc?>()?.state.locale ?? const Locale('id');
+    final currentCode = currentLocale.languageCode;
+
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Pilih Bahasa'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n?.selectLanguage ?? 'Pilih Bahasa'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(
-                LucideIcons.check,
-                color: AppColors.brandTeal,
-              ),
-              title: const Text('Bahasa Indonesia (ID)'),
-              onTap: () => Navigator.of(dialogCtx).pop(),
+              leading: currentCode == 'id'
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.brandTeal,
+                    )
+                  : const SizedBox(width: 24),
+              title: Text(l10n?.indonesian ?? 'Bahasa Indonesia (ID)'),
+              onTap: () {
+                Navigator.of(dialogCtx).pop();
+                if (currentCode != 'id') {
+                  context.read<LocaleBloc?>()?.add(const LocaleChanged('id'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n?.languageUpdatedSuccess ??
+                            'Bahasa berhasil diperbarui',
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
+            const Divider(height: 1),
             ListTile(
-              title: const Text('English (EN)'),
-              onTap: () => Navigator.of(dialogCtx).pop(),
+              leading: currentCode == 'en'
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.brandTeal,
+                    )
+                  : const SizedBox(width: 24),
+              title: Text(l10n?.english ?? 'English (EN)'),
+              onTap: () {
+                Navigator.of(dialogCtx).pop();
+                if (currentCode != 'en') {
+                  context.read<LocaleBloc?>()?.add(const LocaleChanged('en'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n?.languageUpdatedSuccess ??
+                            'Language updated successfully',
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -427,18 +481,20 @@ class AccountSettingsBottomSheet extends StatelessWidget {
   }
 
   void _showLogoutConfirmationDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Konfirmasi Logout'),
-        content: const Text(
-          'Apakah Anda yakin ingin keluar dari sesi akun ini?',
+        title: Text(l10n?.logoutConfirmationTitle ?? 'Konfirmasi Logout'),
+        content: Text(
+          l10n?.logoutConfirmationDesc ??
+              'Apakah Anda yakin ingin keluar dari sesi akun ini?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: const Text('Batal'),
+            child: Text(l10n?.cancel ?? 'Batal'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(

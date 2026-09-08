@@ -60,6 +60,19 @@ class SecureStorageService {
     return await _storage.read(key: AppConstants.employeeIdKey);
   }
 
+  /// Menyimpan bahasa terpilih ('id' atau 'en')
+  Future<void> saveUserLanguage(String language) async {
+    await _storage.write(
+      key: AppConstants.userLanguageKey,
+      value: language,
+    );
+  }
+
+  /// Mengambil bahasa tersimpan
+  Future<String?> getUserLanguage() async {
+    return await _storage.read(key: AppConstants.userLanguageKey);
+  }
+
   /// Memeriksa apakah user memiliki access token tersimpan
   Future<bool> hasToken() async {
     final token = await getAccessToken();

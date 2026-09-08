@@ -11,6 +11,7 @@ abstract class AppConstants {
   static const String userProfileKey = 'muratech_user_profile';
   static const String employeeIdKey = 'muratech_employee_id';
   static const String themeModeKey = 'muratech_theme_mode';
+  static const String userLanguageKey = 'muratech_user_language';
 
   // --- HTTP Headers ---
   static const String headerAuthorization = 'Authorization';

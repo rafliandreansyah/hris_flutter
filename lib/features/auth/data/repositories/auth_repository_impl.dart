@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:hris_flutter/features/auth/data/models/login_request_model.dart';
 import 'package:hris_flutter/features/auth/data/models/login_response_model.dart';
+import 'package:hris_flutter/features/auth/data/models/user_profile_response_model.dart';
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -103,5 +105,34 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await NotificationService.instance.deleteFcmToken();
     } catch (_) {}
+  }
+
+  @override
+  Future<UserProfileData> getProfile() async {
+    final response = await _remoteDataSource.getProfile();
+    if (response.success && response.data != null) {
+      final profile = response.data!;
+      if (profile.user.language != null && profile.user.language!.isNotEmpty) {
+        await SecureStorageService.instance.saveUserLanguage(profile.user.language!);
+      }
+      return profile;
+    } else {
+      throw ApiException(
+        message: response.message ?? 'Gagal memuat profil pengguna.',
+      );
+    }
+  }
+
+  @override
+  Future<String> updateLanguage(String language) async {
+    final response = await _remoteDataSource.updateLanguage(language);
+    if (response.success) {
+      await SecureStorageService.instance.saveUserLanguage(language);
+      return language;
+    } else {
+      throw ApiException(
+        message: response.message ?? 'Gagal memperbarui bahasa tampilan.',
+      );
+    }
   }
 }

@@ -28,6 +28,8 @@ abstract class ApiEndpoints {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String authMenus = '/auth/menus';
+  static const String authLanguage = '/auth/language';
+  static const String authProfile = '/auth/profile';
 
   // ==========================================
   // --- 👤 EMPLOYEE ENDPOINTS ---

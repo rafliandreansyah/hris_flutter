@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
+import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:hris_flutter/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:hris_flutter/features/dashboard/presentation/bloc/dashboard_event.dart';
@@ -16,20 +18,23 @@ import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_s
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Utama Dashboard Oasish HRIS dengan integrasi data backend,
 /// realtime server clock (termasuk detik), dan shimmer loading.
 class DashboardScreen extends StatelessWidget {
   final DashboardRepository? repository;
+  final AuthRepository? authRepository;
 
-  const DashboardScreen({super.key, this.repository});
+  const DashboardScreen({super.key, this.repository, this.authRepository});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<DashboardBloc>(
       create: (_) => DashboardBloc(
         dashboardRepository: repository,
+        authRepository: authRepository,
       )..add(const DashboardFetchRequested()),
       child: const _DashboardView(),
     );
@@ -52,8 +57,36 @@ class _DashboardViewState extends State<_DashboardView> {
     return '$h:$m:$s';
   }
 
-  // Format tanggal dalam Bahasa Indonesia
-  String _formatDate(DateTime dt) {
+  // Format tanggal dalam Bahasa Indonesia / English
+  String _formatDate(DateTime dt, [String? localeCode]) {
+    if (localeCode == 'en') {
+      const days = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ];
+      const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+      final dayName = days[dt.weekday - 1];
+      final monthName = months[dt.month - 1];
+      return '$dayName, ${dt.day} $monthName';
+    }
     const days = [
       'Senin',
       'Selasa',
@@ -164,7 +197,8 @@ class _DashboardViewState extends State<_DashboardView> {
                       ),
                     ),
                     Text(
-                      'Hi, $greetingName 👋',
+                      AppLocalizations.of(context)?.greeting(greetingName) ??
+                          'Hi, $greetingName 👋',
                       style: AppTypography.labelMedium.copyWith(
                         color: labelCol,
                         fontSize: 12,
@@ -242,13 +276,21 @@ class _DashboardViewState extends State<_DashboardView> {
       body: SafeArea(
         child: BlocConsumer<DashboardBloc, DashboardState>(
           listener: (context, state) {
+            if (state is DashboardLoaded) {
+              final serverLang = state.userProfile?.user.language;
+              if (serverLang != null && serverLang.isNotEmpty) {
+                final localeBloc = context.read<LocaleBloc?>();
+                localeBloc?.add(LocaleSynced(serverLang));
+              }
+            }
             if (state is DashboardError) {
+              final l10n = AppLocalizations.of(context);
               AppDialogUtil.showError(
                 context,
-                title: 'Gagal Memuat Dashboard',
+                title: l10n?.failedToLoadDashboard ?? 'Gagal Memuat Dashboard',
                 message: state.message,
-                retryText: 'Coba Lagi',
-                closeText: 'Tutup',
+                retryText: l10n?.retry ?? 'Coba Lagi',
+                closeText: l10n?.close ?? 'Tutup',
                 onRetry: () {
                   context.read<DashboardBloc>().add(
                     const DashboardFetchRequested(),
@@ -258,6 +300,11 @@ class _DashboardViewState extends State<_DashboardView> {
             }
           },
           builder: (context, state) {
+            final l10n = AppLocalizations.of(context);
+            final currentLocaleCode = Localizations.localeOf(
+              context,
+            ).languageCode;
+
             // 1. Shimmer Loading State
             if (state is DashboardLoading || state is DashboardInitial) {
               return const DashboardShimmerLoading();
@@ -278,7 +325,7 @@ class _DashboardViewState extends State<_DashboardView> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Gagal memuat Dashboard',
+                        l10n?.failedToLoadDashboard ?? 'Gagal memuat Dashboard',
                         style: AppTypography.titleMedium.copyWith(
                           color: textCol,
                           fontWeight: FontWeight.w700,
@@ -303,7 +350,7 @@ class _DashboardViewState extends State<_DashboardView> {
                           );
                         },
                         icon: const Icon(LucideIcons.refreshCw, size: 16),
-                        label: const Text('Coba Lagi'),
+                        label: Text(l10n?.retry ?? 'Coba Lagi'),
                       ),
                     ],
                   ),
@@ -319,7 +366,7 @@ class _DashboardViewState extends State<_DashboardView> {
 
               // Hitung format jam realtime dengan detik
               final currentTimeStr = _formatTimeWithSeconds(serverTime);
-              final currentDateStr = _formatDate(serverTime);
+              final currentDateStr = _formatDate(serverTime, currentLocaleCode);
 
               // Data Absensi Hari Ini
               final todayAtt = data.attendanceSummary?.todayAttendance;

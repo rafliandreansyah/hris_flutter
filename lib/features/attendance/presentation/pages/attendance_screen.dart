@@ -17,6 +17,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_server_clock_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_timeline_section.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_top_app_bar.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -99,13 +100,13 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
       if (!mounted) return position;
       context.read<AttendanceBloc>().add(
-            AttendanceLocationUpdated(
-              latitude: position.latitude,
-              longitude: position.longitude,
-              accuracy: position.accuracy,
-              isInsideGeofence: true,
-            ),
-          );
+        AttendanceLocationUpdated(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          accuracy: position.accuracy,
+          isInsideGeofence: true,
+        ),
+      );
 
       if (showFeedback && mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -113,8 +114,11 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(LucideIcons.circleCheck,
-                    color: Colors.white, size: 18),
+                const Icon(
+                  LucideIcons.circleCheck,
+                  color: Colors.white,
+                  size: 18,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -209,7 +213,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                 controller: textController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'Contoh: GPS melompat atau sinyal di lobi utama lemah...',
+                  hintText:
+                      'Contoh: GPS melompat atau sinyal di lobi utama lemah...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.outlineMuted),
@@ -252,8 +257,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg =
-        isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
+    final scaffoldBg = isDark
+        ? AppColors.darkBackgroundSubtle
+        : AppColors.backgroundSubtle;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -269,7 +275,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                   behavior: SnackBarBehavior.floating,
                 ),
               );
-            } else if (state is AttendanceLoaded && state.errorMessage != null) {
+            } else if (state is AttendanceLoaded &&
+                state.errorMessage != null) {
               AppDialogUtil.showError(
                 context,
                 title: 'Gagal',
@@ -277,26 +284,31 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               );
             } else if (state is AttendanceFailure) {
               final isNotFound = state.isNotFound;
-
+              final l10n = AppLocalizations.of(context);
               AppDialogUtil.showError(
                 context,
-                title: isNotFound ? 'Pemberitahuan' : 'Gagal Memuat Absensi',
+                title: isNotFound
+                    ? (l10n?.notice ?? 'Pemberitahuan')
+                    : (l10n?.failedToLoadAttendance ?? 'Gagal Memuat Absensi'),
                 message: state.message,
-                closeText: isNotFound ? 'Kembali' : 'Tutup',
+                closeText: isNotFound
+                    ? l10n?.back ?? 'Kembali'
+                    : l10n?.close ?? 'Tutup',
                 onClose: isNotFound
                     ? () => Navigator.of(context).maybePop()
                     : null,
                 onRetry: isNotFound
                     ? null
                     : () {
-                        context
-                            .read<AttendanceBloc>()
-                            .add(const AttendanceFetchRequested());
+                        context.read<AttendanceBloc>().add(
+                          const AttendanceFetchRequested(),
+                        );
                       },
               );
             }
           },
           builder: (context, state) {
+            final l10n = AppLocalizations.of(context);
             if (state is AttendanceLoading) {
               return _buildShimmerLoading(isDark);
             }
@@ -322,8 +334,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                       const SizedBox(height: 16),
                       Text(
                         isNotFound
-                            ? 'Pemberitahuan Jadwal'
-                            : 'Gagal memuat absensi',
+                            ? (l10n?.scheduleNotice ?? 'Pemberitahuan Jadwal')
+                            : (l10n?.failedToLoadAttendance ??
+                                  'Gagal memuat absensi'),
                         style: AppTypography.titleMedium.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -332,22 +345,23 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                       Text(
                         state.message,
                         textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium
-                            .copyWith(color: AppColors.surfaceVariant),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.surfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       if (isNotFound)
                         AppButton(
-                          text: 'Kembali',
+                          text: l10n?.back ?? 'Kembali',
                           onPressed: () => Navigator.of(context).maybePop(),
                         )
                       else
                         AppButton(
-                          text: 'Coba Lagi',
+                          text: l10n?.retry ?? 'Coba Lagi',
                           onPressed: () {
-                            context
-                                .read<AttendanceBloc>()
-                                .add(const AttendanceFetchRequested());
+                            context.read<AttendanceBloc>().add(
+                              const AttendanceFetchRequested(),
+                            );
                           },
                         ),
                     ],
@@ -369,17 +383,16 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               color: AppColors.brandTeal,
               onRefresh: () async {
                 context.read<AttendanceBloc>().add(
-                      const AttendanceFetchRequested(isRefresh: true),
-                    );
+                  const AttendanceFetchRequested(isRefresh: true),
+                );
               },
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   // Top App Bar (SliverAppBar floating & snap - hide on scroll down, show on scroll up)
                   AttendanceTopAppBar(
-                    title: 'Attendance & Check-In',
-                    subtitle:
-                        '${data.companyName} • ${data.departmentName}',
+                    title: l10n?.attendanceTitle ?? 'Attendance & Check-In',
+                    subtitle: '${data.companyName} • ${data.departmentName}',
                     isUpdatingLocation: _isUpdatingLocation,
                     onUpdateLocationPressed: () =>
                         _requestGpsLocation(showFeedback: true),
@@ -387,7 +400,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // 1. Geofence Map Card
@@ -399,7 +414,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           geofenceRadiusMeters: data.geofenceRadiusMeters,
                           isInsideGeofence: loaded.isInsideGeofence,
                           gpsAccuracy: data.gpsAccuracy,
-                          isAnyWhere: data.selectedWorkLocation?.isAnyWhere ?? false,
+                          isAnyWhere:
+                              data.selectedWorkLocation?.isAnyWhere ?? false,
                           hasWorkLocation: data.hasWorkLocation,
                           isGpsAcquired: loaded.isGpsAcquired,
                         ),
@@ -427,8 +443,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           selectedWorkLocation: data.selectedWorkLocation,
                           onLocationChanged: (newLoc) {
                             context.read<AttendanceBloc>().add(
-                                  AttendanceWorkLocationChanged(newLoc),
-                                );
+                              AttendanceWorkLocationChanged(newLoc),
+                            );
                           },
                         ),
                         const SizedBox(height: 16),
@@ -455,30 +471,34 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           onClockPressed: () {
                             if (!data.isClockedIn) {
                               context.read<AttendanceBloc>().add(
-                                    AttendanceClockInSubmitted(
-                                      latitude: loaded.userLatitude ??
-                                          data.officeLatitude,
-                                      longitude: loaded.userLongitude ??
-                                          data.officeLongitude,
-                                      address: data.officeDetail,
-                                    ),
-                                  );
+                                AttendanceClockInSubmitted(
+                                  latitude:
+                                      loaded.userLatitude ??
+                                      data.officeLatitude,
+                                  longitude:
+                                      loaded.userLongitude ??
+                                      data.officeLongitude,
+                                  address: data.officeDetail,
+                                ),
+                              );
                             } else if (!data.isClockedOut) {
                               context.read<AttendanceBloc>().add(
-                                    AttendanceClockOutSubmitted(
-                                      latitude: loaded.userLatitude ??
-                                          data.officeLatitude,
-                                      longitude: loaded.userLongitude ??
-                                          data.officeLongitude,
-                                      address: data.officeDetail,
-                                    ),
-                                  );
+                                AttendanceClockOutSubmitted(
+                                  latitude:
+                                      loaded.userLatitude ??
+                                      data.officeLatitude,
+                                  longitude:
+                                      loaded.userLongitude ??
+                                      data.officeLongitude,
+                                  address: data.officeDetail,
+                                ),
+                              );
                             }
                           },
                           onBreakPressed: () {
                             context.read<AttendanceBloc>().add(
-                                  const AttendanceBreakToggled(),
-                                );
+                              const AttendanceBreakToggled(),
+                            );
                           },
                           onReportIssuePressed: () =>
                               _showReportLocationDialog(context),
