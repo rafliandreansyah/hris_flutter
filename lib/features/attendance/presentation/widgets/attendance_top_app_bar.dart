@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// App Bar khusus halaman Attendance & Check-In yang dapat hilang dan muncul
 /// ketika discroll (SliverAppBar dengan floating: true & snap: true).
 ///
-/// Memuat hanya 2 icon sesuai kebutuhan:
+/// Memuat icon sesuai kebutuhan:
 /// 1. Sisi kiri : Tombol Back
-/// 2. Sisi kanan: Tombol Update Lokasi Sekarang
+/// 2. Sisi kanan: Tombol Riwayat Absensi & Tombol Update Lokasi Sekarang
 class AttendanceTopAppBar extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onUpdateLocationPressed;
   final bool isUpdatingLocation;
+  final VoidCallback? onViewLogsPressed;
 
   const AttendanceTopAppBar({
     super.key,
@@ -22,6 +24,7 @@ class AttendanceTopAppBar extends StatelessWidget {
     this.subtitle = 'Oasish Global Tech • Design & Product',
     this.onUpdateLocationPressed,
     this.isUpdatingLocation = false,
+    this.onViewLogsPressed,
   });
 
   @override
@@ -83,6 +86,13 @@ class AttendanceTopAppBar extends StatelessWidget {
       ),
       centerTitle: false,
       actions: [
+        IconButton(
+          icon: const Icon(LucideIcons.history),
+          color: onSurfaceColor,
+          tooltip: 'Riwayat Absensi',
+          onPressed: onViewLogsPressed ??
+              () => context.push(Routes.ATTENDANCE_LOGS),
+        ),
         IconButton(
           icon: isUpdatingLocation
               ? const SizedBox(

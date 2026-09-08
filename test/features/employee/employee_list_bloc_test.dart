@@ -1,4 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
+import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -206,5 +210,122 @@ void main() {
       );
       bloc.close();
     });
+
+    test('Team attendance fetches from AttendanceRepository successfully', () async {
+      final teamRepo = MockTeamAttendanceRepository();
+      teamRepo.teamEmployees = [sampleItem1, sampleItem2];
+      final bloc = EmployeeListBloc(
+        repository: mockRepo,
+        attendanceRepository: teamRepo,
+      );
+
+      bloc.add(const EmployeeListStarted(isTeamAttendance: true));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<EmployeeListState>((s) => s.isLoading == true && s.isTeamAttendance == true),
+          predicate<EmployeeListState>((s) =>
+              s.isLoading == false &&
+              s.status == EmployeeListStatus.success &&
+              s.employees.length == 2 &&
+              s.isTeamAttendance == true),
+        ]),
+      );
+      bloc.close();
+    });
+
+    test('Team attendance 403 error sets Tidak ada hak akses and isForbidden true', () async {
+      final teamRepo = MockTeamAttendanceRepository();
+      teamRepo.throw403 = true;
+      final bloc = EmployeeListBloc(
+        repository: mockRepo,
+        attendanceRepository: teamRepo,
+      );
+
+      bloc.add(const EmployeeListStarted(isTeamAttendance: true));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<EmployeeListState>((s) => s.isLoading == true && s.isTeamAttendance == true),
+          predicate<EmployeeListState>((s) =>
+              s.isLoading == false &&
+              s.status == EmployeeListStatus.failure &&
+              s.errorMessage == 'Tidak ada hak akses' &&
+              s.statusCode == 403 &&
+              s.isForbidden == true &&
+              s.employees.isEmpty),
+        ]),
+      );
+      bloc.close();
+    });
   });
+}
+
+class MockTeamAttendanceRepository implements AttendanceRepository {
+  List<EmployeeDirectoryItem> teamEmployees = [];
+  bool throw403 = false;
+  bool shouldThrow = false;
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async {
+    if (throw403) {
+      throw const ApiException(
+        message: 'Tidak ada hak akses',
+        statusCode: 403,
+      );
+    }
+    if (shouldThrow) {
+      throw const ApiException(
+        message: 'Server error',
+        statusCode: 500,
+      );
+    }
+    return teamEmployees;
+  }
+
+  @override
+  Future<AttendanceLogListResponse> getAttendanceLogs({
+    int page = 1,
+    int size = 20,
+    String? employeeId,
+    bool lastMonth = false,
+    String? startDate,
+    String? endDate,
+    String? type,
+    String? status,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceTodayData> getTodayAttendance() async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceTodayData> clockIn({
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceTodayData> clockOut({
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
+
+  @override
+  Future<void> reportLocationIssue({
+    required String issueDescription,
+    required double latitude,
+    required double longitude,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceLogSummary> getAttendanceSummary() async => throw UnimplementedError();
 }

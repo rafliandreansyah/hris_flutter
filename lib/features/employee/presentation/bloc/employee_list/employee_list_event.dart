@@ -11,15 +11,24 @@ abstract class EmployeeListEvent extends Equatable {
 
 class EmployeeListStarted extends EmployeeListEvent {
   final List<EmployeeDirectoryItem>? customEmployees;
+  final bool? isTeamAttendance;
 
-  const EmployeeListStarted({this.customEmployees});
+  const EmployeeListStarted({
+    this.customEmployees,
+    this.isTeamAttendance,
+  });
 
   @override
-  List<Object?> get props => [customEmployees];
+  List<Object?> get props => [customEmployees, isTeamAttendance];
 }
 
 class EmployeeListRefreshed extends EmployeeListEvent {
-  const EmployeeListRefreshed();
+  final bool? isTeamAttendance;
+
+  const EmployeeListRefreshed({this.isTeamAttendance});
+
+  @override
+  List<Object?> get props => [isTeamAttendance];
 }
 
 class EmployeeListLoadMore extends EmployeeListEvent {

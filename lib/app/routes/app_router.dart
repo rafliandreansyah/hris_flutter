@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/create_activity_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
@@ -115,6 +116,12 @@ class AppRouter {
         path: Routes.ATTENDANCE,
         name: Routes.ATTENDANCE,
         builder: (context, state) => const AttendanceScreen(),
+      ),
+
+      GoRoute(
+        path: Routes.ATTENDANCE_LOGS,
+        name: Routes.ATTENDANCE_LOGS,
+        builder: (context, state) => const AttendanceLogsScreen(),
       ),
     ],
     redirect: (context, state) {

@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 
 class MockAttendanceRepository implements AttendanceRepository {
   AttendanceTodayData currentData;
@@ -75,6 +77,40 @@ class MockAttendanceRepository implements AttendanceRepository {
     required double longitude,
   }) async {
     if (shouldThrow) throw Exception('Report Issue Error');
+  }
+
+  @override
+  Future<AttendanceLogListResponse> getAttendanceLogs({
+    int page = 1,
+    int size = 20,
+    String? employeeId,
+    bool lastMonth = false,
+    String? startDate,
+    String? endDate,
+    String? type,
+    String? status,
+  }) async {
+    return const AttendanceLogListResponse(
+      success: true,
+      message: 'Success',
+      data: [],
+      meta: AttendanceLogPaginationMeta(
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 1,
+      ),
+    );
+  }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async {
+    return const [];
+  }
+
+  @override
+  Future<AttendanceLogSummary> getAttendanceSummary() async {
+    return AttendanceLogSummary.empty;
   }
 }
 

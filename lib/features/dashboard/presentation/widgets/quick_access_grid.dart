@@ -81,7 +81,7 @@ class QuickAccessGrid extends StatelessWidget {
         lower.contains('absen') ||
         lower.contains('presensi') ||
         lower.contains('attendance')) {
-      context.push(Routes.ATTENDANCE);
+      context.push(Routes.ATTENDANCE_LOGS);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Menu $title segera hadir')),

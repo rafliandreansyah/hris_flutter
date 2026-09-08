@@ -16,6 +16,8 @@ class EmployeeListState extends Equatable {
   final EmployeeFilterCriteria filterCriteria;
   final List<EmployeeDirectoryItem>? customEmployees;
   final String? errorMessage;
+  final int? statusCode;
+  final bool isTeamAttendance;
 
   const EmployeeListState({
     this.status = EmployeeListStatus.initial,
@@ -29,7 +31,11 @@ class EmployeeListState extends Equatable {
     this.filterCriteria = const EmployeeFilterCriteria(),
     this.customEmployees,
     this.errorMessage,
+    this.statusCode,
+    this.isTeamAttendance = false,
   });
+
+  bool get isForbidden => statusCode == 403;
 
   EmployeeListState copyWith({
     EmployeeListStatus? status,
@@ -43,6 +49,8 @@ class EmployeeListState extends Equatable {
     EmployeeFilterCriteria? filterCriteria,
     List<EmployeeDirectoryItem>? customEmployees,
     String? errorMessage,
+    int? statusCode,
+    bool? isTeamAttendance,
     bool clearError = false,
   }) {
     return EmployeeListState(
@@ -57,6 +65,8 @@ class EmployeeListState extends Equatable {
       filterCriteria: filterCriteria ?? this.filterCriteria,
       customEmployees: customEmployees ?? this.customEmployees,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      statusCode: clearError ? null : (statusCode ?? this.statusCode),
+      isTeamAttendance: isTeamAttendance ?? this.isTeamAttendance,
     );
   }
 
@@ -73,5 +83,7 @@ class EmployeeListState extends Equatable {
         filterCriteria,
         customEmployees,
         errorMessage,
+        statusCode,
+        isTeamAttendance,
       ];
 }

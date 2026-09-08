@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class TestAttendanceRepository implements AttendanceRepository {
@@ -76,6 +78,40 @@ class TestAttendanceRepository implements AttendanceRepository {
     required double latitude,
     required double longitude,
   }) async {}
+
+  @override
+  Future<AttendanceLogListResponse> getAttendanceLogs({
+    int page = 1,
+    int size = 20,
+    String? employeeId,
+    bool lastMonth = false,
+    String? startDate,
+    String? endDate,
+    String? type,
+    String? status,
+  }) async {
+    return const AttendanceLogListResponse(
+      success: true,
+      message: 'Success',
+      data: [],
+      meta: AttendanceLogPaginationMeta(
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 1,
+      ),
+    );
+  }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async {
+    return const [];
+  }
+
+  @override
+  Future<AttendanceLogSummary> getAttendanceSummary() async {
+    return AttendanceLogSummary.empty;
+  }
 }
 
 Widget createTestApp(Widget child) {
@@ -374,4 +410,24 @@ class Test404AttendanceRepository implements AttendanceRepository {
     required double latitude,
     required double longitude,
   }) async {}
+
+  @override
+  Future<AttendanceLogListResponse> getAttendanceLogs({
+    int page = 1,
+    int size = 20,
+    String? employeeId,
+    bool lastMonth = false,
+    String? startDate,
+    String? endDate,
+    String? type,
+    String? status,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async =>
+      throw UnimplementedError();
+
+  @override
+  Future<AttendanceLogSummary> getAttendanceSummary() async =>
+      throw UnimplementedError();
 }

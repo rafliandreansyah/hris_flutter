@@ -1,8 +1,11 @@
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/attendance/data/datasources/attendance_remote_datasource.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/check_in_request_model.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
@@ -302,5 +305,45 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     } catch (_) {
       // Silently handled for simulation if backend endpoint is unavailable
     }
+  }
+
+  @override
+  Future<AttendanceLogListResponse> getAttendanceLogs({
+    String? employeeId,
+    bool lastMonth = false,
+    int page = 1,
+    int size = 20,
+    String? startDate,
+    String? endDate,
+    String? type,
+    String? status,
+  }) async {
+    String? targetEmployeeId = employeeId;
+    if (targetEmployeeId == null || targetEmployeeId.isEmpty) {
+      try {
+        targetEmployeeId = await SecureStorageService.instance.getEmployeeId();
+      } catch (_) {}
+    }
+
+    return remoteDataSource.getAttendanceLogs(
+      employeeId: targetEmployeeId,
+      lastMonth: lastMonth,
+      page: page,
+      size: size,
+      startDate: startDate,
+      endDate: endDate,
+      type: type,
+      status: status,
+    );
+  }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() {
+    return remoteDataSource.getAttendanceEmployees();
+  }
+
+  @override
+  Future<AttendanceLogSummary> getAttendanceSummary() {
+    return remoteDataSource.getAttendanceSummary();
   }
 }

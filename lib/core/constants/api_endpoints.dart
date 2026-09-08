@@ -50,10 +50,12 @@ abstract class ApiEndpoints {
   // --- ⏱️ ATTENDANCE ENDPOINTS ---
   // ==========================================
   static const String attendance = '/attendance';
+  static const String attendances = '/attendances';
+  static const String attendancesEmployees = '/attendances/employees';
   static const String employeeAttendanceInfo = '/employee/attendance/info';
   static const String checkIn = '/attendance/check-in';
   static const String checkOut = '/attendance/check-out';
-  static const String attendanceLogs = '/attendance/logs';
+  static const String attendanceLogs = '/attendances';
   static const String attendanceSummary = '/attendance/summary';
   static const String outsideAttendance = '/attendance/outside';
 
