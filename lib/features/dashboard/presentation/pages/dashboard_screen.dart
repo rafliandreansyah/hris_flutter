@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
-import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
@@ -276,13 +275,6 @@ class _DashboardViewState extends State<_DashboardView> {
       body: SafeArea(
         child: BlocConsumer<DashboardBloc, DashboardState>(
           listener: (context, state) {
-            if (state is DashboardLoaded) {
-              final serverLang = state.userProfile?.user.language;
-              if (serverLang != null && serverLang.isNotEmpty) {
-                final localeBloc = context.read<LocaleBloc?>();
-                localeBloc?.add(LocaleSynced(serverLang));
-              }
-            }
             if (state is DashboardError) {
               final l10n = AppLocalizations.of(context);
               AppDialogUtil.showError(
