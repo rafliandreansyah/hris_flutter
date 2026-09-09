@@ -27,7 +27,7 @@ abstract class AttendanceRemoteDataSource {
     String? status,
   });
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
-  Future<AttendanceLogSummary> getAttendanceSummary();
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -200,9 +200,17 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async {
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     try {
-      final response = await apiClient.get(ApiEndpoints.attendanceSummary);
+      final queryParams = <String, dynamic>{};
+      if (employeeId != null && employeeId.trim().isNotEmpty) {
+        queryParams['employeeId'] = employeeId.trim();
+      }
+
+      final response = await apiClient.get(
+        ApiEndpoints.attendanceSummary,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
 
       final rawData = response.data;
       if (rawData is Map<String, dynamic>) {

@@ -35,6 +35,7 @@ class AttendanceLogsState extends Equatable {
   });
 
   bool get isNotFound => statusCode == 404;
+  bool get isForbidden => statusCode == 403;
 
   bool get hasMorePages => currentPage < totalPages;
 

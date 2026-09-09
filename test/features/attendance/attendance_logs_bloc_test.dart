@@ -74,7 +74,7 @@ class MockAttendanceLogsRepository implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async {
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     if (throwSummaryOnly) throw Exception('Summary unavailable');
     return const AttendanceLogSummary(
       totalInDays: 22,

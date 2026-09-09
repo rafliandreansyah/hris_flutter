@@ -6,6 +6,7 @@ import 'package:hris_flutter/features/activity/presentation/pages/activity_detai
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/create_activity_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
@@ -122,6 +123,22 @@ class AppRouter {
         path: Routes.ATTENDANCE_LOGS,
         name: Routes.ATTENDANCE_LOGS,
         builder: (context, state) => const AttendanceLogsScreen(),
+      ),
+
+      GoRoute(
+        path: Routes.EMPLOYEE_ATTENDANCE_LOGS,
+        name: Routes.EMPLOYEE_ATTENDANCE_LOGS,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is EmployeeDirectoryItem) {
+            return EmployeeAttendanceLogsScreen(employee: extra);
+          }
+          return const Scaffold(
+            body: Center(
+              child: Text('Data pegawai tidak ditemukan'),
+            ),
+          );
+        },
       ),
     ],
     redirect: (context, state) {

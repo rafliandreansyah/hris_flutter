@@ -378,7 +378,7 @@ class _DashboardViewState extends State<_DashboardView> {
                   : 'No Work Schedule';
 
               // Lokasi Perusahaan
-              final locationStr = data.company?.name ?? 'HQ, Building A';
+              final companyName = data.company?.name ?? 'HQ, Building A';
 
               // Pengumuman Terakhir
               final hasAnnouncement = data.latestAnnouncement.isNotEmpty;
@@ -406,7 +406,7 @@ class _DashboardViewState extends State<_DashboardView> {
                       AttendanceHeroCard(
                         currentTime: currentTimeStr,
                         currentDate: currentDateStr,
-                        location: locationStr,
+                        company: companyName,
                         schedule: scheduleStr,
                         timezone: data.timezone ?? 'Asia/Jakarta',
                         clockInTime: inTime,

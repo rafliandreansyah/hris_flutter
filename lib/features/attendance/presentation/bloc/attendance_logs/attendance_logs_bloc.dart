@@ -100,9 +100,10 @@ class AttendanceLogsBloc
         status: AttendanceLogsStatus.success,
       ));
     } on ApiException catch (e) {
+      final msg = e.statusCode == 403 ? 'Tidak ada hak akses' : e.message;
       emit(state.copyWith(
         isLoadingMore: false,
-        errorMessage: e.message,
+        errorMessage: msg,
         statusCode: e.statusCode,
       ));
     } catch (e) {
@@ -153,7 +154,9 @@ class AttendanceLogsBloc
 
       AttendanceLogSummary? summary;
       try {
-        summary = await _repository.getAttendanceSummary();
+        summary = await _repository.getAttendanceSummary(
+          employeeId: activeEmployeeId,
+        );
       } catch (_) {
         summary = null;
       }
@@ -168,9 +171,10 @@ class AttendanceLogsBloc
         status: AttendanceLogsStatus.success,
       ));
     } on ApiException catch (e) {
+      final msg = e.statusCode == 403 ? 'Tidak ada hak akses' : e.message;
       emit(state.copyWith(
         status: AttendanceLogsStatus.failure,
-        errorMessage: e.message,
+        errorMessage: msg,
         statusCode: e.statusCode,
       ));
     } catch (e) {

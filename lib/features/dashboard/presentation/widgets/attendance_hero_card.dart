@@ -7,7 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class AttendanceHeroCard extends StatelessWidget {
   final String currentTime;
   final String currentDate;
-  final String location;
+  final String company;
   final String schedule;
   final String timezone;
   final String clockInTime;
@@ -19,7 +19,7 @@ class AttendanceHeroCard extends StatelessWidget {
     super.key,
     this.currentTime = '--:--',
     this.currentDate = '--',
-    this.location = 'Empty Work Location',
+    this.company = 'Empty Work Location',
     this.schedule = '--:-- - --:--',
     this.timezone = '--:--',
     this.clockInTime = '--:--',
@@ -111,53 +111,64 @@ class AttendanceHeroCard extends StatelessWidget {
                     ],
                   ),
 
-                  // Location Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(100),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                  // Timezone Badge
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.brandTeal,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          location,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.brandTeal,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.brandTeal,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                timezone,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.brandTeal,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // Schedule & Timezone Info
+              // Schedule & Company Info
               Row(
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         LucideIcons.clock,
@@ -174,23 +185,29 @@ class AttendanceHeroCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 16),
-                  Row(
-                    children: [
-                      Icon(
-                        LucideIcons.globe,
-                        size: 14,
-                        color: AppColors.accentTealLight,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        timezone,
-                        style: AppTypography.labelSmall.copyWith(
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.building2,
+                          size: 14,
                           color: AppColors.accentTealLight,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            company,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.accentTealLight,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

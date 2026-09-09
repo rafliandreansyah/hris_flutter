@@ -109,7 +109,7 @@ class MockAttendanceRepository implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async {
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     return AttendanceLogSummary.empty;
   }
 }

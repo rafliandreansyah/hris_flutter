@@ -506,8 +506,12 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
 
     if (state.status == AttendanceLogsStatus.failure && state.logs.isEmpty) {
       return _buildErrorState(
-        message: state.errorMessage ?? 'Gagal memuat riwayat absensi.',
+        message: state.errorMessage ??
+            (state.isForbidden
+                ? 'Tidak ada hak akses'
+                : 'Gagal memuat riwayat absensi.'),
         isNotFound: state.isNotFound,
+        isForbidden: state.isForbidden,
         onRetry: () => context.read<AttendanceLogsBloc>().add(
           const AttendanceLogsRefreshed(),
         ),
@@ -729,7 +733,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                       (state.isForbidden
                           ? 'Tidak ada hak akses'
                           : 'Gagal memuat data tim absensi.'),
-                  isNotFound: false,
+                  isNotFound: state.isNotFound,
                   isForbidden: state.isForbidden,
                   onRetry: () => context.read<EmployeeListBloc>().add(
                     const EmployeeListRefreshed(isTeamAttendance: true),
@@ -823,8 +827,10 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                     final employee = state.employees[index];
                     return AttendanceTeamMemberCard(
                       employee: employee,
-                      onTap: () =>
-                          context.push(Routes.EMPLOYEE_DETAIL, extra: employee),
+                      onTap: () => context.push(
+                        Routes.EMPLOYEE_ATTENDANCE_LOGS,
+                        extra: employee,
+                      ),
                     );
                   },
                 ),

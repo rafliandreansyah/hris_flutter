@@ -109,7 +109,7 @@ class TestAttendanceRepository implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async {
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     return AttendanceLogSummary.empty;
   }
 }
@@ -428,6 +428,6 @@ class Test404AttendanceRepository implements AttendanceRepository {
       throw UnimplementedError();
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async =>
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async =>
       throw UnimplementedError();
 }

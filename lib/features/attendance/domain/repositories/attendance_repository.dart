@@ -45,5 +45,5 @@ abstract class AttendanceRepository {
 
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
 
-  Future<AttendanceLogSummary> getAttendanceSummary();
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
 }

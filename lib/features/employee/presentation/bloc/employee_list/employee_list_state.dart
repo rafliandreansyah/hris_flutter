@@ -36,6 +36,7 @@ class EmployeeListState extends Equatable {
   });
 
   bool get isForbidden => statusCode == 403;
+  bool get isNotFound => statusCode == 404;
 
   EmployeeListState copyWith({
     EmployeeListStatus? status,

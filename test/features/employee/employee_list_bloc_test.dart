@@ -327,5 +327,5 @@ class MockTeamAttendanceRepository implements AttendanceRepository {
   }) async => throw UnimplementedError();
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async => throw UnimplementedError();
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async => throw UnimplementedError();
 }

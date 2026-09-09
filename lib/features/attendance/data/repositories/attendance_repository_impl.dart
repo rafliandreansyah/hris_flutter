@@ -343,7 +343,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() {
-    return remoteDataSource.getAttendanceSummary();
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) {
+    return remoteDataSource.getAttendanceSummary(employeeId: employeeId);
   }
 }

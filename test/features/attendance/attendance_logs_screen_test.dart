@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
@@ -63,7 +65,7 @@ class TestLogsRepository implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceLogSummary> getAttendanceSummary() async {
+  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     return const AttendanceLogSummary(
       totalInDays: 22,
       presentPercentage: 100,
@@ -318,6 +320,52 @@ void main() {
       expect(find.byIcon(LucideIcons.shieldAlert), findsOneWidget);
       expect(find.text('Kembali'), findsOneWidget);
       expect(find.text('Coba Lagi'), findsNothing);
+    });
+
+    testWidgets('tapping team member card navigates to Employee Attendance Logs screen', (
+      tester,
+    ) async {
+      String? navigatedRoute;
+      Object? navigatedExtra;
+
+      final router = GoRouter(
+        initialLocation: Routes.ATTENDANCE_LOGS,
+        routes: [
+          GoRoute(
+            path: Routes.ATTENDANCE_LOGS,
+            builder: (context, state) => AttendanceLogsScreen(
+              attendanceLogsBloc: AttendanceLogsBloc(
+                repository: TestLogsRepository(logs: testLogs),
+              )..add(const AttendanceLogsStarted()),
+              employeeListBloc: EmployeeListBloc(
+                initialCustomEmployees: testEmployees,
+              )..add(EmployeeListStarted(customEmployees: testEmployees)),
+            ),
+          ),
+          GoRoute(
+            path: Routes.EMPLOYEE_ATTENDANCE_LOGS,
+            builder: (context, state) {
+              navigatedRoute = Routes.EMPLOYEE_ATTENDANCE_LOGS;
+              navigatedExtra = state.extra;
+              return const Scaffold(body: Text('Employee Attendance Screen'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Team Attendance'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Sarah Jenkins'));
+      await tester.pumpAndSettle();
+
+      expect(navigatedRoute, Routes.EMPLOYEE_ATTENDANCE_LOGS);
+      expect(navigatedExtra, isA<EmployeeDirectoryItem>());
+      expect((navigatedExtra as EmployeeDirectoryItem).name, 'Sarah Jenkins');
+      expect(find.text('Employee Attendance Screen'), findsOneWidget);
     });
   });
 }
