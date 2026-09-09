@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -28,17 +28,39 @@ class QuickAccessGrid extends StatelessWidget {
 
   const QuickAccessGrid({super.key, this.menus});
 
-  /// 8 Menu Standar Dashboard Oasish HRIS
+  /// Menu Standar Dashboard Oasish HRIS
+  /// Kode, nama, dan icon disinkronkan dengan entitas Menu di backend
   static const List<({String code, String title, IconData icon})>
-      _defaultMenus = [
-    (code: 'activity', title: 'Activity', icon: LucideIcons.chartLine),
-    (code: 'employee', title: 'Employee', icon: LucideIcons.idCard),
-    (code: 'overtime', title: 'Overtime', icon: LucideIcons.timer),
-    (code: 'leave', title: 'Leave', icon: LucideIcons.calendarOff),
-    (code: 'payroll', title: 'Payroll', icon: LucideIcons.wallet),
-    (code: 'schedule', title: 'Schedule', icon: LucideIcons.calendar),
-    (code: 'attendance', title: 'Attendance', icon: LucideIcons.fingerprint),
-    (code: 'helpdesk', title: 'Helpdesk', icon: LucideIcons.headset),
+  _defaultMenus = [
+    (
+      code: 'mobile_activity',
+      title: 'Aktivitas',
+      icon: LucideIcons.clipboardList,
+    ),
+    (code: 'mobile_overtime', title: 'Lembur', icon: LucideIcons.clockAlert),
+    (code: 'mobile_leave', title: 'Izin & Cuti', icon: LucideIcons.calendarOff),
+    (
+      code: 'mobile_attendance_request_live',
+      title: 'Absen Luar',
+      icon: LucideIcons.mapPin,
+    ),
+    (
+      code: 'mobile_attendance',
+      title: 'Presensi',
+      icon: LucideIcons.fingerprint,
+    ),
+    (code: 'mobile_employee', title: 'Pegawai', icon: LucideIcons.users),
+    (
+      code: 'mobile_warning_letter',
+      title: 'Surat Peringatan',
+      icon: LucideIcons.triangleAlert,
+    ),
+    (code: 'mobile_payroll', title: 'Slip Gaji', icon: LucideIcons.wallet),
+    (
+      code: 'mobile_schedule',
+      title: 'Jadwal Kerja',
+      icon: LucideIcons.calendar,
+    ),
   ];
 
   /// Memeriksa apakah menu tertentu ada di dalam daftar menu API `/auth/menus`
@@ -51,61 +73,131 @@ class QuickAccessGrid extends StatelessWidget {
     final targetCode = code.toLowerCase().trim();
     final targetTitle = title.toLowerCase().trim();
 
+    // 🌟 Khusus "Absen Luar Kantor":
+    // Cek minimal memiliki 1 menu antara `mobile_attendance_request_live` ATAU `mobile_attendance_request_schedule`
+    if (targetCode == 'mobile_attendance_request_live' ||
+        targetCode == 'mobile_attendance_request_schedule' ||
+        targetTitle.contains('absen luar') ||
+        targetTitle.contains('luar kantor')) {
+      final hasLive = apiMenus.any((m) {
+        final c = m.code.toLowerCase().trim();
+        final n = m.name.toLowerCase().trim();
+        return c == 'mobile_attendance_request_live' ||
+            n.contains('absen luar kantor (live)');
+      });
+
+      final hasSchedule = apiMenus.any((m) {
+        final c = m.code.toLowerCase().trim();
+        final n = m.name.toLowerCase().trim();
+        return c == 'mobile_attendance_request_schedule' ||
+            n.contains('absen luar kantor (schedule)');
+      });
+
+      return hasLive || hasSchedule;
+    }
+
     return apiMenus.any((m) {
       final mCode = m.code.toLowerCase().trim();
       final mName = m.name.toLowerCase().trim();
-      return mCode == targetCode ||
-          mName == targetTitle ||
-          mCode.contains(targetCode) ||
-          targetCode.contains(mCode) ||
-          mName.contains(targetTitle) ||
-          targetTitle.contains(mName);
+
+      // 1. Prioritaskan kecocokan persis pada code (case-insensitive)
+      if (mCode == targetCode) return true;
+
+      // 2. Kecocokan pada nama menu
+      if (mName == targetTitle) return true;
+      if (mName.contains(targetTitle) || targetTitle.contains(mName))
+        return true;
+
+      // 3. Kecocokan nama umum bahasa Inggris/Indonesia
+      if (targetCode == 'mobile_activity' &&
+          (mName.contains('aktifitas') || mName.contains('activity'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_overtime' &&
+          (mName.contains('lembur') || mName.contains('overtime'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_leave' &&
+          (mName.contains('cuti') ||
+              mName.contains('izin') ||
+              mName.contains('leave'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_attendance' &&
+          (mName == 'presensi' ||
+              mName == 'attendance' ||
+              mName == 'presensi / absensi' ||
+              mName == 'absensi')) {
+        return true;
+      }
+      if (targetCode == 'mobile_employee' &&
+          (mName.contains('pegawai') ||
+              mName.contains('employee') ||
+              mName.contains('karyawan'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_warning_letter' &&
+          (mName.contains('peringatan') ||
+              mName.contains('warning') ||
+              mName.contains('sp'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_payroll' &&
+          (mName.contains('gaji') ||
+              mName.contains('payroll') ||
+              mName.contains('slip'))) {
+        return true;
+      }
+      if (targetCode == 'mobile_schedule' &&
+          (mName.contains('jadwal') || mName.contains('schedule'))) {
+        return true;
+      }
+
+      return false;
     });
   }
 
-  static void handleMenuTap(
-    BuildContext context,
-    String code,
-    String title,
-  ) {
+  static void handleMenuTap(BuildContext context, String code, String title) {
+    final c = code.toLowerCase();
     final lower = '$code $title'.toLowerCase();
-    if (lower.contains('emp') ||
-        lower.contains('pegawai') ||
-        lower.contains('karyawan')) {
+
+    if (c == 'mobile_employee') {
       context.push(Routes.EMPLOYEE_DIRECTORY);
-    } else if (lower.contains('act') ||
-        lower.contains('aktivitas') ||
-        lower.contains('activity')) {
+    } else if (c == 'mobile_activity') {
       context.push(Routes.ACTIVITY);
-    } else if (lower.contains('att') ||
-        lower.contains('absen') ||
-        lower.contains('presensi') ||
-        lower.contains('attendance')) {
+    } else if (c == 'mobile_attendance') {
       context.push(Routes.ATTENDANCE_LOGS);
+    } else if (c == 'mobile_attendance_request_live' ||
+        c == 'mobile_attendance_request_schedule') {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Menu $title segera hadir')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Menu $title segera hadir')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Menu $title segera hadir')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg =
-        isDark ? AppColors.darkPrimaryContainer : AppColors.primaryContainer;
-    final iconCol =
-        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final textCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final sectionTitleCol =
-        isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+    final cardBg = isDark
+        ? AppColors.darkPrimaryContainer
+        : AppColors.primaryContainer;
+    final iconCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final textCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final sectionTitleCol = isDark
+        ? AppColors.darkOnSurface
+        : AppColors.onSurface;
 
     // Filter menu: hanya tampilkan menu yang ada di respon API
     final displayMenus = (menus != null && menus!.isNotEmpty)
         ? _defaultMenus
-            .where((item) => isMenuAvailable(item.code, item.title, menus))
-            .toList()
+              .where((item) => isMenuAvailable(item.code, item.title, menus))
+              .toList()
         : _defaultMenus;
 
     if (displayMenus.isEmpty) {
@@ -140,11 +232,7 @@ class QuickAccessGrid extends StatelessWidget {
               color: cardBg,
               borderRadius: BorderRadius.circular(16),
               child: InkWell(
-                onTap: () => handleMenuTap(
-                  context,
-                  item.code,
-                  item.title,
-                ),
+                onTap: () => handleMenuTap(context, item.code, item.title),
                 borderRadius: BorderRadius.circular(16),
                 splashColor: AppColors.brandTeal.withValues(alpha: 0.1),
                 child: Container(
@@ -162,11 +250,7 @@ class QuickAccessGrid extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        item.icon,
-                        size: 26,
-                        color: iconCol,
-                      ),
+                      Icon(item.icon, size: 26, color: iconCol),
                       const SizedBox(height: 6),
                       Text(
                         item.title,
