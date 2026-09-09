@@ -427,6 +427,138 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Bahasa berhasil diperbarui'**
   String get languageUpdatedSuccess;
+
+  /// No description provided for @attendanceDetailTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Presensi'**
+  String get attendanceDetailTitle;
+
+  /// No description provided for @verificationDetails.
+  ///
+  /// In id, this message translates to:
+  /// **'Verifikasi Presensi'**
+  String get verificationDetails;
+
+  /// No description provided for @onTime.
+  ///
+  /// In id, this message translates to:
+  /// **'Tepat Waktu'**
+  String get onTime;
+
+  /// Late duration label
+  ///
+  /// In id, this message translates to:
+  /// **'Terlambat {minutes} mnt'**
+  String lateByMinutes(int minutes);
+
+  /// No description provided for @verifiedIdentityNotice.
+  ///
+  /// In id, this message translates to:
+  /// **'Identitas terverifikasi dengan biometrik dan geofence GPS'**
+  String get verifiedIdentityNotice;
+
+  /// No description provided for @attendanceLocation.
+  ///
+  /// In id, this message translates to:
+  /// **'Lokasi Presensi'**
+  String get attendanceLocation;
+
+  /// No description provided for @openInMaps.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka di Maps'**
+  String get openInMaps;
+
+  /// No description provided for @gpsCoordinates.
+  ///
+  /// In id, this message translates to:
+  /// **'Koordinat GPS'**
+  String get gpsCoordinates;
+
+  /// No description provided for @outsideAttendanceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kehadiran Luar Kantor'**
+  String get outsideAttendanceTitle;
+
+  /// No description provided for @outsideAttendanceDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen dari pengajuan Outside Attendance / Kehadiran luar kantor'**
+  String get outsideAttendanceDesc;
+
+  /// No description provided for @requestReference.
+  ///
+  /// In id, this message translates to:
+  /// **'Referensi Pengajuan'**
+  String get requestReference;
+
+  /// No description provided for @employeeInfo.
+  ///
+  /// In id, this message translates to:
+  /// **'Informasi Karyawan'**
+  String get employeeInfo;
+
+  /// No description provided for @shiftSchedule.
+  ///
+  /// In id, this message translates to:
+  /// **'Jadwal Shift'**
+  String get shiftSchedule;
+
+  /// No description provided for @attendanceMethod.
+  ///
+  /// In id, this message translates to:
+  /// **'Metode Presensi'**
+  String get attendanceMethod;
+
+  /// No description provided for @proofAttachment.
+  ///
+  /// In id, this message translates to:
+  /// **'Bukti Foto Presensi'**
+  String get proofAttachment;
+
+  /// No description provided for @tapToPreview.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketuk untuk memperbesar foto'**
+  String get tapToPreview;
+
+  /// No description provided for @requestAttendanceCorrection.
+  ///
+  /// In id, this message translates to:
+  /// **'Ajukan Koreksi Absensi'**
+  String get requestAttendanceCorrection;
+
+  /// No description provided for @attendanceDetailNotFound.
+  ///
+  /// In id, this message translates to:
+  /// **'Data detail presensi tidak ditemukan'**
+  String get attendanceDetailNotFound;
+
+  /// No description provided for @attendanceDetailNoAccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Anda tidak memiliki hak akses untuk melihat data ini'**
+  String get attendanceDetailNoAccess;
+
+  /// No description provided for @noPayrollPeriodTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Periode Penggajian Belum Ada'**
+  String get noPayrollPeriodTitle;
+
+  /// No description provided for @noPayrollPeriodLastMonthDesc.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada periode penggajian untuk bulan lalu. Anda dapat melihat riwayat pada periode Bulan Ini.'**
+  String get noPayrollPeriodLastMonthDesc;
+
+  /// No description provided for @viewCurrentMonth.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Bulan Ini'**
+  String get viewCurrentMonth;
 }
 
 class _AppLocalizationsDelegate

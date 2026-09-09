@@ -63,5 +63,37 @@
   "logoutSubtitle": "Keluar dari sesi login perangkat ini",
   "logoutConfirmationTitle": "Konfirmasi Logout",
   "logoutConfirmationDesc": "Apakah Anda yakin ingin keluar dari sesi akun ini?",
-  "languageUpdatedSuccess": "Bahasa berhasil diperbarui"
+  "languageUpdatedSuccess": "Bahasa berhasil diperbarui",
+
+  "attendanceDetailTitle": "Detail Presensi",
+  "verificationDetails": "Verifikasi Presensi",
+  "onTime": "Tepat Waktu",
+  "lateByMinutes": "Terlambat {minutes} mnt",
+  "@lateByMinutes": {
+    "description": "Late duration label",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  "verifiedIdentityNotice": "Identitas terverifikasi dengan biometrik dan geofence GPS",
+  "attendanceLocation": "Lokasi Presensi",
+  "openInMaps": "Buka di Maps",
+  "gpsCoordinates": "Koordinat GPS",
+  "outsideAttendanceTitle": "Kehadiran Luar Kantor",
+  "outsideAttendanceDesc": "Absen dari pengajuan Outside Attendance / Kehadiran luar kantor",
+  "requestReference": "Referensi Pengajuan",
+  "employeeInfo": "Informasi Karyawan",
+  "shiftSchedule": "Jadwal Shift",
+  "attendanceMethod": "Metode Presensi",
+  "proofAttachment": "Bukti Foto Presensi",
+  "tapToPreview": "Ketuk untuk memperbesar foto",
+  "requestAttendanceCorrection": "Ajukan Koreksi Absensi",
+  "attendanceDetailNotFound": "Data detail presensi tidak ditemukan",
+  "attendanceDetailNoAccess": "Anda tidak memiliki hak akses untuk melihat data ini",
+  "noPayrollPeriodTitle": "Periode Penggajian Belum Ada",
+  "noPayrollPeriodLastMonthDesc": "Belum ada periode penggajian untuk bulan lalu. Anda dapat melihat riwayat pada periode Bulan Ini.",
+  "viewCurrentMonth": "Lihat Bulan Ini"
 }

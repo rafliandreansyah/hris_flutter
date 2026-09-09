@@ -177,4 +177,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageUpdatedSuccess => 'Language updated successfully';
+
+  @override
+  String get attendanceDetailTitle => 'Attendance Detail';
+
+  @override
+  String get verificationDetails => 'Attendance Verification';
+
+  @override
+  String get onTime => 'On Time';
+
+  @override
+  String lateByMinutes(int minutes) {
+    return 'Late by $minutes mins';
+  }
+
+  @override
+  String get verifiedIdentityNotice =>
+      'Identity verified via biometrics and GPS geofence';
+
+  @override
+  String get attendanceLocation => 'Attendance Location';
+
+  @override
+  String get openInMaps => 'Open in Maps';
+
+  @override
+  String get gpsCoordinates => 'GPS Coordinates';
+
+  @override
+  String get outsideAttendanceTitle => 'Outside Attendance';
+
+  @override
+  String get outsideAttendanceDesc =>
+      'Check-in from Outside Attendance request';
+
+  @override
+  String get requestReference => 'Request Reference';
+
+  @override
+  String get employeeInfo => 'Employee Information';
+
+  @override
+  String get shiftSchedule => 'Shift Schedule';
+
+  @override
+  String get attendanceMethod => 'Attendance Method';
+
+  @override
+  String get proofAttachment => 'Attendance Photo Proof';
+
+  @override
+  String get tapToPreview => 'Tap to preview full photo';
+
+  @override
+  String get requestAttendanceCorrection => 'Request Attendance Correction';
+
+  @override
+  String get attendanceDetailNotFound => 'Attendance detail not found';
+
+  @override
+  String get attendanceDetailNoAccess =>
+      'You do not have permission to view this data';
+
+  @override
+  String get noPayrollPeriodTitle => 'Payroll Period Not Available';
+
+  @override
+  String get noPayrollPeriodLastMonthDesc =>
+      'No payroll period available for last month. You can check the Current Month period.';
+
+  @override
+  String get viewCurrentMonth => 'View Current Month';
 }

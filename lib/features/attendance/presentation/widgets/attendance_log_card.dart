@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AttendanceLogCard extends StatelessWidget {
   final AttendanceLogItem log;
+  final VoidCallback? onTap;
 
-  const AttendanceLogCard({super.key, required this.log});
+  const AttendanceLogCard({
+    super.key,
+    required this.log,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +64,17 @@ class AttendanceLogCard extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap ??
+              () {
+                context.push(Routes.ATTENDANCE_DETAIL, extra: log.id);
+              },
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             Container(width: 4, color: accentColor),
             Expanded(
               child: Padding(
@@ -174,7 +188,9 @@ class AttendanceLogCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildBadge({

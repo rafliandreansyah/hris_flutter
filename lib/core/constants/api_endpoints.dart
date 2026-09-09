@@ -58,6 +58,7 @@ abstract class ApiEndpoints {
   static const String attendanceLogs = '/attendances';
   static const String attendanceSummary = '/attendance/summary';
   static const String outsideAttendance = '/attendance/outside';
+  static String attendanceDetail(String id) => '/attendances/$id';
 
   // ==========================================
   // --- 🏖️ LEAVE & TIME-OFF ENDPOINTS ---

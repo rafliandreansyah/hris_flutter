@@ -13,4 +13,5 @@ abstract class Routes {
   static const String ATTENDANCE = '/attendance';
   static const String ATTENDANCE_LOGS = '/attendance-logs';
   static const String EMPLOYEE_ATTENDANCE_LOGS = '/employee-attendance-logs';
+  static const String ATTENDANCE_DETAIL = '/attendance-detail';
 }

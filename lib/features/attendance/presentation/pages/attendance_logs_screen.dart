@@ -15,6 +15,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_filter_bottom_sheet.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AttendanceLogsScreen extends StatelessWidget {
@@ -366,11 +367,25 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
         if (state.status == AttendanceLogsStatus.failure &&
             state.logs.isNotEmpty &&
             state.errorMessage != null) {
-          AppDialogUtil.showError(
-            context,
-            title: 'Gagal',
-            message: state.errorMessage!,
-          );
+          final l10n = AppLocalizations.of(context);
+          if (state.isNotFound && state.lastMonth) {
+            AppDialogUtil.showError(
+              context,
+              title:
+                  l10n?.noPayrollPeriodTitle ?? 'Periode Penggajian Belum Ada',
+              message: state.errorMessage!,
+              retryText: l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+              onRetry: () => context
+                  .read<AttendanceLogsBloc>()
+                  .add(const AttendanceLogsMonthToggled(false)),
+            );
+          } else {
+            AppDialogUtil.showError(
+              context,
+              title: 'Gagal',
+              message: state.errorMessage!,
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -512,9 +527,13 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 : 'Gagal memuat riwayat absensi.'),
         isNotFound: state.isNotFound,
         isForbidden: state.isForbidden,
+        isLastMonth: state.lastMonth,
+        onSwitchToCurrentMonth: () => context.read<AttendanceLogsBloc>().add(
+              const AttendanceLogsMonthToggled(false),
+            ),
         onRetry: () => context.read<AttendanceLogsBloc>().add(
-          const AttendanceLogsRefreshed(),
-        ),
+              const AttendanceLogsRefreshed(),
+            ),
       );
     }
 
@@ -846,6 +865,8 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     required String message,
     required bool isNotFound,
     bool isForbidden = false,
+    bool isLastMonth = false,
+    VoidCallback? onSwitchToCurrentMonth,
     required VoidCallback onRetry,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -854,6 +875,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final l10n = AppLocalizations.of(context);
 
     final IconData iconData;
     final Color iconColor;
@@ -866,12 +888,22 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     } else if (isNotFound) {
       iconData = LucideIcons.calendarX;
       iconColor = AppColors.warning;
-      errorTitle = 'Pemberitahuan Jadwal';
+      if (isLastMonth) {
+        errorTitle =
+            l10n?.noPayrollPeriodTitle ?? 'Periode Penggajian Belum Ada';
+      } else {
+        errorTitle = 'Pemberitahuan Jadwal';
+      }
     } else {
       iconData = LucideIcons.alertTriangle;
       iconColor = AppColors.errorRed;
       errorTitle = 'Gagal Memuat Data';
     }
+
+    final displayMessage = (isNotFound && isLastMonth && message.isEmpty)
+        ? (l10n?.noPayrollPeriodLastMonthDesc ??
+            'Belum ada data periode penggajian untuk bulan lalu.')
+        : message;
 
     return Center(
       child: Padding(
@@ -895,15 +927,45 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              displayMessage,
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
                 color: subtitleCol,
               ),
             ),
             const SizedBox(height: 20),
-            if (isNotFound || isForbidden)
+            if (isNotFound && isLastMonth && onSwitchToCurrentMonth != null) ...[
               ElevatedButton(
+                key: const ValueKey('attendance_logs_view_current_month_button'),
+                onPressed: onSwitchToCurrentMonth,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandColor,
+                  foregroundColor:
+                      isDark ? const Color(0xFF003732) : Colors.white,
+                  shape: const StadiumBorder(),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                key: const ValueKey('attendance_logs_back_button'),
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: const Text(
+                  'Kembali',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ] else if (isNotFound || isForbidden)
+              ElevatedButton(
+                key: const ValueKey('attendance_logs_back_button'),
                 onPressed: () => Navigator.of(context).maybePop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandColor,
@@ -916,6 +978,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
               )
             else
               ElevatedButton(
+                key: const ValueKey('attendance_logs_retry_button'),
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandColor,

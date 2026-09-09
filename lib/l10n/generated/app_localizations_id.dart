@@ -177,4 +177,76 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get languageUpdatedSuccess => 'Bahasa berhasil diperbarui';
+
+  @override
+  String get attendanceDetailTitle => 'Detail Presensi';
+
+  @override
+  String get verificationDetails => 'Verifikasi Presensi';
+
+  @override
+  String get onTime => 'Tepat Waktu';
+
+  @override
+  String lateByMinutes(int minutes) {
+    return 'Terlambat $minutes mnt';
+  }
+
+  @override
+  String get verifiedIdentityNotice =>
+      'Identitas terverifikasi dengan biometrik dan geofence GPS';
+
+  @override
+  String get attendanceLocation => 'Lokasi Presensi';
+
+  @override
+  String get openInMaps => 'Buka di Maps';
+
+  @override
+  String get gpsCoordinates => 'Koordinat GPS';
+
+  @override
+  String get outsideAttendanceTitle => 'Kehadiran Luar Kantor';
+
+  @override
+  String get outsideAttendanceDesc =>
+      'Absen dari pengajuan Outside Attendance / Kehadiran luar kantor';
+
+  @override
+  String get requestReference => 'Referensi Pengajuan';
+
+  @override
+  String get employeeInfo => 'Informasi Karyawan';
+
+  @override
+  String get shiftSchedule => 'Jadwal Shift';
+
+  @override
+  String get attendanceMethod => 'Metode Presensi';
+
+  @override
+  String get proofAttachment => 'Bukti Foto Presensi';
+
+  @override
+  String get tapToPreview => 'Ketuk untuk memperbesar foto';
+
+  @override
+  String get requestAttendanceCorrection => 'Ajukan Koreksi Absensi';
+
+  @override
+  String get attendanceDetailNotFound => 'Data detail presensi tidak ditemukan';
+
+  @override
+  String get attendanceDetailNoAccess =>
+      'Anda tidak memiliki hak akses untuk melihat data ini';
+
+  @override
+  String get noPayrollPeriodTitle => 'Periode Penggajian Belum Ada';
+
+  @override
+  String get noPayrollPeriodLastMonthDesc =>
+      'Belum ada periode penggajian untuk bulan lalu. Anda dapat melihat riwayat pada periode Bulan Ini.';
+
+  @override
+  String get viewCurrentMonth => 'Lihat Bulan Ini';
 }

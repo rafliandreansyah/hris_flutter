@@ -11,6 +11,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_summary_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/employee_attendance_header_card.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman riwayat absensi untuk pegawai tertentu yang dipilih dari Team Attendance.
@@ -182,11 +183,25 @@ class _EmployeeAttendanceLogsViewState
             if (state.status == AttendanceLogsStatus.failure &&
                 state.logs.isNotEmpty &&
                 state.errorMessage != null) {
-              AppDialogUtil.showError(
-                context,
-                title: 'Gagal',
-                message: state.errorMessage!,
-              );
+              final l10n = AppLocalizations.of(context);
+              if (state.isNotFound && state.lastMonth) {
+                AppDialogUtil.showError(
+                  context,
+                  title: l10n?.noPayrollPeriodTitle ??
+                      'Periode Penggajian Belum Ada',
+                  message: state.errorMessage!,
+                  retryText: l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+                  onRetry: () => context
+                      .read<AttendanceLogsBloc>()
+                      .add(const AttendanceLogsMonthToggled(false)),
+                );
+              } else {
+                AppDialogUtil.showError(
+                  context,
+                  title: 'Gagal',
+                  message: state.errorMessage!,
+                );
+              }
             }
           },
           builder: (context, state) {
@@ -336,6 +351,10 @@ class _EmployeeAttendanceLogsViewState
                 : 'Gagal memuat riwayat absensi.'),
         isNotFound: state.isNotFound,
         isForbidden: state.isForbidden,
+        isLastMonth: state.lastMonth,
+        onSwitchToCurrentMonth: () => context.read<AttendanceLogsBloc>().add(
+              const AttendanceLogsMonthToggled(false),
+            ),
         onRetry: () => context.read<AttendanceLogsBloc>().add(
               AttendanceLogsRefreshed(employeeId: _targetEmployeeId),
             ),
@@ -470,6 +489,8 @@ class _EmployeeAttendanceLogsViewState
     required String message,
     required bool isNotFound,
     bool isForbidden = false,
+    bool isLastMonth = false,
+    VoidCallback? onSwitchToCurrentMonth,
     required VoidCallback onRetry,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -478,6 +499,7 @@ class _EmployeeAttendanceLogsViewState
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final l10n = AppLocalizations.of(context);
 
     final IconData iconData;
     final Color iconColor;
@@ -490,12 +512,22 @@ class _EmployeeAttendanceLogsViewState
     } else if (isNotFound) {
       iconData = LucideIcons.calendarX;
       iconColor = AppColors.warning;
-      errorTitle = 'Pemberitahuan Jadwal';
+      if (isLastMonth) {
+        errorTitle =
+            l10n?.noPayrollPeriodTitle ?? 'Periode Penggajian Belum Ada';
+      } else {
+        errorTitle = 'Pemberitahuan Jadwal';
+      }
     } else {
       iconData = LucideIcons.alertTriangle;
       iconColor = AppColors.errorRed;
       errorTitle = 'Gagal Memuat Data';
     }
+
+    final displayMessage = (isNotFound && isLastMonth && message.isEmpty)
+        ? (l10n?.noPayrollPeriodLastMonthDesc ??
+            'Belum ada data periode penggajian untuk bulan lalu.')
+        : message;
 
     return Center(
       child: Padding(
@@ -519,14 +551,45 @@ class _EmployeeAttendanceLogsViewState
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              displayMessage,
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium.copyWith(
                 color: subtitleCol,
               ),
             ),
             const SizedBox(height: 20),
-            if (isNotFound || isForbidden)
+            if (isNotFound && isLastMonth && onSwitchToCurrentMonth != null) ...[
+              ElevatedButton(
+                key: const ValueKey(
+                  'employee_attendance_view_current_month_button',
+                ),
+                onPressed: onSwitchToCurrentMonth,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: brandColor,
+                  foregroundColor:
+                      isDark ? const Color(0xFF003732) : Colors.white,
+                  shape: const StadiumBorder(),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                key: const ValueKey('employee_attendance_back_button'),
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: const Text(
+                  'Kembali',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ] else if (isNotFound || isForbidden)
               ElevatedButton(
                 key: const ValueKey('employee_attendance_back_button'),
                 onPressed: () => Navigator.of(context).maybePop(),

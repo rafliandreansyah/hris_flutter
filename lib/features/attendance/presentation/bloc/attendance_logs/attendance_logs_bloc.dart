@@ -131,12 +131,16 @@ class AttendanceLogsBloc
     final activeLastMonth = lastMonth ?? state.lastMonth;
     final activeCriteria = filterCriteria ?? state.filterCriteria;
 
+    final isMonthChanged = activeLastMonth != state.lastMonth;
+
     emit(state.copyWith(
       isLoadingMore: false,
       status: AttendanceLogsStatus.loading,
       employeeId: activeEmployeeId,
       lastMonth: activeLastMonth,
       filterCriteria: activeCriteria,
+      logs: isMonthChanged ? const [] : null,
+      clearSummary: isMonthChanged,
       clearError: true,
     ));
 

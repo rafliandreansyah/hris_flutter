@@ -66,5 +66,37 @@
   "logoutSubtitle": "Sign out from this device session",
   "logoutConfirmationTitle": "Confirm Logout",
   "logoutConfirmationDesc": "Are you sure you want to sign out of this account session?",
-  "languageUpdatedSuccess": "Language updated successfully"
+  "languageUpdatedSuccess": "Language updated successfully",
+
+  "attendanceDetailTitle": "Attendance Detail",
+  "verificationDetails": "Attendance Verification",
+  "onTime": "On Time",
+  "lateByMinutes": "Late by {minutes} mins",
+  "@lateByMinutes": {
+    "description": "Late duration label",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  "verifiedIdentityNotice": "Identity verified via biometrics and GPS geofence",
+  "attendanceLocation": "Attendance Location",
+  "openInMaps": "Open in Maps",
+  "gpsCoordinates": "GPS Coordinates",
+  "outsideAttendanceTitle": "Outside Attendance",
+  "outsideAttendanceDesc": "Check-in from Outside Attendance request",
+  "requestReference": "Request Reference",
+  "employeeInfo": "Employee Information",
+  "shiftSchedule": "Shift Schedule",
+  "attendanceMethod": "Attendance Method",
+  "proofAttachment": "Attendance Photo Proof",
+  "tapToPreview": "Tap to preview full photo",
+  "requestAttendanceCorrection": "Request Attendance Correction",
+  "attendanceDetailNotFound": "Attendance detail not found",
+  "attendanceDetailNoAccess": "You do not have permission to view this data",
+  "noPayrollPeriodTitle": "Payroll Period Not Available",
+  "noPayrollPeriodLastMonthDesc": "No payroll period available for last month. You can check the Current Month period.",
+  "viewCurrentMonth": "View Current Month"
 }

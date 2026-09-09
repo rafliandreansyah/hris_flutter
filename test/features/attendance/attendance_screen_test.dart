@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
@@ -111,6 +112,15 @@ class TestAttendanceRepository implements AttendanceRepository {
   @override
   Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
     return AttendanceLogSummary.empty;
+  }
+
+  @override
+  Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
+    return AttendanceDetailModel(
+      id: id,
+      attendanceType: 'Clock In',
+      attendanceMethod: 'Face Recognition',
+    );
   }
 }
 
@@ -429,5 +439,9 @@ class Test404AttendanceRepository implements AttendanceRepository {
 
   @override
   Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<AttendanceDetailModel> getAttendanceDetail(String id) async =>
       throw UnimplementedError();
 }

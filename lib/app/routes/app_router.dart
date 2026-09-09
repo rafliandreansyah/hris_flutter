@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/create_activity_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/attendance_detail_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
@@ -138,6 +139,22 @@ class AppRouter {
               child: Text('Data pegawai tidak ditemukan'),
             ),
           );
+        },
+      ),
+
+      // 13. Attendance Detail Screen (Google Stitch)
+      GoRoute(
+        path: Routes.ATTENDANCE_DETAIL,
+        name: Routes.ATTENDANCE_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String attendanceId = '';
+          if (extra is String) {
+            attendanceId = extra;
+          } else if (state.uri.queryParameters.containsKey('id')) {
+            attendanceId = state.uri.queryParameters['id']!;
+          }
+          return AttendanceDetailScreen(attendanceId: attendanceId);
         },
       ),
     ],

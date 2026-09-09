@@ -1,3 +1,4 @@
+import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -46,4 +47,7 @@ abstract class AttendanceRepository {
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
 
   Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
+
+  /// Mengambil detail presensi berdasarkan id.
+  Future<AttendanceDetailModel> getAttendanceDetail(String id);
 }

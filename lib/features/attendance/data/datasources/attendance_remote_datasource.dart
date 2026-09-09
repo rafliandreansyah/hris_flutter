@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/check_in_request_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -28,6 +29,7 @@ abstract class AttendanceRemoteDataSource {
   });
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
   Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
+  Future<AttendanceDetailModel> getAttendanceDetail(String id);
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -219,6 +221,29 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
 
       return AttendanceLogSummary.empty;
     } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  @override
+  Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.attendanceDetail(id));
+      final rawData = response.data;
+      if (rawData is Map<String, dynamic>) {
+        final data = rawData['data'] is Map<String, dynamic>
+            ? rawData['data'] as Map<String, dynamic>
+            : rawData;
+        return AttendanceDetailModel.fromJson(data);
+      }
+      throw ApiException(message: 'Format data tidak valid');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        throw ApiException(
+          message: 'Tidak ada hak akses',
+          statusCode: 403,
+        );
+      }
       throw ApiException.fromDioException(e);
     }
   }

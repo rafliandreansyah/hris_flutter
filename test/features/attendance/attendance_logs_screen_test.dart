@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
@@ -14,6 +15,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_summary_card.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class TestLogsRepository implements AttendanceRepository {
@@ -21,12 +23,16 @@ class TestLogsRepository implements AttendanceRepository {
   final int totalPages;
   final List<EmployeeDirectoryItem> teamEmployees;
   final bool throw403OnTeam;
+  final bool throw404OnLastMonth;
+  final String? throw404Message;
 
   TestLogsRepository({
     required this.logs,
     this.totalPages = 2,
     this.teamEmployees = const [],
     this.throw403OnTeam = false,
+    this.throw404OnLastMonth = false,
+    this.throw404Message,
   });
 
   @override
@@ -40,6 +46,12 @@ class TestLogsRepository implements AttendanceRepository {
     String? type,
     String? status,
   }) async {
+    if (throw404OnLastMonth && lastMonth) {
+      throw ApiException(
+        message: throw404Message ?? 'Periode payroll belum dibuat',
+        statusCode: 404,
+      );
+    }
     return AttendanceLogListResponse(
       success: true,
       message: 'Success',
@@ -104,6 +116,15 @@ class TestLogsRepository implements AttendanceRepository {
     required double latitude,
     required double longitude,
   }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
+    return AttendanceDetailModel(
+      id: id,
+      attendanceType: 'Clock In',
+      attendanceMethod: 'GPS',
+    );
+  }
 }
 
 void main() {
@@ -367,5 +388,58 @@ void main() {
       expect((navigatedExtra as EmployeeDirectoryItem).name, 'Sarah Jenkins');
       expect(find.text('Employee Attendance Screen'), findsOneWidget);
     });
+
+    testWidgets(
+      'displays Periode Penggajian Belum Ada and switches to current month on 404 when lastMonth is true',
+      (tester) async {
+        final logsRepo = TestLogsRepository(
+          logs: testLogs,
+          throw404OnLastMonth: true,
+          throw404Message: 'Belum ada periode payroll aktif.',
+        );
+
+        final logsBloc = AttendanceLogsBloc(
+          repository: logsRepo,
+        )..add(const AttendanceLogsStarted());
+
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('id'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AttendanceLogsScreen(
+              attendanceLogsBloc: logsBloc,
+              employeeListBloc: EmployeeListBloc(
+                initialCustomEmployees: testEmployees,
+              )..add(EmployeeListStarted(customEmployees: testEmployees)),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Initial state is current month and shows logs
+        expect(find.text('Bulan Ini'), findsOneWidget);
+        expect(find.text('Bulan Lalu'), findsOneWidget);
+        expect(find.byType(AttendanceLogCard), findsWidgets);
+
+        // Tap Bulan Lalu which returns 404
+        await tester.tap(find.text('Bulan Lalu'));
+        await tester.pumpAndSettle();
+
+        // Verifies 404 Last Month error state
+        expect(find.text('Periode Penggajian Belum Ada'), findsOneWidget);
+        expect(find.text('Belum ada periode payroll aktif.'), findsOneWidget);
+        expect(find.byIcon(LucideIcons.calendarX), findsOneWidget);
+        expect(find.text('Lihat Bulan Ini'), findsOneWidget);
+        expect(find.text('Kembali'), findsOneWidget);
+
+        // Tap Lihat Bulan Ini to switch back to current month
+        await tester.tap(find.text('Lihat Bulan Ini'));
+        await tester.pumpAndSettle();
+
+        expect(logsBloc.state.lastMonth, isFalse);
+        expect(find.byType(AttendanceLogCard), findsWidgets);
+      },
+    );
   });
 }
