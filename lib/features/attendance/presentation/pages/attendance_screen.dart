@@ -430,22 +430,12 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 3. User & Office Info Card (with Work Location Selector)
+                        // 3. User & Office Info Card
                         AttendanceEmployeeCard(
                           employeeName: data.employeeName,
                           employeeRole: data.employeeRole,
                           employeeId: data.employeeId,
                           photoUrl: data.photoUrl,
-                          officeName: data.officeName,
-                          officeDetail: data.officeDetail,
-                          geofenceRadiusMeters: data.geofenceRadiusMeters,
-                          availableWorkLocations: data.availableWorkLocations,
-                          selectedWorkLocation: data.selectedWorkLocation,
-                          onLocationChanged: (newLoc) {
-                            context.read<AttendanceBloc>().add(
-                              AttendanceWorkLocationChanged(newLoc),
-                            );
-                          },
                         ),
                         const SizedBox(height: 16),
 

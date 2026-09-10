@@ -56,6 +56,20 @@ class _DashboardViewState extends State<_DashboardView> {
     return '$h:$m:$s';
   }
 
+  // Format string waktu menjadi HH:mm (hanya jam:menit)
+  String _formatAttendanceTime(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
+      return '--:--';
+    }
+    // Ambil bagian jam:menit dari berbagai format kemungkinan
+    // Format: "HH:mm", "HH:mm:ss", "HH:mm:ss.SSS", "YYYY-MM-DDTHH:mm:ss", dll
+    final match = RegExp(r'(\d{2}):\d{2}').firstMatch(timeStr);
+    if (match != null) {
+      return match.group(0)!;
+    }
+    return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
+  }
+
   // Format tanggal dalam Bahasa Indonesia / English
   String _formatDate(DateTime dt, [String? localeCode]) {
     if (localeCode == 'en') {
@@ -362,8 +376,8 @@ class _DashboardViewState extends State<_DashboardView> {
 
               // Data Absensi Hari Ini
               final todayAtt = data.attendanceSummary?.todayAttendance;
-              final inTime = todayAtt?.inTime ?? '--:--';
-              final outTime = todayAtt?.outTime ?? '--:--';
+              final inTime = _formatAttendanceTime(todayAtt?.inTime);
+              final outTime = _formatAttendanceTime(todayAtt?.outTime);
               final isClockedIn =
                   todayAtt?.inTime != null && todayAtt?.outTime == null;
 

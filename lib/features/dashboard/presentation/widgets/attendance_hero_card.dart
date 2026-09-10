@@ -214,9 +214,11 @@ class AttendanceHeroCard extends StatelessWidget {
               const SizedBox(height: 10),
 
               // Clock In & Clock Out Row
-              Row(
+              Wrap(
+                spacing: 20,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         LucideIcons.logIn,
@@ -233,8 +235,8 @@ class AttendanceHeroCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 20),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
                         LucideIcons.logOut,

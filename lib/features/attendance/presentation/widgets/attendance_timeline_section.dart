@@ -21,6 +21,15 @@ class AttendanceTimelineSection extends StatelessWidget {
     this.isClockedOut = false,
   });
 
+  static String _formatTimeHHmm(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
+      return '--:--';
+    }
+    final match = RegExp(r'(\d{2}):\d{2}').firstMatch(timeStr);
+    if (match != null) return match.group(0)!;
+    return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -85,7 +94,7 @@ class AttendanceTimelineSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        inTime != null && inTime!.isNotEmpty ? inTime! : '--:--',
+                        inTime != null && inTime!.isNotEmpty ? _formatTimeHHmm(inTime) : '--:--',
                         style: AppTypography.titleMedium.copyWith(
                           color: textPrimary,
                           fontWeight: FontWeight.w700,
@@ -177,7 +186,7 @@ class AttendanceTimelineSection extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           breakOutTime != null && breakOutTime!.isNotEmpty
-                              ? breakOutTime!
+                              ? _formatTimeHHmm(breakOutTime)
                               : '--:--',
                           style: AppTypography.bodyLarge.copyWith(
                             color: textPrimary,
@@ -202,7 +211,7 @@ class AttendanceTimelineSection extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           breakInTime != null && breakInTime!.isNotEmpty
-                              ? breakInTime!
+                              ? _formatTimeHHmm(breakInTime)
                               : '--:--',
                           style: AppTypography.bodyLarge.copyWith(
                             color: textPrimary,
@@ -266,7 +275,7 @@ class AttendanceTimelineSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        outTime != null && outTime!.isNotEmpty ? outTime! : '--:--',
+                        outTime != null && outTime!.isNotEmpty ? _formatTimeHHmm(outTime) : '--:--',
                         style: AppTypography.titleMedium.copyWith(
                           color: isClockedOut
                               ? textPrimary

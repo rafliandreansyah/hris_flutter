@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -56,44 +56,15 @@ class ActivityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Employee Header Row (Avatar, Name, Role • Department)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    AppAvatar(
-                      imageUrl: activity.avatarUrl,
-                      name: activity.userName,
-                      size: 40,
-                      fontSize: 14,
-                      showBorder: true,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            activity.userName,
-                            style: AppTypography.titleSmall.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '${activity.userRole} • ${activity.department}',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: subtitleCol,
-                              fontSize: 12,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                EmployeeInfoRow(
+                  name: activity.userName,
+                  role: activity.userRole,
+                  department: activity.department,
+                  company: activity.company,
+                  employeeId: activity.employeeNumber,
+                  avatarUrl: activity.avatarUrl,
+                  initials: activity.initials,
+                  avatarSize: 40,
                 ),
                 const SizedBox(height: 12),
 
