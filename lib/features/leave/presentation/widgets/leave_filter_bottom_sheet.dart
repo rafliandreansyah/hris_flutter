@@ -1,14 +1,18 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Kriteria filter untuk daftar log aktivitas kerja Oasish HRIS.
-class ActivityFilterCriteria {
+/// Kriteria filter untuk daftar pengajuan cuti/izin (Leave & Time Off).
+///
+/// Pola mengikuti [ActivityFilterCriteria]: field id + nama untuk display,
+/// dengan helper `hasActiveFilter` / `activeFilterCount`. Equatable agar
+/// perbandingan state BLoC akurat di unit test.
+class LeaveFilterCriteria extends Equatable {
   final DateTimeRange? dateRange;
   final String? companyId;
   final String? company;
@@ -16,9 +20,11 @@ class ActivityFilterCriteria {
   final String? department;
   final String? positionId;
   final String? position;
-  final String? status; // 'ongoing' (default), 'completed', 'canceled', or null for all status
 
-  const ActivityFilterCriteria({
+  /// Filter status approval: null/'all' = semua, 'pending', 'approved', 'rejected'.
+  final String? statusApprove;
+
+  const LeaveFilterCriteria({
     this.dateRange,
     this.companyId,
     this.company,
@@ -26,7 +32,7 @@ class ActivityFilterCriteria {
     this.department,
     this.positionId,
     this.position,
-    this.status = 'ongoing',
+    this.statusApprove,
   });
 
   bool get hasActiveFilter =>
@@ -37,7 +43,7 @@ class ActivityFilterCriteria {
       (departmentId != null && departmentId!.isNotEmpty) ||
       (position != null && position != 'Semua Jabatan') ||
       (positionId != null && positionId!.isNotEmpty) ||
-      (status != 'ongoing');
+      (statusApprove != null && statusApprove!.isNotEmpty && statusApprove != 'all');
 
   int get activeFilterCount {
     int count = 0;
@@ -54,13 +60,13 @@ class ActivityFilterCriteria {
         (positionId != null && positionId!.isNotEmpty)) {
       count++;
     }
-    if (status != 'ongoing') {
+    if (statusApprove != null && statusApprove!.isNotEmpty && statusApprove != 'all') {
       count++;
     }
     return count;
   }
 
-  ActivityFilterCriteria copyWith({
+  LeaveFilterCriteria copyWith({
     DateTimeRange? dateRange,
     bool clearDateRange = false,
     String? companyId,
@@ -69,10 +75,9 @@ class ActivityFilterCriteria {
     String? department,
     String? positionId,
     String? position,
-    String? status,
-    bool clearStatus = false,
+    String? statusApprove,
   }) {
-    return ActivityFilterCriteria(
+    return LeaveFilterCriteria(
       dateRange: clearDateRange ? null : (dateRange ?? this.dateRange),
       companyId: companyId ?? this.companyId,
       company: company ?? this.company,
@@ -80,11 +85,11 @@ class ActivityFilterCriteria {
       department: department ?? this.department,
       positionId: positionId ?? this.positionId,
       position: position ?? this.position,
-      status: clearStatus ? null : (status ?? this.status),
+      statusApprove: statusApprove ?? this.statusApprove,
     );
   }
 
-  /// Tanggal mulai terformat 'yyyy-MM-dd' (RFC 3339 full-date) untuk query parameter API.
+  /// Tanggal mulai terformat 'yyyy-MM-dd' untuk query parameter API.
   String? get startDateParam {
     final start = dateRange?.start;
     if (start == null) return null;
@@ -93,7 +98,7 @@ class ActivityFilterCriteria {
         '${start.day.toString().padLeft(2, '0')}';
   }
 
-  /// Tanggal selesai terformat 'yyyy-MM-dd' (RFC 3339 full-date) untuk query parameter API.
+  /// Tanggal selesai terformat 'yyyy-MM-dd' untuk query parameter API.
   String? get endDateParam {
     final end = dateRange?.end;
     if (end == null) return null;
@@ -103,21 +108,7 @@ class ActivityFilterCriteria {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ActivityFilterCriteria &&
-          runtimeType == other.runtimeType &&
-          dateRange == other.dateRange &&
-          companyId == other.companyId &&
-          company == other.company &&
-          departmentId == other.departmentId &&
-          department == other.department &&
-          positionId == other.positionId &&
-          position == other.position &&
-          status == other.status;
-
-  @override
-  int get hashCode => Object.hash(
+  List<Object?> get props => [
         dateRange,
         companyId,
         company,
@@ -125,36 +116,28 @@ class ActivityFilterCriteria {
         department,
         positionId,
         position,
-        status,
-      );
+        statusApprove,
+      ];
 }
 
-/// Menampilkan Modal Bottom Sheet "Filter Aktivitas"
-/// Mengintegrasikan pemuatan data dari API Backend yang sama (/companies, /departments, /positions)
-/// via OrganizationFilterBloc (dengan in-memory caching).
-Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
+/// Menampilkan Modal Bottom Sheet "Filter Pengajuan Cuti".
+/// Master data organisasi (/companies, /departments, /positions) dimuat via
+/// [OrganizationFilterBloc] dengan in-memory caching (rule AGENTS.md #3).
+Future<LeaveFilterCriteria?> showLeaveFilterBottomSheet(
   BuildContext context, {
-  required ActivityFilterCriteria initialCriteria,
+  required LeaveFilterCriteria initialCriteria,
   OrganizationFilterRepository? repository,
   OrganizationFilterBloc? organizationFilterBloc,
-  List<String>? availableCompanies,
-  List<String>? availableDepartments,
-  List<String>? availablePositions,
 }) {
-  return showModalBottomSheet<ActivityFilterCriteria>(
+  return showModalBottomSheet<LeaveFilterCriteria>(
     context: context,
     isScrollControlled: true,
     showDragHandle: false,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) {
-      final sheetWidget = ActivityFilterBottomSheet(
+      final sheetWidget = LeaveFilterBottomSheet(
         initialCriteria: initialCriteria,
-        repository: repository,
-        organizationFilterBloc: organizationFilterBloc,
-        availableCompanies: availableCompanies,
-        availableDepartments: availableDepartments,
-        availablePositions: availablePositions,
       );
 
       if (organizationFilterBloc != null) {
@@ -174,31 +157,17 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
   );
 }
 
-class ActivityFilterBottomSheet extends StatefulWidget {
-  final ActivityFilterCriteria initialCriteria;
-  final OrganizationFilterRepository? repository;
-  final OrganizationFilterBloc? organizationFilterBloc;
-  final List<String>? availableCompanies;
-  final List<String>? availableDepartments;
-  final List<String>? availablePositions;
+class LeaveFilterBottomSheet extends StatefulWidget {
+  final LeaveFilterCriteria initialCriteria;
 
-  const ActivityFilterBottomSheet({
-    super.key,
-    required this.initialCriteria,
-    this.repository,
-    this.organizationFilterBloc,
-    this.availableCompanies,
-    this.availableDepartments,
-    this.availablePositions,
-  });
+  const LeaveFilterBottomSheet({super.key, required this.initialCriteria});
 
   @override
-  State<ActivityFilterBottomSheet> createState() =>
-      _ActivityFilterBottomSheetState();
+  State<LeaveFilterBottomSheet> createState() => _LeaveFilterBottomSheetState();
 }
 
-class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
-  late DateTimeRange? _selectedDateRange;
+class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
+  DateTimeRange? _selectedDateRange;
 
   String? _selectedCompanyId;
   late String _selectedCompany;
@@ -209,34 +178,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   String? _selectedPositionId;
   late String _selectedPosition;
 
-  String? _selectedStatus;
-
-  static const List<String> _defaultCompanies = [
-    'Semua Perusahaan',
-    'PT Oasish Tech Nusantara',
-    'PT Oasish Distribusi Digital',
-    'PT Muratech Global Solusi',
-  ];
-
-  static const List<String> _defaultDepartments = [
-    'Semua Departemen',
-    'Engineering',
-    'Operations',
-    'Quality Assurance',
-    'Product',
-    'People Operations',
-    'Finance',
-  ];
-
-  static const List<String> _defaultPositions = [
-    'Semua Jabatan',
-    'Site Operations Supervisor',
-    'QA Engineer',
-    'Frontend Engineer',
-    'HR Specialist',
-    'Product Manager',
-    'Senior Site Supervisor',
-  ];
+  /// null/'all' = Semua Status.
+  late String _selectedStatusApprove;
 
   @override
   void initState() {
@@ -246,7 +189,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
 
     _selectedCompanyId = widget.initialCriteria.companyId;
     _selectedCompany = widget.initialCriteria.company ?? 'Semua Perusahaan';
-    _selectedStatus = widget.initialCriteria.status;
+    _selectedStatusApprove = widget.initialCriteria.statusApprove ?? 'all';
 
     if (_isCompanySelected) {
       _selectedDepartmentId = widget.initialCriteria.departmentId;
@@ -267,7 +210,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
         final bloc = context.read<OrganizationFilterBloc>();
         bloc.add(const OrganizationFilterStarted());
         if (_isCompanySelected && _selectedCompanyId != null) {
-          bloc.add(OrganizationFilterCompanySelected(companyId: _selectedCompanyId));
+          bloc.add(
+            OrganizationFilterCompanySelected(companyId: _selectedCompanyId),
+          );
         }
       }
     });
@@ -276,56 +221,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   bool get _isCompanySelected =>
       _selectedCompany != 'Semua Perusahaan' &&
       _selectedCompany.trim().isNotEmpty;
-
-  List<String> _getCompaniesList(List<CompanyItem> companies) {
-    if (companies.isNotEmpty) {
-      return ['Semua Perusahaan', ...companies.map((c) => c.name)];
-    }
-    final fallback = [
-      'Semua Perusahaan',
-      ...?widget.availableCompanies?.where((c) => c != 'Semua Perusahaan'),
-    ];
-    if (fallback.length == 1) {
-      fallback.addAll(_defaultCompanies.where((c) => c != 'Semua Perusahaan'));
-    }
-    return fallback;
-  }
-
-  List<String> _getDepartmentsList(List<DepartmentItem> departments) {
-    if (!_isCompanySelected) {
-      return ['Semua Departemen'];
-    }
-    if (departments.isNotEmpty) {
-      return ['Semua Departemen', ...departments.map((d) => d.name)];
-    }
-    final fallback = [
-      'Semua Departemen',
-      ...?widget.availableDepartments?.where((d) => d != 'Semua Departemen'),
-    ];
-    if (fallback.length == 1) {
-      fallback.addAll(
-        _defaultDepartments.where((d) => d != 'Semua Departemen'),
-      );
-    }
-    return fallback;
-  }
-
-  List<String> _getPositionsList(List<PositionItem> positions) {
-    if (!_isCompanySelected) {
-      return ['Semua Jabatan'];
-    }
-    if (positions.isNotEmpty) {
-      return ['Semua Jabatan', ...positions.map((p) => p.name)];
-    }
-    final fallback = [
-      'Semua Jabatan',
-      ...?widget.availablePositions?.where((p) => p != 'Semua Jabatan'),
-    ];
-    if (fallback.length == 1) {
-      fallback.addAll(_defaultPositions.where((p) => p != 'Semua Jabatan'));
-    }
-    return fallback;
-  }
 
   void _resetFilters() {
     setState(() {
@@ -336,50 +231,32 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
       _selectedDepartment = 'Semua Departemen';
       _selectedPositionId = null;
       _selectedPosition = 'Semua Jabatan';
-      _selectedStatus = 'ongoing';
+      _selectedStatusApprove = 'all';
     });
     context.read<OrganizationFilterBloc>().add(
-      const OrganizationFilterCompanySelected(companyId: null),
-    );
+          const OrganizationFilterCompanySelected(companyId: null),
+        );
   }
 
   void _applyFilters() {
-    final effectiveStatus = (_selectedStatus == null ||
-            _selectedStatus!.trim().isEmpty ||
-            _selectedStatus!.trim().toLowerCase() == 'all' ||
-            _selectedStatus!.trim().toLowerCase() == 'semua')
-        ? null
-        : _selectedStatus!.trim();
-
-    final result = ActivityFilterCriteria(
+    final result = LeaveFilterCriteria(
       dateRange: _selectedDateRange,
       companyId: _selectedCompanyId,
       company: _selectedCompany == 'Semua Perusahaan' ? null : _selectedCompany,
       departmentId: _selectedDepartmentId,
-      department: _selectedDepartment == 'Semua Departemen'
-          ? null
-          : _selectedDepartment,
+      department:
+          _selectedDepartment == 'Semua Departemen' ? null : _selectedDepartment,
       positionId: _selectedPositionId,
       position: _selectedPosition == 'Semua Jabatan' ? null : _selectedPosition,
-      status: effectiveStatus,
+      statusApprove: _selectedStatusApprove == 'all' ? null : _selectedStatusApprove,
     );
     Navigator.of(context).pop(result);
   }
 
   String _formatDate(DateTime dt) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Ags',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
     ];
     return '${dt.day.toString().padLeft(2, '0')} ${months[dt.month - 1]} ${dt.year}';
   }
@@ -408,9 +285,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
       context: context,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year + 1),
-      initialDateRange:
-          _selectedDateRange ??
-          DateTimeRange(start: now.subtract(const Duration(days: 7)), end: now),
+      initialDateRange: _selectedDateRange ??
+          DateTimeRange(
+            start: now.subtract(const Duration(days: 7)),
+            end: now,
+          ),
       saveText: 'Pilih',
       helpText: 'PILIH RENTANG TANGGAL',
       fieldStartLabelText: 'Tanggal Mulai',
@@ -509,14 +388,15 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
           builder: (context, setModalState) {
             final filteredOptions = options.where((opt) {
               if (searchQuery.trim().isEmpty) return true;
-              return opt.toLowerCase().contains(
-                searchQuery.toLowerCase().trim(),
-              );
+              return opt
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase().trim());
             }).toList();
 
             return Material(
               color: surfaceColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
               clipBehavior: Clip.antiAlias,
               child: SafeArea(
                 top: false,
@@ -558,8 +438,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                           ),
                         ),
                         const SizedBox(height: 10),
-
-                        // Search box for filtering options
                         if (options.length > 5) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -606,9 +484,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                           ),
                           const SizedBox(height: 10),
                         ],
-
                         const Divider(height: 1),
-
                         Flexible(
                           child: filteredOptions.isEmpty
                               ? Padding(
@@ -635,7 +511,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                       },
                                       title: Text(
                                         opt,
-                                        style: AppTypography.bodyMedium.copyWith(
+                                        style:
+                                            AppTypography.bodyMedium.copyWith(
                                           color: isSelected
                                               ? brandColor
                                               : textCol,
@@ -709,7 +586,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
             onTap: isEnabled && !isLoading ? onTap : null,
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               decoration: BoxDecoration(
                 color: effectiveFieldBg,
                 borderRadius: BorderRadius.circular(12),
@@ -752,7 +630,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                       onTap: onClear,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Icon(LucideIcons.x, size: 16, color: labelCol),
+                        child:
+                            Icon(LucideIcons.x, size: 16, color: labelCol),
                       ),
                     ),
                   ] else ...[
@@ -779,7 +658,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                   child: Text(
                     helperText,
                     style: AppTypography.labelSmall.copyWith(
-                      color: labelCol.withValues(alpha: isEnabled ? 1.0 : 0.6),
+                      color:
+                          labelCol.withValues(alpha: isEnabled ? 1.0 : 0.6),
                       fontSize: 11,
                     ),
                   ),
@@ -795,20 +675,15 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   Widget _buildStatusChip({
     required String label,
     required String value,
-    required String? selectedValue,
+    required String selectedValue,
     required Color brandColor,
-    required Color textCol,
     required Color labelCol,
     required Color borderCol,
     required Color fieldBg,
     required bool isDark,
     required VoidCallback onSelected,
   }) {
-    final isSelected = (value.isEmpty &&
-            (selectedValue == null || selectedValue.isEmpty)) ||
-        (value.isNotEmpty &&
-            selectedValue != null &&
-            value.toLowerCase() == selectedValue.toLowerCase());
+    final isSelected = value.toLowerCase() == selectedValue.toLowerCase();
     final chipBg = isSelected
         ? (isDark ? brandColor.withValues(alpha: 0.18) : const Color(0xFFF0FDFA))
         : fieldBg;
@@ -821,7 +696,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
         onTap: onSelected,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+          padding: const EdgeInsets.symmetric(vertical: 11),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: chipBg,
@@ -836,10 +711,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
             style: AppTypography.bodySmall.copyWith(
               color: chipTextCol,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              fontSize: 12.5,
+              fontSize: 12,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -853,21 +726,26 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final labelCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
-    final borderCol = isDark
-        ? AppColors.darkOutlineMuted
-        : AppColors.outlineMuted;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final fieldBg = isDark
-        ? AppColors.darkBackgroundSubtle
-        : AppColors.backgroundSubtle;
+    final labelCol =
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+    final borderCol =
+        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final brandColor =
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final fieldBg =
+        isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
 
     final orgState = context.watch<OrganizationFilterBloc>().state;
-    final companiesList = _getCompaniesList(orgState.companies);
-    final departmentsList = _getDepartmentsList(orgState.departments);
-    final positionsList = _getPositionsList(orgState.positions);
+    final companiesList = [
+      'Semua Perusahaan',
+      ...orgState.companies.map((c) => c.name),
+    ];
+    final departmentsList = _isCompanySelected
+        ? ['Semua Departemen', ...orgState.departments.map((d) => d.name)]
+        : ['Semua Departemen'];
+    final positionsList = _isCompanySelected
+        ? ['Semua Jabatan', ...orgState.positions.map((p) => p.name)]
+        : ['Semua Jabatan'];
 
     return Container(
       decoration: BoxDecoration(
@@ -924,7 +802,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Filter Daftar Aktivitas',
+                                  'Filter Pengajuan Cuti',
                                   style: AppTypography.titleMedium.copyWith(
                                     color: textCol,
                                     fontWeight: FontWeight.w700,
@@ -934,7 +812,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  'Saring log aktivitas kerja berdasarkan rentang tanggal, perusahaan, divisi, dan jabatan',
+                                  'Saring pengajuan cuti/izin berdasarkan rentang tanggal, perusahaan, divisi, jabatan, dan status',
                                   style: AppTypography.bodySmall.copyWith(
                                     color: labelCol,
                                     fontSize: 12,
@@ -973,7 +851,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                       ),
                       const SizedBox(height: 18),
 
-                      // Field 1: Rentang Tanggal (Date Range) - Material 3
+                      // Field 1: Rentang Tanggal (Date Range)
                       _buildFilterField(
                         label: 'Rentang Tanggal (Date Range)',
                         value: _dateRangeDisplay,
@@ -984,7 +862,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         labelCol: labelCol,
                         brandColor: brandColor,
                         helperText:
-                            'Pilih rentang tanggal mulai hingga selesai (Material 3)',
+                            'Pilih rentang tanggal mulai hingga selesai',
                         onTap: _pickDateRange,
                         onClear: _selectedDateRange != null
                             ? () => setState(() => _selectedDateRange = null)
@@ -1003,8 +881,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         labelCol: labelCol,
                         brandColor: brandColor,
                         isLoading: orgState.isLoadingCompanies,
-                        helperText:
-                            'Mencakup PT Oasish Group & Seluruh Unit Usaha',
                         onTap: () {
                           _showOptionSelector(
                             title: 'Pilih Perusahaan',
@@ -1020,9 +896,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   _selectedPositionId = null;
                                   _selectedPosition = 'Semua Jabatan';
                                 } else {
-                                  final found = orgState.companies.where(
-                                    (c) => c.name == val,
-                                  );
+                                  final found = orgState.companies
+                                      .where((c) => c.name == val);
                                   _selectedCompanyId = found.isNotEmpty
                                       ? found.first.id
                                       : null;
@@ -1034,17 +909,17 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 }
                               });
                               context.read<OrganizationFilterBloc>().add(
-                                OrganizationFilterCompanySelected(
-                                  companyId: _selectedCompanyId,
-                                ),
-                              );
+                                    OrganizationFilterCompanySelected(
+                                      companyId: _selectedCompanyId,
+                                    ),
+                                  );
                             },
                           );
                         },
                       ),
                       const SizedBox(height: 14),
 
-                      // Field 3: Departemen (Department / Division)
+                      // Field 3: Departemen (Division)
                       _buildFilterField(
                         label: 'Departemen (Division)',
                         value: _selectedDepartment,
@@ -1070,9 +945,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 if (val == 'Semua Departemen') {
                                   _selectedDepartmentId = null;
                                 } else {
-                                  final found = orgState.departments.where(
-                                    (d) => d.name == val,
-                                  );
+                                  final found = orgState.departments
+                                      .where((d) => d.name == val);
                                   _selectedDepartmentId = found.isNotEmpty
                                       ? found.first.id
                                       : null;
@@ -1081,11 +955,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 _selectedPosition = 'Semua Jabatan';
                               });
                               context.read<OrganizationFilterBloc>().add(
-                                OrganizationFilterDepartmentSelected(
-                                  companyId: _selectedCompanyId,
-                                  departmentId: _selectedDepartmentId,
-                                ),
-                              );
+                                    OrganizationFilterDepartmentSelected(
+                                      companyId: _selectedCompanyId,
+                                      departmentId: _selectedDepartmentId,
+                                    ),
+                                  );
                             },
                           );
                         },
@@ -1105,7 +979,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                         isLoading: orgState.isLoadingPositions,
                         isEnabled: _isCompanySelected,
                         helperText: _isCompanySelected
-                            ? 'Filter aktivitas berdasarkan jabatan atau peran pegawai'
+                            ? 'Filter pengajuan berdasarkan jabatan atau peran pegawai'
                             : 'Pilih perusahaan terlebih dahulu',
                         onTap: () {
                           _showOptionSelector(
@@ -1118,9 +992,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 if (val == 'Semua Jabatan') {
                                   _selectedPositionId = null;
                                 } else {
-                                  final found = orgState.positions.where(
-                                    (p) => p.name == val,
-                                  );
+                                  final found = orgState.positions
+                                      .where((p) => p.name == val);
                                   _selectedPositionId = found.isNotEmpty
                                       ? found.first.id
                                       : null;
@@ -1132,12 +1005,12 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Field 5: Status Aktivitas (Semua, Ongoing, Complete, Canceled)
+                      // Field 5: Status Approval (statusApprove)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Status Aktivitas',
+                            'Status Pengajuan',
                             style: AppTypography.labelMedium.copyWith(
                               color: textCol,
                               fontWeight: FontWeight.w700,
@@ -1149,74 +1022,68 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                             children: [
                               _buildStatusChip(
                                 label: 'Semua',
-                                value: '',
-                                selectedValue: _selectedStatus,
+                                value: 'all',
+                                selectedValue: _selectedStatusApprove,
                                 brandColor: brandColor,
-                                textCol: textCol,
                                 labelCol: labelCol,
                                 borderCol: borderCol,
                                 fieldBg: fieldBg,
                                 isDark: isDark,
                                 onSelected: () {
-                                  setState(() => _selectedStatus = null);
+                                  setState(
+                                      () => _selectedStatusApprove = 'all');
                                 },
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               _buildStatusChip(
-                                label: 'Ongoing',
-                                value: 'ongoing',
-                                selectedValue: _selectedStatus,
+                                label: 'Pending',
+                                value: 'pending',
+                                selectedValue: _selectedStatusApprove,
                                 brandColor: brandColor,
-                                textCol: textCol,
                                 labelCol: labelCol,
                                 borderCol: borderCol,
                                 fieldBg: fieldBg,
                                 isDark: isDark,
                                 onSelected: () {
-                                  setState(() => _selectedStatus = 'ongoing');
+                                  setState(() =>
+                                      _selectedStatusApprove = 'pending');
                                 },
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               _buildStatusChip(
-                                label: 'Complete',
-                                value: 'completed',
-                                selectedValue: _selectedStatus,
+                                label: 'Approved',
+                                value: 'approved',
+                                selectedValue: _selectedStatusApprove,
                                 brandColor: brandColor,
-                                textCol: textCol,
                                 labelCol: labelCol,
                                 borderCol: borderCol,
                                 fieldBg: fieldBg,
                                 isDark: isDark,
                                 onSelected: () {
-                                  setState(() => _selectedStatus = 'completed');
+                                  setState(() =>
+                                      _selectedStatusApprove = 'approved');
                                 },
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               _buildStatusChip(
-                                label: 'Canceled',
-                                value: 'canceled',
-                                selectedValue: _selectedStatus,
+                                label: 'Rejected',
+                                value: 'rejected',
+                                selectedValue: _selectedStatusApprove,
                                 brandColor: brandColor,
-                                textCol: textCol,
                                 labelCol: labelCol,
                                 borderCol: borderCol,
                                 fieldBg: fieldBg,
                                 isDark: isDark,
                                 onSelected: () {
-                                  setState(() => _selectedStatus = 'canceled');
+                                  setState(() =>
+                                      _selectedStatusApprove = 'rejected');
                                 },
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
                           Text(
-                            (_selectedStatus == null || _selectedStatus!.isEmpty)
-                                ? 'Memuat semua aktivitas tanpa filter status (tidak mengirim status ke API)'
-                                : _selectedStatus == 'ongoing'
-                                    ? 'Default memuat aktivitas yang sedang berjalan (Ongoing)'
-                                    : _selectedStatus == 'completed'
-                                        ? 'Memuat aktivitas yang sudah selesai (Complete)'
-                                        : 'Memuat aktivitas yang dibatalkan (Canceled)',
+                            'Default memuat semua status pengajuan cuti/izin',
                             style: AppTypography.labelSmall.copyWith(
                               color: labelCol,
                               fontSize: 11,
@@ -1226,10 +1093,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Footer Action Buttons (Matching Employee Directory: StadiumBorder, 52dp height, centered icon & text)
+                      // Footer Action Buttons (StadiumBorder, 52dp)
                       Row(
                         children: [
-                          // Outlined Button: Batal
                           Expanded(
                             child: SizedBox(
                               height: 52,
@@ -1252,8 +1118,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                             ),
                           ),
                           const SizedBox(width: 12),
-
-                          // Filled Button: Terapkan Filter
                           Expanded(
                             child: SizedBox(
                               height: 52,
@@ -1285,14 +1149,14 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                     Flexible(
                                       child: Text(
                                         'Terapkan Filter',
-                                        style: AppTypography.bodyMedium
-                                            .copyWith(
-                                              color: isDark
-                                                  ? const Color(0xFF003732)
-                                                  : Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 14,
-                                            ),
+                                        style:
+                                            AppTypography.bodyMedium.copyWith(
+                                          color: isDark
+                                              ? const Color(0xFF003732)
+                                              : Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),

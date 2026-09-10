@@ -117,7 +117,9 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           search: state.searchQuery.trim().isNotEmpty
               ? state.searchQuery.trim()
               : null,
-          status: state.filterCriteria.status,
+          status: _resolveStatus(state.filterCriteria.status),
+          startDate: state.filterCriteria.startDateParam,
+          endDate: state.filterCriteria.endDateParam,
           approver: false,
         );
 
@@ -157,7 +159,9 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           search: state.searchQuery.trim().isNotEmpty
               ? state.searchQuery.trim()
               : null,
-          status: state.filterCriteria.status,
+          status: _resolveStatus(state.filterCriteria.status),
+          startDate: state.filterCriteria.startDateParam,
+          endDate: state.filterCriteria.endDateParam,
           approver: true,
         );
 
@@ -223,7 +227,9 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           search: state.searchQuery.trim().isNotEmpty
               ? state.searchQuery.trim()
               : null,
-          status: state.filterCriteria.status,
+          status: _resolveStatus(state.filterCriteria.status),
+          startDate: state.filterCriteria.startDateParam,
+          endDate: state.filterCriteria.endDateParam,
           approver: false,
         );
 
@@ -259,7 +265,9 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           search: state.searchQuery.trim().isNotEmpty
               ? state.searchQuery.trim()
               : null,
-          status: state.filterCriteria.status,
+          status: _resolveStatus(state.filterCriteria.status),
+          startDate: state.filterCriteria.startDateParam,
+          endDate: state.filterCriteria.endDateParam,
           approver: true,
         );
 
@@ -391,15 +399,14 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         }
       }
 
-      // Filter Status (jika status aktif dipilih khusus selain default)
-      if (criteria.status != null &&
-          criteria.status!.isNotEmpty &&
-          criteria.status != 'ongoing') {
-        final st = criteria.status!.toLowerCase();
+      // Filter Status (jika status aktif dipilih khusus selain default ongoing / semua)
+      final filterStatus = _resolveStatus(criteria.status);
+      if (filterStatus != null && filterStatus != 'ongoing') {
+        final st = filterStatus.toLowerCase();
         final itemStatus = item.status.name.toLowerCase();
         if (st == 'completed' && itemStatus != 'completed') {
           return false;
-        } else if (st == 'canceled' &&
+        } else if ((st == 'canceled' || st == 'cancelled') &&
             itemStatus != 'canceled' &&
             itemStatus != 'cancelled') {
           return false;
@@ -455,5 +462,18 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
 
       return true;
     }).toList();
+  }
+
+  /// Menghilangkan status jika bernilai null, kosong, 'all', atau 'semua'
+  /// agar API backend memuat seluruh data aktivitas tanpa filter status.
+  static String? _resolveStatus(String? status) {
+    if (status == null) return null;
+    final trimmed = status.trim();
+    if (trimmed.isEmpty ||
+        trimmed.toLowerCase() == 'all' ||
+        trimmed.toLowerCase() == 'semua') {
+      return null;
+    }
+    return trimmed;
   }
 }

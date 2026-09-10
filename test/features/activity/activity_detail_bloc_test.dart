@@ -21,6 +21,8 @@ class _MockDetailRepo implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   }) async {
     return const ActivityListResponse(

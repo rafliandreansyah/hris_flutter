@@ -15,6 +15,8 @@ abstract class ActivityRemoteDataSource {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   });
 
@@ -66,6 +68,8 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   }) async {
     final queryParams = <String, dynamic>{
@@ -86,8 +90,17 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     if (search != null && search.trim().isNotEmpty) {
       queryParams['search'] = search.trim();
     }
-    if (status != null && status.trim().isNotEmpty) {
+    if (status != null &&
+        status.trim().isNotEmpty &&
+        status.trim().toLowerCase() != 'all' &&
+        status.trim().toLowerCase() != 'semua') {
       queryParams['status'] = status.trim();
+    }
+    if (startDate != null && startDate.trim().isNotEmpty) {
+      queryParams['startDate'] = startDate.trim();
+    }
+    if (endDate != null && endDate.trim().isNotEmpty) {
+      queryParams['endDate'] = endDate.trim();
     }
 
     final response = await _apiClient.get(

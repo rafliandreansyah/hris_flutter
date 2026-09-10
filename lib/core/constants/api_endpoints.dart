@@ -64,6 +64,8 @@ abstract class ApiEndpoints {
   // --- 🏖️ LEAVE & TIME-OFF ENDPOINTS ---
   // ==========================================
   static const String leaveRequests = '/leave-requests';
+  /// Endpoint tunggal untuk daftar pengajuan cuti/izin (Leave & Time Off).
+  static const String leaveRequest = '/leave-request';
   static const String leaveQuota = '/leave-requests/quota';
   static const String leaveTypes = '/leave-requests/types';
 

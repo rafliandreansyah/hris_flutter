@@ -18,6 +18,8 @@ class ActivityRepositoryImpl implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   }) {
     return _remoteDataSource.getActivities(
@@ -28,6 +30,8 @@ class ActivityRepositoryImpl implements ActivityRepository {
       positionId: positionId,
       search: search,
       status: status,
+      startDate: startDate,
+      endDate: endDate,
       approver: approver,
     );
   }

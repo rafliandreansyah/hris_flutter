@@ -11,6 +11,8 @@ abstract class ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   });
 

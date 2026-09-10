@@ -486,6 +486,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           if (!approver) {
@@ -568,6 +570,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           if (approver) {
@@ -624,6 +628,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           return const ActivityListResponse(
@@ -690,6 +696,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           if (page == 1) {
@@ -756,12 +764,16 @@ class _MockActivityRepository implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver,
   })? onGetActivities;
 
   final List<int> requestedPages = [];
   final List<bool> requestedApprovers = [];
   final List<String?> requestedStatuses = [];
+  final List<String?> requestedStartDates = [];
+  final List<String?> requestedEndDates = [];
 
   _MockActivityRepository({this.onGetActivities});
 
@@ -774,11 +786,15 @@ class _MockActivityRepository implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   }) async {
     requestedPages.add(page);
     requestedApprovers.add(approver);
     requestedStatuses.add(status);
+    requestedStartDates.add(startDate);
+    requestedEndDates.add(endDate);
     if (onGetActivities != null) {
       return onGetActivities!(
         page: page,
@@ -788,6 +804,8 @@ class _MockActivityRepository implements ActivityRepository {
         positionId: positionId,
         search: search,
         status: status,
+        startDate: startDate,
+        endDate: endDate,
         approver: approver,
       );
     }

@@ -15,6 +15,7 @@ import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_scr
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
+import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 
 class AppRouter {
@@ -156,6 +157,13 @@ class AppRouter {
           }
           return AttendanceDetailScreen(attendanceId: attendanceId);
         },
+      ),
+
+      // 14. Leave & Time Off Screen (Google Stitch slice)
+      GoRoute(
+        path: Routes.LEAVE,
+        name: Routes.LEAVE,
+        builder: (context, state) => const LeaveScreen(),
       ),
     ],
     redirect: (context, state) {

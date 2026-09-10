@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
@@ -18,6 +19,8 @@ class _MockActivityRepository implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver,
   })? onGetActivities;
 
@@ -32,6 +35,8 @@ class _MockActivityRepository implements ActivityRepository {
     String? positionId,
     String? search,
     String? status,
+    String? startDate,
+    String? endDate,
     bool approver = false,
   }) async {
     if (onGetActivities != null) {
@@ -43,6 +48,8 @@ class _MockActivityRepository implements ActivityRepository {
         positionId: positionId,
         search: search,
         status: status,
+        startDate: startDate,
+        endDate: endDate,
         approver: approver,
       );
     }
@@ -176,6 +183,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           expect(approver, isFalse);
@@ -224,6 +233,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           if (approver) {
@@ -261,6 +272,8 @@ void main() {
           String? positionId,
           String? search,
           String? status,
+          String? startDate,
+          String? endDate,
           bool approver = false,
         }) async {
           pageCount = page;
@@ -313,6 +326,85 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(bloc.state.filterCriteria.status, 'completed');
+      bloc.close();
+    });
+
+    test('ActivityListFilterApplied with null status loads all statuses without status param', () async {
+      String? capturedStatus = 'initial';
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          String? startDate,
+          String? endDate,
+          bool approver = false,
+        }) async {
+          capturedStatus = status;
+          return const ActivityListResponse(
+            success: true,
+            message: 'OK',
+            data: [],
+            meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+          );
+        },
+      );
+
+      final bloc = ActivityListBloc(repository: mockRepo);
+      const allStatusCriteria = ActivityFilterCriteria(status: null);
+      bloc.add(const ActivityListFilterApplied(allStatusCriteria));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.filterCriteria.status, isNull);
+      expect(capturedStatus, isNull);
+      bloc.close();
+    });
+
+    test('ActivityListFilterApplied with dateRange forwards startDate and endDate formatted as yyyy-MM-dd', () async {
+      String? capturedStart;
+      String? capturedEnd;
+
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          String? startDate,
+          String? endDate,
+          bool approver = false,
+        }) async {
+          capturedStart = startDate;
+          capturedEnd = endDate;
+          return const ActivityListResponse(
+            success: true,
+            message: 'OK',
+            data: [],
+            meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+          );
+        },
+      );
+
+      final bloc = ActivityListBloc(repository: mockRepo);
+      final dateRangeCriteria = ActivityFilterCriteria(
+        dateRange: DateTimeRange(
+          start: DateTime(2026, 9, 1),
+          end: DateTime(2026, 9, 10),
+        ),
+      );
+
+      bloc.add(ActivityListFilterApplied(dateRangeCriteria));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(capturedStart, '2026-09-01');
+      expect(capturedEnd, '2026-09-10');
       bloc.close();
     });
 
