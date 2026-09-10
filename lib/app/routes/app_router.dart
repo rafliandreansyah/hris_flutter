@@ -16,6 +16,7 @@ import 'package:hris_flutter/features/employee/data/models/employee_directory_it
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
+import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 
 class AppRouter {
@@ -79,9 +80,7 @@ class AppRouter {
               isFromDirectory: true,
             );
           }
-          return const EmployeeDetailScreen(
-            isFromDirectory: false,
-          );
+          return const EmployeeDetailScreen(isFromDirectory: false);
         },
       ),
 
@@ -136,9 +135,7 @@ class AppRouter {
             return EmployeeAttendanceLogsScreen(employee: extra);
           }
           return const Scaffold(
-            body: Center(
-              child: Text('Data pegawai tidak ditemukan'),
-            ),
+            body: Center(child: Text('Data pegawai tidak ditemukan')),
           );
         },
       ),
@@ -164,6 +161,13 @@ class AppRouter {
         path: Routes.LEAVE,
         name: Routes.LEAVE,
         builder: (context, state) => const LeaveScreen(),
+      ),
+
+      // 15. Overtime Requests Screen (Google Stitch slice - Team Overtime List)
+      GoRoute(
+        path: Routes.OVERTIME,
+        name: Routes.OVERTIME,
+        builder: (context, state) => const OvertimeRequestsScreen(),
       ),
     ],
     redirect: (context, state) {

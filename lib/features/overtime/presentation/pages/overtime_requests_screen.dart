@@ -2,61 +2,65 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
-import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_bloc.dart';
-import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_event.dart';
-import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bottom_sheet.dart';
-import 'package:hris_flutter/features/leave/presentation/widgets/leave_request_card.dart';
+import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
+import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_bloc.dart';
+import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_event.dart';
+import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_filter_bottom_sheet.dart';
+import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_request_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Halaman "Leave & Time Off" — slice dari desain Stitch
-/// (screen "Oasish Team Leave Requests - List View", project
+/// Halaman "Overtime Requests" — slice dari desain Stitch
+/// (screen "Oasish Team Overtime Requests - List View", project
 /// "Oasish Flutter M3 HRIS").
 ///
-/// Integrasi API `GET /leave-request` via [LeaveListBloc]:
-///  - Tab "My Requests" -> `approver=false`.
-///  - Tab "Team Requests" -> `approver=true`, lazy load, dengan penanganan
+/// Integrasi API `GET /overtime` via [OvertimeListBloc]:
+///  - Tab "My Overtime" -> `approver=false`.
+///  - Tab "Team Overtime" -> `approver=true`, lazy load, dengan penanganan
 ///    khusus HTTP 403 (state "Tidak Memiliki Hak Akses").
 ///  - Search bar dinamis di bawah TabBar: sembunyi saat scroll ke atas,
 ///    muncul saat scroll ke bawah / di puncak list (pola ActivityScreen).
-///  - Tanpa chip filter horizontal — filter diakses lewat tombol di AppBar.
-class LeaveScreen extends StatelessWidget {
+///  - Filter (rentang tanggal, perusahaan, departemen, jabatan) diakses
+///    lewat tombol di AppBar + bottom sheet [showOvertimeFilterBottomSheet].
+class OvertimeRequestsScreen extends StatelessWidget {
   /// Opsional: repository kustom (untuk testing / DI).
-  final LeaveRepository? leaveRepository;
+  final OvertimeRepository? overtimeRepository;
 
   /// Opsional: bloc kustom (untuk testing / reuse).
-  final LeaveListBloc? leaveListBloc;
+  final OvertimeListBloc? overtimeListBloc;
 
-  const LeaveScreen({super.key, this.leaveRepository, this.leaveListBloc});
+  const OvertimeRequestsScreen({
+    super.key,
+    this.overtimeRepository,
+    this.overtimeListBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (leaveListBloc != null) {
-      return BlocProvider<LeaveListBloc>.value(
-        value: leaveListBloc!,
-        child: const _LeaveScreenView(),
+    if (overtimeListBloc != null) {
+      return BlocProvider<OvertimeListBloc>.value(
+        value: overtimeListBloc!,
+        child: const _OvertimeScreenView(),
       );
     }
-    return BlocProvider<LeaveListBloc>(
-      create: (context) =>
-          LeaveListBloc(repository: leaveRepository)
-            ..add(const LeaveListStarted()),
-      child: const _LeaveScreenView(),
+    return BlocProvider<OvertimeListBloc>(
+      create: (context) => OvertimeListBloc(
+        repository: overtimeRepository,
+      )..add(const OvertimeListStarted()),
+      child: const _OvertimeScreenView(),
     );
   }
 }
 
-class _LeaveScreenView extends StatefulWidget {
-  const _LeaveScreenView();
+class _OvertimeScreenView extends StatefulWidget {
+  const _OvertimeScreenView();
 
   @override
-  State<_LeaveScreenView> createState() => _LeaveScreenViewState();
+  State<_OvertimeScreenView> createState() => _OvertimeScreenViewState();
 }
 
-class _LeaveScreenViewState extends State<_LeaveScreenView>
+class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -65,7 +69,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
   Timer? _debounceTimer;
   bool _isSearchVisible = true;
 
-  /// Desain Stitch: tab aktif awal = "Team Requests" (index 1).
+  /// Desain: tab aktif awal = "My Overtime" (index 0).
   static const int _initialTabIndex = 0;
 
   @override
@@ -83,8 +87,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     // Selaraskan tab awal dengan state BLoC + lazy load tab Team.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<LeaveListBloc>().add(
-        const LeaveListTabChanged(_initialTabIndex),
+      context.read<OvertimeListBloc>().add(
+        const OvertimeListTabChanged(_initialTabIndex),
       );
     });
   }
@@ -105,19 +109,19 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
       setState(() {});
-      context.read<LeaveListBloc>().add(
-        LeaveListTabChanged(_tabController.index),
+      context.read<OvertimeListBloc>().add(
+        OvertimeListTabChanged(_tabController.index),
       );
     }
   }
 
-  // ── Infinite scroll (pola ActivityScreen) ───────────────────────────
+  // ── Infinite scroll (pola ActivityScreen / LeaveScreen) ─────────────
   void _onMyScroll() {
     if (_myScrollController.hasClients &&
         _myScrollController.position.pixels >=
             _myScrollController.position.maxScrollExtent - 250) {
-      context.read<LeaveListBloc>().add(
-        const LeaveListLoadMoreRequested(isTeam: false),
+      context.read<OvertimeListBloc>().add(
+        const OvertimeListLoadMoreRequested(isTeam: false),
       );
     }
   }
@@ -126,8 +130,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     if (_teamScrollController.hasClients &&
         _teamScrollController.position.pixels >=
             _teamScrollController.position.maxScrollExtent - 250) {
-      context.read<LeaveListBloc>().add(
-        const LeaveListLoadMoreRequested(isTeam: true),
+      context.read<OvertimeListBloc>().add(
+        const OvertimeListLoadMoreRequested(isTeam: true),
       );
     }
   }
@@ -137,34 +141,35 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
-      context.read<LeaveListBloc>().add(LeaveListSearchChanged(val));
+      context.read<OvertimeListBloc>().add(OvertimeListSearchChanged(val));
     });
   }
 
   Future<void> _handleRefresh() async {
     final isTeam = _tabController.index == 1;
-    context.read<LeaveListBloc>().add(
-      LeaveListFetchRequested(isRefresh: true, isTeam: isTeam),
+    context.read<OvertimeListBloc>().add(
+      OvertimeListFetchRequested(isRefresh: true, isTeam: isTeam),
     );
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
   Future<void> _openFilterBottomSheet() async {
-    final bloc = context.read<LeaveListBloc>();
-    final result = await showLeaveFilterBottomSheet(
+    final bloc = context.read<OvertimeListBloc>();
+    final result = await showOvertimeFilterBottomSheet(
       context,
       initialCriteria: bloc.state.filterCriteria,
     );
     if (result != null && mounted) {
-      bloc.add(LeaveListFilterApplied(result));
+      bloc.add(OvertimeListFilterApplied(result));
     }
   }
 
-  void _handleCreateLeave() {}
+  /// Titik gantungan fase integrasi: form/bottom-sheet tambah lembur.
+  void _handleCreateOvertime() {}
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<LeaveListBloc>().state;
+    final state = context.watch<OvertimeListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -185,7 +190,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
 
     return Scaffold(
       backgroundColor: bgCol,
-      // ── 1. Top App Bar (judul + tombol filter) ────────────────────────
+      // ── 1. Top App Bar (judul + tombol filter) ───────────────────────
       appBar: AppBar(
         backgroundColor: bgCol.withValues(alpha: 0.95),
         elevation: 0,
@@ -193,13 +198,13 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
         shadowColor: Colors.black.withValues(alpha: 0.05),
         leading: IconButton(
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Leave & Time Off',
+              'Overtime Requests',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -210,7 +215,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
             ),
             const SizedBox(height: 1),
             Text(
-              'Team approvals & time-off management',
+              'Team approvals & overtime management',
               style: AppTypography.labelSmall.copyWith(
                 color: subtitleCol,
                 fontSize: 11,
@@ -253,7 +258,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
           ),
         ],
       ),
-      // 2. Floating Action Button: Hanya tampil pada tab "My Activities" (Tab 0)
+
+      // ── 2. Floating Action Button: hanya tab "My Overtime" (index 0) ─
       floatingActionButton: AnimatedBuilder(
         animation: _tabController.animation ?? _tabController,
         builder: (context, child) {
@@ -271,15 +277,15 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
           );
         },
         child: FloatingActionButton.extended(
-          key: const ValueKey('add_leave_fab'),
-          onPressed: _handleCreateLeave,
+          key: const ValueKey('add_overtime_fab'),
+          onPressed: _handleCreateOvertime,
           backgroundColor: brandColor,
           foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
           elevation: 3,
           shape: const StadiumBorder(),
           icon: const Icon(LucideIcons.plus, size: 20),
           label: Text(
-            'Tambah Izin',
+            'Tambah Lembur',
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w700,
               color: isDark ? const Color(0xFF003732) : Colors.white,
@@ -287,10 +293,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
           ),
         ),
       ),
+
       body: SafeArea(
         child: Column(
           children: [
-            // ── 2. Tab Bar (My Requests & Team Requests) ────────────────
+            // ── 3. Tab Bar (My Overtime & Team Overtime) ────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -340,11 +347,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.calendarClock, size: 16),
+                          Icon(LucideIcons.alarmClock, size: 16),
                           SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'My Requests',
+                              'My Overtime',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -362,7 +369,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                           SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Team Requests',
+                              'Team Overtime',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -375,8 +382,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
               ),
             ),
 
-            // ── 3. Dynamic Hide/Show Search Bar on Scroll ───────────────
-            // (persis seperti ActivityScreen / Employee Directory)
+            // ── 4. Dynamic Hide/Show Search Bar on Scroll ──────────────
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeInOut,
@@ -446,7 +452,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
               ),
             ),
 
-            // ── 4. TabBarView (My Requests / Team Requests) ─────────────
+            // ── 5. TabBarView (My Overtime / Team Overtime) ────────────
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
@@ -478,7 +484,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildMyRequestsTab(
+                    _buildMyOvertimeTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,
                       textCol: textCol,
@@ -486,7 +492,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                       borderCol: borderCol,
                       brandColor: brandColor,
                     ),
-                    _buildTeamRequestsTab(
+                    _buildTeamOvertimeTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,
                       textCol: textCol,
@@ -504,8 +510,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     );
   }
 
-  // ── Tampilan Tab 0: My Requests ───────────────────────────────────────
-  Widget _buildMyRequestsTab({
+  // ── Tampilan Tab 0: My Overtime ─────────────────────────────────────
+  Widget _buildMyOvertimeTab({
     required bool isDark,
     required Color surfaceCol,
     required Color textCol,
@@ -513,7 +519,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     required Color borderCol,
     required Color brandColor,
   }) {
-    final state = context.watch<LeaveListBloc>().state;
+    final state = context.watch<OvertimeListBloc>().state;
     final requests = state.myRequests;
     final isLoading = state.isMyLoading;
     final isLoadingMore = state.isMyLoadingMore;
@@ -535,11 +541,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
       return _buildEmptyState(
         icon: LucideIcons.calendarX,
         title: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-            ? 'Tidak Ada Pengajuan Ditemukan'
-            : 'Belum Ada Pengajuan Cuti',
+            ? 'Tidak Ada Lembur Ditemukan'
+            : 'Belum Ada Permintaan Lembur',
         message: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-            ? 'Tidak ada pengajuan cuti/izin yang cocok dengan kata kunci atau kriteria filter.'
-            : 'Anda belum memiliki pengajuan cuti/izin. Nikmati keseimbangan kerja Anda!',
+            ? 'Tidak ada permintaan lembur yang cocok dengan kata kunci atau kriteria filter.'
+            : 'Anda belum memiliki permintaan lembur. Ajukan lembur pertama Anda lewat tombol di bawah.',
         hasActiveFilter:
             filterCriteria.hasActiveFilter || searchQuery.isNotEmpty,
         textCol: textCol,
@@ -555,7 +561,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
       child: ListView.separated(
         controller: _myScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
         itemCount: requests.length + (isLoadingMore ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: 14),
         itemBuilder: (context, i) {
@@ -568,20 +574,21 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(brandColor),
                   ),
                 ),
               ),
             );
           }
-          return LeaveRequestCard(item: requests[i]);
+          return OvertimeRequestCard(request: requests[i]);
         },
       ),
     );
   }
 
-  // ── Tampilan Tab 1: Team Requests (dengan penanganan 403 Forbidden) ───
-  Widget _buildTeamRequestsTab({
+  // ── Tampilan Tab 1: Team Overtime (dengan penanganan 403 Forbidden) ─
+  Widget _buildTeamOvertimeTab({
     required bool isDark,
     required Color surfaceCol,
     required Color textCol,
@@ -589,7 +596,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     required Color borderCol,
     required Color brandColor,
   }) {
-    final state = context.watch<LeaveListBloc>().state;
+    final state = context.watch<OvertimeListBloc>().state;
     final requests = state.teamRequests;
     final isLoading = state.isTeamLoading;
     final isLoadingMore = state.isTeamLoadingMore;
@@ -624,11 +631,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
       return _buildEmptyState(
         icon: LucideIcons.users,
         title: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-            ? 'Tidak Ada Pengajuan Ditemukan'
-            : 'Belum Ada Pengajuan Tim',
+            ? 'Tidak Ada Lembur Ditemukan'
+            : 'Belum Ada Lembur Tim',
         message: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-            ? 'Tidak ada pengajuan cuti/izin pegawai yang cocok dengan kata kunci atau kriteria filter.'
-            : 'Saat ini belum ada pengajuan cuti/izin yang dikirimkan oleh rekan tim Anda.',
+            ? 'Tidak ada permintaan lembur pegawai yang cocok dengan kata kunci atau kriteria filter.'
+            : 'Saat ini belum ada permintaan lembur yang dikirimkan oleh rekan tim Anda.',
         hasActiveFilter:
             filterCriteria.hasActiveFilter || searchQuery.isNotEmpty,
         textCol: textCol,
@@ -644,7 +651,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
       child: ListView.separated(
         controller: _teamScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
         itemCount: requests.length + (isLoadingMore ? 1 : 0),
         separatorBuilder: (_, _) => const SizedBox(height: 14),
         itemBuilder: (context, i) {
@@ -657,19 +664,20 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(brandColor),
                   ),
                 ),
               ),
             );
           }
-          return LeaveRequestCard(item: requests[i]);
+          return OvertimeRequestCard(request: requests[i]);
         },
       ),
     );
   }
 
-  // ── Empty state (dipakai kedua tab) ───────────────────────────────────
+  // ── Empty state (dipakai kedua tab) ─────────────────────────────────
   Widget _buildEmptyState({
     required IconData icon,
     required String title,
@@ -723,11 +731,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                   OutlinedButton(
                     onPressed: () {
                       _searchController.clear();
-                      context.read<LeaveListBloc>().add(
-                        const LeaveListSearchChanged(''),
+                      context.read<OvertimeListBloc>().add(
+                        const OvertimeListSearchChanged(''),
                       );
-                      context.read<LeaveListBloc>().add(
-                        const LeaveListFilterReset(),
+                      context.read<OvertimeListBloc>().add(
+                        const OvertimeListFilterReset(),
                       );
                     },
                     style: OutlinedButton.styleFrom(
@@ -770,7 +778,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     );
   }
 
-  // ── Forbidden state (403, khusus tab Team Requests) ───────────────────
+  // ── Forbidden state (403, khusus tab Team Overtime) ─────────────────
   Widget _buildForbiddenState({
     required bool isDark,
     required Color surfaceCol,
@@ -781,8 +789,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
   }) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<LeaveListBloc>().add(
-          const LeaveListFetchRequested(isRefresh: true, isTeam: true),
+        context.read<OvertimeListBloc>().add(
+          const OvertimeListFetchRequested(isRefresh: true, isTeam: true),
         );
         await Future.delayed(const Duration(milliseconds: 300));
       },
@@ -837,7 +845,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Anda tidak memiliki otoritas sebagai approver untuk melihat pengajuan cuti tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
+                    'Anda tidak memiliki otoritas sebagai approver untuk melihat permintaan lembur tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
                     style: AppTypography.bodySmall.copyWith(
                       color: subtitleCol,
                       fontSize: 13,
@@ -851,8 +859,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                     children: [
                       OutlinedButton(
                         onPressed: () {
-                          context.read<LeaveListBloc>().add(
-                            const LeaveListFetchRequested(
+                          context.read<OvertimeListBloc>().add(
+                            const OvertimeListFetchRequested(
                               isRefresh: true,
                               isTeam: true,
                             ),
@@ -915,7 +923,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              LucideIcons.calendarClock,
+                              LucideIcons.alarmClock,
                               size: 14,
                               color: isDark
                                   ? const Color(0xFF003732)
@@ -923,7 +931,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Ke Pengajuan Saya',
+                              'Ke Lembur Saya',
                               style: AppTypography.bodySmall.copyWith(
                                 color: isDark
                                     ? const Color(0xFF003732)

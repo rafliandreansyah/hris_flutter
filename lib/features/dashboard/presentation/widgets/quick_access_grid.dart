@@ -169,6 +169,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.ATTENDANCE_LOGS);
     } else if (c == 'mobile_leave') {
       context.push(Routes.LEAVE);
+    } else if (c == 'mobile_overtime') {
+      context.push(Routes.OVERTIME);
     } else if (c == 'mobile_attendance_request_live' ||
         c == 'mobile_attendance_request_schedule') {
       ScaffoldMessenger.of(
