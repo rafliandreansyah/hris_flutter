@@ -25,6 +25,7 @@ Jumlah screen desain: **26** (sudah dikurangi asset non-halaman: logo "Acme Inc.
 | [x] | Laporan Kehadiran - HRIS Web | `AttendanceLogsScreen` + `EmployeeAttendanceLogsScreen` | `lib/features/attendance/presentation/pages/attendance_logs_screen.dart`, `employee_attendance_logs_screen.dart` |
 | [x] | Laporan Aktivitas Karyawan — HRIS Web / Mint HR / (Full Width) | `ActivityScreen` | `lib/features/activity/presentation/pages/activity_screen.dart` |
 | [x] | Detail Laporan Aktivitas - Rafli Andreansyah | `ActivityDetailScreen` | `lib/features/activity/presentation/pages/activity_detail_screen.dart` |
+| [x] | Oasish Leave Request Detail - Photo Proof Style | `LeaveDetailScreen` | `lib/features/leave/presentation/pages/leave_detail_screen.dart` |
 
 Ekstra (mobile-only, belum ada padanan desain web tapi **sudah** dibangun):
 - Splash Screen — `lib/features/splash/presentation/pages/splash_screen.dart`

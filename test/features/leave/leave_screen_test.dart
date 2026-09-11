@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/leave/data/models/leave_create_models.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_api_models.dart';
+import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_bloc.dart';
 import 'package:hris_flutter/features/leave/presentation/models/leave_request_item.dart';
@@ -53,6 +56,35 @@ class _MockLeaveRepository implements LeaveRepository {
         totalPages: 1,
       ),
     );
+  }
+
+  @override
+  Future<LeaveRequestDetailData> getLeaveRequestDetail(String id) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> approveLeaveRequest(
+    String id, {
+    required bool isApproved,
+    String? approverNotes,
+  }) async {}
+
+  @override
+  Future<void> deleteLeaveRequest(String id) async {}
+
+  @override
+  Future<List<LeaveTypeOptionModel>> getLeaveTypes() async => const [];
+
+  @override
+  Future<CreateLeaveResultModel> createLeaveRequest({
+    required String leaveTypeId,
+    required String startDate,
+    required int totalDays,
+    required String notes,
+    XFile? file,
+  }) async {
+    return const CreateLeaveResultModel(success: true, message: 'OK');
   }
 }
 

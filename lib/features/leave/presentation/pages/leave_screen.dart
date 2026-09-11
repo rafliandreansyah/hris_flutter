@@ -5,9 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_bloc.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_event.dart';
+import 'package:hris_flutter/features/leave/presentation/models/leave_request_item.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_request_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -160,7 +162,35 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     }
   }
 
-  void _handleCreateLeave() {}
+  Future<void> _handleCreateLeave() async {
+    final result = await context.pushNamed<bool>(Routes.CREATE_LEAVE);
+    if (result == true && mounted) {
+      context.read<LeaveListBloc>().add(
+            const LeaveListFetchRequested(isRefresh: true, isTeam: false),
+          );
+    }
+  }
+
+  Future<void> _navigateToDetail(
+    LeaveRequestItem item, {
+    required bool isApprover,
+  }) async {
+    final result = await context.pushNamed<bool>(
+      Routes.LEAVE_DETAIL,
+      extra: {
+        'id': item.id,
+        'isApprover': isApprover,
+      },
+    );
+    if (result == true && mounted) {
+      context.read<LeaveListBloc>().add(
+            LeaveListFetchRequested(
+              isRefresh: true,
+              isTeam: isApprover,
+            ),
+          );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -574,7 +604,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
               ),
             );
           }
-          return LeaveRequestCard(item: requests[i]);
+          return LeaveRequestCard(
+            item: requests[i],
+            onViewDetails: () =>
+                _navigateToDetail(requests[i], isApprover: false),
+          );
         },
       ),
     );
@@ -663,7 +697,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
               ),
             );
           }
-          return LeaveRequestCard(item: requests[i]);
+          return LeaveRequestCard(
+            item: requests[i],
+            onViewDetails: () =>
+                _navigateToDetail(requests[i], isApprover: true),
+          );
         },
       ),
     );

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -105,8 +105,9 @@ class QuickAccessGrid extends StatelessWidget {
 
       // 2. Kecocokan pada nama menu
       if (mName == targetTitle) return true;
-      if (mName.contains(targetTitle) || targetTitle.contains(mName))
+      if (mName.contains(targetTitle) || targetTitle.contains(mName)) {
         return true;
+      }
 
       // 3. Kecocokan nama umum bahasa Inggris/Indonesia
       if (targetCode == 'mobile_activity' &&
@@ -159,7 +160,6 @@ class QuickAccessGrid extends StatelessWidget {
 
   static void handleMenuTap(BuildContext context, String code, String title) {
     final c = code.toLowerCase();
-    final lower = '$code $title'.toLowerCase();
 
     if (c == 'mobile_employee') {
       context.push(Routes.EMPLOYEE_DIRECTORY);

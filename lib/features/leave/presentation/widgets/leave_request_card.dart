@@ -246,9 +246,14 @@ class LeaveRequestCard extends StatelessWidget {
       ),
     );
     // Card "Approved" pada desain sedikit meredup (opacity-75).
+    final interactiveCard = GestureDetector(
+      onTap: onViewDetails,
+      behavior: HitTestBehavior.opaque,
+      child: card,
+    );
     return Opacity(
       opacity: item.status == LeaveStatus.approved ? 0.85 : 1.0,
-      child: card,
+      child: interactiveCard,
     );
   }
 

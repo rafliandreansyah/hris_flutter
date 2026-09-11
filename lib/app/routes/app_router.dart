@@ -15,6 +15,8 @@ import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_scr
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
+import 'package:hris_flutter/features/leave/presentation/pages/create_leave_screen.dart';
+import 'package:hris_flutter/features/leave/presentation/pages/leave_detail_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
@@ -163,7 +165,41 @@ class AppRouter {
         builder: (context, state) => const LeaveScreen(),
       ),
 
-      // 15. Overtime Requests Screen (Google Stitch slice - Team Overtime List)
+      // 15. Leave Request Detail Screen (Google Stitch slice)
+      GoRoute(
+        path: Routes.LEAVE_DETAIL,
+        name: Routes.LEAVE_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          bool isApprover = false;
+
+          if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+            isApprover = extra['isApprover'] as bool? ?? false;
+          } else if (extra is String) {
+            id = extra;
+          }
+
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          if (state.uri.queryParameters.containsKey('isApprover')) {
+            isApprover = state.uri.queryParameters['isApprover'] == 'true';
+          }
+
+          return LeaveDetailScreen(id: id, isApprover: isApprover);
+        },
+      ),
+
+      // 16. Create Leave Screen
+      GoRoute(
+        path: Routes.CREATE_LEAVE,
+        name: Routes.CREATE_LEAVE,
+        builder: (context, state) => const CreateLeaveScreen(),
+      ),
+
+      // 17. Overtime Requests Screen (Google Stitch slice - Team Overtime List)
       GoRoute(
         path: Routes.OVERTIME,
         name: Routes.OVERTIME,
