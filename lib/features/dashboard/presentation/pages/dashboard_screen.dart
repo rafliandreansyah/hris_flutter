@@ -16,6 +16,9 @@ import 'package:hris_flutter/features/dashboard/presentation/widgets/attendance_
 import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_shimmer_loading.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
+import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_bloc.dart';
+import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_event.dart';
+import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_state.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -25,16 +28,35 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class DashboardScreen extends StatelessWidget {
   final DashboardRepository? repository;
   final AuthRepository? authRepository;
+  final NotificationCountBloc? notificationCountBloc;
 
-  const DashboardScreen({super.key, this.repository, this.authRepository});
+  const DashboardScreen({
+    super.key,
+    this.repository,
+    this.authRepository,
+    this.notificationCountBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DashboardBloc>(
-      create: (_) => DashboardBloc(
-        dashboardRepository: repository,
-        authRepository: authRepository,
-      )..add(const DashboardFetchRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DashboardBloc>(
+          create: (_) => DashboardBloc(
+            dashboardRepository: repository,
+            authRepository: authRepository,
+          )..add(const DashboardFetchRequested()),
+        ),
+        if (notificationCountBloc != null)
+          BlocProvider<NotificationCountBloc>.value(
+            value: notificationCountBloc!,
+          )
+        else
+          BlocProvider<NotificationCountBloc>(
+            create: (_) => NotificationCountBloc()
+              ..add(const NotificationCountFetchRequested()),
+          ),
+      ],
       child: const _DashboardView(),
     );
   }
@@ -224,33 +246,63 @@ class _DashboardViewState extends State<_DashboardView> {
           },
         ),
         actions: [
-          // Notification Button with Unread Red Dot
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Pusat Notifikasi segera hadir'),
-                    ),
-                  );
-                },
-                icon: Icon(LucideIcons.bell, size: 22, color: textCol),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.errorRed,
-                    shape: BoxShape.circle,
+          // Notification Button with Unread Badge
+          BlocBuilder<NotificationCountBloc, NotificationCountState>(
+            builder: (context, countState) {
+              final unreadCount = countState.count;
+              return Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    key: const ValueKey('dashboard_notification_btn'),
+                    onPressed: () async {
+                      await context.push(Routes.NOTIFICATIONS);
+                      if (context.mounted) {
+                        context.read<NotificationCountBloc>().add(
+                              const NotificationCountFetchRequested(),
+                            );
+                      }
+                    },
+                    icon: Icon(LucideIcons.bell, size: 22, color: textCol),
                   ),
-                ),
-              ),
-            ],
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 1,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorRed,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: bgCol,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            unreadCount > 99 ? '99+' : unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              height: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
 
           // User Profile Avatar (Tapping navigates to Employee Detail)
@@ -405,6 +457,9 @@ class _DashboardViewState extends State<_DashboardView> {
                 onRefresh: () async {
                   context.read<DashboardBloc>().add(
                     const DashboardFetchRequested(isRefresh: true),
+                  );
+                  context.read<NotificationCountBloc>().add(
+                    const NotificationCountFetchRequested(),
                   );
                 },
                 child: SingleChildScrollView(

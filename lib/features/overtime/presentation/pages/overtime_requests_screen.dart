@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_bloc.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_event.dart';
+import 'package:hris_flutter/features/overtime/presentation/models/overtime_request_item.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_request_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -108,7 +111,9 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
 
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
-      setState(() {});
+      setState(() {
+        _isSearchVisible = true;
+      });
       context.read<OvertimeListBloc>().add(
         OvertimeListTabChanged(_tabController.index),
       );
@@ -164,8 +169,37 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     }
   }
 
-  /// Titik gantungan fase integrasi: form/bottom-sheet tambah lembur.
-  void _handleCreateOvertime() {}
+  /// Buka form tambah lembur (CreateOvertimeScreen).
+  Future<void> _handleCreateOvertime() async {
+    final result = await context.pushNamed<bool>(Routes.CREATE_OVERTIME);
+    if (result == true && mounted) {
+      context.read<OvertimeListBloc>().add(
+            const OvertimeListFetchRequested(isRefresh: true, isTeam: false),
+          );
+    }
+  }
+
+  /// Buka detail pengajuan lembur (OvertimeDetailScreen).
+  Future<void> _navigateToDetail(
+    OvertimeRequestItem item, {
+    required bool isApprover,
+  }) async {
+    final result = await context.pushNamed<bool>(
+      Routes.OVERTIME_DETAIL,
+      extra: {
+        'id': item.id,
+        'isApprover': isApprover,
+      },
+    );
+    if (result == true && mounted) {
+      context.read<OvertimeListBloc>().add(
+            OvertimeListFetchRequested(
+              isRefresh: true,
+              isTeam: isApprover,
+            ),
+          );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -311,6 +345,11 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                 ),
                 child: TabBar(
                   controller: _tabController,
+                  onTap: (index) {
+                    setState(() {
+                      _isSearchVisible = true;
+                    });
+                  },
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
@@ -383,80 +422,91 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             ),
 
             // ── 4. Dynamic Hide/Show Search Bar on Scroll ──────────────
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              height: _isSearchVisible ? 58 : 0,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(color: bgCol),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _isSearchVisible ? 1.0 : 0.0,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: surfaceCol,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderCol, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: isDark ? 0.2 : 0.02,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: textCol,
-                        fontSize: 14,
-                      ),
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Search by employee name or keyword...',
-                        hintStyle: AppTypography.bodyMedium.copyWith(
-                          color: subtitleCol,
-                          fontSize: 13.5,
-                        ),
-                        prefixIcon: Icon(
-                          LucideIcons.search,
-                          size: 18,
-                          color: subtitleCol,
-                        ),
-                        suffixIcon: searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  LucideIcons.x,
-                                  size: 16,
-                                  color: subtitleCol,
+            // (hanya aktif pada tab Team / index 1)
+            Builder(
+              builder: (context) {
+                final isTeamTab = _tabController.index == 1;
+                final showSearchBar = isTeamTab && _isSearchVisible;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  height: showSearchBar ? 58 : 0,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(color: bgCol),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: showSearchBar ? 1.0 : 0.0,
+                    child: IgnorePointer(
+                      ignoring: !showSearchBar,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: surfaceCol,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderCol, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.02,
                                 ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 13,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: textCol,
+                              fontSize: 14,
+                            ),
+                            onChanged: _onSearchChanged,
+                            decoration: InputDecoration(
+                              hintText: 'Search by employee name or keyword...',
+                              hintStyle: AppTypography.bodyMedium.copyWith(
+                                color: subtitleCol,
+                                fontSize: 13.5,
+                              ),
+                              prefixIcon: Icon(
+                                LucideIcons.search,
+                                size: 18,
+                                color: subtitleCol,
+                              ),
+                              suffixIcon: searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(
+                                        LucideIcons.x,
+                                        size: 16,
+                                        color: subtitleCol,
+                                      ),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                      },
+                                    )
+                                  : null,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
 
             // ── 5. TabBarView (My Overtime / Team Overtime) ────────────
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
-                  if (notification is ScrollUpdateNotification &&
+                  if (_tabController.index == 1 &&
+                      notification is ScrollUpdateNotification &&
                       notification.metrics.axis == Axis.vertical) {
                     final delta = notification.scrollDelta ?? 0;
 
@@ -581,7 +631,10 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
               ),
             );
           }
-          return OvertimeRequestCard(request: requests[i]);
+          return OvertimeRequestCard(
+            request: requests[i],
+            onViewDetails: () => _navigateToDetail(requests[i], isApprover: false),
+          );
         },
       ),
     );
@@ -671,7 +724,10 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
               ),
             );
           }
-          return OvertimeRequestCard(request: requests[i]);
+          return OvertimeRequestCard(
+            request: requests[i],
+            onViewDetails: () => _navigateToDetail(requests[i], isApprover: true),
+          );
         },
       ),
     );

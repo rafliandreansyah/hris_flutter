@@ -73,6 +73,14 @@ void main() {
       }
     });
 
+    test('isWithinMaxLimit correctly checks boundary of 100 KB', () {
+      expect(ImageCompressUtil.defaultMaxSizeBytes, 100 * 1024);
+      expect(ImageCompressUtil.isWithinMaxLimit(50 * 1024), isTrue);
+      expect(ImageCompressUtil.isWithinMaxLimit(100 * 1024), isTrue);
+      expect(ImageCompressUtil.isWithinMaxLimit(100 * 1024 + 1), isFalse);
+      expect(ImageCompressUtil.isWithinMaxLimit(200 * 1024), isFalse);
+    });
+
     test('compressXFile triggers onLoadingChanged lifecycle and returns result', () async {
       final loadingStates = <bool>[];
 
@@ -86,6 +94,33 @@ void main() {
       expect(result.file.path, tempFile.path);
       expect(result.originalSizeBytes, 1000);
       expect(result.compressedSizeBytes, 1000);
+    });
+
+    test('compressXFile respects testCompressHandler for simulated 100KB compression', () async {
+      final loadingStates = <bool>[];
+
+      ImageCompressUtil.testCompressHandler = (file) async {
+        return ImageCompressResult(
+          file: file,
+          originalSizeBytes: 4 * 1024 * 1024, // 4MB
+          compressedSizeBytes: 85 * 1024, // 85 KB (<= 100 KB)
+          compressionDuration: const Duration(milliseconds: 95),
+        );
+      };
+
+      try {
+        final result = await ImageCompressUtil.compressXFile(
+          XFile(tempFile.path),
+          onLoadingChanged: (isLoading) => loadingStates.add(isLoading),
+        );
+
+        expect(loadingStates, [true, false]);
+        expect(result.compressedSizeBytes, 85 * 1024);
+        expect(ImageCompressUtil.isWithinMaxLimit(result.compressedSizeBytes), isTrue);
+        expect(result.savedPercentage, greaterThan(90));
+      } finally {
+        ImageCompressUtil.testCompressHandler = null;
+      }
     });
 
     test('compressFile works seamlessly with File instance', () async {

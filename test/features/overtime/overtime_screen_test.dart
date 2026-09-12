@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_api_models.dart';
+import 'package:hris_flutter/features/overtime/data/models/overtime_create_models.dart';
+import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_bloc.dart';
 import 'package:hris_flutter/features/overtime/presentation/models/overtime_request_item.dart';
@@ -33,6 +36,7 @@ class _MockOvertimeRepository implements OvertimeRepository {
     String? endDate,
     bool approver = false,
     String? status,
+    String? statusApprove,
   }) async {
     await Future.delayed(const Duration(milliseconds: 10));
     if (approver && teamForbidden) {
@@ -53,6 +57,43 @@ class _MockOvertimeRepository implements OvertimeRepository {
         totalPages: 1,
       ),
     );
+  }
+
+  @override
+  Future<OvertimeScheduleData> getOvertimeSchedule({
+    required String dateTimeStart,
+  }) async {
+    return const OvertimeScheduleData();
+  }
+
+  @override
+  Future<CreateOvertimeResultModel> createOvertimeRequest({
+    required String startOvertime,
+    required String endOvertime,
+    required String notes,
+    String? workScheduleId,
+    required XFile file,
+  }) async {
+    return const CreateOvertimeResultModel(success: true, message: 'OK');
+  }
+
+  @override
+  Future<OvertimeDetailData> getOvertimeDetail(String id) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> approveOvertime({
+    required String id,
+    required bool isApproved,
+    String? approverNotes,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteOvertime(String id) async {
+    throw UnimplementedError();
   }
 }
 

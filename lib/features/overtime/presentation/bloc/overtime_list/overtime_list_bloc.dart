@@ -38,30 +38,16 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     OvertimeListStarted event,
     Emitter<OvertimeListState> emit,
   ) {
+    emit(state.copyWith(hasLoadedTeam: true));
     add(const OvertimeListFetchRequested(isRefresh: true, isTeam: false));
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   void _onTabChanged(
     OvertimeListTabChanged event,
     Emitter<OvertimeListState> emit,
   ) {
-    final newIndex = event.tabIndex;
-    emit(state.copyWith(currentTabIndex: newIndex));
-
-    // Lazy load tab Team Overtime saat pertama kali dipilih.
-    if (newIndex == 1 && !state.hasLoadedTeam) {
-      emit(state.copyWith(hasLoadedTeam: true));
-      add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
-    }
-
-    // Tab My Overtime bisa ter-invalidate oleh search/filter saat tab Team
-    // aktif — fetch ulang saat kembali ke tab 0 jika list-nya kosong.
-    if (newIndex == 0 &&
-        state.myRequests.isEmpty &&
-        !state.isMyLoading &&
-        !state.isMyLoadingMore) {
-      add(const OvertimeListFetchRequested(isRefresh: true, isTeam: false));
-    }
+    emit(state.copyWith(currentTabIndex: event.tabIndex));
   }
 
   Future<void> _onFetchRequested(
@@ -71,6 +57,10 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;
+
+    final effectiveStatus = state.filterCriteria.status ??
+        state.filterCriteria.statusApprove ??
+        'all';
 
     if (!event.isTeam) {
       // ── Tab 0: My Overtime (approver=false) ──────────────────────────
@@ -82,11 +72,12 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: search,
+          search: null,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
           approver: false,
-          status: state.filterCriteria.statusApprove,
+          status: effectiveStatus,
+          statusApprove: effectiveStatus,
         );
 
         emit(state.copyWith(
@@ -121,7 +112,8 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
           approver: true,
-          status: state.filterCriteria.statusApprove,
+          status: effectiveStatus,
+          statusApprove: effectiveStatus,
         );
 
         emit(state.copyWith(
@@ -167,6 +159,10 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
         ? state.searchQuery.trim()
         : null;
 
+    final effectiveStatus = state.filterCriteria.status ??
+        state.filterCriteria.statusApprove ??
+        'all';
+
     if (!event.isTeam) {
       if (state.isMyLoading ||
           state.isMyLoadingMore ||
@@ -183,11 +179,12 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: search,
+          search: null,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
           approver: false,
-          status: state.filterCriteria.statusApprove,
+          status: effectiveStatus,
+          statusApprove: effectiveStatus,
         );
 
         final updatedList = [...state.myRequests, ...response.data];
@@ -222,7 +219,8 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
           approver: true,
-          status: state.filterCriteria.statusApprove,
+          status: effectiveStatus,
+          statusApprove: effectiveStatus,
         );
 
         final updatedList = [...state.teamRequests, ...response.data];
@@ -244,17 +242,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     Emitter<OvertimeListState> emit,
   ) async {
     emit(state.copyWith(searchQuery: event.query));
-
-    // Invalidate kedua tab: data lama tidak relevan dengan kata kunci baru.
-    _invalidateInactiveTabs(emit);
-
-    // Refetch tab aktif dengan kata kunci baru (server-side search).
-    final isTeam = state.currentTabIndex == 1;
-    if (isTeam) {
-      add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
-    } else {
-      add(const OvertimeListFetchRequested(isRefresh: true, isTeam: false));
-    }
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   Future<void> _onFilterApplied(
@@ -262,11 +250,8 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     Emitter<OvertimeListState> emit,
   ) async {
     emit(state.copyWith(filterCriteria: event.criteria));
-
-    _invalidateInactiveTabs(emit);
-
-    final isTeam = state.currentTabIndex == 1;
-    add(OvertimeListFetchRequested(isRefresh: true, isTeam: isTeam));
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: false));
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   Future<void> _onFilterReset(
@@ -274,21 +259,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     Emitter<OvertimeListState> emit,
   ) async {
     emit(state.copyWith(filterCriteria: const OvertimeFilterCriteria()));
-
-    _invalidateInactiveTabs(emit);
-
-    final isTeam = state.currentTabIndex == 1;
-    add(OvertimeListFetchRequested(isRefresh: true, isTeam: isTeam));
-  }
-
-  /// Kosongkan data tab yang tidak aktif agar di-fetch ulang (lazy) saat
-  /// tab tersebut dibuka — filter/search lama tidak boleh menempel.
-  void _invalidateInactiveTabs(Emitter<OvertimeListState> emit) {
-    final isTeamActive = state.currentTabIndex == 1;
-    if (isTeamActive) {
-      emit(state.copyWith(myRequests: const []));
-    } else {
-      emit(state.copyWith(teamRequests: const [], hasLoadedTeam: false));
-    }
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: false));
+    add(const OvertimeListFetchRequested(isRefresh: true, isTeam: true));
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API)
@@ -13,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
+import 'package:hris_flutter/core/widgets/app_image_preview_dialog.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 
 /// Halaman Create Activity Form sesuai Google Stitch Oasish Flutter M3 HRIS
@@ -161,12 +163,9 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
           _samplePhotoUrl = null;
         });
 
-        // Kompres di background thread tanpa memblokir UI
+        // Kompres di background thread tanpa memblokir UI (target <= 100 KB)
         ImageCompressUtil.compressXFile(
           photo,
-          quality: 75,
-          minWidth: 1600,
-          minHeight: 1600,
           onLoadingChanged: (isCompressing) {
             if (mounted) {
               setState(() => _isCompressingPhoto = isCompressing);
@@ -188,6 +187,25 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             );
           }
         });
+      } else if (photo == null && mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(LucideIcons.info, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Text('Unggah gambar dibatalkan'),
+              ],
+            ),
+            backgroundColor: AppColors.onBackground,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -290,10 +308,9 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
         _samplePhotoUrl = null;
       });
 
-      // Jalankan kompresi di background untuk foto sampel
+      // Jalankan kompresi di background untuk foto sampel (target <= 100 KB)
       ImageCompressUtil.compressXFile(
         XFile(tempFile.path),
-        quality: 75,
         onLoadingChanged: (isCompressing) {
           if (mounted) {
             setState(() => _isCompressingPhoto = isCompressing);
@@ -983,16 +1000,27 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (_pickedPhoto != null)
-              Image.file(File(_pickedPhoto!.path), fit: BoxFit.cover)
-            else if (_samplePhotoUrl != null)
-              Image.network(
-                _samplePhotoUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Center(
-                  child: Icon(LucideIcons.image, size: 36, color: subtitleCol),
-                ),
-              ),
+            // Photo Preview (Tappable for Full Preview)
+            GestureDetector(
+              onTap: () {
+                AppImagePreviewDialog.show(
+                  context,
+                  xFile: _compressResult?.file ?? _pickedPhoto,
+                  imageUrl: _samplePhotoUrl,
+                  fileSizeBytes: _compressResult?.compressedSizeBytes,
+                  title: 'Foto Bukti Aktivitas',
+                );
+              },
+              child: _pickedPhoto != null
+                  ? Image.file(File(_pickedPhoto!.path), fit: BoxFit.cover)
+                  : Image.network(
+                      _samplePhotoUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Icon(LucideIcons.image, size: 36, color: subtitleCol),
+                      ),
+                    ),
+            ),
 
             // Top Left: Compressed file size badge
             if (_compressResult != null)
@@ -1018,7 +1046,9 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${_compressResult!.compressedSizeFormatted} (-${_compressResult!.savedPercentage.toStringAsFixed(0)}%)',
+                        kDebugMode
+                            ? '${_compressResult!.compressedSizeFormatted} (Maks 100 KB • -${_compressResult!.savedPercentage.toStringAsFixed(0)}%)'
+                            : '${_compressResult!.compressedSizeFormatted} (Maks 100 KB)',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -1030,30 +1060,111 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                 ),
               ),
 
-            // Top Right: Remove Photo Button
+            // Loading Overlay saat proses kompresi non-blocking berlangsung
+            if (_isCompressingPhoto)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.brandTeal,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Mengompresi foto...',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.brandTeal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Top Right: Preview & Remove Photo Buttons
             Positioned(
               top: 8,
               right: 8,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _pickedPhoto = null;
-                    _compressResult = null;
-                    _samplePhotoUrl = null;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
-                    shape: BoxShape.circle,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Tombol Pratinjau Foto
+                  GestureDetector(
+                    key: const ValueKey('preview_activity_photo_btn'),
+                    onTap: () {
+                      AppImagePreviewDialog.show(
+                        context,
+                        xFile: _compressResult?.file ?? _pickedPhoto,
+                        imageUrl: _samplePhotoUrl,
+                        fileSizeBytes: _compressResult?.compressedSizeBytes,
+                        title: 'Foto Bukti Aktivitas',
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        LucideIcons.eye,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
                   ),
-                  child: const Icon(
-                    LucideIcons.trash2,
-                    color: Colors.white,
-                    size: 16,
+                  const SizedBox(width: 8),
+                  // Tombol Hapus Foto
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _pickedPhoto = null;
+                        _compressResult = null;
+                        _samplePhotoUrl = null;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        LucideIcons.trash2,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
 

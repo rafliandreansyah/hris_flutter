@@ -27,10 +27,7 @@ class OvertimeRequestCard extends StatelessWidget {
   /// [OvertimeStatusExtension] (same palette as ActivityStatusExtension).
   Widget _buildStatusBadge(OvertimeStatus status) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 3.5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
         color: status.backgroundColor,
         borderRadius: BorderRadius.circular(100),
@@ -67,10 +64,13 @@ class OvertimeRequestCard extends StatelessWidget {
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final borderCol = isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
     final blockBg = isDark
         ? AppColors.darkSurfaceContainerLow
@@ -79,8 +79,7 @@ class OvertimeRequestCard extends StatelessWidget {
         ? AppColors.darkSurfaceContainerHigh
         : AppColors.accentTealLight;
 
-    final hasSchedule =
-        request.startTime != null || request.endTime != null;
+    final hasSchedule = request.startTime != null || request.endTime != null;
 
     final card = Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -145,10 +144,9 @@ class OvertimeRequestCard extends StatelessWidget {
                             name: request.name,
                             role: request.role,
                             department: request.department,
-                            company:
-                                request.company.isNotEmpty
-                                    ? request.company
-                                    : null,
+                            company: request.company.isNotEmpty
+                                ? request.company
+                                : null,
                             employeeId: request.employeeNumber,
                             avatarUrl: request.avatarUrl,
                             initials: request.initials,
@@ -216,7 +214,7 @@ class OvertimeRequestCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                      if (request.note.isNotEmpty) ...[
+                      if (request.notes.isNotEmpty) ...[
                         const SizedBox(height: 10),
 
                         // 3. Alasan Lembur (italic + garis kiri)
@@ -228,7 +226,7 @@ class OvertimeRequestCard extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            '"${request.note}"',
+                            '"${request.notes}"',
                             style: AppTypography.bodyMedium.copyWith(
                               color: subtitleCol,
                               fontSize: 13,

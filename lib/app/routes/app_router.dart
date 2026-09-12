@@ -18,6 +18,9 @@ import 'package:hris_flutter/features/employee/presentation/pages/employee_direc
 import 'package:hris_flutter/features/leave/presentation/pages/create_leave_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/leave_detail_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
+import 'package:hris_flutter/features/notification/presentation/pages/notification_screen.dart';
+import 'package:hris_flutter/features/overtime/presentation/pages/create_overtime_screen.dart';
+import 'package:hris_flutter/features/overtime/presentation/pages/overtime_detail_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 
@@ -204,6 +207,47 @@ class AppRouter {
         path: Routes.OVERTIME,
         name: Routes.OVERTIME,
         builder: (context, state) => const OvertimeRequestsScreen(),
+      ),
+
+      // 18. Create Overtime Screen (Google Stitch slice)
+      GoRoute(
+        path: Routes.CREATE_OVERTIME,
+        name: Routes.CREATE_OVERTIME,
+        builder: (context, state) => const CreateOvertimeScreen(),
+      ),
+
+      // 19. Overtime Request Detail Screen (Google Stitch slice)
+      GoRoute(
+        path: Routes.OVERTIME_DETAIL,
+        name: Routes.OVERTIME_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          bool isApprover = false;
+
+          if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+            isApprover = extra['isApprover'] as bool? ?? false;
+          } else if (extra is String) {
+            id = extra;
+          }
+
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          if (state.uri.queryParameters.containsKey('isApprover')) {
+            isApprover = state.uri.queryParameters['isApprover'] == 'true';
+          }
+
+          return OvertimeDetailScreen(id: id, isApprover: isApprover);
+        },
+      ),
+
+      // 20. Notification Screen (Notification Center)
+      GoRoute(
+        path: Routes.NOTIFICATIONS,
+        name: Routes.NOTIFICATIONS,
+        builder: (context, state) => const NotificationScreen(),
       ),
     ],
     redirect: (context, state) {

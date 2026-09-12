@@ -298,9 +298,15 @@ class LeaveRequestDetailData extends Equatable {
       id: json['id']?.toString() ?? '',
       startDate: parseDate(json['startDate']),
       endDate: parseDate(json['endDate']),
-      totalDays: (json['totalDays'] as num?)?.toInt() ?? 1,
-      notes: json['notes']?.toString(),
-      status: json['status']?.toString() ?? 'requested',
+      totalDays: (json['totalDays'] as num?)?.toInt() ??
+          (json['days'] as num?)?.toInt() ??
+          1,
+      notes: json['notes']?.toString() ??
+          json['note']?.toString() ??
+          json['reason']?.toString(),
+      status: json['status']?.toString() ??
+          json['statusApprove']?.toString() ??
+          'requested',
       leaveType: LeaveTypeDetailModel.fromJson(
         (json['leaveType'] as Map<String, dynamic>?) ?? {},
       ),

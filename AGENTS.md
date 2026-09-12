@@ -1,7 +1,7 @@
 # AGENTS.md - Project Rules & Guidelines for HRIS Flutter
 
 ## 🚀 Core Architecture Guidelines
-1. **State Management**: Always use **`flutter_bloc`** and **`equatable`** for all state management across the project (`activity`, `employee`, `auth`, `dashboard`, etc.).
+1. **State Management**: Always use **`flutter_bloc`** and **`equatable`** for all state management across the project (`activity`, `employee`, `attendance`, `leave`, `overtime`, `auth`, `dashboard`, etc.).
 2. **Clean Architecture**:
    - Maintain clear separation: Presentation (Pages, Widgets, BLoC) -> Domain (Repository Interfaces) -> Data (Datasources, Repository Implementations, Models).
    - No direct `setState` for network calls, data fetching, or business logic.
@@ -18,3 +18,12 @@
    - **Special HTTP Status Codes**:
      - **401 Unauthorized**: Handled globally by `ApiClient` auto-logout (clear secure storage, clear in-memory token, delete FCM token via `NotificationService`, show session expired dialog, and redirect to login).
      - **404 Not Found**: For schedule or specific missing resource errors, provide only a "Kembali" option without retry buttons.
+6. **Design System & Styling Standards (Stitch M3 "Teal Oasis")**:
+   - **Zero Hardcoded Values**: Never hardcode colors, padding, margins, border radiuses, or text styles in widgets.
+   - **Colors**: Always use `AppColors` from `lib/app/config/app_colors.dart` (`primary`, `brandTeal`, `surface`, `background`, `error`, `success`, `warning`, etc.).
+   - **Spacing & Radius**: Always use `AppSpacing` and `AppRadius` from `lib/app/config/app_design.dart`.
+   - **Typography**: Always use `AppTypography` from `lib/app/config/app_typography.dart` (GoogleFonts Plus Jakarta Sans).
+   - **Icons**: Always prefer `LucideIcons` from `package:lucide_icons_flutter/lucide_icons.dart`.
+7. **Networking & Routing**:
+   - Centralize API endpoints in `lib/core/constants/api_endpoints.dart`.
+   - Centralize routes in `lib/app/routes/route_name.dart` and register them in `lib/app/routes/app_router.dart`.

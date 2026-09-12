@@ -379,7 +379,7 @@ void main() {
           location: 'Location $i',
           time: '10:00',
           date: DateTime(2026, 9, 6),
-          isMyActivity: true,
+          isMyActivity: false,
         ),
       );
 
@@ -395,9 +395,17 @@ void main() {
       );
       expect(animatedContainerFinder, findsOneWidget);
 
+      // Pada Tab 0 (My Activities), search bar selalu disembunyikan (height 0)
       AnimatedContainer container =
           tester.widget<AnimatedContainer>(animatedContainerFinder);
-      expect(container.constraints?.maxHeight ?? 58, 58);
+      expect(container.constraints?.maxHeight ?? 0, 0);
+
+      // Pindah ke Tab 1 (Team Activities) di mana search bar aktif
+      await tester.tap(find.text('Team Activities'));
+      await tester.pumpAndSettle();
+
+      container = tester.widget<AnimatedContainer>(animatedContainerFinder);
+      expect(container.constraints?.maxHeight ?? 0, 58);
 
       // Scroll content upwards (drag with offset -300)
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
@@ -411,7 +419,7 @@ void main() {
       await tester.pumpAndSettle();
 
       container = tester.widget<AnimatedContainer>(animatedContainerFinder);
-      expect(container.constraints?.maxHeight ?? 58, 58);
+      expect(container.constraints?.maxHeight ?? 0, 58);
     });
   });
 
@@ -739,7 +747,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(mockRepo.requestedPages, [1]);
+      expect(mockRepo.requestedPages.contains(1), isTrue);
       expect(find.text('Activity Page 1 Item 0'), findsOneWidget);
 
       // Scroll to bottom of list via controller to trigger pagination

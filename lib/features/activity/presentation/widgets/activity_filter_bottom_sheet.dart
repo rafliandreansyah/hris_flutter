@@ -348,7 +348,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
             _selectedStatus!.trim().isEmpty ||
             _selectedStatus!.trim().toLowerCase() == 'all' ||
             _selectedStatus!.trim().toLowerCase() == 'semua')
-        ? null
+        ? 'all'
         : _selectedStatus!.trim();
 
     final result = ActivityFilterCriteria(
@@ -1149,7 +1149,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                             children: [
                               _buildStatusChip(
                                 label: 'Semua',
-                                value: '',
+                                value: 'all',
                                 selectedValue: _selectedStatus,
                                 brandColor: brandColor,
                                 textCol: textCol,
@@ -1158,7 +1158,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 fieldBg: fieldBg,
                                 isDark: isDark,
                                 onSelected: () {
-                                  setState(() => _selectedStatus = null);
+                                  setState(() => _selectedStatus = 'all');
                                 },
                               ),
                               const SizedBox(width: 6),
@@ -1210,13 +1210,15 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            (_selectedStatus == null || _selectedStatus!.isEmpty)
-                                ? 'Memuat semua aktivitas tanpa filter status (tidak mengirim status ke API)'
+                            (_selectedStatus == null ||
+                                    _selectedStatus!.isEmpty ||
+                                    _selectedStatus == 'all')
+                                ? 'Memuat seluruh data aktivitas tanpa batasan status (status=all)'
                                 : _selectedStatus == 'ongoing'
-                                    ? 'Default memuat aktivitas yang sedang berjalan (Ongoing)'
+                                    ? 'Memuat aktivitas yang sedang berjalan (status=ongoing)'
                                     : _selectedStatus == 'completed'
-                                        ? 'Memuat aktivitas yang sudah selesai (Complete)'
-                                        : 'Memuat aktivitas yang dibatalkan (Canceled)',
+                                        ? 'Memuat aktivitas yang sudah selesai (status=completed)'
+                                        : 'Memuat aktivitas yang dibatalkan (status=canceled)',
                             style: AppTypography.labelSmall.copyWith(
                               color: labelCol,
                               fontSize: 11,

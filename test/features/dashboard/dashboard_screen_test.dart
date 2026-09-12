@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_s
 import 'package:hris_flutter/features/dashboard/presentation/widgets/leave_balance_preview_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
+import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_bloc.dart';
+import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_event.dart';
 import 'package:shimmer/shimmer.dart';
 
 void main() {
@@ -43,56 +45,60 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: QuickAccessGrid(menus: sampleMenus),
+            body: SingleChildScrollView(
+              child: QuickAccessGrid(menus: sampleMenus),
+            ),
           ),
         ),
       );
 
       expect(find.text('Quick Access'), findsOneWidget);
 
-      // Verify that available menus are displayed
-      expect(find.text('Employee'), findsOneWidget);
-      expect(find.text('Attendance'), findsOneWidget);
+      // Verify that available menus are displayed (in Indonesian as per current standard)
+      expect(find.text('Pegawai'), findsOneWidget);
+      expect(find.text('Presensi'), findsOneWidget);
 
       // Verify that unavailable menus are hidden
-      expect(find.text('Payroll'), findsNothing);
-      expect(find.text('Overtime'), findsNothing);
-      expect(find.text('Leave'), findsNothing);
-      expect(find.text('Helpdesk'), findsNothing);
-      expect(find.text('Activity'), findsNothing);
-      expect(find.text('Schedule'), findsNothing);
+      expect(find.text('Slip Gaji'), findsNothing);
+      expect(find.text('Lembur'), findsNothing);
+      expect(find.text('Izin & Cuti'), findsNothing);
+      expect(find.text('Aktivitas'), findsNothing);
+      expect(find.text('Jadwal Kerja'), findsNothing);
 
       // Helper check
       expect(
-        QuickAccessGrid.isMenuAvailable('employee', 'Employee', sampleMenus),
+        QuickAccessGrid.isMenuAvailable('mobile_employee', 'Pegawai', sampleMenus),
         isTrue,
       );
       expect(
-        QuickAccessGrid.isMenuAvailable('payroll', 'Payroll', sampleMenus),
+        QuickAccessGrid.isMenuAvailable('mobile_payroll', 'Slip Gaji', sampleMenus),
         isFalse,
       );
     });
 
-    testWidgets('QuickAccessGrid renders all 8 items when menus is null (offline/fallback)', (
+    testWidgets('QuickAccessGrid renders all 9 items when menus is null (offline/fallback)', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: QuickAccessGrid(menus: null),
+            body: SingleChildScrollView(
+              child: QuickAccessGrid(menus: null),
+            ),
           ),
         ),
       );
 
       expect(find.text('Quick Access'), findsOneWidget);
-      expect(find.text('Activity'), findsOneWidget);
-      expect(find.text('Employee'), findsOneWidget);
-      expect(find.text('Payroll'), findsOneWidget);
-      expect(find.text('Helpdesk'), findsOneWidget);
-      expect(find.text('Attendance'), findsOneWidget);
-      expect(find.text('Overtime'), findsOneWidget);
-      expect(find.text('Leave'), findsOneWidget);
-      expect(find.text('Schedule'), findsOneWidget);
+      expect(find.text('Aktivitas'), findsOneWidget);
+      expect(find.text('Pegawai'), findsOneWidget);
+      expect(find.text('Slip Gaji'), findsOneWidget);
+      expect(find.text('Presensi'), findsOneWidget);
+      expect(find.text('Lembur'), findsOneWidget);
+      expect(find.text('Izin & Cuti'), findsOneWidget);
+      expect(find.text('Absen Luar'), findsOneWidget);
+      expect(find.text('Surat Peringatan'), findsOneWidget);
+      expect(find.text('Jadwal Kerja'), findsOneWidget);
     });
 
     testWidgets(
@@ -105,7 +111,9 @@ void main() {
           GoRoute(
             path: '/test',
             builder: (context, state) => const Scaffold(
-              body: QuickAccessGrid(menus: null),
+              body: SingleChildScrollView(
+                child: QuickAccessGrid(menus: null),
+              ),
             ),
           ),
           GoRoute(
@@ -124,7 +132,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Employee'));
+      await tester.tap(find.text('Pegawai'));
       await tester.pumpAndSettle();
 
       expect(find.text('Employee Directory Destination'), findsOneWidget);
@@ -279,6 +287,29 @@ void main() {
       // Verifies error UI on screen
       expect(find.text('Gagal memuat data dari server backend.'), findsAtLeast(1));
       expect(find.text('Coba Lagi'), findsAtLeast(1));
+
+      await tester.tap(find.text('Coba Lagi').last, warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('Dashboard renders notification bell with unread count badge', (
+      WidgetTester tester,
+    ) async {
+      final notifBloc = NotificationCountBloc()
+        ..add(const NotificationCountUpdated(7));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(
+            repository: MockFailureDashboardRepository(),
+            notificationCountBloc: notifBloc,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byKey(const ValueKey('dashboard_notification_btn')), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
 
       await tester.tap(find.text('Coba Lagi').last, warnIfMissed: false);
       await tester.pump(const Duration(milliseconds: 300));

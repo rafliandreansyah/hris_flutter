@@ -18,4 +18,7 @@ abstract class Routes {
   static const String LEAVE_DETAIL = '/leave-detail';
   static const String CREATE_LEAVE = '/create-leave';
   static const String OVERTIME = '/overtime';
+  static const String OVERTIME_DETAIL = '/overtime-detail';
+  static const String CREATE_OVERTIME = '/create-overtime';
+  static const String NOTIFICATIONS = '/notifications';
 }

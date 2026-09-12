@@ -76,6 +76,9 @@ abstract class ApiEndpoints {
   // ==========================================
   static const String overtime = '/overtime';
   static const String myOvertime = '/overtime/my';
+  static const String overtimeSchedule = '/overtime/schedule';
+  static String overtimeDetail(String id) => '/overtime/$id';
+  static String overtimeApprove(String id) => '/overtime/$id/approve';
 
   // ==========================================
   // --- ⚠️ WARNING LETTERS ENDPOINTS ---
@@ -97,5 +100,13 @@ abstract class ApiEndpoints {
   static String activityDetail(String id) => '/activity/$id';
   static String activityFinish(String id) => '/activity/$id/finish';
   static String activityCancel(String id) => '/activity/$id/cancel';
+
+  // ==========================================
+  // --- 🔔 NOTIFICATION ENDPOINTS ---
+  // ==========================================
+  static const String notifications = '/notifications';
+  static const String notificationsUnreadCount = '/notifications/unread-count';
+  static const String notificationsReadAll = '/notifications/read-all';
+  static String notificationRead(String id) => '/notifications/$id/read';
 }
 

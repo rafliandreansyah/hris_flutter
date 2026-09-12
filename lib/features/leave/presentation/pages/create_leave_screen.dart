@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -9,6 +7,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_document_upload_card.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_create_models.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/create_leave/create_leave_bloc.dart';
@@ -380,161 +379,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
     );
   }
 
-  Future<void> _pickPhoto(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final photo = await picker.pickImage(
-        source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
-      );
-      if (photo != null && mounted) {
-        setState(() {
-          _pickedPhoto = photo;
-        });
 
-        // Kompres di background thread tanpa memblokir UI
-        ImageCompressUtil.compressXFile(
-          photo,
-          quality: 75,
-          minWidth: 1600,
-          minHeight: 1600,
-          onLoadingChanged: (isCompressing) {
-            if (mounted) {
-              setState(() => _isCompressingPhoto = isCompressing);
-            }
-          },
-        ).then((result) {
-          if (mounted) {
-            setState(() {
-              _pickedPhoto = result.file;
-              _compressResult = result;
-            });
-            debugPrint(
-              '📸 [CreateLeave] Foto bukti cuti berhasil dikompresi:\n'
-              '   • Sebelum (RAW) : ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)\n'
-              '   • Sesudah (OPT) : ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)\n'
-              '   • Efisiensi     : Hemat ${result.savedPercentage.toStringAsFixed(1)}% '
-              '(${ImageCompressResult.formatBytes(result.originalSizeBytes - result.compressedSizeBytes > 0 ? result.originalSizeBytes - result.compressedSizeBytes : 0)})\n'
-              '   • Waktu         : ${result.compressionDuration.inMilliseconds} ms',
-            );
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        _showWarningSnackBar('Gagal mengambil foto: $e');
-      }
-    }
-  }
-
-  void _useSamplePhoto() {
-    try {
-      final tempFile = File(
-        '${Directory.systemTemp.path}/sample_leave_proof.jpg',
-      );
-      if (!tempFile.existsSync()) {
-        final dummyBytes = [
-          0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
-          0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43,
-          0x00, 0xFF, 0xC0, 0x00, 0x0B, 0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01,
-          0x11, 0x00, 0xFF, 0xC4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09,
-          0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0x7F, 0x00,
-          0xFF, 0xD9,
-        ];
-        tempFile.writeAsBytesSync(dummyBytes);
-      }
-      setState(() {
-        _pickedPhoto = XFile(tempFile.path);
-      });
-
-      ImageCompressUtil.compressXFile(
-        XFile(tempFile.path),
-        quality: 75,
-        onLoadingChanged: (isCompressing) {
-          if (mounted) {
-            setState(() => _isCompressingPhoto = isCompressing);
-          }
-        },
-      ).then((result) {
-        if (mounted) {
-          setState(() {
-            _pickedPhoto = result.file;
-            _compressResult = result;
-          });
-        }
-      });
-    } catch (_) {}
-  }
-
-  void _showPhotoOptionsSheet() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark
-          ? AppColors.darkSurfaceContainerLowest
-          : AppColors.surfaceContainerLowest,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Pilih Sumber Dokumen / Foto',
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFF0FDFA),
-                  child: Icon(LucideIcons.camera, color: Color(0xFF0D9488)),
-                ),
-                title: const Text('Ambil Foto Kamera'),
-                subtitle: const Text('Gunakan kamera perangkat'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickPhoto(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFF0FDFA),
-                  child: Icon(LucideIcons.image, color: Color(0xFF0D9488)),
-                ),
-                title: const Text('Pilih dari Galeri'),
-                subtitle: const Text('Pilih foto dari penyimpanan'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _pickPhoto(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFF0FDFA),
-                  child: Icon(LucideIcons.fileCheck2, color: Color(0xFF0D9488)),
-                ),
-                title: const Text('Gunakan Sampel Surat Dokter'),
-                subtitle: const Text('Simulasi lampiran dokumen pendukung'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _useSamplePhoto();
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   void _showWarningSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1130,221 +975,32 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── SECTION 4: Dokumen / Bukti Pendukung ──────────────────
-                  Container(
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: borderCol),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.paperclip,
-                                  color: Color(0xFF0D9488),
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'DOKUMEN PENDUKUNG',
-                                  style: AppTypography.labelSmall.copyWith(
-                                    color: const Color(0xFF0D9488),
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                if (_selectedType?.requiresFile == true)
-                                  const Text(
-                                    ' *',
-                                    style: TextStyle(
-                                      color: Color(0xFFEF4444),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            if (_selectedType?.requiresFile == true)
-                              _buildTag(
-                                label: 'Wajib Diunggah',
-                                bgColor: const Color(0xFFFEF2F2),
-                                textColor: const Color(0xFFDC2626),
-                              )
-                            else
-                              _buildTag(
-                                label: 'Opsional',
-                                bgColor: const Color(0xFFF1F5F9),
-                                textColor: const Color(0xFF64748B),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Container Upload / Foto Preview
-                        if (_pickedPhoto == null) ...[
-                          InkWell(
-                            key: const ValueKey('upload_leave_photo_box'),
-                            onTap: _showPhotoOptionsSheet,
-                            borderRadius: BorderRadius.circular(12),
-                            child: DottedBorder(
-                              options: RoundedRectDottedBorderOptions(
-                                color: _selectedType?.requiresFile == true
-                                    ? const Color(0xFFF87171)
-                                    : borderCol,
-                                strokeWidth: 1.5,
-                                dashPattern: const [6, 4],
-                                radius: const Radius.circular(12),
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 24,
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: inputBg,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: const Color(0xFF0D9488)
-                                          .withValues(alpha: 0.1),
-                                      child: const Icon(
-                                        LucideIcons.camera,
-                                        color: Color(0xFF0D9488),
-                                        size: 24,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Lampirkan Foto Bukti / Surat Dokter',
-                                      style: AppTypography.bodyMedium.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: textCol,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Kamera atau Galeri (Otomatis dikompresi)',
-                                      style: AppTypography.bodySmall.copyWith(
-                                        color: subtitleCol,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ] else ...[
-                          // Card Foto Terpilih
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: inputBg,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: borderCol),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(_pickedPhoto!.path),
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => Container(
-                                      width: 60,
-                                      height: 60,
-                                      color: Colors.grey.shade300,
-                                      child: const Icon(
-                                        LucideIcons.fileText,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _pickedPhoto!.name.isNotEmpty
-                                            ? _pickedPhoto!.name
-                                            : 'dokumen_bukti.jpg',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTypography.bodyMedium.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      if (_isCompressingPhoto)
-                                        Row(
-                                          children: [
-                                            const SizedBox(
-                                              width: 12,
-                                              height: 12,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Color(0xFF0D9488),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              'Mengompresi...',
-                                              style: AppTypography.bodySmall
-                                                  .copyWith(
-                                                color: const Color(0xFF0D9488),
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      else if (_compressResult != null)
-                                        Text(
-                                          'Ukuran: ${_compressResult!.compressedSizeFormatted} (Hemat ${_compressResult!.savedPercentage.toStringAsFixed(0)}%)',
-                                          style: AppTypography.bodySmall.copyWith(
-                                            color: const Color(0xFF16A34A),
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  key: const ValueKey('delete_leave_photo_btn'),
-                                  icon: const Icon(
-                                    LucideIcons.trash2,
-                                    color: Color(0xFFEF4444),
-                                    size: 20,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _pickedPhoto = null;
-                                      _compressResult = null;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                  AppDocumentUploadCard(
+                    title: 'DOKUMEN PENDUKUNG',
+                    titleIcon: LucideIcons.paperclip,
+                    isRequired: _selectedType?.requiresFile == true,
+                    requiredTagText: 'Wajib Diunggah',
+                    optionalTagText: 'Opsional',
+                    uploadPlaceholderTitle: 'Lampirkan Foto Bukti / Surat Dokter',
+                    uploadPlaceholderSubtitle:
+                        'Kamera atau Galeri (Otomatis dikompresi)',
+                    sheetTitle: 'Pilih Sumber Dokumen / Foto',
+                    sampleTitle: 'Gunakan Sampel Surat Dokter',
+                    sampleSubtitle: 'Simulasi lampiran dokumen pendukung',
+                    sampleFileName: 'sample_leave_proof.jpg',
+                    file: _pickedPhoto,
+                    compressResult: _compressResult,
+                    isCompressing: _isCompressingPhoto,
+                    uploadBoxKey: const ValueKey('upload_leave_photo_box'),
+                    deleteButtonKey: const ValueKey('delete_leave_photo_btn'),
+                    onFileWithCompressionChanged: (file, result) {
+                      setState(() {
+                        _pickedPhoto = file;
+                        _compressResult = result;
+                        _isCompressingPhoto = false;
+                      });
+                    },
+                    onError: _showWarningSnackBar,
                   ),
                 ],
               ),

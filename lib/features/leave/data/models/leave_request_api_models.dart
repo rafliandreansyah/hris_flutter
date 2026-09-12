@@ -207,9 +207,15 @@ class LeaveRequestApiModel {
           : null,
       startDate: parseDate(json['startDate']),
       endDate: parseDate(json['endDate']),
-      days: (json['days'] as num?)?.toInt() ?? 1,
-      note: json['note']?.toString() ?? json['reason']?.toString() ?? '',
-      statusApprove: json['statusApprove']?.toString() ?? '',
+      days: (json['totalDays'] as num?)?.toInt() ??
+          (json['days'] as num?)?.toInt() ??
+          1,
+      note: json['notes']?.toString() ??
+          json['note']?.toString() ??
+          json['reason']?.toString() ??
+          '',
+      statusApprove:
+          json['status']?.toString() ?? json['statusApprove']?.toString() ?? '',
       timezone: json['timezone']?.toString(),
     );
   }
@@ -241,7 +247,9 @@ class LeaveRequestListResponse {
 
     final metaMap = json['meta'] is Map<String, dynamic>
         ? json['meta'] as Map<String, dynamic>
-        : <String, dynamic>{};
+        : (json['pagination'] is Map<String, dynamic>
+            ? json['pagination'] as Map<String, dynamic>
+            : <String, dynamic>{});
 
     return LeaveRequestListResponse(
       success: json['success'] as bool? ?? true,

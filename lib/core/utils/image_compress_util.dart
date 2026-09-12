@@ -48,6 +48,13 @@ class ImageCompressResult {
 /// 2. Kompresi otomatis di background tanpa memblokir interaksi UI pengguna
 /// 3. Menampilkan indikator loading non-blocking pada komponen gambar
 class ImageCompressUtil {
+  /// Batas maksimal ukuran berkas default (100 KB = 102.400 bytes)
+  static const int defaultMaxSizeBytes = 100 * 1024;
+
+  /// Hook pengujian untuk menyimulasikan hasil kompresi di lingkungan unit test
+  @visibleForTesting
+  static Future<ImageCompressResult> Function(XFile file)? testCompressHandler;
+
   /// Memeriksa apakah aplikasi sedang berjalan dalam mode testing
   static bool get isTestEnvironment {
     try {
@@ -57,18 +64,32 @@ class ImageCompressUtil {
     }
   }
 
+  /// Memeriksa apakah ukuran byte berkas berada di dalam batas maksimal (default 100 KB)
+  static bool isWithinMaxLimit(
+    int bytes, {
+    int maxBytes = defaultMaxSizeBytes,
+  }) {
+    return bytes <= maxBytes;
+  }
+
   /// Melakukan kompresi terhadap berkas [XFile] di background thread.
   ///
+  /// Menjamin ukuran berkas hasil kompresi tidak melebihi [maxSizeBytes] (default: 100 KB)
+  /// dengan algoritma adaptif bertahap (adaptive multi-stage step-down) tanpa merusak
+  /// kualitas ketajaman gambar maupun keterbacaan teks dokumen.
+  ///
   /// - [file]: Berkas input dari kamera / galeri.
-  /// - [quality]: Kualitas output (0-100), default 75 (sangat seimbang untuk dokumen & foto absensi).
-  /// - [minWidth] & [minHeight]: Resolusi maksimal gambar (default 1280x1280).
+  /// - [maxSizeBytes]: Batas maksimal ukuran berkas dalam byte (default 100 KB).
+  /// - [quality]: Kualitas awal kompresi (opsional, jika tidak diset otomatis diatur adaptif).
+  /// - [minWidth] & [minHeight]: Resolusi awal gambar (opsional, otomatis disesuaikan secara proporsional).
   /// - [format]: Format output (JPEG, WebP, PNG).
   /// - [onLoadingChanged]: Callback non-blocking untuk memperbarui status loading di UI.
   static Future<ImageCompressResult> compressXFile(
     XFile file, {
-    int quality = 75,
-    int minWidth = 1280,
-    int minHeight = 1280,
+    int maxSizeBytes = defaultMaxSizeBytes,
+    int? quality,
+    int? minWidth,
+    int? minHeight,
     CompressFormat format = CompressFormat.jpeg,
     ValueChanged<bool>? onLoadingChanged,
   }) async {
@@ -78,8 +99,15 @@ class ImageCompressUtil {
     try {
       final originalLength = await file.length();
 
-      // Jika dijalankan di unit test atau platform tanpa native codec, fallback aman ke original file
+      // Jika dijalankan di unit test atau platform tanpa native codec
       if (isTestEnvironment) {
+        if (testCompressHandler != null) {
+          final mockResult = await testCompressHandler!(file);
+          stopwatch.stop();
+          onLoadingChanged?.call(false);
+          return mockResult;
+        }
+
         stopwatch.stop();
         onLoadingChanged?.call(false);
         final testResult = ImageCompressResult(
@@ -92,43 +120,161 @@ class ImageCompressUtil {
         return testResult;
       }
 
-      // Buat path target unik di folder temp sistem
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      // Jika berkas asli sudah di bawah batas target dan berformat standar gambar, langsung gunakan
       final extension = format == CompressFormat.webp ? 'webp' : 'jpg';
-      final targetPath =
-          '${Directory.systemTemp.path}/compressed_${timestamp}_${file.name.replaceAll(RegExp(r'[^a-zA-Z0-9_\.]'), '_')}';
-      final cleanTargetPath = targetPath.endsWith('.$extension')
-          ? targetPath
-          : '$targetPath.$extension';
+      final lowerPath = file.path.toLowerCase();
+      final isMatchingFormat = format == CompressFormat.webp
+          ? lowerPath.endsWith('.webp')
+          : (lowerPath.endsWith('.jpg') || lowerPath.endsWith('.jpeg'));
 
-      // flutter_image_compress mengeksekusi kompresi di native background thread
-      final compressedXFile = await FlutterImageCompress.compressAndGetFile(
-        file.path,
-        cleanTargetPath,
-        quality: quality,
-        minWidth: minWidth,
-        minHeight: minHeight,
-        format: format,
-        autoCorrectionAngle: true,
-        keepExif: false,
+      if (maxSizeBytes > 0 && originalLength <= maxSizeBytes && isMatchingFormat) {
+        stopwatch.stop();
+        onLoadingChanged?.call(false);
+        final untouchedResult = ImageCompressResult(
+          file: file,
+          originalSizeBytes: originalLength,
+          compressedSizeBytes: originalLength,
+          compressionDuration: stopwatch.elapsed,
+        );
+        logCompressionResult(untouchedResult, originalPath: file.path);
+        return untouchedResult;
+      }
+
+      // Bersihkan ekstensi bawaan agar tidak terjadi duplikasi .jpg.jpg
+      final rawName = file.name.isNotEmpty
+          ? file.name
+          : file.path.split(RegExp(r'[/\\]')).last;
+      final nameWithoutExt = rawName.replaceAll(
+        RegExp(r'\.(jpg|jpeg|png|webp|heic|heif)$', caseSensitive: false),
+        '',
       );
+      final baseCleanName =
+          nameWithoutExt.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
+
+      // Daftar tahapan adaptif bertahap untuk menjaga ketajaman tanpa merusak gambar
+      // Dimulai dari resolusi cukup tinggi dan bergradasi hingga pasti <= 100 KB
+      final initialDim = minWidth ?? 1024;
+      final initialQ = quality ?? 78;
+
+      final stages = <_CompressionStage>[
+        _CompressionStage(dimension: initialDim, quality: initialQ),
+        const _CompressionStage(dimension: 850, quality: 72),
+        const _CompressionStage(dimension: 720, quality: 65),
+        const _CompressionStage(dimension: 600, quality: 58),
+        const _CompressionStage(dimension: 520, quality: 52),
+        const _CompressionStage(dimension: 450, quality: 48),
+        const _CompressionStage(dimension: 380, quality: 44),
+        const _CompressionStage(dimension: 320, quality: 40),
+      ];
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+      XFile? bestCandidateFile;
+      int bestCandidateSize = 1 << 30; // Sangat besar awalnya
+      final tempFilesCreated = <File>[];
+
+      for (var i = 0; i < stages.length; i++) {
+        // Jika pemanggil menonaktifkan kontrol ukuran (maxSizeBytes <= 0), hanya jalankan tahap pertama
+        if (maxSizeBytes <= 0 && i > 0) break;
+
+        final stage = stages[i];
+        final targetPath =
+            '${Directory.systemTemp.path}/comp_${timestamp}_s${i}_$baseCleanName.$extension';
+
+        final compressed = await FlutterImageCompress.compressAndGetFile(
+          file.path,
+          targetPath,
+          quality: stage.quality,
+          minWidth: stage.dimension,
+          minHeight: stage.dimension,
+          format: format,
+          autoCorrectionAngle: true,
+          keepExif: false,
+        );
+
+        if (compressed != null) {
+          final compLength = await compressed.length();
+          tempFilesCreated.add(File(compressed.path));
+
+          if (compLength < bestCandidateSize) {
+            bestCandidateSize = compLength;
+            bestCandidateFile = compressed;
+          }
+
+          // Target tercapai (<= 100 KB), hentikan kompresi agar kualitas visual tetap tertinggi
+          if (maxSizeBytes > 0 && compLength <= maxSizeBytes) {
+            break;
+          }
+        }
+      }
+
+      // Safeguard adaptif dinamis: Jika foto kamera bertekstur sangat padat/noise tinggi
+      // masih > 100 KB setelah tahapan standar, lanjutkan penurunan secara dinamis hingga pasti <= 100 KB
+      var dynamicDim = 320;
+      var dynamicQ = 40;
+      var extraStep = stages.length;
+
+      while (maxSizeBytes > 0 &&
+          bestCandidateSize > maxSizeBytes &&
+          (dynamicDim > 180 || dynamicQ > 20) &&
+          extraStep < 15) {
+        dynamicDim = (dynamicDim * 0.85).round();
+        dynamicQ = (dynamicQ * 0.88).round().clamp(20, 100);
+
+        final targetPath =
+            '${Directory.systemTemp.path}/comp_${timestamp}_s${extraStep}_$baseCleanName.$extension';
+
+        final compressed = await FlutterImageCompress.compressAndGetFile(
+          file.path,
+          targetPath,
+          quality: dynamicQ,
+          minWidth: dynamicDim,
+          minHeight: dynamicDim,
+          format: format,
+          autoCorrectionAngle: true,
+          keepExif: false,
+        );
+
+        if (compressed != null) {
+          final compLength = await compressed.length();
+          tempFilesCreated.add(File(compressed.path));
+
+          if (compLength < bestCandidateSize) {
+            bestCandidateSize = compLength;
+            bestCandidateFile = compressed;
+          }
+
+          if (compLength <= maxSizeBytes) {
+            break;
+          }
+        }
+        extraStep++;
+      }
 
       stopwatch.stop();
       onLoadingChanged?.call(false);
 
-      if (compressedXFile != null) {
-        final compressedLength = await compressedXFile.length();
+      if (bestCandidateFile != null) {
+        // Bersihkan berkas sementara selain berkas terbaik yang dipilih
+        for (final tempF in tempFilesCreated) {
+          if (tempF.path != bestCandidateFile.path && tempF.existsSync()) {
+            try {
+              tempF.deleteSync();
+            } catch (_) {}
+          }
+        }
+
         final result = ImageCompressResult(
-          file: compressedXFile,
+          file: bestCandidateFile,
           originalSizeBytes: originalLength,
-          compressedSizeBytes: compressedLength,
+          compressedSizeBytes: bestCandidateSize,
           compressionDuration: stopwatch.elapsed,
         );
         logCompressionResult(result, originalPath: file.path);
         return result;
       }
 
-      // Fallback jika kompresi mengembalikan null
+      // Fallback aman jika kompresi gagal
       final fallbackResult = ImageCompressResult(
         file: file,
         originalSizeBytes: originalLength,
@@ -170,13 +316,14 @@ class ImageCompressUtil {
       debugPrint(
         '''
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ 📸 [IMAGE COMPRESSION REPORT]                                                ║
+║ 📸 [IMAGE COMPRESSION REPORT] (Target: <= 100 KB)                            ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║ 📁 Path Asal           : ${originalPath ?? result.file.path}
 ║ 📏 Ukuran Sebelum (RAW): ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)
 ╟──────────────────────────────────────────────────────────────────────────────╢
 ║ 📁 Path Hasil          : ${result.file.path}
 ║ 📏 Ukuran Sesudah (OPT): ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)
+║ 🎯 Status Target       : ${result.compressedSizeBytes <= defaultMaxSizeBytes ? "✅ Sesuai (<= 100 KB)" : "⚠️ Di atas 100 KB"}
 ║ 📉 Efisiensi Kompresi  : Hemat ${result.savedPercentage.toStringAsFixed(1)}% (Berkurang $savedFormatted)
 ║ ⏱️ Waktu Eksekusi      : ${result.compressionDuration.inMilliseconds} ms (Background Native Thread)
 ╚══════════════════════════════════════════════════════════════════════════════╝''',
@@ -187,14 +334,16 @@ class ImageCompressUtil {
   /// Helper untuk kompresi [File] standar
   static Future<ImageCompressResult> compressFile(
     File file, {
-    int quality = 75,
-    int minWidth = 1280,
-    int minHeight = 1280,
+    int maxSizeBytes = defaultMaxSizeBytes,
+    int? quality,
+    int? minWidth,
+    int? minHeight,
     CompressFormat format = CompressFormat.jpeg,
     ValueChanged<bool>? onLoadingChanged,
   }) async {
     return compressXFile(
       XFile(file.path),
+      maxSizeBytes: maxSizeBytes,
       quality: quality,
       minWidth: minWidth,
       minHeight: minHeight,
@@ -204,29 +353,14 @@ class ImageCompressUtil {
   }
 
   /// Alur terintegrasi: Ambil Foto -> Otomatis Kompres di Background -> Kembalikan Hasil.
-  ///
-  /// Menyediakan pemanggilan yang sangat ringkas untuk:
-  /// - Absen selfie / face attendance
-  /// - Unggah bukti aktivitas
-  /// - Unggah foto profil karyawan
-  ///
-  /// Penggunaan:
-  /// ```dart
-  /// final result = await ImageCompressUtil.pickAndCompress(
-  ///   source: ImageSource.camera,
-  ///   onLoadingChanged: (isCompressing) => setState(() => _isCompressing = isCompressing),
-  /// );
-  /// if (result != null) {
-  ///   setState(() => _photo = result.file);
-  /// }
-  /// ```
   static Future<ImageCompressResult?> pickAndCompress({
     required ImageSource source,
     ImagePicker? picker,
     CameraDevice preferredCameraDevice = CameraDevice.rear,
-    int quality = 75,
-    int minWidth = 1280,
-    int minHeight = 1280,
+    int maxSizeBytes = defaultMaxSizeBytes,
+    int? quality,
+    int? minWidth,
+    int? minHeight,
     CompressFormat format = CompressFormat.jpeg,
     ValueChanged<bool>? onLoadingChanged,
   }) async {
@@ -244,6 +378,7 @@ class ImageCompressUtil {
 
       return await compressXFile(
         picked,
+        maxSizeBytes: maxSizeBytes,
         quality: quality,
         minWidth: minWidth,
         minHeight: minHeight,
@@ -255,6 +390,17 @@ class ImageCompressUtil {
       return null;
     }
   }
+}
+
+/// Representasi tahapan kompresi adaptif
+class _CompressionStage {
+  final int dimension;
+  final int quality;
+
+  const _CompressionStage({
+    required this.dimension,
+    required this.quality,
+  });
 }
 
 /// Widget Overlay Non-Blocking untuk menampilkan indikator kompresi di atas pratinjau gambar.

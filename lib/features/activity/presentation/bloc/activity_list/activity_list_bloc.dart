@@ -33,7 +33,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
       final filteredMy = _filterInMemory(
         baseList: custom,
         criteria: state.filterCriteria,
-        searchQuery: state.searchQuery,
+        searchQuery: '',
         myActivitiesOnly: true,
       );
       final filteredTeam = _filterInMemory(
@@ -51,7 +51,9 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         hasLoadedTeam: true,
       ));
     } else {
+      emit(state.copyWith(hasLoadedTeam: true));
       add(const ActivityListFetchRequested(isRefresh: true, isTeam: false));
+      add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
     }
   }
 
@@ -59,15 +61,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     ActivityListTabChanged event,
     Emitter<ActivityListState> emit,
   ) {
-    final newIndex = event.tabIndex;
-    emit(state.copyWith(currentTabIndex: newIndex));
-
-    if (newIndex == 1 &&
-        !state.hasLoadedTeam &&
-        state.customActivities == null) {
-      emit(state.copyWith(hasLoadedTeam: true));
-      add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
-    }
+    emit(state.copyWith(currentTabIndex: event.tabIndex));
   }
 
   Future<void> _onFetchRequested(
@@ -114,9 +108,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: state.searchQuery.trim().isNotEmpty
-              ? state.searchQuery.trim()
-              : null,
+          search: null,
           status: _resolveStatus(state.filterCriteria.status),
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -224,9 +216,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: state.searchQuery.trim().isNotEmpty
-              ? state.searchQuery.trim()
-              : null,
+          search: null,
           status: _resolveStatus(state.filterCriteria.status),
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -296,7 +286,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
       final myFiltered = _filterInMemory(
         baseList: state.customActivities!,
         criteria: state.filterCriteria,
-        searchQuery: event.query,
+        searchQuery: '',
         myActivitiesOnly: true,
       );
       final teamFiltered = _filterInMemory(
@@ -311,11 +301,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         teamActivities: teamFiltered,
       ));
     } else {
-      if (state.currentTabIndex == 0) {
-        add(const ActivityListFetchRequested(isRefresh: true, isTeam: false));
-      } else {
-        add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
-      }
+      add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
     }
   }
 
@@ -329,7 +315,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
       final myFiltered = _filterInMemory(
         baseList: state.customActivities!,
         criteria: event.criteria,
-        searchQuery: state.searchQuery,
+        searchQuery: '',
         myActivitiesOnly: true,
       );
       final teamFiltered = _filterInMemory(
@@ -345,9 +331,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
       ));
     } else {
       add(const ActivityListFetchRequested(isRefresh: true, isTeam: false));
-      if (state.hasLoadedTeam) {
-        add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
-      }
+      add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
     }
   }
 
@@ -399,14 +383,13 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         }
       }
 
-      // Filter Status (jika status aktif dipilih khusus selain default ongoing / semua)
+      // Filter Status (ongoing, completed, canceled, all)
       final filterStatus = _resolveStatus(criteria.status);
-      if (filterStatus != null && filterStatus != 'ongoing') {
-        final st = filterStatus.toLowerCase();
+      if (filterStatus != 'all' && filterStatus != 'ongoing') {
         final itemStatus = item.status.name.toLowerCase();
-        if (st == 'completed' && itemStatus != 'completed') {
+        if (filterStatus == 'completed' && itemStatus != 'completed') {
           return false;
-        } else if ((st == 'canceled' || st == 'cancelled') &&
+        } else if ((filterStatus == 'canceled' || filterStatus == 'cancelled') &&
             itemStatus != 'canceled' &&
             itemStatus != 'cancelled') {
           return false;
@@ -464,15 +447,16 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     }).toList();
   }
 
-  /// Menghilangkan status jika bernilai null, kosong, 'all', atau 'semua'
-  /// agar API backend memuat seluruh data aktivitas tanpa filter status.
-  static String? _resolveStatus(String? status) {
-    if (status == null) return null;
-    final trimmed = status.trim();
-    if (trimmed.isEmpty ||
-        trimmed.toLowerCase() == 'all' ||
-        trimmed.toLowerCase() == 'semua') {
-      return null;
+  /// Memastikan status bernilai valid enum ('ongoing', 'completed', 'canceled', 'all').
+  /// Jika null, kosong, atau 'semua', mengembalikan 'all'.
+  static String _resolveStatus(String? status) {
+    if (status == null) return 'all';
+    final trimmed = status.trim().toLowerCase();
+    if (trimmed.isEmpty || trimmed == 'all' || trimmed == 'semua') {
+      return 'all';
+    }
+    if (trimmed == 'canceled' || trimmed == 'cancelled') {
+      return 'canceled';
     }
     return trimmed;
   }

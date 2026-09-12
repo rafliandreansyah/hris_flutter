@@ -329,7 +329,7 @@ void main() {
       bloc.close();
     });
 
-    test('ActivityListFilterApplied with null status loads all statuses without status param', () async {
+    test('ActivityListFilterApplied with all or null status loads all statuses with status=all', () async {
       String? capturedStatus = 'initial';
       final mockRepo = _MockActivityRepository(
         onGetActivities: ({
@@ -355,12 +355,12 @@ void main() {
       );
 
       final bloc = ActivityListBloc(repository: mockRepo);
-      const allStatusCriteria = ActivityFilterCriteria(status: null);
+      const allStatusCriteria = ActivityFilterCriteria(status: 'all');
       bloc.add(const ActivityListFilterApplied(allStatusCriteria));
       await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(bloc.state.filterCriteria.status, isNull);
-      expect(capturedStatus, isNull);
+      expect(bloc.state.filterCriteria.status, 'all');
+      expect(capturedStatus, 'all');
       bloc.close();
     });
 

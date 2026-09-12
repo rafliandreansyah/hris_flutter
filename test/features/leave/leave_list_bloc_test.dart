@@ -33,7 +33,9 @@ class _MockLeaveRepository implements LeaveRepository {
   bool lastApprover = false;
   String? lastSearch;
   String? lastStatusApprove;
+  String? lastStatus;
   int callCount = 0;
+  final List<bool> approverCalls = [];
 
   _MockLeaveRepository({this.onGetLeaveRequests});
 
@@ -45,6 +47,7 @@ class _MockLeaveRepository implements LeaveRepository {
     String? departmentId,
     String? positionId,
     String? search,
+    String? status,
     String? statusApprove,
     String? startDate,
     String? endDate,
@@ -54,8 +57,10 @@ class _MockLeaveRepository implements LeaveRepository {
     lastSize = size;
     lastApprover = approver;
     lastSearch = search;
-    lastStatusApprove = statusApprove;
+    lastStatus = status ?? statusApprove;
+    lastStatusApprove = statusApprove ?? status;
     callCount++;
+    approverCalls.add(approver);
     if (onGetLeaveRequests != null) {
       return onGetLeaveRequests!(
         page: page,
@@ -164,7 +169,7 @@ void main() {
       bloc.close();
     });
 
-    test('LeaveListStarted memuat My Requests dengan approver=false', () async {
+    test('LeaveListStarted memuat My Requests dan Team Requests secara bersamaan', () async {
       final mockRepo = _MockLeaveRepository(
         onGetLeaveRequests: ({
           required int page,
@@ -185,9 +190,11 @@ void main() {
       bloc.add(const LeaveListStarted());
       await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(mockRepo.lastApprover, isFalse);
+      expect(mockRepo.approverCalls, [false, true]);
+      expect(mockRepo.callCount, 2);
       expect(mockRepo.lastSize, 30);
       expect(bloc.state.status, LeaveListStatus.success);
+      expect(bloc.state.hasLoadedTeam, isTrue);
       expect(bloc.state.myRequests.length, 2);
       expect(bloc.state.isMyLoading, isFalse);
 
@@ -300,7 +307,7 @@ void main() {
       bloc.close();
     });
 
-    test('pindah tab ke index 1 lazy-load Team Requests sekali saja', () async {
+    test('pindah tab tidak memicu network call ulang karena kedua tab sudah dimuat saat start', () async {
       final mockRepo = _MockLeaveRepository(
         onGetLeaveRequests: ({
           required int page,
@@ -318,6 +325,11 @@ void main() {
       );
 
       final bloc = LeaveListBloc(repository: mockRepo);
+      bloc.add(const LeaveListStarted());
+      await Future.delayed(const Duration(milliseconds: 50));
+      final callsAfterStart = mockRepo.callCount;
+      expect(callsAfterStart, 2);
+
       bloc.add(const LeaveListTabChanged(1));
       await Future.delayed(const Duration(milliseconds: 50));
       bloc.add(const LeaveListTabChanged(1));
@@ -325,8 +337,8 @@ void main() {
 
       expect(bloc.state.currentTabIndex, 1);
       expect(bloc.state.hasLoadedTeam, isTrue);
-      // Lazy load hanya sekali untuk dua event tab-1 beruntun.
-      expect(mockRepo.callCount, 1);
+      // Pindah tab tidak menambah network call karena sudah dimuat bersamaan saat start.
+      expect(mockRepo.callCount, callsAfterStart);
 
       bloc.close();
     });
@@ -629,6 +641,54 @@ void main() {
         'statusApprove': 'pending',
       });
       expect(range.dateRangeLabel, '28 Agu 2026 - 30 Agu 2026');
+    });
+
+    test('backend payload dengan notes, totalDays, status, dan pagination ter-parsing dengan benar', () {
+      final backendJson = {
+        'id': 'a930e6b9-b233-4a2e-8ec5-eec391a20ef1',
+        'startDate': '2026-10-01',
+        'endDate': '2026-10-16',
+        'timezone': 'Asia/Jakarta',
+        'totalDays': 12,
+        'notes': 'testing',
+        'status': 'requested',
+        'leaveType': {
+          'id': 'ca763806-f879-4f2b-8a88-c3f333c95dee',
+          'name': 'Cuti Tahunan',
+        },
+        'employee': {
+          'firstName': 'Admin',
+          'lastName': 'HR',
+          'id': '75d9da7a-4b60-4415-945d-8ce23d7c781a',
+          'email': 'admin@gmail.com',
+          'photoUrl': null,
+        },
+      };
+
+      final item = leaveRequestItemFromApiJson(backendJson);
+      expect(item.id, 'a930e6b9-b233-4a2e-8ec5-eec391a20ef1');
+      expect(item.notes, 'testing');
+      expect(item.note, 'testing');
+      expect(item.days, 12);
+      expect(item.durationLabel, '12 Days');
+      expect(item.status, LeaveStatus.requested);
+      expect(item.leaveType, 'Cuti Tahunan');
+      expect(item.name, 'Admin HR');
+
+      final listResponse = LeaveRequestListResponse.fromJson({
+        'success': true,
+        'data': [backendJson],
+        'pagination': {
+          'page': 1,
+          'limit': 30,
+          'total': 1,
+          'totalPages': 1,
+        },
+      });
+      expect(listResponse.data.length, 1);
+      expect(listResponse.data.first.notes, 'testing');
+      expect(listResponse.meta.total, 1);
+      expect(listResponse.meta.page, 1);
     });
   });
 

@@ -21,8 +21,11 @@ class LeaveFilterCriteria extends Equatable {
   final String? positionId;
   final String? position;
 
-  /// Filter status approval: null/'all' = semua, 'pending', 'approved', 'rejected'.
-  final String? statusApprove;
+  /// Filter status pengajuan: 'all' = semua, 'requested', 'approved', 'rejected'.
+  final String? status;
+
+  /// Alias statusApprove untuk backward-compatibility.
+  String? get statusApprove => status;
 
   const LeaveFilterCriteria({
     this.dateRange,
@@ -32,8 +35,9 @@ class LeaveFilterCriteria extends Equatable {
     this.department,
     this.positionId,
     this.position,
-    this.statusApprove,
-  });
+    String? status,
+    String? statusApprove,
+  }) : status = status ?? statusApprove;
 
   bool get hasActiveFilter =>
       dateRange != null ||
@@ -43,7 +47,7 @@ class LeaveFilterCriteria extends Equatable {
       (departmentId != null && departmentId!.isNotEmpty) ||
       (position != null && position != 'Semua Jabatan') ||
       (positionId != null && positionId!.isNotEmpty) ||
-      (statusApprove != null && statusApprove!.isNotEmpty && statusApprove != 'all');
+      (status != null && status!.isNotEmpty && status != 'all');
 
   int get activeFilterCount {
     int count = 0;
@@ -60,7 +64,7 @@ class LeaveFilterCriteria extends Equatable {
         (positionId != null && positionId!.isNotEmpty)) {
       count++;
     }
-    if (statusApprove != null && statusApprove!.isNotEmpty && statusApprove != 'all') {
+    if (status != null && status!.isNotEmpty && status != 'all') {
       count++;
     }
     return count;
@@ -75,6 +79,7 @@ class LeaveFilterCriteria extends Equatable {
     String? department,
     String? positionId,
     String? position,
+    String? status,
     String? statusApprove,
   }) {
     return LeaveFilterCriteria(
@@ -85,7 +90,7 @@ class LeaveFilterCriteria extends Equatable {
       department: department ?? this.department,
       positionId: positionId ?? this.positionId,
       position: position ?? this.position,
-      statusApprove: statusApprove ?? this.statusApprove,
+      status: status ?? statusApprove ?? this.status,
     );
   }
 
@@ -116,7 +121,7 @@ class LeaveFilterCriteria extends Equatable {
         department,
         positionId,
         position,
-        statusApprove,
+        status,
       ];
 }
 
@@ -189,7 +194,10 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
 
     _selectedCompanyId = widget.initialCriteria.companyId;
     _selectedCompany = widget.initialCriteria.company ?? 'Semua Perusahaan';
-    _selectedStatusApprove = widget.initialCriteria.statusApprove ?? 'all';
+    _selectedStatusApprove = widget.initialCriteria.status ?? widget.initialCriteria.statusApprove ?? 'all';
+    if (_selectedStatusApprove == 'pending') {
+      _selectedStatusApprove = 'requested';
+    }
 
     if (_isCompanySelected) {
       _selectedDepartmentId = widget.initialCriteria.departmentId;
@@ -248,7 +256,8 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
           _selectedDepartment == 'Semua Departemen' ? null : _selectedDepartment,
       positionId: _selectedPositionId,
       position: _selectedPosition == 'Semua Jabatan' ? null : _selectedPosition,
-      statusApprove: _selectedStatusApprove == 'all' ? null : _selectedStatusApprove,
+      status: _selectedStatusApprove,
+      statusApprove: _selectedStatusApprove,
     );
     Navigator.of(context).pop(result);
   }
@@ -1036,9 +1045,11 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
                               ),
                               const SizedBox(width: 8),
                               _buildStatusChip(
-                                label: 'Pending',
-                                value: 'pending',
-                                selectedValue: _selectedStatusApprove,
+                                label: 'Diajukan',
+                                value: 'requested',
+                                selectedValue: _selectedStatusApprove == 'pending'
+                                    ? 'requested'
+                                    : _selectedStatusApprove,
                                 brandColor: brandColor,
                                 labelCol: labelCol,
                                 borderCol: borderCol,
@@ -1046,7 +1057,7 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
                                 isDark: isDark,
                                 onSelected: () {
                                   setState(() =>
-                                      _selectedStatusApprove = 'pending');
+                                      _selectedStatusApprove = 'requested');
                                 },
                               ),
                               const SizedBox(width: 8),

@@ -90,12 +90,8 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     if (search != null && search.trim().isNotEmpty) {
       queryParams['search'] = search.trim();
     }
-    if (status != null &&
-        status.trim().isNotEmpty &&
-        status.trim().toLowerCase() != 'all' &&
-        status.trim().toLowerCase() != 'semua') {
-      queryParams['status'] = status.trim();
-    }
+    final resolvedStatus = _resolveActivityStatus(status);
+    queryParams['status'] = resolvedStatus;
     if (startDate != null && startDate.trim().isNotEmpty) {
       queryParams['startDate'] = startDate.trim();
     }
@@ -280,5 +276,15 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
           ? rawData['message']?.toString() ?? 'Gagal membuat aktivitas.'
           : 'Gagal membuat aktivitas.',
     );
+  }
+
+  static String _resolveActivityStatus(String? status) {
+    if (status == null || status.trim().isEmpty) return 'all';
+    final s = status.trim().toLowerCase();
+    if (s == 'all' || s == 'semua') return 'all';
+    if (s == 'ongoing') return 'ongoing';
+    if (s == 'completed') return 'completed';
+    if (s == 'canceled' || s == 'cancelled') return 'canceled';
+    return s;
   }
 }

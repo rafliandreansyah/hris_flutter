@@ -8,6 +8,9 @@ import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/o
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_state.dart';
 import 'package:hris_flutter/features/overtime/presentation/models/overtime_request_item.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_filter_bottom_sheet.dart';
+import 'package:hris_flutter/features/overtime/data/models/overtime_create_models.dart';
+import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
+import 'package:image_picker/image_picker.dart';
 
 /// Mock repository mengikuti pola test proyek (manual mock, tanpa mocktail).
 class _MockOvertimeRepository implements OvertimeRepository {
@@ -23,7 +26,6 @@ class _MockOvertimeRepository implements OvertimeRepository {
     bool approver,
   })? onGetOvertimeRequests;
 
-  /// Rekam panggilan untuk assertion parameter.
   int lastPage = 0;
   int lastSize = 0;
   bool lastApprover = false;
@@ -31,6 +33,7 @@ class _MockOvertimeRepository implements OvertimeRepository {
   String? lastStartDate;
   String? lastStatus;
   int callCount = 0;
+  final List<bool> approverCalls = [];
 
   _MockOvertimeRepository({this.onGetOvertimeRequests});
 
@@ -46,14 +49,16 @@ class _MockOvertimeRepository implements OvertimeRepository {
     String? endDate,
     bool approver = false,
     String? status,
+    String? statusApprove,
   }) async {
     lastPage = page;
     lastSize = size;
     lastApprover = approver;
     lastSearch = search;
     lastStartDate = startDate;
-    lastStatus = status;
+    lastStatus = status ?? statusApprove;
     callCount++;
+    approverCalls.add(approver);
     if (onGetOvertimeRequests != null) {
       return onGetOvertimeRequests!(
         page: page,
@@ -78,6 +83,43 @@ class _MockOvertimeRepository implements OvertimeRepository {
         totalPages: 1,
       ),
     );
+  }
+
+  @override
+  Future<OvertimeScheduleData> getOvertimeSchedule({
+    required String dateTimeStart,
+  }) async {
+    return const OvertimeScheduleData();
+  }
+
+  @override
+  Future<CreateOvertimeResultModel> createOvertimeRequest({
+    required String startOvertime,
+    required String endOvertime,
+    required String notes,
+    String? workScheduleId,
+    required XFile file,
+  }) async {
+    return const CreateOvertimeResultModel(success: true, message: 'OK');
+  }
+
+  @override
+  Future<OvertimeDetailData> getOvertimeDetail(String id) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> approveOvertime({
+    required String id,
+    required bool isApproved,
+    String? approverNotes,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteOvertime(String id) async {
+    throw UnimplementedError();
   }
 }
 
@@ -130,7 +172,7 @@ void main() {
       bloc.close();
     });
 
-    test('OvertimeListStarted memuat My Overtime dengan approver=false',
+    test('OvertimeListStarted memuat My Overtime dan Team Overtime secara bersamaan',
         () async {
       final mockRepo = _MockOvertimeRepository(
         onGetOvertimeRequests: ({
@@ -151,9 +193,11 @@ void main() {
       bloc.add(const OvertimeListStarted());
       await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(mockRepo.lastApprover, isFalse);
+      expect(mockRepo.approverCalls, [false, true]);
+      expect(mockRepo.callCount, 2);
       expect(mockRepo.lastSize, 30);
       expect(bloc.state.status, OvertimeListStatus.success);
+      expect(bloc.state.hasLoadedTeam, isTrue);
       expect(bloc.state.myRequests.length, 2);
       expect(bloc.state.isMyLoading, isFalse);
 
@@ -263,7 +307,7 @@ void main() {
       bloc.close();
     });
 
-    test('pindah tab ke index 1 lazy-load Team Overtime sekali saja',
+    test('pindah tab tidak memicu network call ulang karena kedua tab sudah dimuat saat start',
         () async {
       final mockRepo = _MockOvertimeRepository(
         onGetOvertimeRequests: ({
@@ -281,6 +325,11 @@ void main() {
       );
 
       final bloc = OvertimeListBloc(repository: mockRepo);
+      bloc.add(const OvertimeListStarted());
+      await Future.delayed(const Duration(milliseconds: 50));
+      final callsAfterStart = mockRepo.callCount;
+      expect(callsAfterStart, 2);
+
       bloc.add(const OvertimeListTabChanged(1));
       await Future.delayed(const Duration(milliseconds: 50));
       bloc.add(const OvertimeListTabChanged(1));
@@ -288,8 +337,8 @@ void main() {
 
       expect(bloc.state.currentTabIndex, 1);
       expect(bloc.state.hasLoadedTeam, isTrue);
-      // Lazy load hanya sekali untuk dua event tab-1 beruntun.
-      expect(mockRepo.callCount, 1);
+      // Pindah tab tidak menambah network call karena sudah dimuat bersamaan saat start.
+      expect(mockRepo.callCount, callsAfterStart);
 
       bloc.close();
     });
@@ -451,7 +500,7 @@ void main() {
       bloc.add(const OvertimeListFilterReset());
       await Future.delayed(const Duration(milliseconds: 50));
       expect(bloc.state.filterCriteria.statusApprove, isNull);
-      expect(mockRepo.lastStatus, isNull);
+      expect(mockRepo.lastStatus, 'all');
 
       bloc.close();
     });

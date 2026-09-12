@@ -94,7 +94,8 @@ class LeaveRequestItem extends Equatable {
   final DateTime? endDate;
 
   /// Catatan/alasan, mis. "Attending technical conference out of town."
-  final String note;
+  final String notes;
+  String get note => notes;
 
   final LeaveStatus status;
 
@@ -118,11 +119,12 @@ class LeaveRequestItem extends Equatable {
     this.days = 1,
     this.startDate,
     this.endDate,
-    this.note = '',
+    String? note,
+    String notes = '',
     this.status = LeaveStatus.pending,
     this.timezone = 'WIB',
     this.isSelf = false,
-  });
+  }) : notes = note ?? notes;
 
   /// Durasi terformat, mis. "3 Days" / "1 Day".
   String get durationLabel => days == 1 ? '1 Day' : '$days Days';
@@ -156,7 +158,9 @@ class LeaveRequestItem extends Equatable {
     if (end == null) return fmt(start);
 
     final sameDay =
-        start.year == end.year && start.month == end.month && start.day == end.day;
+        start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day;
     return sameDay ? fmt(start) : '${fmt(start)} - ${fmt(end)}';
   }
 
@@ -174,7 +178,7 @@ class LeaveRequestItem extends Equatable {
     int? days,
     DateTime? startDate,
     DateTime? endDate,
-    String? note,
+    String? notes,
     LeaveStatus? status,
     String? timezone,
     bool? isSelf,
@@ -193,7 +197,7 @@ class LeaveRequestItem extends Equatable {
       days: days ?? this.days,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
-      note: note ?? this.note,
+      notes: notes ?? this.notes,
       status: status ?? this.status,
       timezone: timezone ?? this.timezone,
       isSelf: isSelf ?? this.isSelf,
@@ -202,22 +206,22 @@ class LeaveRequestItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        employeeId,
-        name,
-        role,
-        department,
-        company,
-        employeeNumber,
-        avatarUrl,
-        initials,
-        leaveType,
-        days,
-        startDate,
-        endDate,
-        note,
-        status,
-        timezone,
-        isSelf,
-      ];
+    id,
+    employeeId,
+    name,
+    role,
+    department,
+    company,
+    employeeNumber,
+    avatarUrl,
+    initials,
+    leaveType,
+    days,
+    startDate,
+    endDate,
+    notes,
+    status,
+    timezone,
+    isSelf,
+  ];
 }

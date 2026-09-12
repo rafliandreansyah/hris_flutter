@@ -88,7 +88,10 @@ class OvertimeRequestItem extends Equatable {
   final DateTime? endTime;
 
   /// Alasan lembur dari pegawai (field `notes`).
-  final String note;
+  final String notes;
+
+  /// Catatan alias untuk notes.
+  String get note => notes;
 
   /// Catatan dari approver (field `approverNotes`).
   final String approverNotes;
@@ -113,12 +116,13 @@ class OvertimeRequestItem extends Equatable {
     required this.initials,
     this.startTime,
     this.endTime,
-    this.note = '',
+    String? note,
+    String notes = '',
     this.approverNotes = '',
     this.status = OvertimeStatus.pending,
     this.timezone = 'WIB',
     this.isSelf = false,
-  });
+  }) : notes = note ?? notes;
 
   static const List<String> _months = [
     'Jan',
@@ -191,7 +195,7 @@ class OvertimeRequestItem extends Equatable {
     String? initials,
     DateTime? startTime,
     DateTime? endTime,
-    String? note,
+    String? notes,
     String? approverNotes,
     OvertimeStatus? status,
     String? timezone,
@@ -209,7 +213,7 @@ class OvertimeRequestItem extends Equatable {
       initials: initials ?? this.initials,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      note: note ?? this.note,
+      notes: notes ?? this.notes,
       approverNotes: approverNotes ?? this.approverNotes,
       status: status ?? this.status,
       timezone: timezone ?? this.timezone,
@@ -219,21 +223,21 @@ class OvertimeRequestItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        employeeId,
-        name,
-        role,
-        department,
-        company,
-        employeeNumber,
-        avatarUrl,
-        initials,
-        startTime,
-        endTime,
-        note,
-        approverNotes,
-        status,
-        timezone,
-        isSelf,
-      ];
+    id,
+    employeeId,
+    name,
+    role,
+    department,
+    company,
+    employeeNumber,
+    avatarUrl,
+    initials,
+    startTime,
+    endTime,
+    notes,
+    approverNotes,
+    status,
+    timezone,
+    isSelf,
+  ];
 }

@@ -38,30 +38,16 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     LeaveListStarted event,
     Emitter<LeaveListState> emit,
   ) {
+    emit(state.copyWith(hasLoadedTeam: true));
     add(const LeaveListFetchRequested(isRefresh: true, isTeam: false));
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   void _onTabChanged(
     LeaveListTabChanged event,
     Emitter<LeaveListState> emit,
   ) {
-    final newIndex = event.tabIndex;
-    emit(state.copyWith(currentTabIndex: newIndex));
-
-    // Lazy load tab Team Requests saat pertama kali dipilih.
-    if (newIndex == 1 && !state.hasLoadedTeam) {
-      emit(state.copyWith(hasLoadedTeam: true));
-      add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
-    }
-
-    // Tab My Requests bisa ter-invalidate oleh search/filter saat tab Team
-    // aktif — fetch ulang saat kembali ke tab 0 jika list-nya kosong.
-    if (newIndex == 0 &&
-        state.myRequests.isEmpty &&
-        !state.isMyLoading &&
-        !state.isMyLoadingMore) {
-      add(const LeaveListFetchRequested(isRefresh: true, isTeam: false));
-    }
+    emit(state.copyWith(currentTabIndex: event.tabIndex));
   }
 
   Future<void> _onFetchRequested(
@@ -82,7 +68,8 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: search,
+          search: null,
+          status: state.filterCriteria.status ?? state.filterCriteria.statusApprove,
           statusApprove: state.filterCriteria.statusApprove,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -118,6 +105,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
           search: search,
+          status: state.filterCriteria.status ?? state.filterCriteria.statusApprove,
           statusApprove: state.filterCriteria.statusApprove,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -183,7 +171,8 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
           companyId: state.filterCriteria.companyId,
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
-          search: search,
+          search: null,
+          status: state.filterCriteria.status ?? state.filterCriteria.statusApprove,
           statusApprove: state.filterCriteria.statusApprove,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -219,6 +208,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
           departmentId: state.filterCriteria.departmentId,
           positionId: state.filterCriteria.positionId,
           search: search,
+          status: state.filterCriteria.status ?? state.filterCriteria.statusApprove,
           statusApprove: state.filterCriteria.statusApprove,
           startDate: state.filterCriteria.startDateParam,
           endDate: state.filterCriteria.endDateParam,
@@ -244,17 +234,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     Emitter<LeaveListState> emit,
   ) async {
     emit(state.copyWith(searchQuery: event.query));
-
-    // Invalidate kedua tab: data lama tidak relevan dengan kata kunci baru.
-    _invalidateInactiveTabs(emit);
-
-    // Refetch tab aktif dengan kata kunci baru (server-side search).
-    final isTeam = state.currentTabIndex == 1;
-    if (isTeam) {
-      add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
-    } else {
-      add(const LeaveListFetchRequested(isRefresh: true, isTeam: false));
-    }
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   Future<void> _onFilterApplied(
@@ -262,11 +242,8 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     Emitter<LeaveListState> emit,
   ) async {
     emit(state.copyWith(filterCriteria: event.criteria));
-
-    _invalidateInactiveTabs(emit);
-
-    final isTeam = state.currentTabIndex == 1;
-    add(LeaveListFetchRequested(isRefresh: true, isTeam: isTeam));
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: false));
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
   }
 
   Future<void> _onFilterReset(
@@ -274,21 +251,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     Emitter<LeaveListState> emit,
   ) async {
     emit(state.copyWith(filterCriteria: const LeaveFilterCriteria()));
-
-    _invalidateInactiveTabs(emit);
-
-    final isTeam = state.currentTabIndex == 1;
-    add(LeaveListFetchRequested(isRefresh: true, isTeam: isTeam));
-  }
-
-  /// Kosongkan data tab yang tidak aktif agar di-fetch ulang (lazy) saat
-  /// tab tersebut dibuka — filter/search lama tidak boleh menempel.
-  void _invalidateInactiveTabs(Emitter<LeaveListState> emit) {
-    final isTeamActive = state.currentTabIndex == 1;
-    if (isTeamActive) {
-      emit(state.copyWith(myRequests: const []));
-    } else {
-      emit(state.copyWith(teamRequests: const [], hasLoadedTeam: false));
-    }
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: false));
+    add(const LeaveListFetchRequested(isRefresh: true, isTeam: true));
   }
 }

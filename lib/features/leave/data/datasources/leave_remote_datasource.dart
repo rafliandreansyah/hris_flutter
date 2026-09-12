@@ -20,7 +20,8 @@ abstract class LeaveRemoteDataSource {
     String? departmentId,
     String? positionId,
     String? search,
-    String? statusApprove,
+    String? status,
+    @Deprecated('Gunakan status') String? statusApprove,
     String? startDate,
     String? endDate,
     bool approver = false,
@@ -66,6 +67,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
     String? departmentId,
     String? positionId,
     String? search,
+    String? status,
     String? statusApprove,
     String? startDate,
     String? endDate,
@@ -89,9 +91,9 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
     if (search != null && search.trim().isNotEmpty) {
       queryParams['search'] = search.trim();
     }
-    if (statusApprove != null && statusApprove.trim().isNotEmpty) {
-      queryParams['statusApprove'] = statusApprove.trim();
-    }
+    final effectiveStatus = status ?? statusApprove;
+    final resolvedStatus = _resolveLeaveStatus(effectiveStatus);
+    queryParams['status'] = resolvedStatus;
     if (startDate != null && startDate.trim().isNotEmpty) {
       queryParams['startDate'] = startDate.trim();
     }
@@ -220,5 +222,15 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
           ? rawData['message']?.toString() ?? 'Gagal membuat pengajuan cuti.'
           : 'Gagal membuat pengajuan cuti.',
     );
+  }
+
+  static String _resolveLeaveStatus(String? status) {
+    if (status == null || status.trim().isEmpty) return 'all';
+    final s = status.trim().toLowerCase();
+    if (s == 'all' || s == 'semua') return 'all';
+    if (s == 'pending' || s == 'requested') return 'requested';
+    if (s == 'approved') return 'approved';
+    if (s == 'rejected') return 'rejected';
+    return s;
   }
 }

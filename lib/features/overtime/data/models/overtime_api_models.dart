@@ -26,11 +26,11 @@ class OvertimePaginationMeta {
   }
 
   Map<String, dynamic> toJson() => {
-        'page': page,
-        'limit': limit,
-        'total': total,
-        'totalPages': totalPages,
-      };
+    'page': page,
+    'limit': limit,
+    'total': total,
+    'totalPages': totalPages,
+  };
 }
 
 /// Objek perusahaan pada entitas overtime request.
@@ -116,15 +116,19 @@ class OvertimeEmployeeModel {
       idNumber: json['idNumber']?.toString(),
       employeeNumber: json['employeeNumber']?.toString(),
       company: json['company'] is Map<String, dynamic>
-          ? OvertimeCompanyModel.fromJson(json['company'] as Map<String, dynamic>)
+          ? OvertimeCompanyModel.fromJson(
+              json['company'] as Map<String, dynamic>,
+            )
           : null,
       department: json['department'] is Map<String, dynamic>
           ? OvertimeDepartmentModel.fromJson(
-              json['department'] as Map<String, dynamic>)
+              json['department'] as Map<String, dynamic>,
+            )
           : null,
       position: json['position'] is Map<String, dynamic>
           ? OvertimePositionModel.fromJson(
-              json['position'] as Map<String, dynamic>)
+              json['position'] as Map<String, dynamic>,
+            )
           : null,
       photoUrl: json['photoUrl']?.toString(),
     );
@@ -138,14 +142,15 @@ class OvertimeEmployeeModel {
 
   /// Inisial dua huruf dari nama.
   String get initials {
-    final parts = fullName.split(' ').where((p) => p.trim().isNotEmpty).toList();
+    final parts = fullName
+        .split(' ')
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     if (parts.isNotEmpty && parts[0].isNotEmpty) {
-      return parts[0]
-          .substring(0, parts[0].length >= 2 ? 2 : 1)
-          .toUpperCase();
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
     }
     return '?';
   }
@@ -185,11 +190,14 @@ class OvertimeApiModel {
       id: json['id']?.toString() ?? '',
       employee: json['employee'] is Map<String, dynamic>
           ? OvertimeEmployeeModel.fromJson(
-              json['employee'] as Map<String, dynamic>)
+              json['employee'] as Map<String, dynamic>,
+            )
           : null,
       startOvertime: parseDate(json['startOvertime']),
       endOvertime: parseDate(json['endOvertime']),
-      notes: json['notes']?.toString(),
+      notes: json['notes']?.toString() ??
+          json['note']?.toString() ??
+          json['reason']?.toString(),
       approverNotes: json['approverNotes']?.toString(),
       timezone: json['timezone']?.toString(),
       status: json['status']?.toString() ?? '',
@@ -218,12 +226,17 @@ class OvertimeRequestListResponse {
     final rawList = json['data'] is List ? json['data'] as List : [];
     final items = rawList
         .whereType<Map<String, dynamic>>()
-        .map((item) => overtimeRequestItemFromApiJson(item, isApprover: isApprover))
+        .map(
+          (item) =>
+              overtimeRequestItemFromApiJson(item, isApprover: isApprover),
+        )
         .toList();
 
     final metaMap = json['meta'] is Map<String, dynamic>
         ? json['meta'] as Map<String, dynamic>
-        : <String, dynamic>{};
+        : (json['pagination'] is Map<String, dynamic>
+            ? json['pagination'] as Map<String, dynamic>
+            : <String, dynamic>{});
 
     return OvertimeRequestListResponse(
       success: json['success'] as bool? ?? true,
@@ -234,11 +247,11 @@ class OvertimeRequestListResponse {
   }
 
   Map<String, dynamic> toJson() => {
-        'success': success,
-        'message': message,
-        'data': data.map((e) => {'id': e.id}).toList(),
-        'meta': meta.toJson(),
-      };
+    'success': success,
+    'message': message,
+    'data': data.map((e) => {'id': e.id}).toList(),
+    'meta': meta.toJson(),
+  };
 }
 
 /// Helper mengonversi JSON API overtime menjadi [OvertimeRequestItem]
@@ -282,7 +295,7 @@ OvertimeRequestItem overtimeRequestItemFromApiJson(
     initials: emp?.initials ?? '?',
     startTime: model.startOvertime,
     endTime: model.endOvertime,
-    note: model.notes ?? '',
+    notes: model.notes ?? '',
     approverNotes: model.approverNotes ?? '',
     status: status,
     timezone: model.timezone ?? 'WIB',

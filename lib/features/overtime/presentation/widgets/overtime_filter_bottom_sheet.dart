@@ -21,9 +21,11 @@ class OvertimeFilterCriteria extends Equatable {
   final String? positionId;
   final String? position;
 
-  /// Filter status pengajuan: null/'all' = semua, 'requested',
-  /// 'approved', 'rejected'.
-  final String? statusApprove;
+  /// Filter status pengajuan: 'all' = semua, 'requested', 'approved', 'rejected'.
+  final String? status;
+
+  /// Alias statusApprove untuk backward-compatibility.
+  String? get statusApprove => status;
 
   const OvertimeFilterCriteria({
     this.dateRange,
@@ -33,8 +35,9 @@ class OvertimeFilterCriteria extends Equatable {
     this.department,
     this.positionId,
     this.position,
-    this.statusApprove,
-  });
+    String? status,
+    String? statusApprove,
+  }) : status = status ?? statusApprove;
 
   bool get hasActiveFilter =>
       dateRange != null ||
@@ -44,9 +47,9 @@ class OvertimeFilterCriteria extends Equatable {
       (departmentId != null && departmentId!.isNotEmpty) ||
       (position != null && position != 'Semua Jabatan') ||
       (positionId != null && positionId!.isNotEmpty) ||
-      (statusApprove != null &&
-          statusApprove!.isNotEmpty &&
-          statusApprove != 'all');
+      (status != null &&
+          status!.isNotEmpty &&
+          status != 'all');
 
   int get activeFilterCount {
     int count = 0;
@@ -63,9 +66,9 @@ class OvertimeFilterCriteria extends Equatable {
         (positionId != null && positionId!.isNotEmpty)) {
       count++;
     }
-    if (statusApprove != null &&
-        statusApprove!.isNotEmpty &&
-        statusApprove != 'all') {
+    if (status != null &&
+        status!.isNotEmpty &&
+        status != 'all') {
       count++;
     }
     return count;
@@ -80,6 +83,7 @@ class OvertimeFilterCriteria extends Equatable {
     String? department,
     String? positionId,
     String? position,
+    String? status,
     String? statusApprove,
   }) {
     return OvertimeFilterCriteria(
@@ -90,7 +94,7 @@ class OvertimeFilterCriteria extends Equatable {
       department: department ?? this.department,
       positionId: positionId ?? this.positionId,
       position: position ?? this.position,
-      statusApprove: statusApprove ?? this.statusApprove,
+      status: status ?? statusApprove ?? this.status,
     );
   }
 
@@ -121,7 +125,7 @@ class OvertimeFilterCriteria extends Equatable {
         department,
         positionId,
         position,
-        statusApprove,
+        status,
       ];
 }
 
@@ -195,7 +199,9 @@ class _OvertimeFilterBottomSheetState extends State<OvertimeFilterBottomSheet> {
 
     _selectedCompanyId = widget.initialCriteria.companyId;
     _selectedCompany = widget.initialCriteria.company ?? 'Semua Perusahaan';
-    _selectedStatusApprove = widget.initialCriteria.statusApprove ?? 'all';
+    _selectedStatusApprove = widget.initialCriteria.status ??
+        widget.initialCriteria.statusApprove ??
+        'all';
 
     if (_isCompanySelected) {
       _selectedDepartmentId = widget.initialCriteria.departmentId;
@@ -257,8 +263,7 @@ class _OvertimeFilterBottomSheetState extends State<OvertimeFilterBottomSheet> {
       positionId: _selectedPositionId,
       position:
           _selectedPosition == 'Semua Jabatan' ? null : _selectedPosition,
-      statusApprove:
-          _selectedStatusApprove == 'all' ? null : _selectedStatusApprove,
+      status: _selectedStatusApprove,
     );
     Navigator.of(context).pop(result);
   }

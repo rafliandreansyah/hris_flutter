@@ -26,10 +26,7 @@ class LeaveRequestCard extends StatelessWidget {
   /// [LeaveStatusExtension] (same palette as ActivityStatusExtension).
   Widget _buildStatusBadge(LeaveStatus status) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 3.5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
         color: status.backgroundColor,
         borderRadius: BorderRadius.circular(100),
@@ -70,8 +67,9 @@ class LeaveRequestCard extends StatelessWidget {
         ? AppColors.darkSurfaceContainer
         : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
         : AppColors.outlineMuted;
@@ -102,11 +100,7 @@ class LeaveRequestCard extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 6),
                         child: Row(
                           children: [
-                            Icon(
-                              LucideIcons.user,
-                              size: 13,
-                              color: brandColor,
-                            ),
+                            Icon(LucideIcons.user, size: 13, color: brandColor),
                             const SizedBox(width: 5),
                             Flexible(
                               child: Text(
@@ -158,7 +152,14 @@ class LeaveRequestCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: _detailColumn('Leave Type', item.leaveType, textCol, subtitleCol)),
+                    Expanded(
+                      child: _detailColumn(
+                        'Leave Type',
+                        item.leaveType,
+                        textCol,
+                        subtitleCol,
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _detailColumn(
@@ -174,9 +175,7 @@ class LeaveRequestCard extends StatelessWidget {
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   height: 1,
-                  decoration: BoxDecoration(
-                    color: borderCol,
-                  ),
+                  decoration: BoxDecoration(color: borderCol),
                 ),
                 Row(
                   children: [
@@ -193,13 +192,15 @@ class LeaveRequestCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                // Catatan / alasan — dipagari left border seperti desain.
-                _NoteBlock(
-                  text: item.note,
-                  color: subtitleCol,
-                  brandColor: brandColor,
-                ),
+                if (item.notes.trim().isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  // Catatan / alasan — dipagari left border seperti desain.
+                  _NoteBlock(
+                    text: item.notes,
+                    color: subtitleCol,
+                    brandColor: brandColor,
+                  ),
+                ],
               ],
             ),
           ),
@@ -236,7 +237,11 @@ class LeaveRequestCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 2),
-                      Icon(LucideIcons.chevronRight, size: 18, color: brandColor),
+                      Icon(
+                        LucideIcons.chevronRight,
+                        size: 18,
+                        color: brandColor,
+                      ),
                     ],
                   ),
                 ),
@@ -266,8 +271,9 @@ class LeaveRequestCard extends StatelessWidget {
     bool alignEnd = false,
   }) {
     return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
@@ -306,12 +312,11 @@ class _NoteBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.only(left: 10),
       decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: brandColor, width: 2),
-        ),
+        border: Border(left: BorderSide(color: brandColor, width: 2)),
       ),
       child: Text(
         '“$text”',

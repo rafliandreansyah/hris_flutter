@@ -86,7 +86,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
 
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
-      setState(() {});
+      setState(() {
+        _isSearchVisible = true;
+      });
       context
           .read<ActivityListBloc>()
           .add(ActivityListTabChanged(_tabController.index));
@@ -341,7 +343,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                 child: TabBar(
                   controller: _tabController,
                   onTap: (index) {
-                    setState(() {});
+                    setState(() {
+                      _isSearchVisible = true;
+                    });
                   },
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   indicatorSize: TabBarIndicatorSize.tab,
@@ -414,83 +418,93 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
               ),
             ),
 
-            // 4. Dynamic Hide/Show Search Bar on Scroll (persis seperti employee directory)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              height: _isSearchVisible ? 58 : 0,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                color: bgCol,
-              ),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _isSearchVisible ? 1.0 : 0.0,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: surfaceCol,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderCol, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: isDark ? 0.2 : 0.02,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: textCol,
-                        fontSize: 14,
-                      ),
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Search by employee name or keyword...',
-                        hintStyle: AppTypography.bodyMedium.copyWith(
-                          color: subtitleCol,
-                          fontSize: 13.5,
-                        ),
-                        prefixIcon: Icon(
-                          LucideIcons.search,
-                          size: 18,
-                          color: subtitleCol,
-                        ),
-                        suffixIcon: searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  LucideIcons.x,
-                                  size: 16,
-                                  color: subtitleCol,
+            // 4. Dynamic Hide/Show Search Bar on Scroll (hanya aktif pada tab Team / index 1)
+            Builder(
+              builder: (context) {
+                final isTeamTab = _tabController.index == 1;
+                final showSearchBar = isTeamTab && _isSearchVisible;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  height: showSearchBar ? 58 : 0,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    color: bgCol,
+                  ),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: showSearchBar ? 1.0 : 0.0,
+                    child: IgnorePointer(
+                      ignoring: !showSearchBar,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: surfaceCol,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderCol, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.02,
                                 ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 13,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: textCol,
+                              fontSize: 14,
+                            ),
+                            onChanged: _onSearchChanged,
+                            decoration: InputDecoration(
+                              hintText: 'Search by employee name or keyword...',
+                              hintStyle: AppTypography.bodyMedium.copyWith(
+                                color: subtitleCol,
+                                fontSize: 13.5,
+                              ),
+                              prefixIcon: Icon(
+                                LucideIcons.search,
+                                size: 18,
+                                color: subtitleCol,
+                              ),
+                              suffixIcon: searchQuery.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(
+                                        LucideIcons.x,
+                                        size: 16,
+                                        color: subtitleCol,
+                                      ),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                      },
+                                    )
+                                  : null,
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
 
             // 5. TabBarView for Content (Left: My Activities, Right: Team Activities)
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
-                  if (notification is ScrollUpdateNotification &&
+                  if (_tabController.index == 1 &&
+                      notification is ScrollUpdateNotification &&
                       notification.metrics.axis == Axis.vertical) {
                     final delta = notification.scrollDelta ?? 0;
 
