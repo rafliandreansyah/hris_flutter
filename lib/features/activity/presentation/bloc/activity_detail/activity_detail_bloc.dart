@@ -23,6 +23,7 @@ class ActivityDetailBloc
         )) {
     on<ActivityDetailStarted>(_onStarted);
     on<ActivityDetailFetchRequested>(_onFetchRequested);
+    on<ActivityDetailStartSubmitted>(_onStartSubmitted);
     on<ActivityDetailFinishSubmitted>(_onFinishSubmitted);
     on<ActivityDetailCancelSubmitted>(_onCancelSubmitted);
   }
@@ -204,6 +205,57 @@ class ActivityDetailBloc
         activity: updatedItem,
         isCreator: isCreator,
         actionMessage: 'Aktivitas berhasil dibatalkan.',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: ActivityDetailStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onStartSubmitted(
+    ActivityDetailStartSubmitted event,
+    Emitter<ActivityDetailState> emit,
+  ) async {
+    emit(state.copyWith(status: ActivityDetailStatus.submitting));
+    try {
+      await _repository.startActivity(
+        id: event.id,
+        latitude: event.latitude,
+        longitude: event.longitude,
+        locationAddress: event.locationAddress,
+        file: event.file,
+      );
+
+      ActivityItem updatedItem = state.activity.copyWith(
+        status: ActivityStatus.ongoing,
+        latitude: event.latitude,
+        longitude: event.longitude,
+        fullAddress: event.locationAddress,
+      );
+
+      try {
+        final response = await _repository.getActivityDetail(event.id);
+        final resolvedTypeName = await _resolveActivityTypeName(
+          response.data.activityTypeId,
+        );
+        updatedItem = response.toActivityItem(
+          isMyActivity: state.activity.isMyActivity,
+          currentEmployeeId: state.currentEmployeeId,
+          activityTypeName: resolvedTypeName,
+          existingItem: state.activity,
+        );
+      } catch (_) {}
+
+      final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
+
+      emit(state.copyWith(
+        status: ActivityDetailStatus.actionSuccess,
+        hasChanged: true,
+        activity: updatedItem,
+        isCreator: isCreator,
+        actionMessage: 'Aktivitas berhasil dimulai.',
       ));
     } catch (e) {
       emit(state.copyWith(

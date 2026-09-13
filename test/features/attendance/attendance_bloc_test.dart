@@ -2,12 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MockAttendanceRepository implements AttendanceRepository {
   AttendanceTodayData currentData;
@@ -28,13 +31,28 @@ class MockAttendanceRepository implements AttendanceRepository {
   }
 
   @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async {
+    if (shouldThrow) throw Exception('Record Attendance Error');
+    return const CreateAttendanceResponse(
+      success: true,
+      message: 'Presensi berhasil dicatat!',
+      data: CreateAttendanceData(id: 'att-123'),
+    );
+  }
+
+  @override
   Future<AttendanceTodayData> clockIn({
     required double latitude,
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
-    if (shouldThrow) throw Exception('Clock In Error');
+    if (shouldThrow) throw const ApiException(message: 'Lokasi di luar jangkauan');
     currentData = currentData.copyWith(
       inTime: '08:45',
       userLatitude: latitude,
@@ -49,8 +67,11 @@ class MockAttendanceRepository implements AttendanceRepository {
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
-    if (shouldThrow) throw Exception('Clock Out Error');
+    if (shouldThrow) throw const ApiException(message: 'Gagal Clock Out');
     currentData = currentData.copyWith(
       outTime: '18:00',
       userLatitude: latitude,
@@ -246,6 +267,88 @@ void main() {
       expect(loaded.data.isClockedOut, isTrue);
       expect(loaded.data.outTime, '18:00');
       expect(loaded.actionMessage, 'Clock Out berhasil dicatat!');
+
+      await bloc.close();
+    });
+
+    test('AttendanceClockInSubmitted with biometric method records successfully', () async {
+      final repo = MockAttendanceRepository();
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(
+        const AttendanceClockInSubmitted(
+          latitude: -6.2253,
+          longitude: 106.8097,
+          address: 'HQ Office',
+          attendanceMethod: 'biometric',
+          workLocationId: 'loc-1',
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.data.isClockedIn, isTrue);
+      expect(loaded.data.inTime, '08:45');
+      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+
+      await bloc.close();
+    });
+
+    test('AttendanceClockInSubmitted with photo method records successfully', () async {
+      final repo = MockAttendanceRepository();
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(
+        AttendanceClockInSubmitted(
+          latitude: -6.2253,
+          longitude: 106.8097,
+          address: 'HQ Office',
+          attendanceMethod: 'photo',
+          workLocationId: 'loc-1',
+          photoFile: XFile('test_path/selfie.jpg'),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.data.isClockedIn, isTrue);
+      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+
+      await bloc.close();
+    });
+
+    test('AttendanceClockInSubmitted emits errorMessage from ApiException directly', () async {
+      final repo = MockAttendanceRepository(shouldThrow: true);
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Fetch failed because shouldThrow was true initially, let's test directly
+      repo.shouldThrow = false;
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      repo.shouldThrow = true;
+      bloc.add(
+        const AttendanceClockInSubmitted(
+          latitude: -6.2253,
+          longitude: 106.8097,
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.errorMessage, 'Lokasi di luar jangkauan');
 
       await bloc.close();
     });

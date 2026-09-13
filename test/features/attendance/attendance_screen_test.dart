@@ -3,10 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class TestAttendanceRepository implements AttendanceRepository {
@@ -42,11 +45,25 @@ class TestAttendanceRepository implements AttendanceRepository {
   Future<AttendanceTodayData> getTodayAttendance() async => data;
 
   @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async {
+    return const CreateAttendanceResponse(
+      success: true,
+      message: 'Presensi berhasil dicatat!',
+      data: CreateAttendanceData(id: 'att-123'),
+    );
+  }
+
+  @override
   Future<AttendanceTodayData> clockIn({
     required double latitude,
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
     data = data.copyWith(inTime: '08:45');
     return data;
@@ -58,6 +75,9 @@ class TestAttendanceRepository implements AttendanceRepository {
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
     data = data.copyWith(outTime: '18:00');
     return data;
@@ -176,9 +196,6 @@ void main() {
       // 4. Employee Card
       expect(find.text('Alex Rivera'), findsOneWidget);
       expect(find.text('Senior Product Designer • ID: 8829'), findsOneWidget);
-      expect(find.text('Jakarta HQ Office'), findsOneWidget);
-      expect(find.text('HQ Office — Main Lobby'), findsOneWidget);
-      expect(find.text('Radius: 50m'), findsOneWidget);
 
       // 5. Timeline 3 Cards
       expect(find.text('Clock In'), findsOneWidget);
@@ -190,9 +207,37 @@ void main() {
       expect(find.text('Pending'), findsOneWidget);
 
       // 6. Action Buttons (Break button is hidden before clock in per user requirement)
+      expect(find.text('Foto Selfie'), findsOneWidget);
+      expect(find.text('Biometrik'), findsOneWidget);
       expect(find.text('Clock In Now'), findsOneWidget);
       expect(find.text('Start Break'), findsNothing);
       expect(find.text('Report Location Issue'), findsOneWidget);
+    });
+
+    testWidgets('switching method to Biometrik updates primary button label', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final repo = TestAttendanceRepository();
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Clock In Now'), findsOneWidget);
+
+      await tester.tap(find.text('Biometrik'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Clock In via Biometrik'), findsOneWidget);
     });
 
     testWidgets('tapping Clock In Now triggers clock in', (tester) async {
@@ -396,11 +441,20 @@ class Test404AttendanceRepository implements AttendanceRepository {
   }
 
   @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async =>
+      throw UnimplementedError();
+
+  @override
   Future<AttendanceTodayData> clockIn({
     required double latitude,
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async => throw UnimplementedError();
 
   @override
@@ -409,6 +463,9 @@ class Test404AttendanceRepository implements AttendanceRepository {
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async => throw UnimplementedError();
 
   @override

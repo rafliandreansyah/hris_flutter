@@ -149,7 +149,8 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
             emp.role.toLowerCase().contains(q) ||
             emp.department.toLowerCase().contains(q) ||
             emp.email.toLowerCase().contains(q) ||
-            emp.id.toLowerCase().contains(q);
+            emp.id.toLowerCase().contains(q) ||
+            emp.displayId.toLowerCase().contains(q);
         if (!matches) return false;
       }
 

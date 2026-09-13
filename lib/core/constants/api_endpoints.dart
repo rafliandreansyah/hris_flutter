@@ -96,8 +96,10 @@ abstract class ApiEndpoints {
   // --- 📋 ACTIVITY ENDPOINTS ---
   // ==========================================
   static const String activity = '/activity';
+  static const String activityPlan = '/activity/plan';
   static const String activityTypes = '/activity/types';
   static String activityDetail(String id) => '/activity/$id';
+  static String activityStart(String id) => '/activity/$id/start';
   static String activityFinish(String id) => '/activity/$id/finish';
   static String activityCancel(String id) => '/activity/$id/cancel';
 

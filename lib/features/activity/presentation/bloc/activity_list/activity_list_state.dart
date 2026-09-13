@@ -26,6 +26,7 @@ class ActivityListState extends Equatable {
   final bool isTeamLoadingMore;
   final bool isTeamForbidden;
   final bool hasLoadedTeam;
+  final bool hasManagePermission;
 
   final String? errorMessage;
 
@@ -47,6 +48,7 @@ class ActivityListState extends Equatable {
     this.isTeamLoadingMore = false,
     this.isTeamForbidden = false,
     this.hasLoadedTeam = false,
+    this.hasManagePermission = false,
     this.errorMessage,
   });
 
@@ -68,6 +70,7 @@ class ActivityListState extends Equatable {
     bool? isTeamLoadingMore,
     bool? isTeamForbidden,
     bool? hasLoadedTeam,
+    bool? hasManagePermission,
     String? errorMessage,
   }) {
     return ActivityListState(
@@ -88,6 +91,7 @@ class ActivityListState extends Equatable {
       isTeamLoadingMore: isTeamLoadingMore ?? this.isTeamLoadingMore,
       isTeamForbidden: isTeamForbidden ?? this.isTeamForbidden,
       hasLoadedTeam: hasLoadedTeam ?? this.hasLoadedTeam,
+      hasManagePermission: hasManagePermission ?? this.hasManagePermission,
       errorMessage: errorMessage,
     );
   }
@@ -111,6 +115,7 @@ class ActivityListState extends Equatable {
         isTeamLoadingMore,
         isTeamForbidden,
         hasLoadedTeam,
+        hasManagePermission,
         errorMessage,
       ];
 }

@@ -105,6 +105,41 @@ class _MockDetailRepo implements ActivityRepository {
       data: {},
     );
   }
+
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) async {
+    return const CreateActivityResponse(
+      success: true,
+      message: 'OK',
+      data: {},
+    );
+  }
+
+  bool startCalled = false;
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) async {
+    startCalled = true;
+    return const ActivityActionResponse(
+      success: true,
+      message: 'Aktivitas berhasil dimulai',
+    );
+  }
 }
 
 class _MockFailureDetailRepo extends _MockDetailRepo {
@@ -189,6 +224,26 @@ void main() {
       expect(bloc.state.activity.status, ActivityStatus.canceled);
       expect(bloc.state.hasChanged, isTrue);
       expect(bloc.state.actionMessage, 'Aktivitas berhasil dibatalkan.');
+      bloc.close();
+    });
+
+    test('StartSubmitted updates status to actionSuccess, transitions to ongoing and refetches', () async {
+      final repo = _MockDetailRepo();
+      final bloc = ActivityDetailBloc(repository: repo);
+
+      bloc.add(const ActivityDetailStartSubmitted(
+        id: 'ACT-999',
+        latitude: -6.2088,
+        longitude: 106.8456,
+        locationAddress: 'Jakarta Central Park',
+      ));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(repo.startCalled, isTrue);
+      expect(bloc.state.status, ActivityDetailStatus.actionSuccess);
+      expect(bloc.state.activity.status, ActivityStatus.ongoing);
+      expect(bloc.state.hasChanged, isTrue);
+      expect(bloc.state.actionMessage, 'Aktivitas berhasil dimulai.');
       bloc.close();
     });
 

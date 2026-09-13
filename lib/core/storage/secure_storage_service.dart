@@ -68,9 +68,53 @@ class SecureStorageService {
     );
   }
 
-  /// Mengambil bahasa tersimpan
+  /// Menyimpan bahasa tersimpan
   Future<String?> getUserLanguage() async {
     return await _storage.read(key: AppConstants.userLanguageKey);
+  }
+
+  static final Set<String> _memoryPermissions = <String>{};
+
+  /// Menyimpan daftar kode izin (permissions) pengguna
+  Future<void> saveUserPermissions(List<String> permissions) async {
+    _memoryPermissions.clear();
+    _memoryPermissions.addAll(permissions);
+    try {
+      await _storage.write(
+        key: AppConstants.userPermissionsKey,
+        value: permissions.join(','),
+      );
+    } catch (_) {}
+  }
+
+  /// Mengambil daftar kode izin (permissions) pengguna
+  Future<List<String>> getUserPermissions() async {
+    if (_memoryPermissions.isNotEmpty) {
+      return _memoryPermissions.toList();
+    }
+    try {
+      final raw = await _storage
+          .read(key: AppConstants.userPermissionsKey)
+          .timeout(const Duration(milliseconds: 200));
+      if (raw == null || raw.trim().isEmpty) return [];
+      final list = raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      _memoryPermissions.addAll(list);
+      return list;
+    } catch (_) {
+      return _memoryPermissions.toList();
+    }
+  }
+
+  /// Memeriksa apakah pengguna memiliki kode izin tertentu (misal: 'activity.manage')
+  Future<bool> hasPermission(String permissionCode) async {
+    if (_memoryPermissions.contains(permissionCode)) return true;
+    final permissions = await getUserPermissions();
+    return permissions.contains(permissionCode);
+  }
+
+  /// Memeriksa izin secara sinkron dari cache memori
+  bool hasPermissionInMemory(String permissionCode) {
+    return _memoryPermissions.contains(permissionCode);
   }
 
   /// Memeriksa apakah user memiliki access token tersimpan
@@ -81,10 +125,12 @@ class SecureStorageService {
 
   /// Menghapus semua sesi & token autentikasi (saat Logout)
   Future<void> clearAuthData() async {
+    _memoryPermissions.clear();
     await _storage.delete(key: AppConstants.accessTokenKey);
     await _storage.delete(key: AppConstants.refreshTokenKey);
     await _storage.delete(key: AppConstants.userProfileKey);
     await _storage.delete(key: AppConstants.employeeIdKey);
+    await _storage.delete(key: AppConstants.userPermissionsKey);
   }
 
   /// Menghapus seluruh data di secure storage

@@ -7,6 +7,7 @@ import 'package:hris_flutter/features/activity/domain/repositories/activity_repo
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -72,12 +73,14 @@ void main() {
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.physicalSize = const Size(1080, 2400);
       binding.platformDispatcher.views.first.devicePixelRatio = 2.0;
+      SecureStorageService.instance.saveUserPermissions(['activity.manage']);
     });
 
     tearDown(() {
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.resetPhysicalSize();
       binding.platformDispatcher.views.first.resetDevicePixelRatio();
+      SecureStorageService.instance.saveUserPermissions([]);
     });
 
     testWidgets('Renders AppBar with only filter icon, without calendar or download icons', (
@@ -238,11 +241,44 @@ void main() {
       expect(find.text('Perusahaan (Company)'), findsOneWidget);
       expect(find.text('Departemen (Division)'), findsOneWidget);
       expect(find.text('Jabatan (Position)'), findsOneWidget);
-      // Status field is added as requested (ongoing, completed, canceled)
+      // Status field is added as requested (ongoing, completed, canceled, planned)
       expect(find.text('Status Aktivitas'), findsOneWidget);
+      expect(find.text('Planned'), findsOneWidget);
+      expect(find.text('Ongoing'), findsOneWidget);
+      expect(find.text('Complete'), findsOneWidget);
+      expect(find.text('Canceled'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
       expect(find.text('Reset Filter'), findsOneWidget);
       expect(find.text('Batal'), findsOneWidget);
+    });
+
+    testWidgets('Applies planned status filter from bottom sheet', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Open filter bottom sheet
+      await tester.tap(find.byIcon(LucideIcons.slidersHorizontal));
+      await tester.pumpAndSettle();
+
+      // Verify Planned chip exists and tap it
+      expect(find.text('Planned'), findsOneWidget);
+      await tester.tap(find.text('Planned'));
+      await tester.pumpAndSettle();
+
+      // Verify helper text
+      expect(
+        find.text(
+          'Memuat rencana aktivitas yang telah dibuat (status=planned)',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Terapkan Filter'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
     });
 
     testWidgets('Applies department filter from bottom sheet', (
@@ -882,6 +918,39 @@ class _MockActivityRepository implements ActivityRepository {
       success: true,
       message: 'OK',
       data: {},
+    );
+  }
+
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) async {
+    return const CreateActivityResponse(
+      success: true,
+      message: 'OK',
+      data: {},
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(
+      success: true,
+      message: 'Aktivitas berhasil dimulai',
     );
   }
 }

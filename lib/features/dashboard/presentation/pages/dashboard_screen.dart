@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
@@ -71,26 +72,12 @@ class _DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<_DashboardView> {
   // Format jam dengan detik secara tepat (HH:mm:ss)
-  String _formatTimeWithSeconds(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
-    final s = dt.second.toString().padLeft(2, '0');
-    return '$h:$m:$s';
-  }
+  String _formatTimeWithSeconds(DateTime dt) =>
+      AppDateUtil.formatTimeWithSeconds(dt);
 
   // Format string waktu menjadi HH:mm (hanya jam:menit)
-  String _formatAttendanceTime(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
-      return '--:--';
-    }
-    // Ambil bagian jam:menit dari berbagai format kemungkinan
-    // Format: "HH:mm", "HH:mm:ss", "HH:mm:ss.SSS", "YYYY-MM-DDTHH:mm:ss", dll
-    final match = RegExp(r'(\d{2}):\d{2}').firstMatch(timeStr);
-    if (match != null) {
-      return match.group(0)!;
-    }
-    return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
-  }
+  String _formatAttendanceTime(String? timeStr) =>
+      AppDateUtil.formatTimeHHmm(timeStr);
 
   // Format tanggal dalam Bahasa Indonesia / English
   String _formatDate(DateTime dt, [String? localeCode]) {

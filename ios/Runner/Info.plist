@@ -12,6 +12,8 @@
 	<string>Aplikasi memerlukan akses kamera untuk mengambil foto profil, bukti kegiatan lapangan, dan verifikasi absensi.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Aplikasi memerlukan akses galeri untuk mengunggah dokumen klaim, bukti aktivitas, dan foto profil.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Aplikasi memerlukan Face ID untuk verifikasi kehadiran biometrik.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

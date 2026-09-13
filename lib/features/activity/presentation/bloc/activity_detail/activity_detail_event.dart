@@ -68,3 +68,23 @@ class ActivityDetailCancelSubmitted extends ActivityDetailEvent {
   @override
   List<Object?> get props => [id, notes, file];
 }
+
+/// Event memulai aktivitas kerja yang berstatus plan (PATCH /activity/{id}/start)
+class ActivityDetailStartSubmitted extends ActivityDetailEvent {
+  final String id;
+  final double latitude;
+  final double longitude;
+  final String locationAddress;
+  final XFile? file;
+
+  const ActivityDetailStartSubmitted({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.locationAddress,
+    this.file,
+  });
+
+  @override
+  List<Object?> get props => [id, latitude, longitude, locationAddress, file?.path];
+}

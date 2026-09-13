@@ -7,8 +7,11 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
@@ -91,11 +94,20 @@ class TestLogsRepository implements AttendanceRepository {
       throw UnimplementedError();
 
   @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async =>
+      throw UnimplementedError();
+
+  @override
   Future<AttendanceTodayData> clockIn({
     required double latitude,
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async => throw UnimplementedError();
 
   @override
@@ -104,6 +116,9 @@ class TestLogsRepository implements AttendanceRepository {
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async => throw UnimplementedError();
 
   @override

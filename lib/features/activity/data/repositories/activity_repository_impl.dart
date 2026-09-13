@@ -107,4 +107,46 @@ class ActivityRepositoryImpl implements ActivityRepository {
       file: file,
     );
   }
+
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) {
+    return _remoteDataSource.createPlanActivity(
+      employeeId: employeeId,
+      activityTypeId: activityTypeId,
+      startTime: startTime,
+      locationName: locationName,
+      locationAddress: locationAddress,
+      description: description,
+      latitude: latitude,
+      longitude: longitude,
+      file: file,
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) {
+    return _remoteDataSource.startActivity(
+      id: id,
+      latitude: latitude,
+      longitude: longitude,
+      locationAddress: locationAddress,
+      file: file,
+    );
+  }
 }

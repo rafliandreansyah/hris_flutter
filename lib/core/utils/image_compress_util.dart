@@ -55,6 +55,13 @@ class ImageCompressUtil {
   @visibleForTesting
   static Future<ImageCompressResult> Function(XFile file)? testCompressHandler;
 
+  /// Hook pengujian untuk menyimulasikan ambil foto dan kompresi di lingkungan testing
+  @visibleForTesting
+  static Future<ImageCompressResult?> Function({
+    required ImageSource source,
+    CameraDevice preferredCameraDevice,
+  })? testPickAndCompressHandler;
+
   /// Memeriksa apakah aplikasi sedang berjalan dalam mode testing
   static bool get isTestEnvironment {
     try {
@@ -364,6 +371,22 @@ class ImageCompressUtil {
     CompressFormat format = CompressFormat.jpeg,
     ValueChanged<bool>? onLoadingChanged,
   }) async {
+    if (testPickAndCompressHandler != null) {
+      return await testPickAndCompressHandler!(
+        source: source,
+        preferredCameraDevice: preferredCameraDevice,
+      );
+    }
+
+    if (isTestEnvironment && picker == null) {
+      return ImageCompressResult(
+        file: XFile('test_attendance_selfie.jpg'),
+        originalSizeBytes: 1024,
+        compressedSizeBytes: 1024,
+        compressionDuration: Duration.zero,
+      );
+    }
+
     final imagePicker = picker ?? ImagePicker();
 
     try {

@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/create_activity_screen.dart';
+import 'package:hris_flutter/features/activity/presentation/pages/create_plan_activity_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_detail_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
@@ -116,6 +117,13 @@ class AppRouter {
         path: Routes.CREATE_ACTIVITY,
         name: Routes.CREATE_ACTIVITY,
         builder: (context, state) => const CreateActivityScreen(),
+      ),
+
+      // 9b. Create Activity Plan Screen (Superior creates plan for subordinate)
+      GoRoute(
+        path: Routes.CREATE_ACTIVITY_PLAN,
+        name: Routes.CREATE_ACTIVITY_PLAN,
+        builder: (context, state) => const CreatePlanActivityScreen(),
       ),
 
       // 10. Attendance & Check-In Screen (Oasish Google Stitch)

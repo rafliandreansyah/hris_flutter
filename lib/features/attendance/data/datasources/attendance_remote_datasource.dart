@@ -5,11 +5,14 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/check_in_request_model.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 
 abstract class AttendanceRemoteDataSource {
   Future<Map<String, dynamic>> fetchAttendanceInfo();
   Future<Map<String, dynamic>> fetchDashboardAttendance();
+  Future<CreateAttendanceResponse> recordAttendance(CreateAttendanceRequest request);
   Future<Map<String, dynamic>> checkIn(CheckInRequestModel request);
   Future<Map<String, dynamic>> checkOut(CheckInRequestModel request);
   Future<Map<String, dynamic>> reportLocationIssue({
@@ -59,6 +62,39 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         return response.data as Map<String, dynamic>;
       }
       return {};
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async {
+    try {
+      final map = request.toFormDataMap();
+      if (request.file != null) {
+        final fileName = request.file!.name.isNotEmpty
+            ? request.file!.name
+            : request.file!.path.split(RegExp(r'[/\\]')).last;
+        map['file'] = await MultipartFile.fromFile(
+          request.file!.path,
+          filename: fileName,
+        );
+      }
+
+      final formData = FormData.fromMap(map);
+      final response = await apiClient.post(
+        ApiEndpoints.attendances,
+        data: formData,
+      );
+
+      final rawData = response.data;
+      if (rawData is Map<String, dynamic>) {
+        return CreateAttendanceResponse.fromJson(rawData);
+      }
+
+      throw ApiException(message: 'Format data respons tidak valid');
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

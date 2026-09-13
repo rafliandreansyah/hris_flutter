@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class AttendanceEvent extends Equatable {
   const AttendanceEvent();
@@ -58,16 +59,30 @@ class AttendanceClockInSubmitted extends AttendanceEvent {
   final double longitude;
   final String? address;
   final String? note;
+  final String attendanceMethod;
+  final String? workLocationId;
+  final XFile? photoFile;
 
   const AttendanceClockInSubmitted({
     required this.latitude,
     required this.longitude,
     this.address,
     this.note,
+    this.attendanceMethod = 'photo',
+    this.workLocationId,
+    this.photoFile,
   });
 
   @override
-  List<Object?> get props => [latitude, longitude, address, note];
+  List<Object?> get props => [
+        latitude,
+        longitude,
+        address,
+        note,
+        attendanceMethod,
+        workLocationId,
+        photoFile,
+      ];
 }
 
 class AttendanceClockOutSubmitted extends AttendanceEvent {
@@ -75,16 +90,30 @@ class AttendanceClockOutSubmitted extends AttendanceEvent {
   final double longitude;
   final String? address;
   final String? note;
+  final String attendanceMethod;
+  final String? workLocationId;
+  final XFile? photoFile;
 
   const AttendanceClockOutSubmitted({
     required this.latitude,
     required this.longitude,
     this.address,
     this.note,
+    this.attendanceMethod = 'photo',
+    this.workLocationId,
+    this.photoFile,
   });
 
   @override
-  List<Object?> get props => [latitude, longitude, address, note];
+  List<Object?> get props => [
+        latitude,
+        longitude,
+        address,
+        note,
+        attendanceMethod,
+        workLocationId,
+        photoFile,
+      ];
 }
 
 class AttendanceBreakToggled extends AttendanceEvent {

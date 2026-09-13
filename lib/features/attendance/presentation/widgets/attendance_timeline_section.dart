@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AttendanceTimelineSection extends StatelessWidget {
@@ -22,12 +23,7 @@ class AttendanceTimelineSection extends StatelessWidget {
   });
 
   static String _formatTimeHHmm(String? timeStr) {
-    if (timeStr == null || timeStr.isEmpty || timeStr == '--:--') {
-      return '--:--';
-    }
-    final match = RegExp(r'(\d{2}):\d{2}').firstMatch(timeStr);
-    if (match != null) return match.group(0)!;
-    return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
+    return AppDateUtil.formatTimeHHmm(timeStr);
   }
 
   @override

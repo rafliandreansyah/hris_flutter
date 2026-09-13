@@ -144,7 +144,7 @@ class EmployeeCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                'ID: ${employee.id}',
+                                'ID: ${employee.displayId}',
                                 style: AppTypography.labelSmall.copyWith(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w500,

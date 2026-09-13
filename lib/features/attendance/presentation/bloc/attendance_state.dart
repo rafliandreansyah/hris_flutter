@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 
 abstract class AttendanceState extends Equatable {
@@ -44,12 +45,8 @@ class AttendanceLoaded extends AttendanceState {
   });
 
   /// Format waktu jam:menit:detik tanpa 'WIB' karena timezone sudah ditampilkan secara terpisah di chip.
-  String get formattedClockTime {
-    final hour = currentClockTime.hour.toString().padLeft(2, '0');
-    final minute = currentClockTime.minute.toString().padLeft(2, '0');
-    final second = currentClockTime.second.toString().padLeft(2, '0');
-    return '$hour:$minute:$second';
-  }
+  String get formattedClockTime =>
+      AppDateUtil.formatTimeWithSeconds(currentClockTime);
 
   AttendanceLoaded copyWith({
     AttendanceTodayData? data,

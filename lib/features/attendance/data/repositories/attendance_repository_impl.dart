@@ -1,12 +1,15 @@
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/features/attendance/data/datasources/attendance_remote_datasource.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
-import 'package:hris_flutter/features/attendance/data/models/check_in_request_model.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
@@ -126,10 +129,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final rawStart = shift?['startTime'] as String?;
     final rawEnd = shift?['endTime'] as String?;
     final shiftStart = rawStart != null && rawStart.isNotEmpty
-        ? (rawStart.length >= 5 ? rawStart.substring(0, 5) : rawStart)
+        ? AppDateUtil.formatTimeHHmm(rawStart, fallback: '09:00')
         : '09:00';
     final shiftEnd = rawEnd != null && rawEnd.isNotEmpty
-        ? (rawEnd.length >= 5 ? rawEnd.substring(0, 5) : rawEnd)
+        ? AppDateUtil.formatTimeHHmm(rawEnd, fallback: '18:00')
         : '18:00';
     final shiftName = isFlexible
         ? 'Flexible Shift'
@@ -139,10 +142,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final inTimeRaw = todayAtt?['inTime'] as String?;
     final outTimeRaw = todayAtt?['outTime'] as String?;
     final inTimeStr = inTimeRaw != null && inTimeRaw.isNotEmpty
-        ? (inTimeRaw.length >= 5 ? inTimeRaw.substring(0, 5) : inTimeRaw)
+        ? AppDateUtil.formatTimeHHmm(inTimeRaw)
         : null;
     final outTimeStr = outTimeRaw != null && outTimeRaw.isNotEmpty
-        ? (outTimeRaw.length >= 5 ? outTimeRaw.substring(0, 5) : outTimeRaw)
+        ? AppDateUtil.formatTimeHHmm(outTimeRaw)
         : null;
 
     final isOnBreakVal = todayAtt?['isOnBreak'] as bool? ?? false;
@@ -154,14 +157,10 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       final rawBreakOut = firstBreak['startTime'] as String?;
       final rawBreakIn = firstBreak['endTime'] as String?;
       breakOut = rawBreakOut != null && rawBreakOut.isNotEmpty
-          ? (rawBreakOut.length >= 5
-              ? rawBreakOut.substring(0, 5)
-              : rawBreakOut)
+          ? AppDateUtil.formatTimeHHmm(rawBreakOut)
           : null;
       breakIn = rawBreakIn != null && rawBreakIn.isNotEmpty
-          ? (rawBreakIn.length >= 5
-              ? rawBreakIn.substring(0, 5)
-              : rawBreakIn)
+          ? AppDateUtil.formatTimeHHmm(rawBreakIn)
           : null;
     }
 
@@ -209,34 +208,52 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
+  Future<CreateAttendanceResponse> recordAttendance(
+    CreateAttendanceRequest request,
+  ) async {
+    return await remoteDataSource.recordAttendance(request);
+  }
+
+  @override
   Future<AttendanceTodayData> clockIn({
     required double latitude,
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
-    try {
-      await remoteDataSource.checkIn(
-        CheckInRequestModel(
-          latitude: latitude,
-          longitude: longitude,
-          address: address,
-          note: note,
-          type: 'IN',
-        ),
-      );
-    } catch (_) {
-      // Allow simulation if backend returns 400 or network offline
-    }
-
     final current = _cachedData ?? await getTodayAttendance();
-    final nowTime = DateFormat('HH:mm').format(DateTime.now());
-    _cachedData = current.copyWith(
-      inTime: nowTime,
-      userLatitude: latitude,
-      userLongitude: longitude,
+    final effectiveLocationId = workLocationId ??
+        current.selectedWorkLocation?.id ??
+        (current.availableWorkLocations.isNotEmpty
+            ? current.availableWorkLocations.first.id
+            : '');
+
+    await remoteDataSource.recordAttendance(
+      CreateAttendanceRequest(
+        workLocationId: effectiveLocationId,
+        attendanceMethod: attendanceMethod,
+        latitude: latitude,
+        longitude: longitude,
+        attendanceType: 'in',
+        address: address ?? current.officeDetail,
+        file: photoFile,
+      ),
     );
-    return _cachedData!;
+
+    try {
+      return await getTodayAttendance();
+    } catch (_) {
+      final nowTime = DateFormat('HH:mm').format(DateTime.now());
+      _cachedData = current.copyWith(
+        inTime: nowTime,
+        userLatitude: latitude,
+        userLongitude: longitude,
+      );
+      return _cachedData!;
+    }
   }
 
   @override
@@ -245,29 +262,40 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required double longitude,
     String? address,
     String? note,
+    String attendanceMethod = 'photo',
+    String? workLocationId,
+    XFile? photoFile,
   }) async {
-    try {
-      await remoteDataSource.checkOut(
-        CheckInRequestModel(
-          latitude: latitude,
-          longitude: longitude,
-          address: address,
-          note: note,
-          type: 'OUT',
-        ),
-      );
-    } catch (_) {
-      // Allow simulation if backend returns 400 or network offline
-    }
-
     final current = _cachedData ?? await getTodayAttendance();
-    final nowTime = DateFormat('HH:mm').format(DateTime.now());
-    _cachedData = current.copyWith(
-      outTime: nowTime,
-      userLatitude: latitude,
-      userLongitude: longitude,
+    final effectiveLocationId = workLocationId ??
+        current.selectedWorkLocation?.id ??
+        (current.availableWorkLocations.isNotEmpty
+            ? current.availableWorkLocations.first.id
+            : '');
+
+    await remoteDataSource.recordAttendance(
+      CreateAttendanceRequest(
+        workLocationId: effectiveLocationId,
+        attendanceMethod: attendanceMethod,
+        latitude: latitude,
+        longitude: longitude,
+        attendanceType: 'out',
+        address: address ?? current.officeDetail,
+        file: photoFile,
+      ),
     );
-    return _cachedData!;
+
+    try {
+      return await getTodayAttendance();
+    } catch (_) {
+      final nowTime = DateFormat('HH:mm').format(DateTime.now());
+      _cachedData = current.copyWith(
+        outTime: nowTime,
+        userLatitude: latitude,
+        userLongitude: longitude,
+      );
+      return _cachedData!;
+    }
   }
 
   @override

@@ -21,6 +21,13 @@ class EmployeeDirectoryItem {
   final String? departmentId;
   final String? positionId;
 
+  /// Identifier untuk tampilan UI (mengutamakan [employeeNumber] seperti "SUP-001" / "EMP-092",
+  /// fallback ke [id] / EMP-000 jika null/kosong).
+  String get displayId =>
+      (employeeNumber != null && employeeNumber!.isNotEmpty)
+          ? employeeNumber!
+          : (id.isNotEmpty ? id : 'EMP-000');
+
   const EmployeeDirectoryItem({
     required this.id,
     required this.name,
@@ -67,9 +74,7 @@ class EmployeeDirectoryItem {
 
     final empNumber = json['employeeNumber']?.toString();
     final rawId = json['id']?.toString() ?? '';
-    final displayId = (empNumber != null && empNumber.isNotEmpty)
-        ? empNumber
-        : (rawId.isNotEmpty ? rawId : 'EMP-000');
+    final primaryId = rawId.isNotEmpty ? rawId : (empNumber ?? '');
 
     // Generate Initials (e.g. "Sarah Jenkins" -> "SJ")
     String initials = 'EP';
@@ -81,8 +86,8 @@ class EmployeeDirectoryItem {
     }
 
     return EmployeeDirectoryItem(
-      id: displayId,
-      rawId: rawId,
+      id: primaryId,
+      rawId: rawId.isNotEmpty ? rawId : primaryId,
       name: fullName.isNotEmpty ? fullName : 'Pegawai',
       role: positionName.isNotEmpty ? positionName : 'Staff',
       department: departmentName.isNotEmpty ? departmentName : 'Umum',
@@ -103,13 +108,13 @@ class EmployeeDirectoryItem {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': rawId ?? id,
+      'id': (rawId != null && rawId!.isNotEmpty) ? rawId : id,
       'firstName': firstName ?? name,
       'lastName': lastName,
       'email': email,
       'phone': phone,
       'idNumber': idNumber,
-      'employeeNumber': employeeNumber ?? id,
+      'employeeNumber': employeeNumber ?? displayId,
       if (company != null || companyId != null)
         'company': {
           if (companyId != null) 'id': companyId,

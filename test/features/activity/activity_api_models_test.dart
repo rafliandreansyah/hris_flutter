@@ -223,6 +223,11 @@ void main() {
       expect(filteredCriteria.status, 'completed');
       expect(filteredCriteria.hasActiveFilter, isTrue);
       expect(filteredCriteria.activeFilterCount, 1);
+
+      final plannedCriteria = defaultCriteria.copyWith(status: 'planned');
+      expect(plannedCriteria.status, 'planned');
+      expect(plannedCriteria.hasActiveFilter, isTrue);
+      expect(plannedCriteria.activeFilterCount, 1);
     });
   });
 }

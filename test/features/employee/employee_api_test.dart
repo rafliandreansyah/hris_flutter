@@ -105,7 +105,10 @@ void main() {
 
       final item = EmployeeDirectoryItem.fromJson(json);
 
-      expect(item.id, 'EMP-092');
+      expect(item.id, 'uuid-1234');
+      expect(item.rawId, 'uuid-1234');
+      expect(item.employeeNumber, 'EMP-092');
+      expect(item.displayId, 'EMP-092');
       expect(item.name, 'Sarah Jenkins');
       expect(item.role, 'Senior Frontend Engineer');
       expect(item.department, 'Engineering');
@@ -137,6 +140,8 @@ void main() {
       final item = EmployeeDirectoryItem.fromJson(json);
 
       expect(item.id, 'uuid-5678');
+      expect(item.rawId, 'uuid-5678');
+      expect(item.displayId, 'uuid-5678');
       expect(item.name, 'Budi');
       expect(item.initials, 'BU');
       expect(item.role, 'Staff');

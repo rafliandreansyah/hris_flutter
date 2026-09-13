@@ -47,4 +47,26 @@ abstract class ActivityRepository {
     String status = 'ongoing',
     XFile? file,
   });
+
+  /// Membuat rencana aktivitas untuk bawahan (`POST /activity/plan`).
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  });
+
+  /// Memulai aktivitas kerja yang berstatus plan (`PATCH /activity/{id}/start`).
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  });
 }

@@ -10,6 +10,7 @@ abstract class Routes {
   static const String ACTIVITY = '/activity';
   static const String ACTIVITY_DETAIL = '/activity-detail';
   static const String CREATE_ACTIVITY = '/create-activity';
+  static const String CREATE_ACTIVITY_PLAN = '/create-activity-plan';
   static const String ATTENDANCE = '/attendance';
   static const String ATTENDANCE_LOGS = '/attendance-logs';
   static const String EMPLOYEE_ATTENDANCE_LOGS = '/employee-attendance-logs';

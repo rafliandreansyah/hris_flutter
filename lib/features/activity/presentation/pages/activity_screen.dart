@@ -11,6 +11,7 @@ import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/a
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_event.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
+import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_option_bottom_sheet.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Daftar Aktivitas (Activity Reports / Team Activity Feed) sesuai Clean Architecture & BLoC.
@@ -36,9 +37,9 @@ class ActivityScreen extends StatelessWidget {
       );
     }
     return BlocProvider<ActivityListBloc>(
-      create: (context) => ActivityListBloc(
-        repository: activityRepository,
-      )..add(ActivityListStarted(customActivities: customActivities)),
+      create: (context) =>
+          ActivityListBloc(repository: activityRepository)
+            ..add(ActivityListStarted(customActivities: customActivities)),
       child: _ActivityScreenView(customActivities: customActivities),
     );
   }
@@ -89,9 +90,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
       setState(() {
         _isSearchVisible = true;
       });
-      context
-          .read<ActivityListBloc>()
-          .add(ActivityListTabChanged(_tabController.index));
+      context.read<ActivityListBloc>().add(
+        ActivityListTabChanged(_tabController.index),
+      );
     }
   }
 
@@ -99,9 +100,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     if (_myScrollController.hasClients &&
         _myScrollController.position.pixels >=
             _myScrollController.position.maxScrollExtent - 250) {
-      context
-          .read<ActivityListBloc>()
-          .add(const ActivityListLoadMoreRequested(isTeam: false));
+      context.read<ActivityListBloc>().add(
+        const ActivityListLoadMoreRequested(isTeam: false),
+      );
     }
   }
 
@@ -109,9 +110,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     if (_teamScrollController.hasClients &&
         _teamScrollController.position.pixels >=
             _teamScrollController.position.maxScrollExtent - 250) {
-      context
-          .read<ActivityListBloc>()
-          .add(const ActivityListLoadMoreRequested(isTeam: true));
+      context.read<ActivityListBloc>().add(
+        const ActivityListLoadMoreRequested(isTeam: true),
+      );
     }
   }
 
@@ -130,32 +131,46 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
   Future<void> _handleRefresh() async {
     final isTeam = _tabController.index == 1;
     context.read<ActivityListBloc>().add(
-          ActivityListFetchRequested(isRefresh: true, isTeam: isTeam),
-        );
+      ActivityListFetchRequested(isRefresh: true, isTeam: isTeam),
+    );
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
   void _loadMyActivities({required int page, bool isRefresh = false}) {
     context.read<ActivityListBloc>().add(
-          ActivityListFetchRequested(isRefresh: isRefresh, isTeam: false),
-        );
+      ActivityListFetchRequested(isRefresh: isRefresh, isTeam: false),
+    );
   }
 
   void _loadTeamActivities({required int page, bool isRefresh = false}) {
     context.read<ActivityListBloc>().add(
-          ActivityListFetchRequested(isRefresh: isRefresh, isTeam: true),
-        );
+      ActivityListFetchRequested(isRefresh: isRefresh, isTeam: true),
+    );
   }
 
   Future<void> _handleCreateActivity() async {
+    final listState = context.read<ActivityListBloc>().state;
+    final hasManageAuth = listState.hasManagePermission;
+
     if (GoRouter.maybeOf(context) != null) {
-      final newActivity =
-          await context.push<ActivityItem>(Routes.CREATE_ACTIVITY);
+      String routeToPush = Routes.CREATE_ACTIVITY;
+
+      // Jika memiliki hak otorisasi activity.manage, tampilkan Bottom Sheet pilihan target
+      if (hasManageAuth) {
+        final target = await showCreateActivityOptionBottomSheet(context);
+        if (target == null || !mounted) return;
+        if (target == CreateActivityTarget.subordinate) {
+          routeToPush = Routes.CREATE_ACTIVITY_PLAN;
+        } else {
+          routeToPush = Routes.CREATE_ACTIVITY;
+        }
+      }
+
+      final newActivity = await context.push<ActivityItem>(routeToPush);
       if (!mounted) return;
       if (newActivity != null) {
-        context
-            .read<ActivityListBloc>()
-            .add(ActivityListActivityAdded(newActivity));
+        _loadMyActivities(page: 1, isRefresh: true);
+        _loadTeamActivities(page: 1, isRefresh: true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -428,9 +443,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                   curve: Curves.easeInOut,
                   height: showSearchBar ? 58 : 0,
                   clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    color: bgCol,
-                  ),
+                  decoration: BoxDecoration(color: bgCol),
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
                     opacity: showSearchBar ? 1.0 : 0.0,
@@ -633,18 +646,18 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  if (filterCriteria.hasActiveFilter ||
-                      searchQuery.isNotEmpty)
+                  if (filterCriteria.hasActiveFilter || searchQuery.isNotEmpty)
                     OutlinedButton(
                       onPressed: () {
                         _searchController.clear();
-                        context
-                            .read<ActivityListBloc>()
-                            .add(const ActivityListSearchChanged(''));
-                        context
-                            .read<ActivityListBloc>()
-                            .add(const ActivityListFilterApplied(
-                                ActivityFilterCriteria()));
+                        context.read<ActivityListBloc>().add(
+                          const ActivityListSearchChanged(''),
+                        );
+                        context.read<ActivityListBloc>().add(
+                          const ActivityListFilterApplied(
+                            ActivityFilterCriteria(),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: brandColor,
@@ -663,7 +676,11 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.rotateCcw, size: 14, color: brandColor),
+                          Icon(
+                            LucideIcons.rotateCcw,
+                            size: 14,
+                            color: brandColor,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Reset Pencarian & Filter',
@@ -678,13 +695,13 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       ),
                     )
                   else
-
                     ElevatedButton(
                       onPressed: _handleCreateActivity,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandColor,
-                        foregroundColor:
-                            isDark ? const Color(0xFF003732) : Colors.white,
+                        foregroundColor: isDark
+                            ? const Color(0xFF003732)
+                            : Colors.white,
                         shape: const StadiumBorder(),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
@@ -701,8 +718,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                           Icon(
                             LucideIcons.plus,
                             size: 16,
-                            color:
-                                isDark ? const Color(0xFF003732) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF003732)
+                                : Colors.white,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -720,7 +738,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         ],
                       ),
                     ),
-
                 ],
               ),
             ),
@@ -743,8 +760,10 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
             return ActivityCard(
               activity: item,
               onTap: () async {
-                final result =
-                    await context.push(Routes.ACTIVITY_DETAIL, extra: item);
+                final result = await context.push(
+                  Routes.ACTIVITY_DETAIL,
+                  extra: item,
+                );
                 if (result == true && mounted) {
                   _loadMyActivities(page: 1, isRefresh: true);
                 }
@@ -832,11 +851,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       color: brandColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      LucideIcons.users,
-                      color: brandColor,
-                      size: 32,
-                    ),
+                    child: Icon(LucideIcons.users, color: brandColor, size: 32),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -867,13 +882,14 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                     OutlinedButton(
                       onPressed: () {
                         _searchController.clear();
-                        context
-                            .read<ActivityListBloc>()
-                            .add(const ActivityListSearchChanged(''));
-                        context
-                            .read<ActivityListBloc>()
-                            .add(const ActivityListFilterApplied(
-                                ActivityFilterCriteria()));
+                        context.read<ActivityListBloc>().add(
+                          const ActivityListSearchChanged(''),
+                        );
+                        context.read<ActivityListBloc>().add(
+                          const ActivityListFilterApplied(
+                            ActivityFilterCriteria(),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: brandColor,
@@ -892,7 +908,11 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.rotateCcw, size: 14, color: brandColor),
+                          Icon(
+                            LucideIcons.rotateCcw,
+                            size: 14,
+                            color: brandColor,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Reset Pencarian & Filter',
@@ -906,7 +926,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         ],
                       ),
                     ),
-
                   ],
                 ],
               ),
@@ -931,8 +950,10 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
             return ActivityCard(
               activity: item,
               onTap: () async {
-                final result =
-                    await context.push(Routes.ACTIVITY_DETAIL, extra: item);
+                final result = await context.push(
+                  Routes.ACTIVITY_DETAIL,
+                  extra: item,
+                );
                 if (result == true && mounted) {
                   _loadTeamActivities(page: 1, isRefresh: true);
                 }
@@ -1054,7 +1075,11 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(LucideIcons.rotateCcw, size: 14, color: textCol),
+                            Icon(
+                              LucideIcons.rotateCcw,
+                              size: 14,
+                              color: textCol,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'Coba Lagi',
@@ -1062,7 +1087,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                                 color: textCol,
                                 fontWeight: FontWeight.w600,
                                 height: 1.0,
-                                leadingDistribution: TextLeadingDistribution.even,
+                                leadingDistribution:
+                                    TextLeadingDistribution.even,
                               ),
                             ),
                           ],
@@ -1075,8 +1101,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandColor,
-                          foregroundColor:
-                              isDark ? const Color(0xFF003732) : Colors.white,
+                          foregroundColor: isDark
+                              ? const Color(0xFF003732)
+                              : Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -1095,22 +1122,26 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                             Icon(
                               LucideIcons.arrowLeft,
                               size: 14,
-                              color: isDark ? const Color(0xFF003732) : Colors.white,
+                              color: isDark
+                                  ? const Color(0xFF003732)
+                                  : Colors.white,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Aktivitasku',
                               style: AppTypography.bodySmall.copyWith(
-                                color: isDark ? const Color(0xFF003732) : Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF003732)
+                                    : Colors.white,
                                 fontWeight: FontWeight.w700,
                                 height: 1.0,
-                                leadingDistribution: TextLeadingDistribution.even,
+                                leadingDistribution:
+                                    TextLeadingDistribution.even,
                               ),
                             ),
                           ],
                         ),
                       ),
-
                     ],
                   ),
                 ],
@@ -1148,6 +1179,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         return StatefulBuilder(
@@ -1477,7 +1509,9 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                                       isMyActivity: true,
                                     );
 
-                                    bloc.add(ActivityListActivityAdded(newActivity));
+                                    bloc.add(
+                                      ActivityListActivityAdded(newActivity),
+                                    );
 
                                     Navigator.of(sheetContext).pop();
 

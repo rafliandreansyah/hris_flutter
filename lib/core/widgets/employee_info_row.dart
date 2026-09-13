@@ -123,6 +123,7 @@ class EmployeeInfoRow extends StatelessWidget {
               const SizedBox(height: 6),
               if (resolvedEmployeeId.isNotEmpty)
                 Wrap(
+                  spacing: 6,
                   runSpacing: 4,
                   children: [
                     Container(
@@ -154,30 +155,26 @@ class EmployeeInfoRow extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if ((resolvedCompany?.isNotEmpty ?? false)) ...[
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2.5,
+                    if (resolvedCompany?.isNotEmpty ?? false)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeBg,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          resolvedCompany!,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: subtitleCol,
+                            fontSize: 11,
                           ),
-                          decoration: BoxDecoration(
-                            color: badgeBg,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            resolvedCompany!,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: subtitleCol,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
                   ],
                 ),
             ],

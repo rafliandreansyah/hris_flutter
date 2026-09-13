@@ -82,3 +82,13 @@ class ActivityListActivityAdded extends ActivityListEvent {
   @override
   List<Object?> get props => [activity];
 }
+
+/// Event pembaruan status izin manage aktivitas
+class ActivityListPermissionLoaded extends ActivityListEvent {
+  final bool hasManagePermission;
+
+  const ActivityListPermissionLoaded({required this.hasManagePermission});
+
+  @override
+  List<Object?> get props => [hasManagePermission];
+}

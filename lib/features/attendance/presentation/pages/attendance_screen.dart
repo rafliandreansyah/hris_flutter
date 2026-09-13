@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
@@ -254,6 +257,137 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
     );
   }
 
+  Future<void> _handleClockAction(
+    BuildContext context, {
+    required AttendanceLoaded state,
+    required String method,
+  }) async {
+    final data = state.data;
+
+    // 1. Pengecekan apakah sudah absen masuk dan pulang
+    if (data.isClockedIn && data.isClockedOut) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Presensi kehadiran hari ini sudah selesai.'),
+          backgroundColor: AppColors.brandTeal,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // 2. Validasi lokasi kerja
+    final selectedLocation = data.selectedWorkLocation;
+    if (selectedLocation == null || selectedLocation.id.isEmpty) {
+      AppDialogUtil.showError(
+        context,
+        title: 'Lokasi Kerja Tidak Ditemukan',
+        message:
+            'Anda belum memiliki lokasi kerja yang ditentukan. Hubungi admin atau atasan Anda.',
+      );
+      return;
+    }
+
+    // 3. Koordinat GPS & data lokasi
+    final double effectiveLat = state.userLatitude ?? data.officeLatitude;
+    final double effectiveLng = state.userLongitude ?? data.officeLongitude;
+    final String effectiveAddress = data.officeDetail;
+    final String targetType = !data.isClockedIn ? 'in' : 'out';
+
+    // 4. Eksekusi berdasarkan metode (photo vs biometric)
+    if (method == 'photo') {
+      try {
+        final result = await ImageCompressUtil.pickAndCompress(
+          source: ImageSource.camera,
+          preferredCameraDevice: CameraDevice.front,
+        );
+
+        // Jika user membatalkan kamera
+        if (result == null) return;
+        if (!context.mounted) return;
+
+        if (targetType == 'in') {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockInSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'photo',
+              workLocationId: selectedLocation.id,
+              photoFile: result.file,
+            ),
+          );
+        } else {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockOutSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'photo',
+              workLocationId: selectedLocation.id,
+              photoFile: result.file,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!context.mounted) return;
+        AppDialogUtil.showError(
+          context,
+          title: 'Kamera Gagal',
+          message:
+              'Terjadi kesalahan saat mengakses kamera atau mengompres foto: $e',
+        );
+      }
+    } else if (method == 'biometric') {
+      try {
+        final authenticated = await BiometricService.instance.authenticate(
+          localizedReason:
+              'Pindai sidik jari atau wajah Anda untuk konfirmasi presensi ${targetType == "in" ? "Masuk" : "Pulang"}',
+        );
+
+        if (!authenticated) return;
+        if (!context.mounted) return;
+
+        if (targetType == 'in') {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockInSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'biometric',
+              workLocationId: selectedLocation.id,
+            ),
+          );
+        } else {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockOutSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'biometric',
+              workLocationId: selectedLocation.id,
+            ),
+          );
+        }
+      } on BiometricException catch (e) {
+        if (!context.mounted) return;
+        AppDialogUtil.showError(
+          context,
+          title: 'Autentikasi Biometrik Gagal',
+          message: e.message,
+        );
+      } catch (e) {
+        if (!context.mounted) return;
+        AppDialogUtil.showError(
+          context,
+          title: 'Autentikasi Biometrik Gagal',
+          message: e.toString(),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -458,33 +592,17 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           isLoading: loaded.isSubmittingAction,
                           hasWorkLocation: data.hasWorkLocation,
                           breakOutTime: data.breakOutTime,
-                          onClockPressed: () {
-                            if (!data.isClockedIn) {
-                              context.read<AttendanceBloc>().add(
-                                AttendanceClockInSubmitted(
-                                  latitude:
-                                      loaded.userLatitude ??
-                                      data.officeLatitude,
-                                  longitude:
-                                      loaded.userLongitude ??
-                                      data.officeLongitude,
-                                  address: data.officeDetail,
-                                ),
-                              );
-                            } else if (!data.isClockedOut) {
-                              context.read<AttendanceBloc>().add(
-                                AttendanceClockOutSubmitted(
-                                  latitude:
-                                      loaded.userLatitude ??
-                                      data.officeLatitude,
-                                  longitude:
-                                      loaded.userLongitude ??
-                                      data.officeLongitude,
-                                  address: data.officeDetail,
-                                ),
-                              );
-                            }
-                          },
+                          onClockWithMethodPressed: (method) =>
+                              _handleClockAction(
+                            context,
+                            state: loaded,
+                            method: method,
+                          ),
+                          onClockPressed: () => _handleClockAction(
+                            context,
+                            state: loaded,
+                            method: 'photo',
+                          ),
                           onBreakPressed: () {
                             context.read<AttendanceBloc>().add(
                               const AttendanceBreakToggled(),

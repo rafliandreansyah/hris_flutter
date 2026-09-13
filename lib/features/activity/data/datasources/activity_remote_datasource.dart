@@ -51,6 +51,28 @@ abstract class ActivityRemoteDataSource {
     String status = 'ongoing',
     XFile? file,
   });
+
+  /// Membuat rencana aktivitas untuk bawahan melalui `POST /activity/plan` (multipart/form-data).
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  });
+
+  /// Memulai aktivitas kerja yang berstatus plan melalui `PATCH /activity/{id}/start` (multipart/form-data).
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  });
 }
 
 class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
@@ -278,10 +300,106 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
     );
   }
 
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) async {
+    final map = <String, dynamic>{
+      'employeeId': employeeId.trim(),
+      'activityTypeId': activityTypeId.trim(),
+      'startTime': startTime.trim(),
+      'locationName': locationName.trim(),
+      'locationAddress': locationAddress.trim(),
+      'description': description.trim(),
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+    };
+
+    if (file != null) {
+      final fileName = file.name.isNotEmpty
+          ? file.name
+          : file.path.split(RegExp(r'[/\\]')).last;
+      map['file'] = await MultipartFile.fromFile(
+        file.path,
+        filename: fileName,
+      );
+    }
+
+    final formData = FormData.fromMap(map);
+
+    final response = await _apiClient.post(
+      ApiEndpoints.activityPlan,
+      data: formData,
+    );
+
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic>) {
+      return CreateActivityResponse.fromJson(rawData);
+    }
+
+    throw ApiException(
+      message: rawData is Map<String, dynamic>
+          ? rawData['message']?.toString() ?? 'Gagal membuat rencana aktivitas.'
+          : 'Gagal membuat rencana aktivitas.',
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) async {
+    final map = <String, dynamic>{
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'locationAddress': locationAddress.trim(),
+    };
+
+    if (file != null) {
+      final fileName = file.name.isNotEmpty
+          ? file.name
+          : file.path.split(RegExp(r'[/\\]')).last;
+      map['file'] = await MultipartFile.fromFile(
+        file.path,
+        filename: fileName,
+      );
+    }
+
+    final formData = FormData.fromMap(map);
+
+    final response = await _apiClient.patch(
+      ApiEndpoints.activityStart(id),
+      data: formData,
+    );
+
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic>) {
+      return ActivityActionResponse.fromJson(rawData);
+    }
+
+    throw ApiException(
+      message: rawData is Map<String, dynamic>
+          ? rawData['message']?.toString() ?? 'Gagal memulai aktivitas.'
+          : 'Gagal memulai aktivitas.',
+    );
+  }
+
   static String _resolveActivityStatus(String? status) {
     if (status == null || status.trim().isEmpty) return 'all';
     final s = status.trim().toLowerCase();
     if (s == 'all' || s == 'semua') return 'all';
+    if (s == 'planned') return 'planned';
     if (s == 'ongoing') return 'ongoing';
     if (s == 'completed') return 'completed';
     if (s == 'canceled' || s == 'cancelled') return 'canceled';

@@ -110,6 +110,48 @@ class _MockCreateActivityRepository implements ActivityRepository {
       },
     );
   }
+
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) async {
+    return CreateActivityResponse(
+      success: true,
+      message: 'Plan created successfully',
+      data: {
+        'id': 'act-plan-123',
+        'employeeId': employeeId,
+        'activityTypeId': activityTypeId,
+        'locationName': locationName,
+        'locationAddress': locationAddress,
+        'description': description,
+        'status': 'plan',
+        'startTime': startTime,
+      },
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(
+      success: true,
+      message: 'Aktivitas berhasil dimulai.',
+    );
+  }
 }
 
 void main() {

@@ -207,6 +207,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           longitude: event.longitude,
           address: event.address,
           note: event.note,
+          attendanceMethod: event.attendanceMethod,
+          workLocationId: event.workLocationId,
+          photoFile: event.photoFile,
         );
 
         emit(
@@ -223,7 +226,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         emit(
           current.copyWith(
             isSubmittingAction: false,
-            errorMessage: 'Gagal melakukan Clock In: ${_extractErrorMessage(e)}',
+            errorMessage: _extractErrorMessage(e),
           ),
         );
       }
@@ -244,6 +247,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           longitude: event.longitude,
           address: event.address,
           note: event.note,
+          attendanceMethod: event.attendanceMethod,
+          workLocationId: event.workLocationId,
+          photoFile: event.photoFile,
         );
 
         emit(
@@ -260,7 +266,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         emit(
           current.copyWith(
             isSubmittingAction: false,
-            errorMessage: 'Gagal melakukan Clock Out: ${_extractErrorMessage(e)}',
+            errorMessage: _extractErrorMessage(e),
           ),
         );
       }

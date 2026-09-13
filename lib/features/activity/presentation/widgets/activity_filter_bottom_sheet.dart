@@ -16,7 +16,7 @@ class ActivityFilterCriteria {
   final String? department;
   final String? positionId;
   final String? position;
-  final String? status; // 'ongoing' (default), 'completed', 'canceled', or null for all status
+  final String? status; // 'ongoing' (default), 'planned', 'completed', 'canceled', or null for all status
 
   const ActivityFilterCriteria({
     this.dateRange,
@@ -816,31 +816,29 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final chipTextCol =
         isSelected ? (isDark ? brandColor : const Color(0xFF0D9488)) : labelCol;
 
-    return Expanded(
-      child: InkWell(
-        onTap: onSelected,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: chipBg,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: chipBorder,
-              width: isSelected ? 1.5 : 1,
-            ),
+    return InkWell(
+      onTap: onSelected,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: chipBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: chipBorder,
+            width: isSelected ? 1.5 : 1,
           ),
-          child: Text(
-            label,
-            style: AppTypography.bodySmall.copyWith(
-              color: chipTextCol,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              fontSize: 12.5,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        ),
+        child: Text(
+          label,
+          style: AppTypography.bodySmall.copyWith(
+            color: chipTextCol,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12.5,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -1145,7 +1143,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               _buildStatusChip(
                                 label: 'Semua',
@@ -1161,7 +1161,20 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   setState(() => _selectedStatus = 'all');
                                 },
                               ),
-                              const SizedBox(width: 6),
+                              _buildStatusChip(
+                                label: 'Planned',
+                                value: 'planned',
+                                selectedValue: _selectedStatus,
+                                brandColor: brandColor,
+                                textCol: textCol,
+                                labelCol: labelCol,
+                                borderCol: borderCol,
+                                fieldBg: fieldBg,
+                                isDark: isDark,
+                                onSelected: () {
+                                  setState(() => _selectedStatus = 'planned');
+                                },
+                              ),
                               _buildStatusChip(
                                 label: 'Ongoing',
                                 value: 'ongoing',
@@ -1176,7 +1189,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   setState(() => _selectedStatus = 'ongoing');
                                 },
                               ),
-                              const SizedBox(width: 6),
                               _buildStatusChip(
                                 label: 'Complete',
                                 value: 'completed',
@@ -1191,7 +1203,6 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                   setState(() => _selectedStatus = 'completed');
                                 },
                               ),
-                              const SizedBox(width: 6),
                               _buildStatusChip(
                                 label: 'Canceled',
                                 value: 'canceled',
@@ -1208,17 +1219,19 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
                             (_selectedStatus == null ||
                                     _selectedStatus!.isEmpty ||
                                     _selectedStatus == 'all')
                                 ? 'Memuat seluruh data aktivitas tanpa batasan status (status=all)'
-                                : _selectedStatus == 'ongoing'
-                                    ? 'Memuat aktivitas yang sedang berjalan (status=ongoing)'
-                                    : _selectedStatus == 'completed'
-                                        ? 'Memuat aktivitas yang sudah selesai (status=completed)'
-                                        : 'Memuat aktivitas yang dibatalkan (status=canceled)',
+                                : _selectedStatus == 'planned'
+                                    ? 'Memuat rencana aktivitas yang telah dibuat (status=planned)'
+                                    : _selectedStatus == 'ongoing'
+                                        ? 'Memuat aktivitas yang sedang berjalan (status=ongoing)'
+                                        : _selectedStatus == 'completed'
+                                            ? 'Memuat aktivitas yang sudah selesai (status=completed)'
+                                            : 'Memuat aktivitas yang dibatalkan (status=canceled)',
                             style: AppTypography.labelSmall.copyWith(
                               color: labelCol,
                               fontSize: 11,

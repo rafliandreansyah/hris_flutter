@@ -114,6 +114,36 @@ class _MockActivityRepository implements ActivityRepository {
       data: {},
     );
   }
+
+  @override
+  Future<CreateActivityResponse> createPlanActivity({
+    required String employeeId,
+    required String activityTypeId,
+    required String startTime,
+    required String locationName,
+    required String locationAddress,
+    required String description,
+    double latitude = 0,
+    double longitude = 0,
+    XFile? file,
+  }) async {
+    return const CreateActivityResponse(
+      success: true,
+      message: 'OK',
+      data: {},
+    );
+  }
+
+  @override
+  Future<ActivityActionResponse> startActivity({
+    required String id,
+    required double latitude,
+    required double longitude,
+    required String locationAddress,
+    XFile? file,
+  }) async {
+    return const ActivityActionResponse(success: true, message: 'OK');
+  }
 }
 
 void main() {
@@ -361,6 +391,88 @@ void main() {
 
       expect(bloc.state.filterCriteria.status, 'all');
       expect(capturedStatus, 'all');
+      bloc.close();
+    });
+
+    test('ActivityListFilterApplied with planned status requests status=planned', () async {
+      String? capturedStatus;
+      final mockRepo = _MockActivityRepository(
+        onGetActivities: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? status,
+          String? startDate,
+          String? endDate,
+          bool approver = false,
+        }) async {
+          capturedStatus = status;
+          return const ActivityListResponse(
+            success: true,
+            message: 'OK',
+            data: [],
+            meta: ActivityPaginationMeta(page: 1, limit: 20, total: 0, totalPages: 1),
+          );
+        },
+      );
+
+      final bloc = ActivityListBloc(repository: mockRepo);
+      const plannedCriteria = ActivityFilterCriteria(status: 'planned');
+      bloc.add(const ActivityListFilterApplied(plannedCriteria));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.filterCriteria.status, 'planned');
+      expect(capturedStatus, 'planned');
+      bloc.close();
+    });
+
+    test('Local filter correctly filters planned activities', () async {
+      final sample = [
+        ActivityItem(
+          id: '1',
+          title: 'Planned Task',
+          description: 'Desc',
+          userName: 'Sarah',
+          userRole: 'Developer',
+          department: 'Engineering',
+          company: 'Oasish',
+          initials: 'S',
+          status: ActivityStatus.planned,
+          location: 'Office',
+          time: '09:00',
+          date: DateTime.now(),
+          isMyActivity: true,
+        ),
+        ActivityItem(
+          id: '2',
+          title: 'Ongoing Task',
+          description: 'Desc',
+          userName: 'Budi',
+          userRole: 'Designer',
+          department: 'Product',
+          company: 'Oasish',
+          initials: 'B',
+          status: ActivityStatus.ongoing,
+          location: 'Office',
+          time: '10:00',
+          date: DateTime.now(),
+          isMyActivity: true,
+        ),
+      ];
+
+      final bloc = ActivityListBloc(repository: _MockActivityRepository());
+      bloc.add(ActivityListStarted(customActivities: sample));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const ActivityListFilterApplied(ActivityFilterCriteria(status: 'planned')));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.myActivities.length, 1);
+      expect(bloc.state.myActivities.first.id, '1');
+      expect(bloc.state.myActivities.first.status, ActivityStatus.planned);
       bloc.close();
     });
 

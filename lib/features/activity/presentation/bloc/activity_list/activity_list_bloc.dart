@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
@@ -10,12 +11,17 @@ import 'package:hris_flutter/features/activity/presentation/widgets/activity_fil
 
 class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
   final ActivityRepository _repository;
+  final SecureStorageService _storageService;
   static const int defaultPageSize = 20;
 
-  ActivityListBloc({ActivityRepository? repository})
-      : _repository = repository ?? ActivityRepositoryImpl(),
+  ActivityListBloc({
+    ActivityRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? ActivityRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const ActivityListState()) {
     on<ActivityListStarted>(_onStarted);
+    on<ActivityListPermissionLoaded>(_onPermissionLoaded);
     on<ActivityListTabChanged>(_onTabChanged);
     on<ActivityListFetchRequested>(_onFetchRequested);
     on<ActivityListLoadMoreRequested>(_onLoadMoreRequested);
@@ -28,6 +34,8 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     ActivityListStarted event,
     Emitter<ActivityListState> emit,
   ) {
+    final hasManage = _storageService.hasPermissionInMemory('activity.manage');
+
     if (event.customActivities != null) {
       final custom = event.customActivities!;
       final filteredMy = _filterInMemory(
@@ -49,12 +57,31 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         myActivities: filteredMy,
         teamActivities: filteredTeam,
         hasLoadedTeam: true,
+        hasManagePermission: hasManage,
       ));
     } else {
-      emit(state.copyWith(hasLoadedTeam: true));
+      emit(state.copyWith(
+        hasLoadedTeam: true,
+        hasManagePermission: hasManage,
+      ));
       add(const ActivityListFetchRequested(isRefresh: true, isTeam: false));
       add(const ActivityListFetchRequested(isRefresh: true, isTeam: true));
     }
+
+    if (!hasManage) {
+      _storageService.hasPermission('activity.manage').then((has) {
+        if (has && !isClosed) {
+          add(ActivityListPermissionLoaded(hasManagePermission: has));
+        }
+      }).catchError((_) {});
+    }
+  }
+
+  void _onPermissionLoaded(
+    ActivityListPermissionLoaded event,
+    Emitter<ActivityListState> emit,
+  ) {
+    emit(state.copyWith(hasManagePermission: event.hasManagePermission));
   }
 
   void _onTabChanged(
@@ -383,7 +410,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         }
       }
 
-      // Filter Status (ongoing, completed, canceled, all)
+      // Filter Status (ongoing, completed, canceled, planned, all)
       final filterStatus = _resolveStatus(criteria.status);
       if (filterStatus != 'all' && filterStatus != 'ongoing') {
         final itemStatus = item.status.name.toLowerCase();
@@ -392,6 +419,8 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         } else if ((filterStatus == 'canceled' || filterStatus == 'cancelled') &&
             itemStatus != 'canceled' &&
             itemStatus != 'cancelled') {
+          return false;
+        } else if (filterStatus == 'planned' && itemStatus != 'planned') {
           return false;
         }
       }

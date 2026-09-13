@@ -13,9 +13,12 @@ import 'package:hris_flutter/features/activity/presentation/bloc/activity_detail
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_detail/activity_detail_state.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_map_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_timeline_section.dart';
+import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 
 /// Halaman Detail Aktivitas & Verifikasi (Activity Detail & Verification)
 /// Sesuai Clean Architecture & BLoC Pattern.
@@ -238,10 +241,11 @@ class _ActivityDetailView extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // Section 2: Google Maps Card
-                      ActivityMapCard(activity: item),
-
-                      const SizedBox(height: 24),
+                      // Section 2: Google Maps Card (Disembunyikan jika status masih planned)
+                      if (item.status != ActivityStatus.planned) ...[
+                        ActivityMapCard(activity: item),
+                        const SizedBox(height: 24),
+                      ],
 
                       // Section 3: 2-Phase Progress Timeline
                       ActivityTimelineSection(phases: item.activePhases),
@@ -253,10 +257,12 @@ class _ActivityDetailView extends StatelessWidget {
               ),
             ),
 
-            // 3. Creator Action Bar (Only when user is creator and status is ongoing)
+            // 3. Creator Action Bar (Ongoing or Planned)
             bottomNavigationBar: (state.isCreator && isOngoing)
                 ? _buildCreatorActionBar(context, item, isDark)
-                : null,
+                : (state.isCreator && item.status == ActivityStatus.planned)
+                    ? _buildPlannedActionBar(context, item, isDark)
+                    : null,
           ),
         );
       },
@@ -354,6 +360,63 @@ class _ActivityDetailView extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Bottom Action Bar untuk pembuat aktivitas saat status masih Planned
+  Widget _buildPlannedActionBar(
+    BuildContext context,
+    ActivityItem item,
+    bool isDark,
+  ) {
+    final barBg = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: barBg,
+        border: Border(top: BorderSide(color: borderCol, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            key: const ValueKey('start_activity_btn'),
+            onPressed: () => _showStartActivityBottomSheet(
+              context: context,
+              item: item,
+            ),
+            icon: const Icon(LucideIcons.playCircle, size: 18),
+            label: const Text(
+              'Mulai Aktivitas',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandTeal,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
+          ),
         ),
       ),
     );
@@ -783,6 +846,475 @@ class _ActivityDetailView extends StatelessWidget {
                                   ? 'Selesaikan Aktivitas'
                                   : 'Konfirmasi Batalkan',
                               style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Menampilkan Bottom Sheet Modal untuk memulai aktivitas (Status Planned -> Ongoing)
+  /// Mengambil GPS real-time terkini, form edit alamat, dan upload foto bukti mulai
+  Future<void> _showStartActivityBottomSheet({
+    required BuildContext context,
+    required ActivityItem item,
+  }) async {
+    final bloc = context.read<ActivityDetailBloc>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
+    final fieldBg = isDark
+        ? AppColors.darkBackgroundSubtle
+        : AppColors.backgroundSubtle;
+
+    double currentLat = (item.latitude != 0) ? item.latitude : -6.2088;
+    double currentLng = (item.longitude != 0) ? item.longitude : 106.8456;
+    String currentAccuracy = '±5m';
+
+    // Inisialisasi awal geolocator jika memungkinkan
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos != null) {
+        currentLat = pos.latitude;
+        currentLng = pos.longitude;
+        currentAccuracy = '±${pos.accuracy.toStringAsFixed(0)}m';
+      }
+    } catch (_) {}
+
+    final addressController = TextEditingController(
+      text: item.fullAddress.isNotEmpty ? item.fullAddress : item.location,
+    );
+    XFile? selectedFile;
+    bool isCompressingPhoto = false;
+    String? errorText;
+
+    if (!context.mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
+                    blurRadius: 25,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Drag Handle
+                        Center(
+                          child: Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: borderCol,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Header Modal
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.brandTeal.withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                LucideIcons.playCircle,
+                                color: AppColors.brandTeal,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Mulai Aktivitas',
+                                    style: AppTypography.titleMedium.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: textCol,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Konfirmasi lokasi GPS Anda dan unggah foto bukti.',
+                                    style: AppTypography.bodySmall.copyWith(
+                                      fontSize: 12,
+                                      color: subtitleCol,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                LucideIcons.x,
+                                color: subtitleCol,
+                                size: 20,
+                              ),
+                              onPressed: () => Navigator.of(sheetCtx).pop(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Realtime Map Card
+                        CreateActivityMapCard(
+                          latitude: currentLat,
+                          longitude: currentLng,
+                          gpsAccuracy: currentAccuracy,
+                          onLocationChanged: (lat, lng, acc) {
+                            setModalState(() {
+                              currentLat = lat;
+                              currentLng = lng;
+                              currentAccuracy = acc;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Alamat Lokasi (Wajib)
+                        Text(
+                          'Alamat Lokasi (Wajib)',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: textCol,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          key: const ValueKey('start_location_address_field'),
+                          controller: addressController,
+                          maxLines: 2,
+                          minLines: 1,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: textCol,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan alamat lokasi saat ini...',
+                            hintStyle: AppTypography.bodySmall.copyWith(
+                              color: subtitleCol,
+                            ),
+                            filled: true,
+                            fillColor: fieldBg,
+                            contentPadding: const EdgeInsets.all(14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: borderCol),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(color: borderCol),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: AppColors.brandTeal,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Section Foto Bukti
+                        Text(
+                          'Foto Bukti Mulai (Opsional)',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: textCol,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        if (selectedFile == null)
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: fieldBg,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: borderCol, width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final picker = ImagePicker();
+                                      final picked = await picker.pickImage(
+                                        source: ImageSource.camera,
+                                        maxWidth: 1600,
+                                        maxHeight: 1600,
+                                        imageQuality: 85,
+                                      );
+                                      if (picked != null) {
+                                        setModalState(() => isCompressingPhoto = true);
+                                        final compressed = await ImageCompressUtil.compressXFile(picked);
+                                        setModalState(() {
+                                          selectedFile = compressed.file;
+                                          isCompressingPhoto = false;
+                                        });
+                                      }
+                                    },
+                                    icon: const Icon(
+                                      LucideIcons.camera,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Kamera',
+                                      style: TextStyle(fontSize: 13),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: textCol,
+                                      side: BorderSide(color: borderCol),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final picker = ImagePicker();
+                                      final picked = await picker.pickImage(
+                                        source: ImageSource.gallery,
+                                        maxWidth: 1600,
+                                        maxHeight: 1600,
+                                        imageQuality: 85,
+                                      );
+                                      if (picked != null) {
+                                        setModalState(() => isCompressingPhoto = true);
+                                        final compressed = await ImageCompressUtil.compressXFile(picked);
+                                        setModalState(() {
+                                          selectedFile = compressed.file;
+                                          isCompressingPhoto = false;
+                                        });
+                                      }
+                                    },
+                                    icon: const Icon(
+                                      LucideIcons.image,
+                                      size: 16,
+                                    ),
+                                    label: const Text(
+                                      'Galeri',
+                                      style: TextStyle(fontSize: 13),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: textCol,
+                                      side: BorderSide(color: borderCol),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: fieldBg,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColors.brandTeal.withValues(alpha: 0.5),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: isCompressingPhoto
+                                      ? const SizedBox(
+                                          width: 52,
+                                          height: 52,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.brandTeal,
+                                            ),
+                                          ),
+                                        )
+                                      : kIsWeb
+                                          ? Image.network(
+                                              selectedFile!.path,
+                                              width: 52,
+                                              height: 52,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
+                                                      const Icon(
+                                                        LucideIcons.image,
+                                                        size: 30,
+                                                      ),
+                                            )
+                                          : Image.file(
+                                              File(selectedFile!.path),
+                                              width: 52,
+                                              height: 52,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
+                                                      const Icon(
+                                                        LucideIcons.image,
+                                                        size: 30,
+                                                      ),
+                                            ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        selectedFile!.name.isNotEmpty
+                                            ? selectedFile!.name
+                                            : 'Foto bukti terpilih',
+                                        style: AppTypography.bodySmall.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: textCol,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        isCompressingPhoto
+                                            ? 'Mengompresi foto...'
+                                            : 'Foto siap diunggah',
+                                        style: AppTypography.labelSmall.copyWith(
+                                          color: isCompressingPhoto
+                                              ? AppColors.brandTeal
+                                              : const Color(0xFF10B981),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    LucideIcons.trash2,
+                                    color: Color(0xFFEF4444),
+                                    size: 18,
+                                  ),
+                                  onPressed: () {
+                                    setModalState(() => selectedFile = null);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        if (errorText != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            errorText!,
+                            style: const TextStyle(
+                              color: Color(0xFFDC2626),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // Tombol Mulai Submit
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            key: const ValueKey('submit_start_confirm_btn'),
+                            onPressed: isCompressingPhoto
+                                ? null
+                                : () async {
+                                    final addr = addressController.text.trim();
+                                    if (addr.isEmpty) {
+                                      setModalState(() {
+                                        errorText = 'Alamat lokasi wajib diisi!';
+                                      });
+                                      return;
+                                    }
+
+                                    Navigator.of(sheetCtx).pop();
+
+                                    bloc.add(
+                                      ActivityDetailStartSubmitted(
+                                        id: item.id,
+                                        latitude: currentLat,
+                                        longitude: currentLng,
+                                        locationAddress: addr,
+                                        file: selectedFile,
+                                      ),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.brandTeal,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text(
+                              'Mulai Aktivitas Sekarang',
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
