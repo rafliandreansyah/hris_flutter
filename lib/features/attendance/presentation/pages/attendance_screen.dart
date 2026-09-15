@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
@@ -20,6 +21,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_server_clock_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_timeline_section.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_top_app_bar.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_work_location_card.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -55,6 +57,7 @@ class _AttendanceScreenView extends StatefulWidget {
 
 class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   bool _isUpdatingLocation = false;
+  bool _hasShownNoMethodDialog = false;
 
   @override
   void initState() {
@@ -260,7 +263,6 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   Future<void> _handleClockAction(
     BuildContext context, {
     required AttendanceLoaded state,
-    required String method,
   }) async {
     final data = state.data;
 
@@ -277,7 +279,26 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       return;
     }
 
-    // 2. Validasi lokasi kerja
+    // 2. Validasi metode presensi dari server
+    if (!data.hasAttendanceMethod) {
+      AppDialogUtil.showError(
+        context,
+        title: 'Metode Presensi Tidak Ditemukan',
+        message:
+            'Anda belum memiliki metode presensi yang ditentukan. Hubungi admin atau atasan Anda untuk mengatur metode presensi.',
+        closeText: 'Kembali',
+        onClose: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/dashboard');
+          }
+        },
+      );
+      return;
+    }
+
+    // 3. Validasi lokasi kerja
     final selectedLocation = data.selectedWorkLocation;
     if (selectedLocation == null || selectedLocation.id.isEmpty) {
       AppDialogUtil.showError(
@@ -289,57 +310,14 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       return;
     }
 
-    // 3. Koordinat GPS & data lokasi
+    // 4. Koordinat GPS & data lokasi
     final double effectiveLat = state.userLatitude ?? data.officeLatitude;
     final double effectiveLng = state.userLongitude ?? data.officeLongitude;
     final String effectiveAddress = data.officeDetail;
     final String targetType = !data.isClockedIn ? 'in' : 'out';
 
-    // 4. Eksekusi berdasarkan metode (photo vs biometric)
-    if (method == 'photo') {
-      try {
-        final result = await ImageCompressUtil.pickAndCompress(
-          source: ImageSource.camera,
-          preferredCameraDevice: CameraDevice.front,
-        );
-
-        // Jika user membatalkan kamera
-        if (result == null) return;
-        if (!context.mounted) return;
-
-        if (targetType == 'in') {
-          context.read<AttendanceBloc>().add(
-            AttendanceClockInSubmitted(
-              latitude: effectiveLat,
-              longitude: effectiveLng,
-              address: effectiveAddress,
-              attendanceMethod: 'photo',
-              workLocationId: selectedLocation.id,
-              photoFile: result.file,
-            ),
-          );
-        } else {
-          context.read<AttendanceBloc>().add(
-            AttendanceClockOutSubmitted(
-              latitude: effectiveLat,
-              longitude: effectiveLng,
-              address: effectiveAddress,
-              attendanceMethod: 'photo',
-              workLocationId: selectedLocation.id,
-              photoFile: result.file,
-            ),
-          );
-        }
-      } catch (e) {
-        if (!context.mounted) return;
-        AppDialogUtil.showError(
-          context,
-          title: 'Kamera Gagal',
-          message:
-              'Terjadi kesalahan saat mengakses kamera atau mengompres foto: $e',
-        );
-      }
-    } else if (method == 'biometric') {
+    // 5. Eksekusi berdasarkan metode dari server (photo vs biometric)
+    if (data.isBiometricMethod) {
       try {
         final authenticated = await BiometricService.instance.authenticate(
           localizedReason:
@@ -355,7 +333,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               latitude: effectiveLat,
               longitude: effectiveLng,
               address: effectiveAddress,
-              attendanceMethod: 'biometric',
+              attendanceMethod: data.attendanceMethod,
               workLocationId: selectedLocation.id,
             ),
           );
@@ -365,7 +343,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               latitude: effectiveLat,
               longitude: effectiveLng,
               address: effectiveAddress,
-              attendanceMethod: 'biometric',
+              attendanceMethod: data.attendanceMethod,
               workLocationId: selectedLocation.id,
             ),
           );
@@ -385,6 +363,50 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
           message: e.toString(),
         );
       }
+    } else {
+      // Default: Photo / Selfie
+      try {
+        final result = await ImageCompressUtil.pickAndCompress(
+          source: ImageSource.camera,
+          preferredCameraDevice: CameraDevice.front,
+        );
+
+        // Jika user membatalkan kamera
+        if (result == null) return;
+        if (!context.mounted) return;
+
+        if (targetType == 'in') {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockInSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: data.attendanceMethod,
+              workLocationId: selectedLocation.id,
+              photoFile: result.file,
+            ),
+          );
+        } else {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockOutSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: data.attendanceMethod,
+              workLocationId: selectedLocation.id,
+              photoFile: result.file,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!context.mounted) return;
+        AppDialogUtil.showError(
+          context,
+          title: 'Kamera Gagal',
+          message:
+              'Terjadi kesalahan saat mengakses kamera atau mengompres foto: $e',
+        );
+      }
     }
   }
 
@@ -400,22 +422,42 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       body: SafeArea(
         child: BlocConsumer<AttendanceBloc, AttendanceState>(
           listener: (context, state) {
-            if (state is AttendanceLoaded && state.actionMessage != null) {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.actionMessage!),
-                  backgroundColor: AppColors.brandTeal,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            } else if (state is AttendanceLoaded &&
-                state.errorMessage != null) {
-              AppDialogUtil.showError(
-                context,
-                title: 'Gagal',
-                message: state.errorMessage!,
-              );
+            if (state is AttendanceLoaded) {
+              if (!state.data.hasAttendanceMethod && !_hasShownNoMethodDialog) {
+                _hasShownNoMethodDialog = true;
+                AppDialogUtil.showError(
+                  context,
+                  title: 'Metode Presensi Tidak Ditemukan',
+                  message:
+                      'Anda belum memiliki metode presensi yang ditentukan. Hubungi admin atau atasan Anda untuk mengatur metode presensi.',
+                  closeText: 'Kembali',
+                  onClose: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/dashboard');
+                    }
+                  },
+                );
+                return;
+              }
+
+              if (state.actionMessage != null) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.actionMessage!),
+                    backgroundColor: AppColors.brandTeal,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } else if (state.errorMessage != null) {
+                AppDialogUtil.showError(
+                  context,
+                  title: 'Gagal',
+                  message: state.errorMessage!,
+                );
+              }
             } else if (state is AttendanceFailure) {
               final isNotFound = state.isNotFound;
               final l10n = AppLocalizations.of(context);
@@ -552,10 +594,23 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                               data.selectedWorkLocation?.isAnyWhere ?? false,
                           hasWorkLocation: data.hasWorkLocation,
                           isGpsAcquired: loaded.isGpsAcquired,
+                          officeName: data.officeName,
                         ),
                         const SizedBox(height: 16),
 
-                        // 2. Realtime Server Clock Card (Without 'WIB')
+                        // 2. Work Location Card (Picker & Switcher)
+                        AttendanceWorkLocationCard(
+                          selectedLocation: data.selectedWorkLocation,
+                          availableLocations: data.availableWorkLocations,
+                          onLocationChanged: (newLocation) {
+                            context.read<AttendanceBloc>().add(
+                              AttendanceWorkLocationChanged(newLocation),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // 3. Realtime Server Clock Card (Without 'WIB')
                         AttendanceServerClockCard(
                           serverTime: loaded.currentClockTime,
                           clockTimeString: loaded.formattedClockTime,
@@ -564,7 +619,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 3. User & Office Info Card
+                        // 4. User & Office Info Card
                         AttendanceEmployeeCard(
                           employeeName: data.employeeName,
                           employeeRole: data.employeeRole,
@@ -573,7 +628,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 4. Timeline Section (Clock In, Break Session, Clock Out)
+                        // 5. Timeline Section (Clock In, Break Session, Clock Out)
                         AttendanceTimelineSection(
                           inTime: data.inTime,
                           outTime: data.outTime,
@@ -584,7 +639,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         ),
                         const SizedBox(height: 20),
 
-                        // 5. Action Buttons (Clock In Now, Start Break, Report Location Issue)
+                        // 6. Action Buttons (Clock In Now, Start Break, Report Location Issue)
                         AttendanceActionButtons(
                           isClockedIn: data.isClockedIn,
                           isClockedOut: data.isClockedOut,
@@ -592,16 +647,10 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           isLoading: loaded.isSubmittingAction,
                           hasWorkLocation: data.hasWorkLocation,
                           breakOutTime: data.breakOutTime,
-                          onClockWithMethodPressed: (method) =>
-                              _handleClockAction(
-                            context,
-                            state: loaded,
-                            method: method,
-                          ),
+                          attendanceMethod: data.attendanceMethod,
                           onClockPressed: () => _handleClockAction(
                             context,
                             state: loaded,
-                            method: 'photo',
                           ),
                           onBreakPressed: () {
                             context.read<AttendanceBloc>().add(

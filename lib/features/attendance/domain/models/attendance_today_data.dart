@@ -62,6 +62,7 @@ class AttendanceTodayData extends Equatable {
   final double? userLongitude;
   final List<WorkLocationItem> availableWorkLocations;
   final WorkLocationItem? selectedWorkLocation;
+  final String attendanceMethod;
 
   const AttendanceTodayData({
     this.inTime,
@@ -89,6 +90,7 @@ class AttendanceTodayData extends Equatable {
     this.userLongitude,
     this.availableWorkLocations = const [],
     this.selectedWorkLocation,
+    this.attendanceMethod = 'photo',
   });
 
   bool get isClockedIn => inTime != null && inTime!.isNotEmpty && inTime != '--:--';
@@ -96,6 +98,21 @@ class AttendanceTodayData extends Equatable {
 
   /// Apakah user memiliki lokasi kerja yang ditentukan.
   bool get hasWorkLocation => selectedWorkLocation != null;
+
+  /// Apakah user memiliki metode presensi yang ditentukan dari server.
+  bool get hasAttendanceMethod => attendanceMethod.trim().isNotEmpty;
+
+  /// Apakah metode presensi menggunakan autentikasi biometrik.
+  bool get isBiometricMethod =>
+      attendanceMethod.toLowerCase().contains('biometric') ||
+      attendanceMethod.toLowerCase().contains('finger');
+
+  /// Apakah metode presensi menggunakan foto selfie / kamera.
+  bool get isPhotoMethod =>
+      attendanceMethod.toLowerCase().contains('photo') ||
+      attendanceMethod.toLowerCase().contains('foto') ||
+      attendanceMethod.toLowerCase().contains('face') ||
+      attendanceMethod.toLowerCase().contains('selfie');
 
   AttendanceTodayData copyWith({
     String? inTime,
@@ -123,6 +140,7 @@ class AttendanceTodayData extends Equatable {
     double? userLongitude,
     List<WorkLocationItem>? availableWorkLocations,
     WorkLocationItem? selectedWorkLocation,
+    String? attendanceMethod,
   }) {
     return AttendanceTodayData(
       inTime: inTime ?? this.inTime,
@@ -150,6 +168,7 @@ class AttendanceTodayData extends Equatable {
       userLongitude: userLongitude ?? this.userLongitude,
       availableWorkLocations: availableWorkLocations ?? this.availableWorkLocations,
       selectedWorkLocation: selectedWorkLocation ?? this.selectedWorkLocation,
+      attendanceMethod: attendanceMethod ?? this.attendanceMethod,
     );
   }
 
@@ -180,5 +199,6 @@ class AttendanceTodayData extends Equatable {
         userLongitude,
         availableWorkLocations,
         selectedWorkLocation,
+        attendanceMethod,
       ];
 }

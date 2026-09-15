@@ -27,6 +27,9 @@ class AttendanceGeofenceMapCard extends StatefulWidget {
   /// Apakah GPS sudah berhasil didapat.
   final bool isGpsAcquired;
 
+  /// Nama lokasi kerja kantor.
+  final String officeName;
+
   const AttendanceGeofenceMapCard({
     super.key,
     required this.officeLatitude,
@@ -41,6 +44,7 @@ class AttendanceGeofenceMapCard extends StatefulWidget {
     this.isAnyWhere = false,
     this.hasWorkLocation = true,
     this.isGpsAcquired = true,
+    this.officeName = 'HQ Office',
   });
 
   @override
@@ -540,7 +544,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
         Marker(
           markerId: const MarkerId('office_hq'),
           position: officeLatLng,
-          infoWindow: const InfoWindow(title: 'Lokasi Kerja (Kantor)'),
+          infoWindow: InfoWindow(title: widget.officeName),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
         ),
       );
@@ -603,9 +607,11 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
                     ),
                   ],
                 ),
-                child: const Text(
-                  'HQ Office',
-                  style: TextStyle(
+                child: Text(
+                  widget.officeName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                     color: AppColors.brandTeal,

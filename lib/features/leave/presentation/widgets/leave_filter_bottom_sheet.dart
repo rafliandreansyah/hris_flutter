@@ -138,6 +138,7 @@ Future<LeaveFilterCriteria?> showLeaveFilterBottomSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: false,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) {
@@ -391,6 +392,7 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
         return StatefulBuilder(

@@ -52,37 +52,39 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
     if (workLocations != null && workLocations.isNotEmpty) {
       for (final item in workLocations) {
-        final locMap = item as Map<String, dynamic>;
-        final wl = locMap['workLocation'] as Map<String, dynamic>?;
-        if (wl != null) {
-          final rawLat = wl['latitude'];
-          final rawLng = wl['longitude'];
-          availableWorkLocations.add(
-            WorkLocationItem(
-              id: (wl['id'] ?? locMap['id'] ?? '').toString(),
-              name: wl['name'] as String? ?? 'Unnamed Location',
-              address: wl['address'] as String? ?? '',
-              radius: (wl['radius'] as num?)?.toDouble() ?? 50.0,
-              latitude: rawLat != null
-                  ? double.tryParse(rawLat.toString())
-                  : null,
-              longitude: rawLng != null
-                  ? double.tryParse(rawLng.toString())
-                  : null,
-              isAnyWhere: wl['isAnyWhere'] == true,
-              isDefault: locMap['isDefault'] == true,
-            ),
-          );
-        }
+        if (item is! Map<String, dynamic>) continue;
+        final locMap = item;
+        final wl = (locMap['workLocation'] as Map<String, dynamic>?) ?? locMap;
+        final rawLat = wl['latitude'] ?? locMap['latitude'];
+        final rawLng = wl['longitude'] ?? locMap['longitude'];
+        final isDefault = locMap['isDefault'] == true || wl['isDefault'] == true;
+        final isAnyWhere = wl['isAnyWhere'] == true || locMap['isAnyWhere'] == true;
+        final id = (wl['id'] ?? locMap['workLocationId'] ?? locMap['id'] ?? '').toString();
+        final name = (wl['name'] ?? locMap['name']) as String? ?? 'Unnamed Location';
+        final address = (wl['address'] ?? locMap['address']) as String? ?? '';
+        final radius = ((wl['radius'] ?? locMap['radius']) as num?)?.toDouble() ?? 50.0;
+
+        availableWorkLocations.add(
+          WorkLocationItem(
+            id: id,
+            name: name,
+            address: address,
+            radius: radius,
+            latitude: rawLat != null ? double.tryParse(rawLat.toString()) : null,
+            longitude: rawLng != null ? double.tryParse(rawLng.toString()) : null,
+            isAnyWhere: isAnyWhere,
+            isDefault: isDefault,
+          ),
+        );
       }
 
-      // Select default work location
-      selectedWorkLocation = availableWorkLocations.cast<WorkLocationItem?>().firstWhere(
-        (e) => e!.isDefault,
-        orElse: () => availableWorkLocations.isNotEmpty
-            ? availableWorkLocations.first
-            : null,
-      );
+      // Select default work location: cari yang isDefault == true lebih dahulu
+      if (availableWorkLocations.isNotEmpty) {
+        selectedWorkLocation = availableWorkLocations.firstWhere(
+          (e) => e.isDefault,
+          orElse: () => availableWorkLocations.first,
+        );
+      }
     }
 
     // Determine office info from selected work location
@@ -179,6 +181,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         (data['id'] as String?)?.substring(0, 4) ??
         '';
 
+    final rawAttendanceMethod = data['attendanceMethod']?.toString().trim();
+    final attendanceMethod = rawAttendanceMethod ?? '';
+
     _cachedData = AttendanceTodayData(
       inTime: inTimeStr,
       outTime: outTimeStr,
@@ -203,6 +208,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       gpsAccuracy: '±5m',
       availableWorkLocations: availableWorkLocations,
       selectedWorkLocation: selectedWorkLocation,
+      attendanceMethod: attendanceMethod,
     );
     return _cachedData!;
   }

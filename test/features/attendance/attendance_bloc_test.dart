@@ -404,6 +404,39 @@ void main() {
 
       await bloc.close();
     });
+
+    test('AttendanceWorkLocationChanged updates selectedWorkLocation, office parameters, and geofence', () async {
+      final repo = MockAttendanceRepository();
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      const newLocation = WorkLocationItem(
+        id: 'loc-branch',
+        name: 'Bandung Branch Office',
+        address: 'Jl. Asia Afrika No. 10',
+        radius: 100.0,
+        latitude: -6.9175,
+        longitude: 107.6191,
+        isDefault: false,
+      );
+
+      bloc.add(const AttendanceWorkLocationChanged(newLocation));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.data.selectedWorkLocation?.id, 'loc-branch');
+      expect(loaded.data.selectedWorkLocation?.name, 'Bandung Branch Office');
+      expect(loaded.data.officeName, 'Bandung Branch Office');
+      expect(loaded.data.officeDetail, 'Jl. Asia Afrika No. 10');
+      expect(loaded.data.officeLatitude, -6.9175);
+      expect(loaded.data.officeLongitude, 107.6191);
+      expect(loaded.data.geofenceRadiusMeters, 100.0);
+
+      await bloc.close();
+    });
   });
 }
 

@@ -185,19 +185,23 @@ void main() {
         isTrue,
       );
       expect(find.text('GPS Accuracy: ±5m'), findsOneWidget);
-      expect(find.text('HQ Office'), findsOneWidget);
+      expect(find.text('Jakarta HQ Office'), findsWidgets);
 
-      // 3. Server Clock Card (Without WIB)
+      // 3. Work Location Card (From employeeWorkLocation, default: isDefault true)
+      expect(find.text('Lokasi Kerja'), findsOneWidget);
+      expect(find.text('Utama'), findsOneWidget);
+
+      // 4. Server Clock Card (Without WIB)
       expect(find.text('Asia/Jakarta'), findsOneWidget);
       expect(find.text('08:45:20'), findsOneWidget); // Without WIB per user instruction
       expect(find.textContaining('WIB'), findsNothing); // Ensure WIB is removed
       expect(find.text('Regular Shift (09:00 - 18:00)'), findsOneWidget);
 
-      // 4. Employee Card
+      // 5. Employee Card
       expect(find.text('Alex Rivera'), findsOneWidget);
       expect(find.text('Senior Product Designer • ID: 8829'), findsOneWidget);
 
-      // 5. Timeline 3 Cards
+      // 6. Timeline 3 Cards
       expect(find.text('Clock In'), findsOneWidget);
       expect(find.text('Break Session'), findsOneWidget);
       expect(find.text('Break Out'), findsOneWidget);
@@ -206,15 +210,14 @@ void main() {
       expect(find.text('Not started'), findsOneWidget);
       expect(find.text('Pending'), findsOneWidget);
 
-      // 6. Action Buttons (Break button is hidden before clock in per user requirement)
-      expect(find.text('Foto Selfie'), findsOneWidget);
-      expect(find.text('Biometrik'), findsOneWidget);
+      // 7. Action Buttons (No manual selector; method badge and button adapt automatically)
+      expect(find.text('Metode Presensi: Foto Selfie'), findsOneWidget);
       expect(find.text('Clock In Now'), findsOneWidget);
       expect(find.text('Start Break'), findsNothing);
       expect(find.text('Report Location Issue'), findsOneWidget);
     });
 
-    testWidgets('switching method to Biometrik updates primary button label', (tester) async {
+    testWidgets('attendanceMethod biometric renders biometric button label and badge automatically', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -222,7 +225,32 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      final repo = TestAttendanceRepository();
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          attendanceMethod: 'biometric',
+          availableWorkLocations: const [
+            WorkLocationItem(
+              id: 'default-office',
+              name: 'Jakarta HQ Office',
+              address: 'HQ Office — Main Lobby',
+              radius: 50.0,
+              latitude: -6.2253,
+              longitude: 106.8097,
+              isDefault: true,
+            ),
+          ],
+          selectedWorkLocation: const WorkLocationItem(
+            id: 'default-office',
+            name: 'Jakarta HQ Office',
+            address: 'HQ Office — Main Lobby',
+            radius: 50.0,
+            latitude: -6.2253,
+            longitude: 106.8097,
+            isDefault: true,
+          ),
+        ),
+      );
 
       await tester.pumpWidget(
         createTestApp(
@@ -232,12 +260,116 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Clock In Now'), findsOneWidget);
+      // Verification: method selector tabs do NOT exist
+      expect(find.text('Foto Selfie'), findsNothing);
 
-      await tester.tap(find.text('Biometrik'));
+      // Automatic badge and primary button adapted to biometric
+      expect(find.text('Metode Presensi: Biometrik'), findsOneWidget);
+      expect(find.text('Clock In via Biometrik'), findsOneWidget);
+    });
+
+    testWidgets('empty attendanceMethod displays dialog explaining user cannot perform attendance', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          attendanceMethod: '', // No attendance method assigned
+          availableWorkLocations: const [
+            WorkLocationItem(
+              id: 'default-office',
+              name: 'Jakarta HQ Office',
+              isDefault: true,
+            ),
+          ],
+          selectedWorkLocation: const WorkLocationItem(
+            id: 'default-office',
+            name: 'Jakarta HQ Office',
+            isDefault: true,
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verify dialog is presented
+      expect(find.text('Metode Presensi Tidak Ditemukan'), findsOneWidget);
+      expect(find.text('Kembali'), findsOneWidget);
+
+      // Dismiss dialog by tapping Kembali to clean up dialog animation timers
+      await tester.tap(find.text('Kembali').last, warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('can switch work location from employeeWorkLocation when multiple locations exist', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const defaultLoc = WorkLocationItem(
+        id: 'loc-1',
+        name: 'HQ Office Sudirman',
+        address: 'SCBD Lot 28, Jakarta',
+        radius: 50.0,
+        isDefault: true,
+      );
+      const branchLoc = WorkLocationItem(
+        id: 'loc-2',
+        name: 'Bandung Hub',
+        address: 'Jl. Riau No. 45, Bandung',
+        radius: 100.0,
+        isDefault: false,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          attendanceMethod: 'photo',
+          availableWorkLocations: const [defaultLoc, branchLoc],
+          selectedWorkLocation: defaultLoc,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
       await tester.pumpAndSettle();
 
-      expect(find.text('Clock In via Biometrik'), findsOneWidget);
+      // Initially shows HQ Office Sudirman and Utama badge
+      expect(find.text('HQ Office Sudirman'), findsWidgets);
+      expect(find.text('Ganti Lokasi'), findsOneWidget);
+
+      // Tap Ganti Lokasi button to open bottom sheet
+      await tester.tap(find.text('Ganti Lokasi'));
+      await tester.pumpAndSettle();
+
+      // Bottom sheet is visible with choices
+      expect(find.text('Pilih Lokasi Kerja'), findsOneWidget);
+      expect(find.text('Bandung Hub'), findsOneWidget);
+
+      // Select Bandung Hub
+      await tester.tap(find.text('Bandung Hub'));
+      await tester.pumpAndSettle();
+
+      // Active location is now Bandung Hub
+      expect(find.text('Bandung Hub'), findsWidgets);
     });
 
     testWidgets('tapping Clock In Now triggers clock in', (tester) async {

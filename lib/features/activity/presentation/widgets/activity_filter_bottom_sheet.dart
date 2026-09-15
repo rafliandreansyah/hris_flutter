@@ -16,7 +16,8 @@ class ActivityFilterCriteria {
   final String? department;
   final String? positionId;
   final String? position;
-  final String? status; // 'ongoing' (default), 'planned', 'completed', 'canceled', or null for all status
+  final String?
+  status; // 'ongoing' (default), 'planned', 'completed', 'canceled', or null for all status
 
   const ActivityFilterCriteria({
     this.dateRange,
@@ -118,15 +119,15 @@ class ActivityFilterCriteria {
 
   @override
   int get hashCode => Object.hash(
-        dateRange,
-        companyId,
-        company,
-        departmentId,
-        department,
-        positionId,
-        position,
-        status,
-      );
+    dateRange,
+    companyId,
+    company,
+    departmentId,
+    department,
+    positionId,
+    position,
+    status,
+  );
 }
 
 /// Menampilkan Modal Bottom Sheet "Filter Aktivitas"
@@ -145,6 +146,7 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: false,
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) {
@@ -165,9 +167,9 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
       }
 
       return BlocProvider<OrganizationFilterBloc>(
-        create: (ctx) => OrganizationFilterBloc(
-          repository: repository,
-        )..add(const OrganizationFilterStarted()),
+        create: (ctx) =>
+            OrganizationFilterBloc(repository: repository)
+              ..add(const OrganizationFilterStarted()),
         child: sheetWidget,
       );
     },
@@ -267,7 +269,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
         final bloc = context.read<OrganizationFilterBloc>();
         bloc.add(const OrganizationFilterStarted());
         if (_isCompanySelected && _selectedCompanyId != null) {
-          bloc.add(OrganizationFilterCompanySelected(companyId: _selectedCompanyId));
+          bloc.add(
+            OrganizationFilterCompanySelected(companyId: _selectedCompanyId),
+          );
         }
       }
     });
@@ -344,7 +348,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
   }
 
   void _applyFilters() {
-    final effectiveStatus = (_selectedStatus == null ||
+    final effectiveStatus =
+        (_selectedStatus == null ||
             _selectedStatus!.trim().isEmpty ||
             _selectedStatus!.trim().toLowerCase() == 'all' ||
             _selectedStatus!.trim().toLowerCase() == 'semua')
@@ -503,6 +508,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (bottomSheetContext) {
         return StatefulBuilder(
@@ -516,7 +522,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
 
             return Material(
               color: surfaceColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               clipBehavior: Clip.antiAlias,
               child: SafeArea(
                 top: false,
@@ -635,14 +643,15 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                       },
                                       title: Text(
                                         opt,
-                                        style: AppTypography.bodyMedium.copyWith(
-                                          color: isSelected
-                                              ? brandColor
-                                              : textCol,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                        ),
+                                        style: AppTypography.bodyMedium
+                                            .copyWith(
+                                              color: isSelected
+                                                  ? brandColor
+                                                  : textCol,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                            ),
                                       ),
                                       trailing: isSelected
                                           ? Icon(
@@ -682,14 +691,18 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     bool isEnabled = true,
     VoidCallback? onClear,
   }) {
-    final effectiveFieldBg =
-        isEnabled ? fieldBg : fieldBg.withValues(alpha: 0.4);
-    final effectiveBorderCol =
-        isEnabled ? borderCol : borderCol.withValues(alpha: 0.4);
-    final effectiveTextCol =
-        isEnabled ? textCol : labelCol.withValues(alpha: 0.5);
-    final effectiveIconCol =
-        isEnabled ? brandColor : labelCol.withValues(alpha: 0.4);
+    final effectiveFieldBg = isEnabled
+        ? fieldBg
+        : fieldBg.withValues(alpha: 0.4);
+    final effectiveBorderCol = isEnabled
+        ? borderCol
+        : borderCol.withValues(alpha: 0.4);
+    final effectiveTextCol = isEnabled
+        ? textCol
+        : labelCol.withValues(alpha: 0.5);
+    final effectiveIconCol = isEnabled
+        ? brandColor
+        : labelCol.withValues(alpha: 0.4);
 
     return Opacity(
       opacity: isEnabled ? 1.0 : 0.6,
@@ -724,8 +737,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                       value,
                       style: AppTypography.bodyMedium.copyWith(
                         color: effectiveTextCol,
-                        fontWeight:
-                            isEnabled ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isEnabled
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         fontSize: 13.5,
                       ),
                       maxLines: 1,
@@ -804,17 +818,20 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     required bool isDark,
     required VoidCallback onSelected,
   }) {
-    final isSelected = (value.isEmpty &&
-            (selectedValue == null || selectedValue.isEmpty)) ||
+    final isSelected =
+        (value.isEmpty && (selectedValue == null || selectedValue.isEmpty)) ||
         (value.isNotEmpty &&
             selectedValue != null &&
             value.toLowerCase() == selectedValue.toLowerCase());
     final chipBg = isSelected
-        ? (isDark ? brandColor.withValues(alpha: 0.18) : const Color(0xFFF0FDFA))
+        ? (isDark
+              ? brandColor.withValues(alpha: 0.18)
+              : const Color(0xFFF0FDFA))
         : fieldBg;
     final chipBorder = isSelected ? brandColor : borderCol;
-    final chipTextCol =
-        isSelected ? (isDark ? brandColor : const Color(0xFF0D9488)) : labelCol;
+    final chipTextCol = isSelected
+        ? (isDark ? brandColor : const Color(0xFF0D9488))
+        : labelCol;
 
     return InkWell(
       onTap: onSelected,
@@ -825,10 +842,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
         decoration: BoxDecoration(
           color: chipBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: chipBorder,
-            width: isSelected ? 1.5 : 1,
-          ),
+          border: Border.all(color: chipBorder, width: isSelected ? 1.5 : 1),
         ),
         child: Text(
           label,
@@ -879,6 +893,9 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
           ),
         ],
       ),
+      // useSafeArea: true pada showModalBottomSheet memastikan batas atas sheet
+      // tidak menabrak / tertutup status bar perangkat. Di dalam sheet, SafeArea
+      // hanya perlu mengamankan insets bawah (home indicator / navigation bar).
       child: SafeArea(
         top: false,
         child: Padding(
@@ -1226,12 +1243,12 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                     _selectedStatus == 'all')
                                 ? 'Memuat seluruh data aktivitas tanpa batasan status (status=all)'
                                 : _selectedStatus == 'planned'
-                                    ? 'Memuat rencana aktivitas yang telah dibuat (status=planned)'
-                                    : _selectedStatus == 'ongoing'
-                                        ? 'Memuat aktivitas yang sedang berjalan (status=ongoing)'
-                                        : _selectedStatus == 'completed'
-                                            ? 'Memuat aktivitas yang sudah selesai (status=completed)'
-                                            : 'Memuat aktivitas yang dibatalkan (status=canceled)',
+                                ? 'Memuat rencana aktivitas yang telah dibuat (status=planned)'
+                                : _selectedStatus == 'ongoing'
+                                ? 'Memuat aktivitas yang sedang berjalan (status=ongoing)'
+                                : _selectedStatus == 'completed'
+                                ? 'Memuat aktivitas yang sudah selesai (status=completed)'
+                                : 'Memuat aktivitas yang dibatalkan (status=canceled)',
                             style: AppTypography.labelSmall.copyWith(
                               color: labelCol,
                               fontSize: 11,
