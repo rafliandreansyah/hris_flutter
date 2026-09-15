@@ -199,6 +199,18 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   ) async {
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
+      final loc = current.data.selectedWorkLocation;
+      final isAnyWhere = loc?.isAnyWhere ?? false;
+      if (loc != null && !isAnyWhere && !current.isInsideGeofence) {
+        emit(
+          current.copyWith(
+            isSubmittingAction: false,
+            errorMessage: 'Tidak dapat melakukan presensi di luar radius kantor.',
+          ),
+        );
+        return;
+      }
+
       emit(current.copyWith(isSubmittingAction: true));
 
       try {
@@ -239,6 +251,18 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   ) async {
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
+      final loc = current.data.selectedWorkLocation;
+      final isAnyWhere = loc?.isAnyWhere ?? false;
+      if (loc != null && !isAnyWhere && !current.isInsideGeofence) {
+        emit(
+          current.copyWith(
+            isSubmittingAction: false,
+            errorMessage: 'Tidak dapat melakukan presensi di luar radius kantor.',
+          ),
+        );
+        return;
+      }
+
       emit(current.copyWith(isSubmittingAction: true));
 
       try {

@@ -97,22 +97,72 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 4),
-        ),
-      );
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (showFeedback && mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(LucideIcons.circleAlert, color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text('Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan.'),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        return null;
+      }
 
-      if (!mounted) return position;
-      context.read<AttendanceBloc>().add(
-        AttendanceLocationUpdated(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          accuracy: position.accuracy,
-          isInsideGeofence: true,
-        ),
-      );
+      // 1. Coba ambil lokasi terakhir (cached) secara instan (~10ms) untuk iOS/Android
+      Position? position;
+      try {
+        final lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null && mounted) {
+          position = lastKnown;
+          context.read<AttendanceBloc>().add(
+            AttendanceLocationUpdated(
+              latitude: lastKnown.latitude,
+              longitude: lastKnown.longitude,
+              accuracy: lastKnown.accuracy,
+              isInsideGeofence: true,
+            ),
+          );
+        }
+      } catch (_) {}
+
+      // 2. Ambil koordinat GPS akurat dengan batas waktu 10 detik (ideal untuk iOS cold-start)
+      try {
+        final freshPosition = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 10),
+          ),
+        );
+        position = freshPosition;
+        if (mounted) {
+          context.read<AttendanceBloc>().add(
+            AttendanceLocationUpdated(
+              latitude: freshPosition.latitude,
+              longitude: freshPosition.longitude,
+              accuracy: freshPosition.accuracy,
+              isInsideGeofence: true,
+            ),
+          );
+        }
+      } catch (_) {
+        // Jika getCurrentPosition timeout tapi sudah dapat lastKnown, jangan lempar error
+        if (position == null) {
+          rethrow;
+        }
+      }
 
       if (showFeedback && mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -161,7 +211,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       }
       return null;
     } finally {
-      if (showFeedback && mounted) {
+      if (mounted && _isUpdatingLocation) {
         setState(() => _isUpdatingLocation = false);
       }
     }
@@ -310,13 +360,28 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       return;
     }
 
-    // 4. Koordinat GPS & data lokasi
+    // 4. Validasi radius kantor (kecuali lokasi kerja adalah isAnyWhere)
+    final isAnyWhere = selectedLocation.isAnyWhere;
+    if (!isAnyWhere && !state.isInsideGeofence) {
+      AppDialogUtil.showError(
+        context,
+        title: 'Di Luar Radius Kantor',
+        message:
+            'Anda berada di luar radius lokasi kerja (${data.geofenceRadiusMeters.toStringAsFixed(0)}m). Silakan mendekat ke area kantor untuk melakukan presensi, atau laporkan kendala lokasi jika GPS Anda tidak akurat.',
+        retryText: 'Laporkan Kendala',
+        onRetry: () => _showReportLocationDialog(context),
+        closeText: 'Kembali',
+      );
+      return;
+    }
+
+    // 5. Koordinat GPS & data lokasi
     final double effectiveLat = state.userLatitude ?? data.officeLatitude;
     final double effectiveLng = state.userLongitude ?? data.officeLongitude;
     final String effectiveAddress = data.officeDetail;
     final String targetType = !data.isClockedIn ? 'in' : 'out';
 
-    // 5. Eksekusi berdasarkan metode dari server (photo vs biometric)
+    // 6. Eksekusi berdasarkan metode dari server (photo vs biometric)
     if (data.isBiometricMethod) {
       try {
         final authenticated = await BiometricService.instance.authenticate(

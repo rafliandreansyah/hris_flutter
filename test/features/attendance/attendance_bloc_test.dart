@@ -437,6 +437,84 @@ void main() {
 
       await bloc.close();
     });
+
+    test('AttendanceClockInSubmitted fails with error message when outside geofence and isAnyWhere is false', () async {
+      const officeLocation = WorkLocationItem(
+        id: 'loc-hq',
+        name: 'HQ Office',
+        radius: 50.0,
+        latitude: -6.2253,
+        longitude: 106.8097,
+        isAnyWhere: false,
+      );
+
+      final repo = MockAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          selectedWorkLocation: officeLocation,
+          isInsideGeofence: false,
+        ),
+      );
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(
+        const AttendanceClockInSubmitted(
+          latitude: -6.3000,
+          longitude: 106.8000,
+          address: 'Too Far Away',
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.isSubmittingAction, isFalse);
+      expect(loaded.errorMessage, 'Tidak dapat melakukan presensi di luar radius kantor.');
+      expect(loaded.data.isClockedIn, isFalse);
+
+      await bloc.close();
+    });
+
+    test('AttendanceClockInSubmitted succeeds when isAnyWhere is true even if isInsideGeofence is false', () async {
+      const anyWhereLocation = WorkLocationItem(
+        id: 'loc-remote',
+        name: 'Work From Anywhere',
+        isAnyWhere: true,
+      );
+
+      final repo = MockAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          selectedWorkLocation: anyWhereLocation,
+          isInsideGeofence: false,
+        ),
+      );
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(
+        const AttendanceClockInSubmitted(
+          latitude: -7.0000,
+          longitude: 110.0000,
+          address: 'Anywhere in the world',
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.isSubmittingAction, isFalse);
+      expect(loaded.errorMessage, isNull);
+      expect(loaded.data.isClockedIn, isTrue);
+      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+
+      await bloc.close();
+    });
   });
 }
 

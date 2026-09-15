@@ -554,6 +554,134 @@ void main() {
       await tester.tap(find.text('Kembali').last, warnIfMissed: false);
       await tester.pump(const Duration(milliseconds: 300));
     });
+
+    testWidgets('tapping Clock In Now when outside geofence radius and isAnyWhere is false displays Di Luar Radius Kantor dialog', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const officeLocation = WorkLocationItem(
+        id: 'loc-office',
+        name: 'Jakarta HQ Office',
+        address: 'HQ Office — Main Lobby',
+        radius: 50.0,
+        latitude: -6.2253,
+        longitude: 106.8097,
+        isAnyWhere: false,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          availableWorkLocations: const [officeLocation],
+          selectedWorkLocation: officeLocation,
+          isInsideGeofence: false,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Clock In Now'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Clock In Now'));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Di Luar Radius Kantor'), findsOneWidget);
+      expect(find.textContaining('Anda berada di luar radius lokasi kerja'), findsOneWidget);
+      expect(find.text('Laporkan Kendala'), findsOneWidget);
+      expect(find.text('Kembali'), findsOneWidget);
+
+      await tester.tap(find.text('Kembali').last, warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('tapping Clock In Now when isAnyWhere is true succeeds even if isInsideGeofence is false', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const anyWhereLocation = WorkLocationItem(
+        id: 'loc-remote',
+        name: 'Remote Work',
+        isAnyWhere: true,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          availableWorkLocations: const [anyWhereLocation],
+          selectedWorkLocation: anyWhereLocation,
+          isInsideGeofence: false,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Clock In Now'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Clock In Now'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Clock Out Now'), findsOneWidget);
+      expect(find.text('Recorded'), findsOneWidget);
+    });
+
+    testWidgets('renders isAnyWhere informative banner when selected work location isAnyWhere is true', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const anyWhereLocation = WorkLocationItem(
+        id: 'loc-remote',
+        name: 'Remote Work',
+        isAnyWhere: true,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          availableWorkLocations: const [anyWhereLocation],
+          selectedWorkLocation: anyWhereLocation,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bisa Absen di Mana Saja'), findsWidgets);
+      expect(find.textContaining('Lokasi kerja fleksibel tanpa batasan radius kantor'), findsOneWidget);
+    });
   });
 }
 

@@ -328,6 +328,65 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
               ],
             ),
           ),
+
+          // Informasi Khusus untuk Lokasi Kerja Di Mana Saja (isAnyWhere)
+          if (widget.isAnyWhere)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.darkPrimaryContainer.withValues(alpha: 0.25)
+                    : AppColors.primaryContainer.withValues(alpha: 0.45),
+                border: Border(
+                  top: BorderSide(color: borderColor),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandTeal.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.globe,
+                      size: 16,
+                      color: AppColors.brandTeal,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bisa Absen di Mana Saja',
+                          style: AppTypography.labelMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppColors.darkOnPrimaryContainer
+                                : AppColors.onPrimaryContainer,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Lokasi kerja fleksibel tanpa batasan radius kantor. Kamera peta diarahkan ke posisi GPS Anda saat ini.',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: 11.5,
+                            color: isDark
+                                ? AppColors.darkOnSurfaceVariant
+                                : AppColors.onSurfaceVariant,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
