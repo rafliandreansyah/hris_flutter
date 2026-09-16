@@ -9,6 +9,7 @@ class EmployeeDetailState extends Equatable {
   final EmployeeDetailData? detail;
   final String? employeeId;
   final EmployeeDirectoryItem? employee;
+  final List<EmployeeDirectoryItem>? coworkers;
   final String? errorMessage;
 
   const EmployeeDetailState({
@@ -16,6 +17,7 @@ class EmployeeDetailState extends Equatable {
     this.detail,
     this.employeeId,
     this.employee,
+    this.coworkers,
     this.errorMessage,
   });
 
@@ -26,6 +28,7 @@ class EmployeeDetailState extends Equatable {
     EmployeeDetailData? detail,
     String? employeeId,
     EmployeeDirectoryItem? employee,
+    List<EmployeeDirectoryItem>? coworkers,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -34,6 +37,7 @@ class EmployeeDetailState extends Equatable {
       detail: detail ?? this.detail,
       employeeId: employeeId ?? this.employeeId,
       employee: employee ?? this.employee,
+      coworkers: coworkers ?? this.coworkers,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -44,6 +48,7 @@ class EmployeeDetailState extends Equatable {
         detail,
         employeeId,
         employee,
+        coworkers,
         errorMessage,
       ];
 }

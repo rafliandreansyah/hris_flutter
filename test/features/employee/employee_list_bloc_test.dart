@@ -58,6 +58,14 @@ class MockEmployeeRepository implements EmployeeRepository {
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    if (shouldThrow) {
+      throw Exception('Network error');
+    }
+    return mockEmployees;
+  }
 }
 
 void main() {

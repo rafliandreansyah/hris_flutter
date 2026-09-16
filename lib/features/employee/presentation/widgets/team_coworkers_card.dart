@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class CoworkerItem {
+  final String? id;
   final String name;
   final String role;
   final String initials;
   final String? phone;
   final String? avatarUrl;
+  final EmployeeDirectoryItem? directoryItem;
 
   const CoworkerItem({
+    this.id,
     required this.name,
     required this.role,
     required this.initials,
     this.phone,
     this.avatarUrl,
+    this.directoryItem,
   });
 }
 
@@ -24,6 +29,7 @@ class CoworkerItem {
 class TeamCoworkersCard extends StatelessWidget {
   final List<CoworkerItem> coworkers;
   final VoidCallback? onViewAll;
+  final void Function(CoworkerItem item)? onCoworkerTap;
 
   const TeamCoworkersCard({
     super.key,
@@ -32,6 +38,7 @@ class TeamCoworkersCard extends StatelessWidget {
       CoworkerItem(name: 'Jessica Pranata', role: 'QA Engineer', initials: 'JP'),
     ],
     this.onViewAll,
+    this.onCoworkerTap,
   });
 
   @override
@@ -49,7 +56,7 @@ class TeamCoworkersCard extends StatelessWidget {
       children: [
         Text(
           hasCoworkers
-              ? 'TEAM COWORKERS (${coworkers.length + 1})'
+              ? 'TEAM COWORKERS (${coworkers.length})'
               : 'TEAM COWORKERS (0)',
           style: AppTypography.labelSmall.copyWith(
             color: labelCol,
@@ -85,66 +92,91 @@ class TeamCoworkersCard extends StatelessWidget {
 
                     return Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onCoworkerTap != null ? () => onCoworkerTap!(item) : null,
+                            borderRadius: BorderRadius.vertical(
+                              top: index == 0 ? const Radius.circular(16) : Radius.zero,
+                              bottom: isLast ? const Radius.circular(16) : Radius.zero,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  AppAvatar(
-                                    imageUrl: item.avatarUrl,
-                                    name: item.name,
-                                    initials: item.initials,
-                                    size: 38,
-                                    showBorder: true,
-                                    borderColor: borderCol,
-                                    fontSize: 13,
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        AppAvatar(
+                                          imageUrl: item.avatarUrl,
+                                          name: item.name,
+                                          initials: item.initials,
+                                          size: 38,
+                                          showBorder: true,
+                                          borderColor: borderCol,
+                                          fontSize: 13,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.name,
+                                                style: AppTypography.titleSmall.copyWith(
+                                                  color: textCol,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 13.5,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 1),
+                                              Text(
+                                                item.role,
+                                                style: AppTypography.labelSmall.copyWith(
+                                                  color: labelCol,
+                                                  fontSize: 11,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: AppTypography.titleSmall.copyWith(
-                                          color: textCol,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 13.5,
+
+                                  // Call Action Button
+                                  IconButton(
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: isDark ? AppColors.darkBackgroundSubtle : const Color(0xFFF8FAFC),
+                                      shape: const CircleBorder(),
+                                      padding: const EdgeInsets.all(8),
+                                    ),
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            item.phone != null && item.phone!.isNotEmpty
+                                                ? 'Menghubungi ${item.name} (${item.phone})...'
+                                                : 'Menghubungi ${item.name}... (Nomor telepon belum tersedia)',
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 1),
-                                      Text(
-                                        item.role,
-                                        style: AppTypography.labelSmall.copyWith(
-                                          color: labelCol,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      LucideIcons.phone,
+                                      size: 16,
+                                      color: AppColors.brandTeal,
+                                    ),
                                   ),
                                 ],
                               ),
-
-                              // Call Action Button
-                              IconButton(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: isDark ? AppColors.darkBackgroundSubtle : const Color(0xFFF8FAFC),
-                                  shape: const CircleBorder(),
-                                  padding: const EdgeInsets.all(8),
-                                ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Menghubungi ${item.name}...')),
-                                  );
-                                },
-                                icon: const Icon(
-                                  LucideIcons.phone,
-                                  size: 16,
-                                  color: AppColors.brandTeal,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                         if (!isLast)
@@ -223,7 +255,7 @@ class TeamCoworkersCard extends StatelessWidget {
                   const Icon(LucideIcons.users, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    'Lihat Semua Rekan Kerja (${coworkers.length + 1})',
+                    'Lihat Semua Rekan Kerja (${coworkers.length})',
                     style: AppTypography.labelMedium.copyWith(
                       color: AppColors.brandTeal,
                       fontWeight: FontWeight.w700,

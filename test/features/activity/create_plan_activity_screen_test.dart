@@ -151,6 +151,11 @@ class _FakePlanEmployeeRepository implements EmployeeRepository {
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    return [];
+  }
 }
 
 void main() {

@@ -73,6 +73,11 @@ class MockEmployeeRepository implements EmployeeRepository {
       phone: '08123456789',
     );
   }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    return [];
+  }
 }
 
 void main() {

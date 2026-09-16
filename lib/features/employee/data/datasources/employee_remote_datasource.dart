@@ -3,6 +3,7 @@ import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 
 abstract class EmployeeRemoteDataSource {
   /// Mengambil daftar pegawai dari endpoint `/employee`.
@@ -17,6 +18,9 @@ abstract class EmployeeRemoteDataSource {
 
   /// Mengambil detail pegawai dari endpoint `/employee/{id}`.
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId);
+
+  /// Mengambil daftar rekan kerja (coworkers) dari endpoint `/employee/coworkers`.
+  Future<List<EmployeeDirectoryItem>> getCoworkers();
 }
 
 class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
@@ -84,6 +88,28 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
       message: rawData is Map<String, dynamic>
           ? rawData['message']?.toString() ?? 'Gagal memuat detail pegawai.'
           : 'Gagal memuat detail pegawai.',
+    );
+  }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    final response = await _apiClient.get(
+      ApiEndpoints.employeeCoworkers,
+    );
+
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic> && rawData['data'] is List) {
+      final list = rawData['data'] as List;
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map((item) => EmployeeDirectoryItem.fromJson(item))
+          .toList();
+    }
+
+    throw ApiException(
+      message: rawData is Map<String, dynamic>
+          ? rawData['message']?.toString() ?? 'Gagal memuat rekan kerja.'
+          : 'Gagal memuat rekan kerja.',
     );
   }
 }

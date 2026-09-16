@@ -1,3 +1,4 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
@@ -9,6 +10,7 @@ class MockEmployeeDetailRepository implements EmployeeRepository {
   EmployeeDetailData? mockDetail;
   String? lastRequestedId;
   bool shouldThrow = false;
+  List<EmployeeDirectoryItem>? mockCoworkers;
 
   @override
   Future<EmployeeListResponse> getEmployees({
@@ -36,13 +38,24 @@ class MockEmployeeDetailRepository implements EmployeeRepository {
           status: true,
         );
   }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    if (shouldThrow) {
+      throw Exception('Server error 500');
+    }
+    return mockCoworkers ?? [];
+  }
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('EmployeeDetailBloc Unit Tests', () {
     late MockEmployeeDetailRepository mockRepo;
 
     setUp(() {
+      FlutterSecureStorage.setMockInitialValues({});
       mockRepo = MockEmployeeDetailRepository();
     });
 

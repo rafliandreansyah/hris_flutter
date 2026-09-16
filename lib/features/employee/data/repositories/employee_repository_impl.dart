@@ -1,6 +1,7 @@
 import 'package:hris_flutter/features/employee/data/datasources/employee_remote_datasource.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 
 class EmployeeRepositoryImpl implements EmployeeRepository {
@@ -31,5 +32,10 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   @override
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId) {
     return _remoteDataSource.getEmployeeDetail(employeeId);
+  }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() {
+    return _remoteDataSource.getCoworkers();
   }
 }

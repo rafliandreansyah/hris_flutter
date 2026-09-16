@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
+import 'package:hris_flutter/features/employee/presentation/pages/coworker_list_screen.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
@@ -350,24 +352,69 @@ class _EmployeeDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // 7. Team Coworkers Preview
-                if (detail != null)
-                  TeamCoworkersCard(
-                    coworkers: detail.coworkers
-                        .map(
-                          (c) => CoworkerItem(
-                            name: c.fullName,
-                            role: 'Team Member',
-                            initials: c.initials,
-                            phone: c.phone,
-                            avatarUrl: c.photoUrl,
-                          ),
-                        )
-                        .toList(),
-                  )
-                else
-                  const TeamCoworkersCard(),
-                const SizedBox(height: 32),
+                // 7. Team Coworkers Preview (Hanya tampil saat melihat profil diri sendiri)
+                if (!effectiveIsFromDirectory) ...[
+                  Builder(
+                    builder: (context) {
+                      final List<EmployeeDirectoryItem> coworkerItems =
+                          state.coworkers ??
+                              (detail?.coworkers
+                                      .map((c) => EmployeeDirectoryItem(
+                                            id: c.id,
+                                            rawId: c.id,
+                                            name: c.fullName,
+                                            role: 'Team Member',
+                                            department: displayDept,
+                                            company: displayCompany,
+                                            email: c.email,
+                                            phone: c.phone,
+                                            avatarUrl: c.photoUrl,
+                                            initials: c.initials,
+                                            firstName: c.firstName,
+                                            lastName: c.lastName,
+                                            employeeNumber: c.employeeNumber,
+                                            idNumber: c.idNumber,
+                                          ))
+                                      .toList() ??
+                                  const []);
+
+                      final coworkerCardList = coworkerItems
+                          .map((c) => CoworkerItem(
+                                id: c.id,
+                                name: c.name,
+                                role: c.role,
+                                initials: c.initials,
+                                phone: c.phone,
+                                avatarUrl: c.avatarUrl,
+                                directoryItem: c,
+                              ))
+                          .toList();
+
+                      return TeamCoworkersCard(
+                        coworkers: coworkerCardList,
+                        onCoworkerTap: (item) {
+                          if (item.directoryItem != null) {
+                            context.push(
+                              Routes.EMPLOYEE_DETAIL,
+                              extra: item.directoryItem,
+                            );
+                          }
+                        },
+                        onViewAll: () {
+                          context.push(
+                            Routes.COWORKER_LIST,
+                            extra: CoworkerListArgs(
+                              initialCoworkers: coworkerItems,
+                              employeeName: displayName,
+                              departmentName: displayDept,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                ],
 
                 // 8. Brand Version Footer
                 const Center(child: AppNameVersionText()),

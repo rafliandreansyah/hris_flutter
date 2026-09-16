@@ -189,6 +189,11 @@ class _MockPlanEmployeeRepository implements EmployeeRepository {
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    return [];
+  }
 }
 
 void main() {

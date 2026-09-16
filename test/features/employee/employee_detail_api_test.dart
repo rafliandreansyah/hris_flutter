@@ -38,6 +38,31 @@ class MockEmployeeDetailRepository implements EmployeeRepository {
     }
     throw Exception('Detail not found');
   }
+
+  List<EmployeeDirectoryItem>? mockCoworkers;
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() async {
+    if (mockCoworkers != null) return mockCoworkers!;
+    if (mockDetail != null) {
+      return mockDetail!.coworkers
+          .map<EmployeeDirectoryItem>((c) => EmployeeDirectoryItem(
+                id: c.id,
+                name: c.fullName,
+                role: 'Team Member',
+                department: 'Technology',
+                initials: c.initials,
+                firstName: c.firstName,
+                lastName: c.lastName,
+                email: c.email,
+                phone: c.phone,
+                avatarUrl: c.photoUrl,
+                employeeNumber: c.employeeNumber,
+              ))
+          .toList();
+    }
+    return [];
+  }
 }
 
 void main() {
@@ -245,7 +270,8 @@ void main() {
       expect(find.textContaining('Principal Architect'), findsWidgets);
       expect(find.textContaining('Technology'), findsWidgets);
       expect(find.text('Robert Smith'), findsOneWidget); // Manager
-      expect(find.text('Alice Wong'), findsOneWidget); // Coworker
+      // Coworkers must NOT be shown when viewing employee detail from directory
+      expect(find.text('Alice Wong'), findsNothing);
       // Edit icon must be hidden when opened from Employee Directory
       expect(find.byIcon(LucideIcons.pencil), findsNothing);
     });
@@ -270,6 +296,8 @@ void main() {
       expect(mockRepo.lastDetailId, '123e4567-e89b-12d3-a456-426614174000');
       expect(find.text('John Doe'), findsWidgets);
       expect(find.text('EMP-2024-777 • Technology'), findsOneWidget);
+      // Coworkers must be shown when viewing own profile
+      expect(find.text('Alice Wong'), findsOneWidget);
       // Edit icon must be visible when opened from user profile
       expect(find.byIcon(LucideIcons.pencil), findsOneWidget);
     });

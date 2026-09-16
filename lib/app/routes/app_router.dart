@@ -14,6 +14,7 @@ import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart'
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:hris_flutter/features/employee/presentation/pages/coworker_list_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/create_leave_screen.dart';
@@ -87,6 +88,19 @@ class AppRouter {
             );
           }
           return const EmployeeDetailScreen(isFromDirectory: false);
+        },
+      ),
+
+      // 7. Coworker List Screen
+      GoRoute(
+        path: Routes.COWORKER_LIST,
+        name: Routes.COWORKER_LIST,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is CoworkerListArgs) {
+            return CoworkerListScreen(args: extra);
+          }
+          return const CoworkerListScreen();
         },
       ),
 
