@@ -4,6 +4,7 @@ import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/constants/app_constants.dart';
+import 'package:hris_flutter/core/network/alice_service.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/network/interceptors/auth_interceptor.dart';
 import 'package:hris_flutter/core/network/interceptors/logging_interceptor.dart';
@@ -41,8 +42,9 @@ class ApiClient {
 
     _dio.interceptors.add(_authInterceptor);
 
-    // Logging hanya aktif saat mode Debug
+    // Logging & HTTP Inspector (Alice) hanya aktif saat mode Debug
     if (kDebugMode) {
+      _dio.interceptors.add(AliceService.instance.dioAdapter);
       _dio.interceptors.add(LoggingInterceptor.instance);
     }
   }

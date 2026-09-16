@@ -1,15 +1,22 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_theme.dart';
 import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
+import 'package:hris_flutter/core/network/alice_service.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/firebase_options.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Alice HTTP Inspector (Debug Mode)
+  if (kDebugMode) {
+    AliceService.instance;
+  }
 
   // Inisialisasi Firebase & Push Notification Service
   try {

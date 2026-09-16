@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hris_flutter/core/network/alice_service.dart';
 
 /// Background message handler untuk FCM saat aplikasi di-terminate / di background.
 /// Harus diletakkan di top-level function dengan anotasi entry-point.
@@ -41,6 +42,16 @@ class NotificationService {
     description: 'Channel pemberitahuan aktivitas absensi, cuti, lembur, dan pengumuman.',
     importance: Importance.high,
     playSound: true,
+  );
+
+  /// Channel notifikasi untuk Alice HTTP Inspector di Android (Low Importance / Silent)
+  static const AndroidNotificationChannel _aliceChannel = AndroidNotificationChannel(
+    'Alice',
+    'Alice HTTP Inspector',
+    description: 'Channel pemberitahuan inspeksi HTTP request/response Alice.',
+    importance: Importance.low,
+    playSound: false,
+    enableVibration: false,
   );
 
   bool _isInitialized = false;
@@ -88,6 +99,13 @@ class NotificationService {
       await _localNotifications.initialize(
         settings: initSettings,
         onDidReceiveNotificationResponse: (response) {
+          // 1. Delegasi ke Alice HTTP Inspector jika payload berasal dari Alice
+          if (response.payload == 'Alice') {
+            AliceService.instance.showInspector();
+            return;
+          }
+
+          // 2. Delegasi ke handler FCM jika payload berupa JSON dari push notification
           if (response.payload != null && onNotificationOpened != null) {
             try {
               final data = jsonDecode(response.payload!) as Map<String, dynamic>;
@@ -97,11 +115,12 @@ class NotificationService {
         },
       );
 
-      // Buat Android Notification Channel
-      await _localNotifications
+      // Buat Android Notification Channel untuk HRIS dan Alice Inspector
+      final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(_channel);
+              AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.createNotificationChannel(_channel);
+      await androidPlugin?.createNotificationChannel(_aliceChannel);
 
       // 3. Konfigurasi notifikasi saat aplikasi berada di Foreground
       await fcm.setForegroundNotificationPresentationOptions(
@@ -122,7 +141,22 @@ class NotificationService {
         onNotificationOpened?.call(message);
       });
 
-      // Cek apakah aplikasi dibuka pertama kali dari notifikasi (Terminated State)
+      // Cek apakah aplikasi dibuka pertama kali dari notifikasi lokal (misal: Alice saat Terminated State)
+      final launchDetails =
+          await _localNotifications.getNotificationAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp ?? false) {
+        final payload = launchDetails?.notificationResponse?.payload;
+        if (payload == 'Alice') {
+          AliceService.instance.showInspector();
+        } else if (payload != null && onNotificationOpened != null) {
+          try {
+            final data = jsonDecode(payload) as Map<String, dynamic>;
+            onNotificationOpened(RemoteMessage(data: data));
+          } catch (_) {}
+        }
+      }
+
+      // Cek apakah aplikasi dibuka pertama kali dari notifikasi FCM (Terminated State)
       final initialMessage = await fcm.getInitialMessage();
       if (initialMessage != null) {
         debugPrint('🚀 [FCM Initial Message]: ${initialMessage.data}');

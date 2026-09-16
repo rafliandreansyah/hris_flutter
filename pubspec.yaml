@@ -65,6 +65,8 @@ dependencies:
   local_auth: ^3.0.2
   flutter_image_compress: ^2.5.1
   pro_dialog: ^1.0.9
+  alice: ^1.5.0
+  alice_dio: ^1.2.3
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +80,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_gen_runner:
   build_runner: ^2.15.1
+
+dependency_overrides:
+  material_ui: 1.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
