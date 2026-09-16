@@ -106,7 +106,7 @@ class AttendanceTopAppBar extends StatelessWidget {
               : const Icon(LucideIcons.locateFixed),
           color: AppColors.brandTeal,
           tooltip: 'Update Lokasi Sekarang',
-          onPressed: onUpdateLocationPressed,
+          onPressed: isUpdatingLocation ? null : onUpdateLocationPressed,
         ),
         const SizedBox(width: 8),
       ],

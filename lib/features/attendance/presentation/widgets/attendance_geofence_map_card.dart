@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -126,21 +127,38 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
 
     if (widget.userLatitude == null || widget.userLongitude == null) {
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(officeLatLng, 17.0),
+        CameraUpdate.newLatLngZoom(officeLatLng, 16.0),
       );
       return;
     }
 
     final userLatLng = LatLng(widget.userLatitude!, widget.userLongitude!);
 
-    final latDiff = (officeLatLng.latitude - userLatLng.latitude).abs();
-    final lngDiff = (officeLatLng.longitude - userLatLng.longitude).abs();
+    // Hitung jarak riil dalam meter antara kantor dan posisi GPS pengguna
+    final distanceMeters = Geolocator.distanceBetween(
+      officeLatLng.latitude,
+      officeLatLng.longitude,
+      userLatLng.latitude,
+      userLatLng.longitude,
+    );
 
-    if (latDiff < 0.0001 && lngDiff < 0.0001) {
+    // Batas jarak dekat: 2x radius geofence kantor atau minimal 250 meter
+    final closeThreshold = math.max(widget.geofenceRadiusMeters * 2.0, 250.0);
+
+    if (distanceMeters <= closeThreshold) {
+      // Saat jarak dekat, pusatkan kamera pada titik tengah antara kantor dan pengguna
+      // dengan level zoom yang lebih lega (agak dijauhin: 16.0) agar lingkaran geofence,
+      // pin kantor, titik GPS, dan jalan sekitar terlihat jelas tanpa terpotong atau terlalu dekat.
+      final midpoint = LatLng(
+        (officeLatLng.latitude + userLatLng.latitude) / 2,
+        (officeLatLng.longitude + userLatLng.longitude) / 2,
+      );
+      final closeZoom = widget.geofenceRadiusMeters > 150 ? 15.5 : 16.0;
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(officeLatLng, 17.5),
+        CameraUpdate.newLatLngZoom(midpoint, closeZoom),
       );
     } else {
+      // Saat jarak jauh, pertahankan LatLngBounds dengan padding 65.0 (kondisi yang sudah pas)
       final southwest = LatLng(
         math.min(officeLatLng.latitude, userLatLng.latitude),
         math.min(officeLatLng.longitude, userLatLng.longitude),
@@ -612,7 +630,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
     return GoogleMap(
       initialCameraPosition: CameraPosition(
         target: initialTarget,
-        zoom: 16.5,
+        zoom: 16.0,
       ),
       myLocationEnabled: true,
       myLocationButtonEnabled: false,

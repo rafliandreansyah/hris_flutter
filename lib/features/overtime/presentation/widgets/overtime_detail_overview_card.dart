@@ -18,10 +18,12 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
 
     return Container(
       decoration: BoxDecoration(
@@ -46,7 +48,10 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
             children: [
               // Overtime Shift Pill
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkPrimaryContainer
@@ -96,19 +101,24 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
           const SizedBox(height: 6),
 
           // ── Time Range & Duration Badge ───────────────────────────────
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 detail.formattedTimeRange,
                 style: AppTypography.titleMedium.copyWith(
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: textCol,
                 ),
               ),
-              const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkSurfaceContainerHigh
@@ -120,7 +130,9 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkOnSurface : const Color(0xFF131B2E),
+                    color: isDark
+                        ? AppColors.darkOnSurface
+                        : const Color(0xFF131B2E),
                   ),
                 ),
               ),
@@ -157,7 +169,9 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                       ? '"${detail.notes!.trim()}"'
                       : 'Tidak ada catatan dari karyawan.',
                   style: AppTypography.bodyMedium.copyWith(
-                    fontStyle: (detail.notes != null && detail.notes!.trim().isNotEmpty)
+                    fontStyle:
+                        (detail.notes != null &&
+                            detail.notes!.trim().isNotEmpty)
                         ? FontStyle.italic
                         : FontStyle.normal,
                     color: textCol,

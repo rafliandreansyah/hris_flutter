@@ -60,7 +60,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
 
     final effectiveStatus = state.filterCriteria.status ??
         state.filterCriteria.statusApprove ??
-        'all';
+        'requested';
 
     if (!event.isTeam) {
       // ── Tab 0: My Overtime (approver=false) ──────────────────────────
@@ -161,7 +161,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
 
     final effectiveStatus = state.filterCriteria.status ??
         state.filterCriteria.statusApprove ??
-        'all';
+        'requested';
 
     if (!event.isTeam) {
       if (state.isMyLoading ||

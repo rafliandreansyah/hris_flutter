@@ -6,6 +6,7 @@ import 'package:hris_flutter/features/activity/domain/repositories/activity_repo
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_map_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_timeline_section.dart';
+import 'package:hris_flutter/core/widgets/app_image_thumbnail_preview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -287,12 +288,12 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      // Find preview button overlay
-      final previewHints = find.text('Lihat');
-      expect(previewHints, findsAtLeast(1));
+      // Find preview thumbnail
+      final previewThumbnail = find.byType(AppImageThumbnailPreview);
+      expect(previewThumbnail, findsAtLeast(1));
 
-      await tester.ensureVisible(previewHints.first);
-      await tester.tap(previewHints.first);
+      await tester.ensureVisible(previewThumbnail.first);
+      await tester.tap(previewThumbnail.first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 

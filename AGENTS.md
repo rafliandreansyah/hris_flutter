@@ -27,3 +27,8 @@
 7. **Networking & Routing**:
    - Centralize API endpoints in `lib/core/constants/api_endpoints.dart`.
    - Centralize routes in `lib/app/routes/route_name.dart` and register them in `lib/app/routes/app_router.dart`.
+8. **Loading State Standards**:
+   - **Initial Page/Tab Loading**: Always use **Shimmer (Skeleton)** placeholder cards that mirror the structure of content (requests, logs, activity feed) to maintain high perceived performance and prevent content layout shifts.
+   - **Pagination (Load More)**: Use a small **`CircularProgressIndicator(strokeWidth: 2.5)`** at the bottom of the list.
+   - **Form Actions / Submit**: Use **`CircularProgressIndicator`** inside the action button (e.g. submit, approve, reject).
+   - **Pull-to-Refresh**: Use standard Flutter **`RefreshIndicator`**.

@@ -1,6 +1,6 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/core/widgets/app_image_thumbnail_preview.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -188,85 +188,11 @@ class ActivityTimelineSection extends StatelessWidget {
                   // Image Attachment if present
                   if (phase.imageUrl != null && phase.imageUrl!.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () => _showImagePreview(
-                        context,
-                        phase.imageUrl!,
-                        phase.title,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Stack(
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: phase.imageUrl!,
-                              height: 120,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                height: 120,
-                                color: isDark
-                                    ? AppColors.darkSurfaceContainerHigh
-                                    : AppColors.surfaceContainerHigh,
-                                child: Center(
-                                  child: Icon(
-                                    LucideIcons.image,
-                                    color: subtitleCol.withValues(alpha: 0.5),
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                height: 120,
-                                color: isDark
-                                    ? AppColors.darkSurfaceContainerHigh
-                                    : AppColors.surfaceContainerHigh,
-                                child: Center(
-                                  child: Icon(
-                                    LucideIcons.image,
-                                    color: subtitleCol,
-                                    size: 28,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Zoom hint overlay on bottom right
-                            Positioned(
-                              bottom: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      LucideIcons.maximize2,
-                                      size: 12,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Lihat',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    AppImageThumbnailPreview(
+                      imageUrl: phase.imageUrl,
+                      height: 120,
+                      borderRadius: BorderRadius.circular(12),
+                      title: phase.title,
                     ),
                   ],
                 ],
@@ -274,78 +200,6 @@ class ActivityTimelineSection extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// Menampilkan dialog preview foto ukuran penuh
-  void _showImagePreview(BuildContext context, String imageUrl, String title) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.85),
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Top Bar with title & close button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(LucideIcons.x, color: Colors.white),
-                  onPressed: () => Navigator.of(ctx).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Zoomable Interactive Photo
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: InteractiveViewer(
-                minScale: 0.8,
-                maxScale: 3.5,
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) => const SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Icon(
-                        LucideIcons.image,
-                        color: Colors.white54,
-                        size: 32,
-                      ),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => const SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Icon(
-                        LucideIcons.imageOff,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

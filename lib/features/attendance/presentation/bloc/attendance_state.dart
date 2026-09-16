@@ -17,6 +17,37 @@ class AttendanceLoading extends AttendanceState {
   const AttendanceLoading();
 }
 
+class AttendanceSuccessInfo extends Equatable {
+  final String attendanceType; // 'in' or 'out'
+  final String title;
+  final String message;
+  final DateTime date;
+  final String formattedDate;
+  final String formattedTime;
+  final String locationName;
+
+  const AttendanceSuccessInfo({
+    required this.attendanceType,
+    required this.title,
+    required this.message,
+    required this.date,
+    required this.formattedDate,
+    required this.formattedTime,
+    required this.locationName,
+  });
+
+  @override
+  List<Object?> get props => [
+        attendanceType,
+        title,
+        message,
+        date,
+        formattedDate,
+        formattedTime,
+        locationName,
+      ];
+}
+
 class AttendanceLoaded extends AttendanceState {
   final AttendanceTodayData data;
   final DateTime currentClockTime;
@@ -31,6 +62,9 @@ class AttendanceLoaded extends AttendanceState {
   /// Apakah GPS sudah berhasil didapat. Jika false, geofence belum dihitung.
   final bool isGpsAcquired;
 
+  /// Data sukses presensi (clock in / clock out) untuk memicu dialog sukses.
+  final AttendanceSuccessInfo? attendanceSuccess;
+
   const AttendanceLoaded({
     required this.data,
     required this.currentClockTime,
@@ -42,6 +76,7 @@ class AttendanceLoaded extends AttendanceState {
     this.gpsAccuracyMeters = 5.0,
     this.isInsideGeofence = true,
     this.isGpsAcquired = false,
+    this.attendanceSuccess,
   });
 
   /// Format waktu jam:menit:detik tanpa 'WIB' karena timezone sudah ditampilkan secara terpisah di chip.
@@ -59,6 +94,8 @@ class AttendanceLoaded extends AttendanceState {
     double? gpsAccuracyMeters,
     bool? isInsideGeofence,
     bool? isGpsAcquired,
+    AttendanceSuccessInfo? attendanceSuccess,
+    bool clearAttendanceSuccess = false,
   }) {
     return AttendanceLoaded(
       data: data ?? this.data,
@@ -71,6 +108,9 @@ class AttendanceLoaded extends AttendanceState {
       gpsAccuracyMeters: gpsAccuracyMeters ?? this.gpsAccuracyMeters,
       isInsideGeofence: isInsideGeofence ?? this.isInsideGeofence,
       isGpsAcquired: isGpsAcquired ?? this.isGpsAcquired,
+      attendanceSuccess: clearAttendanceSuccess
+          ? null
+          : (attendanceSuccess ?? this.attendanceSuccess),
     );
   }
 
@@ -86,6 +126,7 @@ class AttendanceLoaded extends AttendanceState {
         gpsAccuracyMeters,
         isInsideGeofence,
         isGpsAcquired,
+        attendanceSuccess,
       ];
 }
 

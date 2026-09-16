@@ -59,6 +59,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noWorkSchedule => 'No Work Schedule';
 
   @override
+  String get dayOffSchedule => 'Day Off';
+
+  @override
+  String get dayOffNotice => 'Day Off Schedule';
+
+  @override
+  String get dayOffDescription =>
+      'You do not have an active work schedule today (Day Off).';
+
+  @override
   String get quickAccess => 'Quick Access';
 
   @override

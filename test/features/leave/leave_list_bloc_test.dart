@@ -494,7 +494,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(bloc.state.filterCriteria.companyId, isNull);
-      expect(bloc.state.filterCriteria.statusApprove, isNull);
+      expect(bloc.state.filterCriteria.statusApprove, 'requested');
       expect(bloc.state.filterCriteria.hasActiveFilter, isFalse);
 
       bloc.close();
@@ -713,6 +713,25 @@ void main() {
       expect(criteria.activeFilterCount, 3);
       expect(criteria.startDateParam, '2026-08-01');
       expect(criteria.endDateParam, '2026-08-31');
+    });
+
+    test('statusApprove dihitung sebagai filter aktif jika bukan requested', () {
+      expect(
+        const LeaveFilterCriteria(statusApprove: 'requested').hasActiveFilter,
+        isFalse,
+      );
+      expect(
+        const LeaveFilterCriteria(statusApprove: 'all').hasActiveFilter,
+        isTrue,
+      );
+      expect(
+        const LeaveFilterCriteria(statusApprove: 'rejected').activeFilterCount,
+        1,
+      );
+      expect(
+        const LeaveFilterCriteria(statusApprove: null).activeFilterCount,
+        0,
+      );
     });
   });
 }

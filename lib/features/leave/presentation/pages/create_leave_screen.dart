@@ -156,6 +156,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
+      showDragHandle: true,
       backgroundColor: isDark
           ? AppColors.darkSurfaceContainerLowest
           : AppColors.surfaceContainerLowest,
@@ -168,22 +169,11 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(ctx).size.height * 0.75,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
               Row(
                 children: [
                   const Icon(

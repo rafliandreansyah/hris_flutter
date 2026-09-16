@@ -5,7 +5,6 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
-import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/coworker_list/coworker_list_bloc.dart';
@@ -86,18 +85,26 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
+    final bgCol = isDark
+        ? AppColors.darkBackground
+        : AppColors.backgroundSubtle;
     final surfaceCol = isDark ? AppColors.darkSurface : AppColors.surface;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol = isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
-    final borderCol = isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.surfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     final subtitle = () {
       final parts = [
-        if (widget.args?.employeeName != null && widget.args!.employeeName!.isNotEmpty)
+        if (widget.args?.employeeName != null &&
+            widget.args!.employeeName!.isNotEmpty)
           widget.args!.employeeName!,
-        if (widget.args?.departmentName != null && widget.args!.departmentName!.isNotEmpty)
+        if (widget.args?.departmentName != null &&
+            widget.args!.departmentName!.isNotEmpty)
           widget.args!.departmentName!,
       ];
       if (parts.isNotEmpty) return parts.join(' • ');
@@ -154,7 +161,9 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                   border: Border.all(color: borderCol, width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.03,
+                      ),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -216,7 +225,8 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                   }
 
                   // Failure State
-                  if (state.status == CoworkerListStatus.failure && state.coworkers.isEmpty) {
+                  if (state.status == CoworkerListStatus.failure &&
+                      state.coworkers.isEmpty) {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -249,7 +259,8 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              state.errorMessage ?? 'Terjadi kesalahan saat memuat data rekan kerja.',
+                              state.errorMessage ??
+                                  'Terjadi kesalahan saat memuat data rekan kerja.',
                               style: AppTypography.bodySmall.copyWith(
                                 color: subtitleCol,
                                 fontSize: 13,
@@ -259,13 +270,17 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                             const SizedBox(height: 18),
                             OutlinedButton.icon(
                               onPressed: () {
-                                context.read<CoworkerListBloc>().add(const CoworkerListRefreshed());
+                                context.read<CoworkerListBloc>().add(
+                                  const CoworkerListRefreshed(),
+                                );
                               },
                               icon: const Icon(LucideIcons.rotateCcw, size: 16),
                               label: const Text('Coba Lagi'),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: brandColor,
-                                side: BorderSide(color: brandColor.withValues(alpha: 0.5)),
+                                side: BorderSide(
+                                  color: brandColor.withValues(alpha: 0.5),
+                                ),
                                 shape: const StadiumBorder(),
                               ),
                             ),
@@ -280,12 +295,17 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                     final isSearching = state.searchQuery.trim().isNotEmpty;
                     return RefreshIndicator(
                       onRefresh: () async {
-                        context.read<CoworkerListBloc>().add(const CoworkerListRefreshed());
+                        context.read<CoworkerListBloc>().add(
+                          const CoworkerListRefreshed(),
+                        );
                       },
                       color: brandColor,
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 48,
+                        ),
                         children: [
                           Center(
                             child: Column(
@@ -308,7 +328,9 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  isSearching ? 'Rekan Kerja Tidak Ditemukan' : 'Belum Ada Rekan Kerja',
+                                  isSearching
+                                      ? 'Rekan Kerja Tidak Ditemukan'
+                                      : 'Belum Ada Rekan Kerja',
                                   style: AppTypography.titleMedium.copyWith(
                                     color: textCol,
                                     fontWeight: FontWeight.w700,
@@ -334,11 +356,18 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                                       _searchController.clear();
                                       _onSearchChanged('');
                                     },
-                                    icon: const Icon(LucideIcons.rotateCcw, size: 15),
+                                    icon: const Icon(
+                                      LucideIcons.rotateCcw,
+                                      size: 15,
+                                    ),
                                     label: const Text('Reset Pencarian'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: brandColor,
-                                      side: BorderSide(color: brandColor.withValues(alpha: 0.5)),
+                                      side: BorderSide(
+                                        color: brandColor.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                      ),
                                       shape: const StadiumBorder(),
                                     ),
                                   ),
@@ -354,28 +383,26 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                   // Success List with EmployeeCard Items
                   return RefreshIndicator(
                     onRefresh: () async {
-                      context.read<CoworkerListBloc>().add(const CoworkerListRefreshed());
+                      context.read<CoworkerListBloc>().add(
+                        const CoworkerListRefreshed(),
+                      );
                     },
                     color: brandColor,
                     child: ListView.builder(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                      itemCount: state.filteredCoworkers.length + 1,
+                      itemCount: state.filteredCoworkers.length,
                       itemBuilder: (context, index) {
-                        if (index == state.filteredCoworkers.length) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Center(child: AppNameVersionText()),
-                          );
-                        }
-
                         final coworker = state.filteredCoworkers[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: EmployeeCard(
                             employee: coworker,
                             onTap: () {
-                              context.push(Routes.EMPLOYEE_DETAIL, extra: coworker);
+                              context.push(
+                                Routes.EMPLOYEE_DETAIL,
+                                extra: coworker,
+                              );
                             },
                           ),
                         );

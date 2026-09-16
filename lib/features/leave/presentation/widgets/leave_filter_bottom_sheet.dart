@@ -21,7 +21,7 @@ class LeaveFilterCriteria extends Equatable {
   final String? positionId;
   final String? position;
 
-  /// Filter status pengajuan: 'all' = semua, 'requested', 'approved', 'rejected'.
+  /// Filter status pengajuan: 'requested' (default), 'approved', 'rejected', 'all'.
   final String? status;
 
   /// Alias statusApprove untuk backward-compatibility.
@@ -37,7 +37,7 @@ class LeaveFilterCriteria extends Equatable {
     this.position,
     String? status,
     String? statusApprove,
-  }) : status = status ?? statusApprove;
+  }) : status = status ?? statusApprove ?? 'requested';
 
   bool get hasActiveFilter =>
       dateRange != null ||
@@ -47,7 +47,7 @@ class LeaveFilterCriteria extends Equatable {
       (departmentId != null && departmentId!.isNotEmpty) ||
       (position != null && position != 'Semua Jabatan') ||
       (positionId != null && positionId!.isNotEmpty) ||
-      (status != null && status!.isNotEmpty && status != 'all');
+      (status != null && status!.isNotEmpty && status != 'requested');
 
   int get activeFilterCount {
     int count = 0;
@@ -64,7 +64,7 @@ class LeaveFilterCriteria extends Equatable {
         (positionId != null && positionId!.isNotEmpty)) {
       count++;
     }
-    if (status != null && status!.isNotEmpty && status != 'all') {
+    if (status != null && status!.isNotEmpty && status != 'requested') {
       count++;
     }
     return count;
@@ -134,12 +134,20 @@ Future<LeaveFilterCriteria?> showLeaveFilterBottomSheet(
   OrganizationFilterRepository? repository,
   OrganizationFilterBloc? organizationFilterBloc,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surfaceColor = isDark
+      ? AppColors.darkSurfaceContainerLowest
+      : AppColors.surfaceContainerLowest;
+
   return showModalBottomSheet<LeaveFilterCriteria>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: false,
+    showDragHandle: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) {
       final sheetWidget = LeaveFilterBottomSheet(
@@ -195,7 +203,7 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
 
     _selectedCompanyId = widget.initialCriteria.companyId;
     _selectedCompany = widget.initialCriteria.company ?? 'Semua Perusahaan';
-    _selectedStatusApprove = widget.initialCriteria.status ?? widget.initialCriteria.statusApprove ?? 'all';
+    _selectedStatusApprove = widget.initialCriteria.status ?? widget.initialCriteria.statusApprove ?? 'requested';
     if (_selectedStatusApprove == 'pending') {
       _selectedStatusApprove = 'requested';
     }
@@ -240,7 +248,7 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
       _selectedDepartment = 'Semua Departemen';
       _selectedPositionId = null;
       _selectedPosition = 'Semua Jabatan';
-      _selectedStatusApprove = 'all';
+      _selectedStatusApprove = 'requested';
     });
     context.read<OrganizationFilterBloc>().add(
           const OrganizationFilterCompanySelected(companyId: null),
@@ -391,9 +399,12 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: false,
+      showDragHandle: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (bottomSheetContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -424,20 +435,6 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 12),
-                        Center(
-                          child: Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkOutlineMuted
-                                  : const Color(0xFFCBD5E1),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
@@ -733,9 +730,6 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final labelCol =
         isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
@@ -758,435 +752,401 @@ class _LeaveFilterBottomSheetState extends State<LeaveFilterBottomSheet> {
         ? ['Semua Jabatan', ...orgState.positions.map((p) => p.name)]
         : ['Semua Jabatan'];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Drag Handle
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Header Modal ──────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(100),
+                      color: brandColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.slidersHorizontal,
+                      size: 18,
+                      color: brandColor,
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Filter Pengajuan Cuti',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: textCol,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _resetFilters,
+                    icon: Icon(
+                      LucideIcons.rotateCcw,
+                      size: 14,
+                      color: brandColor,
+                    ),
+                    label: Text(
+                      'Reset Filter',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: brandColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
+            const Divider(height: 1),
 
-              // 2. Scrollable Content Area
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header Row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Filter Pengajuan Cuti',
-                                  style: AppTypography.titleMedium.copyWith(
-                                    color: textCol,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  'Saring pengajuan cuti/izin berdasarkan rentang tanggal, perusahaan, divisi, jabatan, dan status',
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: labelCol,
-                                    fontSize: 12,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
-                            ),
+            // ── Konten Scrollable Form Filter ─────────────────────────
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Field 1: Rentang Tanggal (Date Range)
+                    _buildFilterField(
+                      label: 'Rentang Tanggal (Date Range)',
+                      value: _dateRangeDisplay,
+                      icon: LucideIcons.calendar,
+                      fieldBg: fieldBg,
+                      borderCol: borderCol,
+                      textCol: textCol,
+                      labelCol: labelCol,
+                      brandColor: brandColor,
+                      helperText:
+                          'Pilih rentang tanggal mulai hingga selesai',
+                      onTap: _pickDateRange,
+                      onClear: _selectedDateRange != null
+                          ? () => setState(() => _selectedDateRange = null)
+                          : null,
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Field 2: Status Pengajuan (statusApprove)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Status Pengajuan',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: textCol,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
                           ),
-                          const SizedBox(width: 8),
-                          TextButton.icon(
-                            onPressed: _resetFilters,
-                            icon: Icon(
-                              LucideIcons.rotateCcw,
-                              size: 15,
-                              color: brandColor,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildStatusChip(
+                              label: 'Semua',
+                              value: 'all',
+                              selectedValue: _selectedStatusApprove,
+                              brandColor: brandColor,
+                              labelCol: labelCol,
+                              borderCol: borderCol,
+                              fieldBg: fieldBg,
+                              isDark: isDark,
+                              onSelected: () {
+                                setState(
+                                    () => _selectedStatusApprove = 'all');
+                              },
                             ),
-                            label: Text(
-                              'Reset Filter',
-                              style: AppTypography.labelMedium.copyWith(
-                                color: brandColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
+                            const SizedBox(width: 8),
+                            _buildStatusChip(
+                              label: 'Diajukan',
+                              value: 'requested',
+                              selectedValue: _selectedStatusApprove == 'pending'
+                                  ? 'requested'
+                                  : _selectedStatusApprove,
+                              brandColor: brandColor,
+                              labelCol: labelCol,
+                              borderCol: borderCol,
+                              fieldBg: fieldBg,
+                              isDark: isDark,
+                              onSelected: () {
+                                setState(() =>
+                                    _selectedStatusApprove = 'requested');
+                              },
                             ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            const SizedBox(width: 8),
+                            _buildStatusChip(
+                              label: 'Approved',
+                              value: 'approved',
+                              selectedValue: _selectedStatusApprove,
+                              brandColor: brandColor,
+                              labelCol: labelCol,
+                              borderCol: borderCol,
+                              fieldBg: fieldBg,
+                              isDark: isDark,
+                              onSelected: () {
+                                setState(() =>
+                                    _selectedStatusApprove = 'approved');
+                              },
                             ),
+                            const SizedBox(width: 8),
+                            _buildStatusChip(
+                              label: 'Rejected',
+                              value: 'rejected',
+                              selectedValue: _selectedStatusApprove,
+                              brandColor: brandColor,
+                              labelCol: labelCol,
+                              borderCol: borderCol,
+                              fieldBg: fieldBg,
+                              isDark: isDark,
+                              onSelected: () {
+                                setState(() =>
+                                    _selectedStatusApprove = 'rejected');
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Default memuat status pengajuan diminta (requested)',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: labelCol,
+                            fontSize: 11,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
 
-                      // Field 1: Rentang Tanggal (Date Range)
-                      _buildFilterField(
-                        label: 'Rentang Tanggal (Date Range)',
-                        value: _dateRangeDisplay,
-                        icon: LucideIcons.calendar,
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        labelCol: labelCol,
-                        brandColor: brandColor,
-                        helperText:
-                            'Pilih rentang tanggal mulai hingga selesai',
-                        onTap: _pickDateRange,
-                        onClear: _selectedDateRange != null
-                            ? () => setState(() => _selectedDateRange = null)
-                            : null,
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 2: Perusahaan (Company)
-                      _buildFilterField(
-                        label: 'Perusahaan (Company)',
-                        value: _selectedCompany,
-                        icon: LucideIcons.building,
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        labelCol: labelCol,
-                        brandColor: brandColor,
-                        isLoading: orgState.isLoadingCompanies,
-                        onTap: () {
-                          _showOptionSelector(
-                            title: 'Pilih Perusahaan',
-                            options: companiesList,
-                            selectedValue: _selectedCompany,
-                            onSelected: (val) {
-                              setState(() {
-                                _selectedCompany = val;
-                                if (val == 'Semua Perusahaan') {
-                                  _selectedCompanyId = null;
-                                  _selectedDepartmentId = null;
-                                  _selectedDepartment = 'Semua Departemen';
-                                  _selectedPositionId = null;
-                                  _selectedPosition = 'Semua Jabatan';
-                                } else {
-                                  final found = orgState.companies
-                                      .where((c) => c.name == val);
-                                  _selectedCompanyId = found.isNotEmpty
-                                      ? found.first.id
-                                      : null;
-
-                                  _selectedDepartmentId = null;
-                                  _selectedDepartment = 'Semua Departemen';
-                                  _selectedPositionId = null;
-                                  _selectedPosition = 'Semua Jabatan';
-                                }
-                              });
-                              context.read<OrganizationFilterBloc>().add(
-                                    OrganizationFilterCompanySelected(
-                                      companyId: _selectedCompanyId,
-                                    ),
-                                  );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 3: Departemen (Division)
-                      _buildFilterField(
-                        label: 'Departemen (Division)',
-                        value: _selectedDepartment,
-                        icon: LucideIcons.briefcase,
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        labelCol: labelCol,
-                        brandColor: brandColor,
-                        isLoading: orgState.isLoadingDepartments,
-                        isEnabled: _isCompanySelected,
-                        helperText: _isCompanySelected
-                            ? 'Filter berdasarkan divisi organisasi kerja'
-                            : 'Pilih perusahaan terlebih dahulu',
-                        onTap: () {
-                          _showOptionSelector(
-                            title: 'Pilih Departemen',
-                            options: departmentsList,
-                            selectedValue: _selectedDepartment,
-                            onSelected: (val) {
-                              setState(() {
-                                _selectedDepartment = val;
-                                if (val == 'Semua Departemen') {
-                                  _selectedDepartmentId = null;
-                                } else {
-                                  final found = orgState.departments
-                                      .where((d) => d.name == val);
-                                  _selectedDepartmentId = found.isNotEmpty
-                                      ? found.first.id
-                                      : null;
-                                }
+                    // Field 3: Perusahaan (Company)
+                    _buildFilterField(
+                      label: 'Perusahaan (Company)',
+                      value: _selectedCompany,
+                      icon: LucideIcons.building,
+                      fieldBg: fieldBg,
+                      borderCol: borderCol,
+                      textCol: textCol,
+                      labelCol: labelCol,
+                      brandColor: brandColor,
+                      isLoading: orgState.isLoadingCompanies,
+                      onTap: () {
+                        _showOptionSelector(
+                          title: 'Pilih Perusahaan',
+                          options: companiesList,
+                          selectedValue: _selectedCompany,
+                          onSelected: (val) {
+                            setState(() {
+                              _selectedCompany = val;
+                              if (val == 'Semua Perusahaan') {
+                                _selectedCompanyId = null;
+                                _selectedDepartmentId = null;
+                                _selectedDepartment = 'Semua Departemen';
                                 _selectedPositionId = null;
                                 _selectedPosition = 'Semua Jabatan';
-                              });
-                              context.read<OrganizationFilterBloc>().add(
-                                    OrganizationFilterDepartmentSelected(
-                                      companyId: _selectedCompanyId,
-                                      departmentId: _selectedDepartmentId,
-                                    ),
-                                  );
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
+                              } else {
+                                final found = orgState.companies
+                                    .where((c) => c.name == val);
+                                _selectedCompanyId = found.isNotEmpty
+                                    ? found.first.id
+                                    : null;
 
-                      // Field 4: Jabatan (Position)
-                      _buildFilterField(
-                        label: 'Jabatan (Position)',
-                        value: _selectedPosition,
-                        icon: LucideIcons.userCheck,
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        labelCol: labelCol,
-                        brandColor: brandColor,
-                        isLoading: orgState.isLoadingPositions,
-                        isEnabled: _isCompanySelected,
-                        helperText: _isCompanySelected
-                            ? 'Filter pengajuan berdasarkan jabatan atau peran pegawai'
-                            : 'Pilih perusahaan terlebih dahulu',
-                        onTap: () {
-                          _showOptionSelector(
-                            title: 'Pilih Jabatan',
-                            options: positionsList,
-                            selectedValue: _selectedPosition,
-                            onSelected: (val) {
-                              setState(() {
-                                _selectedPosition = val;
-                                if (val == 'Semua Jabatan') {
-                                  _selectedPositionId = null;
-                                } else {
-                                  final found = orgState.positions
-                                      .where((p) => p.name == val);
-                                  _selectedPositionId = found.isNotEmpty
-                                      ? found.first.id
-                                      : null;
-                                }
-                              });
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 5: Status Approval (statusApprove)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Status Pengajuan',
-                            style: AppTypography.labelMedium.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              _buildStatusChip(
-                                label: 'Semua',
-                                value: 'all',
-                                selectedValue: _selectedStatusApprove,
-                                brandColor: brandColor,
-                                labelCol: labelCol,
-                                borderCol: borderCol,
-                                fieldBg: fieldBg,
-                                isDark: isDark,
-                                onSelected: () {
-                                  setState(
-                                      () => _selectedStatusApprove = 'all');
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusChip(
-                                label: 'Diajukan',
-                                value: 'requested',
-                                selectedValue: _selectedStatusApprove == 'pending'
-                                    ? 'requested'
-                                    : _selectedStatusApprove,
-                                brandColor: brandColor,
-                                labelCol: labelCol,
-                                borderCol: borderCol,
-                                fieldBg: fieldBg,
-                                isDark: isDark,
-                                onSelected: () {
-                                  setState(() =>
-                                      _selectedStatusApprove = 'requested');
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusChip(
-                                label: 'Approved',
-                                value: 'approved',
-                                selectedValue: _selectedStatusApprove,
-                                brandColor: brandColor,
-                                labelCol: labelCol,
-                                borderCol: borderCol,
-                                fieldBg: fieldBg,
-                                isDark: isDark,
-                                onSelected: () {
-                                  setState(() =>
-                                      _selectedStatusApprove = 'approved');
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _buildStatusChip(
-                                label: 'Rejected',
-                                value: 'rejected',
-                                selectedValue: _selectedStatusApprove,
-                                brandColor: brandColor,
-                                labelCol: labelCol,
-                                borderCol: borderCol,
-                                fieldBg: fieldBg,
-                                isDark: isDark,
-                                onSelected: () {
-                                  setState(() =>
-                                      _selectedStatusApprove = 'rejected');
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Default memuat semua status pengajuan cuti/izin',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: labelCol,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Footer Action Buttons (StadiumBorder, 52dp)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 52,
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: borderCol),
-                                  shape: const StadiumBorder(),
-                                  foregroundColor: labelCol,
-                                ),
-                                child: Text(
-                                  'Batal',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: labelCol,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
+                                _selectedDepartmentId = null;
+                                _selectedDepartment = 'Semua Departemen';
+                                _selectedPositionId = null;
+                                _selectedPosition = 'Semua Jabatan';
+                              }
+                            });
+                            context.read<OrganizationFilterBloc>().add(
+                                  OrganizationFilterCompanySelected(
+                                    companyId: _selectedCompanyId,
                                   ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed: _applyFilters,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: brandColor,
-                                  foregroundColor: isDark
-                                      ? const Color(0xFF003732)
-                                      : Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
+                                );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Field 4: Departemen (Division)
+                    _buildFilterField(
+                      label: 'Departemen (Division)',
+                      value: _selectedDepartment,
+                      icon: LucideIcons.briefcase,
+                      fieldBg: fieldBg,
+                      borderCol: borderCol,
+                      textCol: textCol,
+                      labelCol: labelCol,
+                      brandColor: brandColor,
+                      isLoading: orgState.isLoadingDepartments,
+                      isEnabled: _isCompanySelected,
+                      helperText: _isCompanySelected
+                          ? 'Filter berdasarkan divisi organisasi kerja'
+                          : 'Pilih perusahaan terlebih dahulu',
+                      onTap: () {
+                        _showOptionSelector(
+                          title: 'Pilih Departemen',
+                          options: departmentsList,
+                          selectedValue: _selectedDepartment,
+                          onSelected: (val) {
+                            setState(() {
+                              _selectedDepartment = val;
+                              if (val == 'Semua Departemen') {
+                                _selectedDepartmentId = null;
+                              } else {
+                                final found = orgState.departments
+                                    .where((d) => d.name == val);
+                                _selectedDepartmentId = found.isNotEmpty
+                                    ? found.first.id
+                                    : null;
+                              }
+                              _selectedPositionId = null;
+                              _selectedPosition = 'Semua Jabatan';
+                            });
+                            context.read<OrganizationFilterBloc>().add(
+                                  OrganizationFilterDepartmentSelected(
+                                    companyId: _selectedCompanyId,
+                                    departmentId: _selectedDepartmentId,
                                   ),
-                                  shape: const StadiumBorder(),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      LucideIcons.filter,
-                                      size: 18,
-                                      color: isDark
-                                          ? const Color(0xFF003732)
-                                          : Colors.white,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: Text(
-                                        'Terapkan Filter',
-                                        style:
-                                            AppTypography.bodyMedium.copyWith(
-                                          color: isDark
-                                              ? const Color(0xFF003732)
-                                              : Colors.white,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                                );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Field 5: Jabatan (Position)
+                    _buildFilterField(
+                      label: 'Jabatan (Position)',
+                      value: _selectedPosition,
+                      icon: LucideIcons.userCheck,
+                      fieldBg: fieldBg,
+                      borderCol: borderCol,
+                      textCol: textCol,
+                      labelCol: labelCol,
+                      brandColor: brandColor,
+                      isLoading: orgState.isLoadingPositions,
+                      isEnabled: _isCompanySelected,
+                      helperText: _isCompanySelected
+                          ? 'Filter pengajuan berdasarkan jabatan atau peran pegawai'
+                          : 'Pilih perusahaan terlebih dahulu',
+                      onTap: () {
+                        _showOptionSelector(
+                          title: 'Pilih Jabatan',
+                          options: positionsList,
+                          selectedValue: _selectedPosition,
+                          onSelected: (val) {
+                            setState(() {
+                              _selectedPosition = val;
+                              if (val == 'Semua Jabatan') {
+                                _selectedPositionId = null;
+                              } else {
+                                final found = orgState.positions
+                                    .where((p) => p.name == val);
+                                _selectedPositionId = found.isNotEmpty
+                                    ? found.first.id
+                                    : null;
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // ── Footer Action Buttons (StadiumBorder, 50dp) ───────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: borderCol),
+                          shape: const StadiumBorder(),
+                          foregroundColor: labelCol,
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: labelCol,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _applyFilters,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brandColor,
+                          foregroundColor: isDark
+                              ? const Color(0xFF003732)
+                              : Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.filter,
+                              size: 18,
+                              color: isDark
+                                  ? const Color(0xFF003732)
+                                  : Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Terapkan Filter',
+                                style:
+                                    AppTypography.bodyMedium.copyWith(
+                                  color: isDark
+                                      ? const Color(0xFF003732)
+                                      : Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

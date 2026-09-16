@@ -16,11 +16,19 @@ enum CreateActivityTarget {
 Future<CreateActivityTarget?> showCreateActivityOptionBottomSheet(
   BuildContext context,
 ) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surfaceColor = isDark
+      ? AppColors.darkSurfaceContainerLowest
+      : AppColors.surfaceContainerLowest;
+
   return showModalBottomSheet<CreateActivityTarget>(
     context: context,
-    backgroundColor: Colors.transparent,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
     isScrollControlled: true,
-    showDragHandle: false,
+    showDragHandle: true,
     builder: (sheetContext) => const _CreateActivityOptionSheetContent(),
   );
 }
@@ -50,25 +58,11 @@ class _CreateActivityOptionSheetContent extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Drag Handle
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkOutlineMuted
-                        : const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
 
               // 2. Header: Judul & Tombol Tutup
               Row(

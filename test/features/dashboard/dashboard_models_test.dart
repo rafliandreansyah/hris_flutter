@@ -241,6 +241,53 @@ void main() {
       expect(data.attendanceSummary?.todayAttendance?.breaks.first.startTime, equals('string'));
       expect(data.attendanceSummary?.quotaLeaveBalanceThisYear, isNull);
     });
+
+    test('DashboardData correctly parses isDayOff true and false from todaySchedule or root', () {
+      // 1. isDayOff inside todaySchedule
+      final jsonWithScheduleDayOff = {
+        'id': 'emp-001',
+        'firstName': 'Budi',
+        'email': 'budi@example.com',
+        'todaySchedule': {
+          'id': 'sch-001',
+          'workDate': '2026-09-20',
+          'isDayOff': true,
+          'shift': null,
+        },
+      };
+
+      final data1 = DashboardData.fromJson(jsonWithScheduleDayOff);
+      expect(data1.isDayOff, isTrue);
+      expect(data1.hasSchedule, isTrue);
+      expect(data1.todaySchedule?.isDayOff, isTrue);
+      expect(data1.todaySchedule?.toJson()['isDayOff'], isTrue);
+
+      // 2. isDayOff at root when todaySchedule is null
+      final jsonWithRootDayOff = {
+        'id': 'emp-002',
+        'firstName': 'Siti',
+        'email': 'siti@example.com',
+        'isDayOff': true,
+        'todaySchedule': null,
+      };
+
+      final data2 = DashboardData.fromJson(jsonWithRootDayOff);
+      expect(data2.isDayOff, isTrue);
+      expect(data2.hasSchedule, isTrue);
+
+      // 3. No schedule at all (todaySchedule is null, isDayOff is false/omitted)
+      final jsonWithoutSchedule = {
+        'id': 'emp-003',
+        'firstName': 'Andi',
+        'email': 'andi@example.com',
+        'todaySchedule': null,
+      };
+
+      final data3 = DashboardData.fromJson(jsonWithoutSchedule);
+      expect(data3.isDayOff, isFalse);
+      expect(data3.hasSchedule, isFalse);
+      expect(data3.todaySchedule, isNull);
+    });
   });
 
   group('MenuResponseModel Tests', () {

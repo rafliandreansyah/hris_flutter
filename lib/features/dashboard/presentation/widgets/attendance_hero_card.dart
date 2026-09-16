@@ -13,6 +13,8 @@ class AttendanceHeroCard extends StatelessWidget {
   final String clockInTime;
   final String clockOutTime;
   final bool isClockedIn;
+  final bool isDayOff;
+  final bool hasSchedule;
   final VoidCallback? onClockPressed;
 
   const AttendanceHeroCard({
@@ -25,6 +27,8 @@ class AttendanceHeroCard extends StatelessWidget {
     this.clockInTime = '--:--',
     this.clockOutTime = '--:--',
     this.isClockedIn = false,
+    this.isDayOff = false,
+    this.hasSchedule = true,
     this.onClockPressed,
   });
 
@@ -171,16 +175,28 @@ class AttendanceHeroCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        LucideIcons.clock,
+                        isDayOff
+                            ? LucideIcons.calendarOff
+                            : (!hasSchedule
+                                ? LucideIcons.calendarX
+                                : LucideIcons.clock),
                         size: 14,
-                        color: AppColors.accentTealLight,
+                        color: isDayOff
+                            ? const Color(0xFFFEF08A)
+                            : (!hasSchedule
+                                ? Colors.white.withValues(alpha: 0.75)
+                                : AppColors.accentTealLight),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         schedule,
                         style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.accentTealLight,
-                          fontWeight: FontWeight.w500,
+                          color: isDayOff
+                              ? const Color(0xFFFEF08A)
+                              : (!hasSchedule
+                                  ? Colors.white.withValues(alpha: 0.85)
+                                  : AppColors.accentTealLight),
+                          fontWeight: isDayOff ? FontWeight.w700 : FontWeight.w500,
                         ),
                       ),
                     ],

@@ -8,6 +8,7 @@ import 'package:hris_flutter/features/activity/presentation/pages/create_activit
 import 'package:hris_flutter/features/activity/presentation/pages/create_plan_activity_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_detail_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/attendance_requests_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
@@ -150,7 +151,17 @@ class AppRouter {
       GoRoute(
         path: Routes.ATTENDANCE_LOGS,
         name: Routes.ATTENDANCE_LOGS,
-        builder: (context, state) => const AttendanceLogsScreen(),
+        builder: (context, state) {
+          final extra = state.extra;
+          bool redirectToDashboard = false;
+          if (extra is Map<String, dynamic>) {
+            redirectToDashboard =
+                extra['redirectToDashboardOnBack'] as bool? ?? false;
+          }
+          return AttendanceLogsScreen(
+            redirectToDashboardOnBack: redirectToDashboard,
+          );
+        },
       ),
 
       GoRoute(
@@ -181,6 +192,13 @@ class AppRouter {
           }
           return AttendanceDetailScreen(attendanceId: attendanceId);
         },
+      ),
+
+      // 13b. Attendance Requests / Absen Luar Kantor Screen (Google Stitch)
+      GoRoute(
+        path: Routes.ATTENDANCE_REQUESTS,
+        name: Routes.ATTENDANCE_REQUESTS,
+        builder: (context, state) => const AttendanceRequestsScreen(),
       ),
 
       // 14. Leave & Time Off Screen (Google Stitch slice)

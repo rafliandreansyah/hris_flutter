@@ -88,7 +88,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
     final y = dt.year;
     final h = dt.hour.toString().padLeft(2, '0');
     final min = dt.minute.toString().padLeft(2, '0');
-    return '$d $m $y, $h:$min WIB';
+    return '$d $m $y, $h:$min';
   }
 
   Future<void> _pickStartDateTime(DateTime current) async {
@@ -1085,7 +1085,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
     final shift = scheduleData.schedule?.shift;
     final att = scheduleData.attendance;
     final shiftTime = (shift?.startTime != null && shift?.endTime != null)
-        ? '${shift!.startTime!.substring(0, 5)} - ${shift.endTime!.substring(0, 5)} WIB'
+        ? '${shift!.startTime!.substring(0, 5)} - ${shift.endTime!.substring(0, 5)}'
         : '-';
     final checkInTime = att?.checkIn != null
         ? (att!.checkIn!.length >= 5

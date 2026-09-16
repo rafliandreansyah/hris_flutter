@@ -80,12 +80,22 @@ Future<EmployeeFilterCriteria?> showEmployeeFilterBottomSheet(
   List<String>? availableDepartments,
   List<String>? availablePositions,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surfaceColor = isDark
+      ? AppColors.darkSurfaceContainerLowest
+      : AppColors.surfaceContainerLowest;
+
   return showModalBottomSheet<EmployeeFilterCriteria>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: false,
+    showDragHandle: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(24),
+      ),
+    ),
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) {
       final sheetWidget = EmployeeFilterBottomSheet(
@@ -294,9 +304,14 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      showDragHandle: false,
+      showDragHandle: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: surfaceCol,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
       builder: (bottomSheetContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -307,43 +322,23 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
               );
             }).toList();
 
-            return Material(
-              color: surfaceCol,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom,
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        MediaQuery.of(bottomSheetContext).size.height * 0.7,
                   ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight:
-                          MediaQuery.of(bottomSheetContext).size.height * 0.7,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 12),
-                        Center(
-                          child: Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkOutlineMuted
-                                  : AppColors.outlineMuted,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
                             title,
                             style: AppTypography.titleMedium.copyWith(
@@ -455,8 +450,7 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
                     ),
                   ),
                 ),
-              ),
-            );
+              );
           },
         );
       },
@@ -466,9 +460,6 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final labelCol = isDark
         ? AppColors.darkOnSurfaceVariant
@@ -486,79 +477,36 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
     final departmentsList = _getDepartmentsList(orgState.departments);
     final positionsList = _getPositionsList(orgState.positions);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Drag Handle Bar (M3 Standard: 40x4dp, centered)
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 2. Scrollable Content Area
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header Row: Title & Reset Button
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Scrollable Content Area
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header Row: Title & Reset Button
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Filter Data Pegawai',
-                                  style: AppTypography.titleMedium.copyWith(
-                                    color: textCol,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  'Saring daftar pegawai berdasarkan perusahaan, departemen, dan jabatan',
-                                  style: AppTypography.bodySmall.copyWith(
-                                    color: labelCol,
-                                    fontSize: 12,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              'Filter Data Pegawai',
+                              style: AppTypography.titleMedium.copyWith(
+                                color: textCol,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                letterSpacing: -0.5,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -812,8 +760,7 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildFilterField({

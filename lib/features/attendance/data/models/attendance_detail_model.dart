@@ -187,6 +187,8 @@ class AttendanceDetailModel extends Equatable {
   }
 
   /// Format jam 24 jam (HH:mm:ss), e.g. 14:24:55
+  /// Menampilkan waktu murni dari server tanpa konversi ke lokal perangkat,
+  /// karena server sudah menyesuaikan dengan timezone masing-masing pegawai.
   String get formattedTime24 {
     if (attendanceTime == null) return '--:--:--';
     return DateFormat('HH:mm:ss').format(attendanceTime!);
@@ -198,7 +200,8 @@ class AttendanceDetailModel extends Equatable {
     }
     if (workDate != null && workDate!.isNotEmpty) {
       try {
-        final parsed = DateTime.parse(workDate!);
+        final cleanWorkDate = workDate!.trim().replaceFirst(RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'), '');
+        final parsed = DateTime.parse(cleanWorkDate);
         return DateFormat('EEEE, dd MMMM yyyy').format(parsed);
       } catch (_) {
         return workDate!;
@@ -214,13 +217,47 @@ class AttendanceDetailModel extends Equatable {
     return '-';
   }
 
-  factory AttendanceDetailModel.fromJson(Map<String, dynamic> json) {
-    DateTime? parsedTime;
-    if (json['attendanceTime'] != null) {
-      try {
-        parsedTime = DateTime.parse(json['attendanceTime'] as String);
-      } catch (_) {}
+  /// Parsing waktu kehadiran dari server tanpa konversi ke lokal perangkat (.toLocal()).
+  /// Data dari server sudah bersih dan mengikuti timezone masing-masing pegawai.
+  static DateTime? _parseAttendanceTime(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is DateTime) {
+      return DateTime(
+        raw.year,
+        raw.month,
+        raw.day,
+        raw.hour,
+        raw.minute,
+        raw.second,
+        raw.millisecond,
+        raw.microsecond,
+      );
     }
+    if (raw is! String) return null;
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+
+    // Hapus offset timezone (+07:00, -05:00, +0700) atau 'Z' di akhir string.
+    // Nilai waktu dari server sudah bersih mengikuti timezone masing-masing pegawai di database.
+    final cleanStr = trimmed.replaceFirst(RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'), '');
+    final parsed = DateTime.tryParse(cleanStr);
+    if (parsed != null) {
+      return DateTime(
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+        parsed.second,
+        parsed.millisecond,
+        parsed.microsecond,
+      );
+    }
+    return null;
+  }
+
+  factory AttendanceDetailModel.fromJson(Map<String, dynamic> json) {
+    final parsedTime = _parseAttendanceTime(json['attendanceTime']);
 
     double? parsedLat;
     if (json['latitude'] != null) {

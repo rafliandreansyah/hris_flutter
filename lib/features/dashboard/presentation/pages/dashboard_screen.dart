@@ -54,8 +54,9 @@ class DashboardScreen extends StatelessWidget {
           )
         else
           BlocProvider<NotificationCountBloc>(
-            create: (_) => NotificationCountBloc()
-              ..add(const NotificationCountFetchRequested()),
+            create: (_) =>
+                NotificationCountBloc()
+                  ..add(const NotificationCountFetchRequested()),
           ),
       ],
       child: const _DashboardView(),
@@ -247,8 +248,8 @@ class _DashboardViewState extends State<_DashboardView> {
                       await context.push(Routes.NOTIFICATIONS);
                       if (context.mounted) {
                         context.read<NotificationCountBloc>().add(
-                              const NotificationCountFetchRequested(),
-                            );
+                          const NotificationCountFetchRequested(),
+                        );
                       }
                     },
                     icon: Icon(LucideIcons.bell, size: 22, color: textCol),
@@ -269,10 +270,7 @@ class _DashboardViewState extends State<_DashboardView> {
                         decoration: BoxDecoration(
                           color: AppColors.errorRed,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: bgCol,
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: bgCol, width: 1.5),
                         ),
                         child: Center(
                           child: Text(
@@ -421,14 +419,22 @@ class _DashboardViewState extends State<_DashboardView> {
                   todayAtt?.inTime != null && todayAtt?.outTime == null;
 
               // Jadwal Shift Hari Ini
+              final isDayOff = data.isDayOff;
+              final hasSchedule = data.hasSchedule;
               final shift = data.todaySchedule?.shift;
-              final scheduleStr = shift != null
-                  ? (shift.startTime != null && shift.endTime != null
-                        ? '${shift.startTime} - ${shift.endTime}'
-                        : (shift.isFlexibleTime
-                              ? 'Flexible Shift'
-                              : 'No Work Schedule'))
-                  : 'No Work Schedule';
+              final String scheduleStr;
+              if (isDayOff) {
+                scheduleStr = l10n?.dayOffSchedule ?? 'Libur Kerja';
+              } else if (!hasSchedule || shift == null) {
+                scheduleStr = l10n?.noWorkSchedule ?? 'Tidak Ada Jadwal Kerja';
+              } else if (shift.startTime != null && shift.endTime != null) {
+                scheduleStr =
+                    '${AppDateUtil.formatTimeHHmm(shift.startTime, fallback: '--:--')} - ${AppDateUtil.formatTimeHHmm(shift.endTime, fallback: '--:--')}';
+              } else if (shift.isFlexibleTime) {
+                scheduleStr = l10n?.flexibleShift ?? 'Shift Fleksibel';
+              } else {
+                scheduleStr = l10n?.noWorkSchedule ?? 'Tidak Ada Jadwal Kerja';
+              }
 
               // Lokasi Perusahaan
               final companyName = data.company?.name ?? 'HQ, Building A';
@@ -468,8 +474,15 @@ class _DashboardViewState extends State<_DashboardView> {
                         clockInTime: inTime,
                         clockOutTime: outTime,
                         isClockedIn: isClockedIn,
-                        onClockPressed: () {
-                          context.push(Routes.ATTENDANCE);
+                        isDayOff: isDayOff,
+                        hasSchedule: hasSchedule,
+                        onClockPressed: () async {
+                          await context.push(Routes.ATTENDANCE);
+                          if (context.mounted) {
+                            context.read<DashboardBloc>().add(
+                              const DashboardFetchRequested(isRefresh: true),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 24),

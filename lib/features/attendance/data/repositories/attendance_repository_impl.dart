@@ -126,7 +126,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       isInsideGeofence = false;
     }
 
-    // Parse Shift
+    // Parse Shift & Schedule Info
+    final bool isDayOff = (schedule?['isDayOff'] as bool?) ??
+        (data['isDayOff'] as bool?) ??
+        false;
+    final bool hasSchedule =
+        (schedule != null) || (data['todaySchedule'] != null) || isDayOff;
+
     final isFlexible = shift?['isFlexibleTime'] == true;
     final rawStart = shift?['startTime'] as String?;
     final rawEnd = shift?['endTime'] as String?;
@@ -136,9 +142,17 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final shiftEnd = rawEnd != null && rawEnd.isNotEmpty
         ? AppDateUtil.formatTimeHHmm(rawEnd, fallback: '18:00')
         : '18:00';
-    final shiftName = isFlexible
-        ? 'Flexible Shift'
-        : 'Regular Shift ($shiftStart - $shiftEnd)';
+
+    final String shiftName;
+    if (isDayOff) {
+      shiftName = 'Libur Kerja';
+    } else if (!hasSchedule || shift == null) {
+      shiftName = 'Tidak Ada Jadwal Kerja';
+    } else if (isFlexible) {
+      shiftName = 'Flexible Shift';
+    } else {
+      shiftName = 'Regular Shift ($shiftStart - $shiftEnd)';
+    }
 
     // Parse Attendance Times
     final inTimeRaw = todayAtt?['inTime'] as String?;
@@ -209,6 +223,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       availableWorkLocations: availableWorkLocations,
       selectedWorkLocation: selectedWorkLocation,
       attendanceMethod: attendanceMethod,
+      isDayOff: isDayOff,
+      hasSchedule: hasSchedule,
     );
     return _cachedData!;
   }
@@ -360,7 +376,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       } catch (_) {}
     }
 
-    return remoteDataSource.getAttendanceLogs(
+    final response = await remoteDataSource.getAttendanceLogs(
       employeeId: targetEmployeeId,
       lastMonth: lastMonth,
       page: page,
@@ -369,6 +385,24 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       endDate: endDate,
       type: type,
       status: status,
+    );
+
+    final fallbackTz = (_cachedData?.timezone != null && _cachedData!.timezone.trim().isNotEmpty)
+        ? _cachedData!.timezone.trim()
+        : 'Asia/Jakarta';
+
+    final enrichedData = response.data.map((item) {
+      if (item.timezone == null || item.timezone!.trim().isEmpty) {
+        return item.copyWith(timezone: fallbackTz);
+      }
+      return item;
+    }).toList();
+
+    return AttendanceLogListResponse(
+      success: response.success,
+      message: response.message,
+      data: enrichedData,
+      meta: response.meta,
     );
   }
 

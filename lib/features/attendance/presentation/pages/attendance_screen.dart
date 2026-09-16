@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
@@ -19,6 +22,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_employee_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_geofence_map_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_server_clock_card.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_success_dialog.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_timeline_section.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_top_app_bar.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_work_location_card.dart';
@@ -138,12 +142,14 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         }
       } catch (_) {}
 
-      // 2. Ambil koordinat GPS akurat dengan batas waktu 10 detik (ideal untuk iOS cold-start)
+      // 2. Ambil koordinat GPS akurat dengan batas waktu responsif (4 detik jika sudah ada posisi, 6 detik jika cold start)
       try {
         final freshPosition = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
+          locationSettings: LocationSettings(
             accuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 10),
+            timeLimit: position != null
+                ? const Duration(seconds: 4)
+                : const Duration(seconds: 6),
           ),
         );
         position = freshPosition;
@@ -158,9 +164,32 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
           );
         }
       } catch (_) {
-        // Jika getCurrentPosition timeout tapi sudah dapat lastKnown, jangan lempar error
+        // Fallback cepat: Jika high accuracy timeout & belum ada posisi (misal di dalam ruangan),
+        // coba ambil posisi via jaringan seluler/Wi-Fi (medium accuracy) yang sangat cepat
         if (position == null) {
-          rethrow;
+          try {
+            final fallbackPosition = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.medium,
+                timeLimit: Duration(seconds: 3),
+              ),
+            );
+            position = fallbackPosition;
+            if (mounted) {
+              context.read<AttendanceBloc>().add(
+                AttendanceLocationUpdated(
+                  latitude: fallbackPosition.latitude,
+                  longitude: fallbackPosition.longitude,
+                  accuracy: fallbackPosition.accuracy,
+                  isInsideGeofence: true,
+                ),
+              );
+            }
+          } catch (_) {
+            if (position == null) {
+              rethrow;
+            }
+          }
         }
       }
 
@@ -224,6 +253,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       backgroundColor: isDark
           ? AppColors.darkSurfaceContainerLowest
           : AppColors.surfaceContainerLowest,
@@ -235,7 +265,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 24,
+            top: 8,
             bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 24,
           ),
           child: Column(
@@ -507,6 +537,23 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                 return;
               }
 
+              // 1. Tampilkan Dialog Sukses Presensi jika ada (Clock In / Clock Out)
+              if (state.attendanceSuccess != null) {
+                final info = state.attendanceSuccess!;
+                AttendanceSuccessDialog.show(
+                  context,
+                  successInfo: info,
+                  onOk: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    context.pushReplacement(
+                      Routes.ATTENDANCE_LOGS,
+                      extra: {'redirectToDashboardOnBack': true},
+                    );
+                  },
+                );
+                return;
+              }
+
               if (state.actionMessage != null) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -623,9 +670,14 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
             return RefreshIndicator(
               color: AppColors.brandTeal,
               onRefresh: () async {
+                final fetchFuture = context.read<AttendanceBloc>().stream.firstWhere(
+                  (s) => s is AttendanceLoaded || s is AttendanceFailure,
+                );
                 context.read<AttendanceBloc>().add(
                   const AttendanceFetchRequested(isRefresh: true),
                 );
+                unawaited(_requestGpsLocation());
+                await fetchFuture;
               },
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -635,8 +687,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                     title: l10n?.attendanceTitle ?? 'Attendance & Check-In',
                     subtitle: '${data.companyName} • ${data.departmentName}',
                     isUpdatingLocation: _isUpdatingLocation,
-                    onUpdateLocationPressed: () =>
-                        _requestGpsLocation(showFeedback: true),
+                    onUpdateLocationPressed: _isUpdatingLocation
+                        ? null
+                        : () => _requestGpsLocation(showFeedback: true),
                   ),
 
                   SliverPadding(
@@ -675,12 +728,144 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         ),
                         const SizedBox(height: 16),
 
+                        // 2.1 Day Off Informational Banner
+                        if (data.isDayOff) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkSurfaceContainerHighest
+                                  : AppColors.warningContainer.withValues(alpha: 0.6),
+                              borderRadius: AppRadius.borderLg,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkOutlineMuted
+                                    : AppColors.warning.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.darkSurfaceContainerHigh
+                                        : AppColors.warningContainer,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    LucideIcons.calendarOff,
+                                    color: isDark
+                                        ? AppColors.warning
+                                        : AppColors.onWarningContainer,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n?.dayOffNotice ?? 'Jadwal Libur Kerja',
+                                        style: AppTypography.titleSmall.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppColors.darkOnSurface
+                                              : AppColors.onWarningContainer,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        l10n?.dayOffDescription ??
+                                            'Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).',
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: isDark
+                                              ? AppColors.darkOnSurfaceVariant
+                                              : AppColors.onWarningContainer.withValues(alpha: 0.85),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ] else if (!data.hasSchedule) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkSurfaceContainerHighest
+                                  : AppColors.surfaceContainerHigh,
+                              borderRadius: AppRadius.borderLg,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkOutlineMuted
+                                    : AppColors.outlineMuted,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.darkSurfaceContainerHigh
+                                        : AppColors.surfaceContainerLowest,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    LucideIcons.calendarX,
+                                    color: isDark
+                                        ? AppColors.darkOnSurfaceVariant
+                                        : AppColors.onSurfaceVariant,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n?.scheduleNotice ?? 'Pemberitahuan Jadwal',
+                                        style: AppTypography.titleSmall.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppColors.darkOnSurface
+                                              : AppColors.onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        l10n?.noWorkSchedule ?? 'Tidak Ada Jadwal Kerja',
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: isDark
+                                              ? AppColors.darkOnSurfaceVariant
+                                              : AppColors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
                         // 3. Realtime Server Clock Card (Without 'WIB')
                         AttendanceServerClockCard(
                           serverTime: loaded.currentClockTime,
                           clockTimeString: loaded.formattedClockTime,
                           timezone: data.timezone,
                           shiftName: data.shiftName,
+                          isDayOff: data.isDayOff,
+                          hasSchedule: data.hasSchedule,
                         ),
                         const SizedBox(height: 16),
 
@@ -713,6 +898,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           hasWorkLocation: data.hasWorkLocation,
                           breakOutTime: data.breakOutTime,
                           attendanceMethod: data.attendanceMethod,
+                          isDayOff: data.isDayOff,
                           onClockPressed: () => _handleClockAction(
                             context,
                             state: loaded,

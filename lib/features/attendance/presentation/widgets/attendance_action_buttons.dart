@@ -22,6 +22,9 @@ class AttendanceActionButtons extends StatelessWidget {
   /// Metode presensi yang didapat dari server (e.g. 'photo', 'biometric').
   final String attendanceMethod;
 
+  /// Menandakan apakah hari ini adalah hari libur kerja.
+  final bool isDayOff;
+
   /// Callback presensi dengan parameter method ('photo' atau 'biometric').
   final ValueChanged<String>? onClockWithMethodPressed;
 
@@ -38,6 +41,7 @@ class AttendanceActionButtons extends StatelessWidget {
     this.hasWorkLocation = true,
     this.breakOutTime,
     this.attendanceMethod = 'photo',
+    this.isDayOff = false,
   });
 
   bool get _hasAttendanceMethod => attendanceMethod.trim().isNotEmpty;
@@ -57,7 +61,8 @@ class AttendanceActionButtons extends StatelessWidget {
     final IconData primaryButtonIcon;
     final VoidCallback? primaryAction;
 
-    final bool isActionDisabled = !hasWorkLocation || !hasMethod || isAttendanceCompleted;
+    final bool isActionDisabled =
+        !hasWorkLocation || !hasMethod || isAttendanceCompleted;
 
     void defaultClockAction() {
       if (onClockWithMethodPressed != null) {
@@ -76,13 +81,17 @@ class AttendanceActionButtons extends StatelessWidget {
       primaryButtonIcon = LucideIcons.shieldAlert;
       primaryAction = null;
     } else if (!isClockedIn) {
-      primaryButtonText = isBiometric ? 'Clock In via Biometrik' : 'Clock In Now';
+      primaryButtonText = isBiometric
+          ? 'Clock In via Biometrik'
+          : 'Clock In Now';
       primaryButtonIcon = isBiometric
           ? LucideIcons.fingerprint
           : LucideIcons.camera;
       primaryAction = isLoading ? null : defaultClockAction;
     } else if (!isClockedOut) {
-      primaryButtonText = isBiometric ? 'Clock Out via Biometrik' : 'Clock Out Now';
+      primaryButtonText = isBiometric
+          ? 'Clock Out via Biometrik'
+          : 'Clock Out Now';
       primaryButtonIcon = isBiometric
           ? LucideIcons.fingerprint
           : LucideIcons.camera;
@@ -99,13 +108,9 @@ class AttendanceActionButtons extends StatelessWidget {
         breakOutTime!.isNotEmpty &&
         breakOutTime != '--:--';
     final bool showBreakButton =
-        isClockedIn &&
-        !isClockedOut &&
-        (!hasBreakStarted || isOnBreak);
+        isClockedIn && !isClockedOut && (!hasBreakStarted || isOnBreak);
 
-    final String breakButtonText = isOnBreak
-        ? 'End Break'
-        : 'Start Break';
+    final String breakButtonText = isOnBreak ? 'End Break' : 'Start Break';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,7 +156,53 @@ class AttendanceActionButtons extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+
+        // 0.1 Badge Hari Libur Kerja
+        if (isDayOff && !isAttendanceCompleted) ...[
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.darkSurfaceContainerHighest
+                    : AppColors.warningContainer,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.darkOutlineMuted
+                      : AppColors.warning.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    LucideIcons.calendarOff,
+                    size: 14,
+                    color: isDark
+                        ? AppColors.warning
+                        : AppColors.onWarningContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Hari Ini Jadwal Libur Kerja',
+                    style: AppTypography.labelSmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.darkOnSurface
+                          : AppColors.onWarningContainer,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.md),
+        ] else if (hasWorkLocation && !isAttendanceCompleted && hasMethod) ...[
+          const SizedBox(height: AppSpacing.xs),
         ],
 
         // 1. Primary Clock Action Button (Clock In / Clock Out)
@@ -169,8 +220,8 @@ class AttendanceActionButtons extends StatelessWidget {
               disabledBackgroundColor: !isActionDisabled
                   ? AppColors.brandTeal.withValues(alpha: 0.5)
                   : (isDark
-                      ? AppColors.darkSurfaceContainerHigh
-                      : const Color(0xFFE2E8F0)),
+                        ? AppColors.darkSurfaceContainerHigh
+                        : const Color(0xFFE2E8F0)),
             ),
             onPressed: primaryAction,
             child: isLoading

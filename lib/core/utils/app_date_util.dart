@@ -75,19 +75,92 @@ class AppDateUtil {
     return _isoDateFormat.format(dt);
   }
 
+  static const List<String> _daysId = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
+  ];
+
+  static const List<String> _monthsId = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+
+  static const List<String> _monthsIdShort = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
+  ];
+
   /// Format objek [DateTime] menjadi nama hari & tanggal lengkap (contoh: "Kamis, 9 September 2026").
   static String formatDateFull(DateTime dt, {String? locale}) {
-    return DateFormat('EEEE, d MMMM yyyy', locale).format(dt);
+    if (locale == 'id' || locale == 'id_ID') {
+      final dayName = _daysId[dt.weekday - 1];
+      final monthName = _monthsId[dt.month - 1];
+      return '$dayName, ${dt.day} $monthName ${dt.year}';
+    }
+    try {
+      return DateFormat('EEEE, d MMMM yyyy', locale).format(dt);
+    } catch (_) {
+      final dayName = _daysId[dt.weekday - 1];
+      final monthName = _monthsId[dt.month - 1];
+      return '$dayName, ${dt.day} $monthName ${dt.year}';
+    }
   }
 
   /// Format objek [DateTime] menjadi nama hari & tanggal singkat (contoh: "Kamis, 9 Sep").
   static String formatDateMedium(DateTime dt, {String? locale}) {
-    return DateFormat('EEEE, d MMM', locale).format(dt);
+    if (locale == 'id' || locale == 'id_ID') {
+      final dayName = _daysId[dt.weekday - 1];
+      final monthName = _monthsIdShort[dt.month - 1];
+      return '$dayName, ${dt.day} $monthName';
+    }
+    try {
+      return DateFormat('EEEE, d MMM', locale).format(dt);
+    } catch (_) {
+      final dayName = _daysId[dt.weekday - 1];
+      final monthName = _monthsIdShort[dt.month - 1];
+      return '$dayName, ${dt.day} $monthName';
+    }
   }
 
   /// Format objek [DateTime] menjadi tanggal singkat (contoh: "09 Sep 2026").
   static String formatDateShort(DateTime dt, {String? locale}) {
-    return DateFormat('dd MMM yyyy', locale).format(dt);
+    if (locale == 'id' || locale == 'id_ID') {
+      final dayStr = dt.day.toString().padLeft(2, '0');
+      final monthName = _monthsIdShort[dt.month - 1];
+      return '$dayStr $monthName ${dt.year}';
+    }
+    try {
+      return DateFormat('dd MMM yyyy', locale).format(dt);
+    } catch (_) {
+      final dayStr = dt.day.toString().padLeft(2, '0');
+      final monthName = _monthsIdShort[dt.month - 1];
+      return '$dayStr $monthName ${dt.year}';
+    }
   }
 
   /// Parsing string tanggal atau ISO 8601 ke objek [DateTime] lokal secara aman.

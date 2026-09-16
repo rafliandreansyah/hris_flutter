@@ -194,6 +194,24 @@ abstract class AppLocalizations {
   /// **'Tidak Ada Jadwal Kerja'**
   String get noWorkSchedule;
 
+  /// No description provided for @dayOffSchedule.
+  ///
+  /// In id, this message translates to:
+  /// **'Libur Kerja'**
+  String get dayOffSchedule;
+
+  /// No description provided for @dayOffNotice.
+  ///
+  /// In id, this message translates to:
+  /// **'Jadwal Libur Kerja'**
+  String get dayOffNotice;
+
+  /// No description provided for @dayOffDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).'**
+  String get dayOffDescription;
+
   /// No description provided for @quickAccess.
   ///
   /// In id, this message translates to:

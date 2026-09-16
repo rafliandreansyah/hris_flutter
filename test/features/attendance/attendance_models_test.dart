@@ -67,6 +67,8 @@ void main() {
       expect(data.availableWorkLocations, isEmpty);
       expect(data.selectedWorkLocation, isNull);
       expect(data.hasWorkLocation, isFalse);
+      expect(data.isDayOff, isFalse);
+      expect(data.hasSchedule, isTrue);
 
       final updated = data.copyWith(
         inTime: '08:30',
@@ -74,11 +76,15 @@ void main() {
         breakOutTime: '12:00',
         breakInTime: '13:00',
         isOnBreak: true,
+        isDayOff: true,
+        hasSchedule: false,
       );
 
       expect(updated.isClockedIn, isTrue);
       expect(updated.isClockedOut, isTrue);
       expect(updated.isOnBreak, isTrue);
+      expect(updated.isDayOff, isTrue);
+      expect(updated.hasSchedule, isFalse);
       expect(updated.inTime, '08:30');
       expect(updated.outTime, '18:00');
       expect(updated.breakOutTime, '12:00');

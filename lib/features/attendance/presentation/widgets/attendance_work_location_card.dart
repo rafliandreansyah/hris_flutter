@@ -29,6 +29,7 @@ class AttendanceWorkLocationCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -39,27 +40,13 @@ class AttendanceWorkLocationCard extends StatelessWidget {
             padding: EdgeInsets.only(
               left: 20,
               right: 20,
-              top: 20,
+              top: 8,
               bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
 
                 // Header Sheet
                 Row(
@@ -111,17 +98,19 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.brandTeal.withValues(alpha: isDark ? 0.20 : 0.08)
+                                ? AppColors.brandTeal.withValues(
+                                    alpha: isDark ? 0.20 : 0.08,
+                                  )
                                 : (isDark
-                                    ? AppColors.darkSurfaceContainer
-                                    : AppColors.surfaceContainerLowest),
+                                      ? AppColors.darkSurfaceContainer
+                                      : AppColors.surfaceContainerLowest),
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.brandTeal
                                   : (isDark
-                                      ? AppColors.darkOutlineMuted
-                                      : AppColors.outlineMuted),
+                                        ? AppColors.darkOutlineMuted
+                                        : AppColors.outlineMuted),
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
@@ -139,8 +128,8 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                   color: isSelected
                                       ? AppColors.brandTeal
                                       : (isDark
-                                          ? AppColors.darkOnSurfaceVariant
-                                          : AppColors.outlineMuted),
+                                            ? AppColors.darkOnSurfaceVariant
+                                            : AppColors.outlineMuted),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -155,12 +144,13 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             item.name,
-                                            style: AppTypography.titleSmall.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: isSelected
-                                                  ? AppColors.brandTeal
-                                                  : null,
-                                            ),
+                                            style: AppTypography.titleSmall
+                                                .copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isSelected
+                                                      ? AppColors.brandTeal
+                                                      : null,
+                                                ),
                                           ),
                                         ),
                                         if (item.isDefault)
@@ -208,8 +198,9 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF3B82F6)
-                                                  .withValues(alpha: 0.12),
+                                              color: const Color(
+                                                0xFF3B82F6,
+                                              ).withValues(alpha: 0.12),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                             ),
@@ -241,7 +232,8 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                             ),
                                             decoration: BoxDecoration(
                                               color: isDark
-                                                  ? AppColors.darkSurfaceContainerHigh
+                                                  ? AppColors
+                                                        .darkSurfaceContainerHigh
                                                   : const Color(0xFFF1F5F9),
                                               borderRadius:
                                                   BorderRadius.circular(6),
@@ -253,8 +245,10 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                                   LucideIcons.radar,
                                                   size: 11,
                                                   color: isDark
-                                                      ? AppColors.darkOnSurfaceVariant
-                                                      : AppColors.surfaceVariant,
+                                                      ? AppColors
+                                                            .darkOnSurfaceVariant
+                                                      : AppColors
+                                                            .surfaceVariant,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
@@ -263,8 +257,10 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                                                     fontSize: 10.5,
                                                     fontWeight: FontWeight.w600,
                                                     color: isDark
-                                                        ? AppColors.darkOnSurfaceVariant
-                                                        : AppColors.surfaceVariant,
+                                                        ? AppColors
+                                                              .darkOnSurfaceVariant
+                                                        : AppColors
+                                                              .surfaceVariant,
                                                   ),
                                                 ),
                                               ],
@@ -296,8 +292,9 @@ class AttendanceWorkLocationCard extends StatelessWidget {
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final borderColor =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final borderColor = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
 
     final loc = selectedLocation;
     final hasLocation = loc != null;

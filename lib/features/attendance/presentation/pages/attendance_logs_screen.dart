@@ -24,6 +24,7 @@ class AttendanceLogsScreen extends StatelessWidget {
   final AttendanceLogsBloc? attendanceLogsBloc;
   final EmployeeListBloc? employeeListBloc;
   final String? employeeId;
+  final bool redirectToDashboardOnBack;
 
   const AttendanceLogsScreen({
     super.key,
@@ -32,6 +33,7 @@ class AttendanceLogsScreen extends StatelessWidget {
     this.attendanceLogsBloc,
     this.employeeListBloc,
     this.employeeId,
+    this.redirectToDashboardOnBack = false,
   });
 
   @override
@@ -58,13 +60,19 @@ class AttendanceLogsScreen extends StatelessWidget {
                 )..add(const EmployeeListStarted(isTeamAttendance: true)),
               ),
       ],
-      child: const _AttendanceLogsView(),
+      child: _AttendanceLogsView(
+        redirectToDashboardOnBack: redirectToDashboardOnBack,
+      ),
     );
   }
 }
 
 class _AttendanceLogsView extends StatefulWidget {
-  const _AttendanceLogsView();
+  final bool redirectToDashboardOnBack;
+
+  const _AttendanceLogsView({
+    this.redirectToDashboardOnBack = false,
+  });
 
   @override
   State<_AttendanceLogsView> createState() => _AttendanceLogsViewState();
@@ -111,6 +119,22 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
           !state.isLoadingMore &&
           state.currentPage < state.totalPages) {
         context.read<EmployeeListBloc>().add(const EmployeeListLoadMore());
+      }
+    }
+  }
+
+  void _handleBack() {
+    if (widget.redirectToDashboardOnBack) {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go(Routes.DASHBOARD);
+      }
+    } else {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go(Routes.DASHBOARD);
       }
     }
   }
@@ -180,21 +204,27 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
         ? logsState.filterCriteria.hasActiveFilter
         : teamState.filterCriteria.hasActiveFilter;
 
-    return Scaffold(
-      backgroundColor: bgCol,
-      appBar: AppBar(
-        backgroundColor: bgCol.withValues(alpha: 0.95),
-        elevation: 0,
-        scrolledUnderElevation: 1.5,
-        shadowColor: Colors.black.withValues(alpha: 0.05),
-        leading: IconButton(
-          icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
-          onPressed: () => context.pop(),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+    return PopScope(
+      canPop: !widget.redirectToDashboardOnBack,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: bgCol,
+        appBar: AppBar(
+          backgroundColor: bgCol.withValues(alpha: 0.95),
+          elevation: 0,
+          scrolledUnderElevation: 1.5,
+          shadowColor: Colors.black.withValues(alpha: 0.05),
+          leading: IconButton(
+            icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
+            onPressed: _handleBack,
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
               'Attendance Logs',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
@@ -351,7 +381,8 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildMyAttendanceTab() {

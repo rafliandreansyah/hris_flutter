@@ -682,6 +682,97 @@ void main() {
       expect(find.text('Bisa Absen di Mana Saja'), findsWidgets);
       expect(find.textContaining('Lokasi kerja fleksibel tanpa batasan radius kantor'), findsOneWidget);
     });
+
+    testWidgets('renders Day Off banner, Libur Kerja shift, and action button badge when isDayOff is true', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const officeLocation = WorkLocationItem(
+        id: 'loc-1',
+        name: 'Jakarta HQ Office',
+        address: 'HQ Office — Main Lobby',
+        radius: 50.0,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          shiftName: 'Libur Kerja',
+          isDayOff: true,
+          hasSchedule: true,
+          attendanceMethod: 'photo',
+          availableWorkLocations: const [officeLocation],
+          selectedWorkLocation: officeLocation,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Day Off Banner is rendered
+      expect(find.text('Jadwal Libur Kerja'), findsOneWidget);
+      expect(find.textContaining('Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).'), findsOneWidget);
+
+      // Server Clock Card shows Libur Kerja and calendarOff icon and Libur pill
+      expect(find.text('Libur Kerja'), findsOneWidget);
+      expect(find.text('Libur'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.calendarOff), findsWidgets);
+
+      // Action buttons show Hari Ini Jadwal Libur Kerja
+      expect(find.text('Hari Ini Jadwal Libur Kerja'), findsOneWidget);
+    });
+
+    testWidgets('renders No Schedule banner and calendarX icon when hasSchedule is false', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const officeLocation = WorkLocationItem(
+        id: 'loc-1',
+        name: 'Jakarta HQ Office',
+        address: 'HQ Office — Main Lobby',
+        radius: 50.0,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          shiftName: 'Tidak Ada Jadwal Kerja',
+          isDayOff: false,
+          hasSchedule: false,
+          attendanceMethod: 'photo',
+          availableWorkLocations: const [officeLocation],
+          selectedWorkLocation: officeLocation,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // No Schedule Banner is rendered
+      expect(find.text('Pemberitahuan Jadwal'), findsOneWidget);
+      expect(find.text('Tidak Ada Jadwal Kerja'), findsWidgets);
+      expect(find.byIcon(LucideIcons.calendarX), findsWidgets);
+    });
   });
 }
 

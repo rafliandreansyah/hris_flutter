@@ -345,7 +345,7 @@ class ActivityItem {
       ActivityPhaseItem(
         phaseNumber: 2,
         title: 'Phase 2: Completion & Report',
-        time: '15:30 PM, 27 Aug 2026',
+        time: '15:30, 27 Aug 2026',
         label: 'Completion Notes / Outcome',
         notes:
             'All inspection points passed. Fire exits clear of obstacles. Signed report handed to site coordinator.',
@@ -406,7 +406,7 @@ class ActivityItem {
           ActivityPhaseItem(
             phaseNumber: 1,
             title: 'Phase 1: Start & Check-In',
-            time: '12:24 PM, 27 Aug 2026',
+            time: '12:24, 27 Aug 2026',
             label: 'Initial Description / Task Scope',
             notes:
                 'Conducted field safety audit, inspected emergency fire exits, and reviewed worker safety gear adherence.',
@@ -418,7 +418,7 @@ class ActivityItem {
           ActivityPhaseItem(
             phaseNumber: 2,
             title: 'Phase 2: Completion & Report',
-            time: '15:30 PM, 27 Aug 2026',
+            time: '15:30, 27 Aug 2026',
             label: 'Completion Notes / Outcome',
             notes:
                 'All inspection points passed. Fire exits clear of obstacles. Signed report handed to site coordinator.',

@@ -1,21 +1,19 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API)
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_photo_picker_card.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
+import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/create_activity/create_activity_bloc.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:dotted_border/dotted_border.dart';
-import 'package:hris_flutter/core/utils/image_compress_util.dart';
-import 'package:hris_flutter/core/widgets/app_image_preview_dialog.dart';
-import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 
 /// Halaman Create Activity Form sesuai Google Stitch Oasish Flutter M3 HRIS
 class CreateActivityScreen extends StatelessWidget {
@@ -148,267 +146,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     );
   }
 
-  Future<void> _pickPhoto(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final photo = await picker.pickImage(
-        source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
-      );
-      if (photo != null && mounted) {
-        setState(() {
-          _pickedPhoto = photo;
-          _samplePhotoUrl = null;
-        });
-
-        // Kompres di background thread tanpa memblokir UI (target <= 100 KB)
-        ImageCompressUtil.compressXFile(
-          photo,
-          onLoadingChanged: (isCompressing) {
-            if (mounted) {
-              setState(() => _isCompressingPhoto = isCompressing);
-            }
-          },
-        ).then((result) {
-          if (mounted) {
-            setState(() {
-              _pickedPhoto = result.file;
-              _compressResult = result;
-            });
-            debugPrint(
-              '📸 [CreateActivity] Foto berhasil dikompresi:\n'
-              '   • Sebelum (RAW) : ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)\n'
-              '   • Sesudah (OPT) : ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)\n'
-              '   • Efisiensi     : Hemat ${result.savedPercentage.toStringAsFixed(1)}% '
-              '(${ImageCompressResult.formatBytes(result.originalSizeBytes - result.compressedSizeBytes > 0 ? result.originalSizeBytes - result.compressedSizeBytes : 0)})\n'
-              '   • Waktu         : ${result.compressionDuration.inMilliseconds} ms',
-            );
-          }
-        });
-      } else if (photo == null && mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(LucideIcons.info, color: Colors.white, size: 16),
-                SizedBox(width: 8),
-                Text('Unggah gambar dibatalkan'),
-              ],
-            ),
-            backgroundColor: AppColors.onBackground,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengambil foto: $e'),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-    }
-  }
-
-  void _useSamplePhoto() {
-    try {
-      final tempFile = File(
-        '${Directory.systemTemp.path}/sample_activity_proof.jpg',
-      );
-      if (!tempFile.existsSync()) {
-        final dummyBytes = [
-          0xFF,
-          0xD8,
-          0xFF,
-          0xE0,
-          0x00,
-          0x10,
-          0x4A,
-          0x46,
-          0x49,
-          0x46,
-          0x00,
-          0x01,
-          0x01,
-          0x01,
-          0x00,
-          0x48,
-          0x00,
-          0x48,
-          0x00,
-          0x00,
-          0xFF,
-          0xDB,
-          0x00,
-          0x43,
-          0x00,
-          0xFF,
-          0xC0,
-          0x00,
-          0x0B,
-          0x08,
-          0x00,
-          0x01,
-          0x00,
-          0x01,
-          0x01,
-          0x01,
-          0x11,
-          0x00,
-          0xFF,
-          0xC4,
-          0x00,
-          0x14,
-          0x00,
-          0x01,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x00,
-          0x09,
-          0xFF,
-          0xDA,
-          0x00,
-          0x08,
-          0x01,
-          0x01,
-          0x00,
-          0x00,
-          0x3F,
-          0x00,
-          0x7F,
-          0x00,
-          0xFF,
-          0xD9,
-        ];
-        tempFile.writeAsBytesSync(dummyBytes);
-      }
-      setState(() {
-        _pickedPhoto = XFile(tempFile.path);
-        _samplePhotoUrl = null;
-      });
-
-      // Jalankan kompresi di background untuk foto sampel (target <= 100 KB)
-      ImageCompressUtil.compressXFile(
-        XFile(tempFile.path),
-        onLoadingChanged: (isCompressing) {
-          if (mounted) {
-            setState(() => _isCompressingPhoto = isCompressing);
-          }
-        },
-      ).then((result) {
-        if (mounted) {
-          setState(() {
-            _pickedPhoto = result.file;
-            _compressResult = result;
-          });
-          debugPrint(
-            '📸 [CreateActivity] Foto sampel berhasil dikompresi:\n'
-            '   • Sebelum (RAW) : ${result.originalSizeFormatted} (${result.originalSizeBytes} bytes)\n'
-            '   • Sesudah (OPT) : ${result.compressedSizeFormatted} (${result.compressedSizeBytes} bytes)\n'
-            '   • Efisiensi     : Hemat ${result.savedPercentage.toStringAsFixed(1)}% '
-            '(${ImageCompressResult.formatBytes(result.originalSizeBytes - result.compressedSizeBytes > 0 ? result.originalSizeBytes - result.compressedSizeBytes : 0)})\n'
-            '   • Waktu         : ${result.compressionDuration.inMilliseconds} ms',
-          );
-        }
-      });
-    } catch (_) {
-      setState(() {
-        _samplePhotoUrl =
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag';
-      });
-    }
-  }
-
-  void _showPhotoOptionsSheet() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: isDark
-          ? AppColors.darkSurfaceContainerLowest
-          : AppColors.surfaceContainerLowest,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pilih Sumber Foto',
-                  style: AppTypography.titleMedium.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFF0FDFA),
-                    child: Icon(LucideIcons.camera, color: Color(0xFF0D9488)),
-                  ),
-                  title: const Text('Ambil Foto Kamera'),
-                  subtitle: const Text('Gunakan kamera perangkat'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickPhoto(ImageSource.camera);
-                  },
-                ),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFF0FDFA),
-                    child: Icon(LucideIcons.image, color: Color(0xFF0D9488)),
-                  ),
-                  title: const Text('Pilih dari Galeri'),
-                  subtitle: const Text('Pilih foto yang tersimpan'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickPhoto(ImageSource.gallery);
-                  },
-                ),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFF0FDFA),
-                    child: Icon(LucideIcons.sparkles, color: Color(0xFF0D9488)),
-                  ),
-                  title: const Text('Gunakan Foto Sampel Lapangan'),
-                  subtitle: const Text('Foto simulasi inspeksi Google Stitch'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _useSamplePhoto();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showActivityTypePicker() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final createState = context.read<CreateActivityBloc>().state;
@@ -416,6 +153,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
     showModalBottomSheet(
       context: context,
+      showDragHandle: true,
       backgroundColor: isDark
           ? AppColors.darkSurfaceContainerLowest
           : AppColors.surfaceContainerLowest,
@@ -425,7 +163,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
       builder: (ctx) => SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.fromLTRB(0, 4, 0, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,7 +262,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
         locationName: _locationNameController.text.trim(),
         locationAddress: _addressController.text.trim(),
         description: _descriptionController.text.trim(),
-        file: _pickedPhoto,
+        file: _compressResult?.file ?? _pickedPhoto,
       ),
     );
   }
@@ -981,289 +719,30 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     required Color borderCol,
     required Color subtitleCol,
   }) {
-    final hasPhoto = _pickedPhoto != null || _samplePhotoUrl != null;
-
-    final Widget boxContent;
-
-    if (hasPhoto) {
-      boxContent = Container(
-        height: 140,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderCol, width: 1),
-          color: isDark
-              ? AppColors.darkSurfaceContainer
-              : const Color(0xFFF1F5F9),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Photo Preview (Tappable for Full Preview)
-            GestureDetector(
-              onTap: () {
-                AppImagePreviewDialog.show(
-                  context,
-                  xFile: _compressResult?.file ?? _pickedPhoto,
-                  imageUrl: _samplePhotoUrl,
-                  fileSizeBytes: _compressResult?.compressedSizeBytes,
-                  title: 'Foto Bukti Aktivitas',
-                );
-              },
-              child: _pickedPhoto != null
-                  ? Image.file(File(_pickedPhoto!.path), fit: BoxFit.cover)
-                  : Image.network(
-                      _samplePhotoUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(LucideIcons.image, size: 36, color: subtitleCol),
-                      ),
-                    ),
-            ),
-
-            // Top Left: Compressed file size badge
-            if (_compressResult != null)
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.fileCheck,
-                        size: 12,
-                        color: AppColors.brandTealSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        kDebugMode
-                            ? '${_compressResult!.compressedSizeFormatted} (Maks 100 KB • -${_compressResult!.savedPercentage.toStringAsFixed(0)}%)'
-                            : '${_compressResult!.compressedSizeFormatted} (Maks 100 KB)',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Loading Overlay saat proses kompresi non-blocking berlangsung
-            if (_isCompressingPhoto)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.brandTeal,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Mengompresi foto...',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.brandTeal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Top Right: Preview & Remove Photo Buttons
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Tombol Pratinjau Foto
-                  GestureDetector(
-                    key: const ValueKey('preview_activity_photo_btn'),
-                    onTap: () {
-                      AppImagePreviewDialog.show(
-                        context,
-                        xFile: _compressResult?.file ?? _pickedPhoto,
-                        imageUrl: _samplePhotoUrl,
-                        fileSizeBytes: _compressResult?.compressedSizeBytes,
-                        title: 'Foto Bukti Aktivitas',
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.black54,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        LucideIcons.eye,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Tombol Hapus Foto
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _pickedPhoto = null;
-                        _compressResult = null;
-                        _samplePhotoUrl = null;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.black54,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        LucideIcons.trash2,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom Center: Ganti Foto button
-            Positioned(
-              bottom: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: _showPhotoOptionsSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(LucideIcons.camera, size: 14, color: Colors.white),
-                      SizedBox(width: 6),
-                      Text(
-                        'Ganti Foto',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Dashed Upload Placeholder Box (sesuai Google Stitch)
-      boxContent = Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _showPhotoOptionsSheet,
-          borderRadius: BorderRadius.circular(12),
-          splashColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
-          child: DottedBorder(
-            options: RoundedRectDottedBorderOptions(
-              color: const Color(0xFF0D9488),
-              strokeWidth: 1.5,
-              dashPattern: const [6, 4],
-              radius: const Radius.circular(12),
-            ),
-            childOnTop: true,
-            child: Container(
-              height: 120,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF0D9488).withValues(alpha: 0.08)
-                    : const Color(0xFFF0FDFA),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    LucideIcons.camera,
-                    size: 32,
-                    color: Color(0xFF0D9488),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Tap to Capture or Upload Photo',
-                    style: TextStyle(
-                      color: Color(0xFF0D9488),
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Supports JPG, PNG • Auto Compressed',
-                    style: TextStyle(color: subtitleCol, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return NonBlockingCompressIndicator(
+    return AppPhotoPickerCard(
+      file: _pickedPhoto,
+      sampleUrl: _samplePhotoUrl,
+      compressResult: _compressResult,
       isCompressing: _isCompressingPhoto,
-      borderRadius: 12,
-      message: 'Mengompres foto...',
-      child: boxContent,
+      sheetTitle: 'Pilih Sumber Foto',
+      sampleTitle: 'Gunakan Foto Sampel Lapangan',
+      sampleSubtitle: 'Foto simulasi inspeksi Google Stitch',
+      uploadPlaceholderTitle: 'Tap to Capture or Upload Photo',
+      uploadPlaceholderSubtitle: 'Supports JPG, PNG • Auto Compressed',
+      previewTitle: 'Foto Bukti Aktivitas',
+      previewButtonKey: const ValueKey('preview_activity_photo_btn'),
+      onFileChanged: (file, result) {
+        setState(() {
+          _pickedPhoto = file;
+          _compressResult = result;
+          if (file == null) {
+            _samplePhotoUrl = null;
+          }
+        });
+      },
+      onLoadingChanged: (loading) {
+        setState(() => _isCompressingPhoto = loading);
+      },
     );
   }
 }

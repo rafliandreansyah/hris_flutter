@@ -173,9 +173,7 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.OVERTIME);
     } else if (c == 'mobile_attendance_request_live' ||
         c == 'mobile_attendance_request_schedule') {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Menu $title segera hadir')));
+      context.push(Routes.ATTENDANCE_REQUESTS);
     } else {
       ScaffoldMessenger.of(
         context,

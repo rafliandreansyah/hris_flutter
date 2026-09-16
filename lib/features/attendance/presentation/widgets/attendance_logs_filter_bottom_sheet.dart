@@ -95,12 +95,20 @@ Future<AttendanceLogFilterCriteria?> showAttendanceLogsFilterBottomSheet(
   BuildContext context, {
   required AttendanceLogFilterCriteria initialCriteria,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surfaceColor = isDark
+      ? AppColors.darkSurfaceContainerLowest
+      : AppColors.surfaceContainerLowest;
+
   return showModalBottomSheet<AttendanceLogFilterCriteria>(
     context: context,
     isScrollControlled: true,
-    showDragHandle: false,
+    showDragHandle: true,
     useSafeArea: true,
-    backgroundColor: Colors.transparent,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
     barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (sheetContext) =>
         AttendanceLogsFilterBottomSheet(initialCriteria: initialCriteria),
@@ -174,24 +182,11 @@ class _AttendanceLogsFilterBottomSheetState
         child: SafeArea(
           top: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -210,14 +205,6 @@ class _AttendanceLogsFilterBottomSheetState
                       constraints: const BoxConstraints(),
                     ),
                   ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Saring log clock-in & clock-out sesuai periode dan status',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 12,
-                  ),
                 ),
                 const SizedBox(height: 18),
                 Text(

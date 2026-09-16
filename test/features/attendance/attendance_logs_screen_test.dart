@@ -262,9 +262,10 @@ void main() {
 
       expect(find.byType(AttendanceLogCard), findsNWidgets(3));
       expect(find.text('Thursday, 27 Aug 2026'), findsNWidgets(2));
-      expect(find.text('08:45 AM WIB'), findsOneWidget);
-      expect(find.text('05:30 PM WIB'), findsOneWidget);
-      expect(find.text('09:18 AM WIB'), findsOneWidget);
+      expect(find.text('08:45'), findsOneWidget);
+      expect(find.text('17:30'), findsOneWidget);
+      expect(find.text('09:18'), findsOneWidget);
+      expect(find.text('Asia/Jakarta'), findsNWidgets(3));
       expect(find.text('Late by 18 mins'), findsOneWidget);
       expect(find.text('On Time'), findsOneWidget);
       expect(find.text('Location: '), findsNothing);

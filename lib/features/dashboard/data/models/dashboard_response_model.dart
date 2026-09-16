@@ -73,6 +73,12 @@ class DashboardData {
       ? '$firstName $lastName'
       : firstName;
 
+  /// Apakah hari ini libur kerja.
+  bool get isDayOff => todaySchedule?.isDayOff ?? false;
+
+  /// Apakah karyawan memiliki jadwal kerja hari ini.
+  bool get hasSchedule => todaySchedule != null;
+
   String get initials {
     if (firstName.trim().isEmpty) return 'U';
     if (lastName != null && lastName!.trim().isNotEmpty) {
@@ -111,7 +117,9 @@ class DashboardData {
       todaySchedule: json['todaySchedule'] != null
           ? TodayScheduleInfo.fromJson(
               json['todaySchedule'] as Map<String, dynamic>)
-          : null,
+          : (json['isDayOff'] == true
+              ? const TodayScheduleInfo(id: '', isDayOff: true)
+              : null),
       timeServer: json['timeServer'] as String?,
       latestAnnouncement: (json['latestAnnouncement'] as List<dynamic>?)
               ?.map((e) => AnnouncementItem.fromJson(e as Map<String, dynamic>))
@@ -243,11 +251,13 @@ class EmployeeDeviceInfo {
 class TodayScheduleInfo {
   final String id;
   final String? workDate;
+  final bool isDayOff;
   final ShiftInfo? shift;
 
   const TodayScheduleInfo({
     required this.id,
     this.workDate,
+    this.isDayOff = false,
     this.shift,
   });
 
@@ -255,6 +265,7 @@ class TodayScheduleInfo {
     return TodayScheduleInfo(
       id: json['id'] as String? ?? '',
       workDate: json['workDate'] as String?,
+      isDayOff: json['isDayOff'] as bool? ?? false,
       shift: json['shift'] != null
           ? ShiftInfo.fromJson(json['shift'] as Map<String, dynamic>)
           : null,
@@ -264,6 +275,7 @@ class TodayScheduleInfo {
   Map<String, dynamic> toJson() => {
         'id': id,
         'workDate': workDate,
+        'isDayOff': isDayOff,
         'shift': shift?.toJson(),
       };
 }

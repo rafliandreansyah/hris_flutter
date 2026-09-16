@@ -30,14 +30,16 @@ class AttendanceLogItem {
   AttendanceLogPunctuality get punctuality =>
       isLate ? AttendanceLogPunctuality.late : AttendanceLogPunctuality.onTime;
 
-  String get timezoneAbbreviation {
-    final tz = (timezone ?? '').toLowerCase();
-    if (tz.contains('jakarta') || tz.contains('wib')) return 'WIB';
-    if (tz.contains('makassar') || tz.contains('wita')) return 'WITA';
-    if (tz.contains('jayapura') || tz.contains('wit')) return 'WIT';
-    if (tz.isNotEmpty) return timezone!.toUpperCase();
-    return 'WIB';
+  /// Zona waktu dinamis diambil langsung dari field timezone (misal: "Asia/Jakarta").
+  String get displayTimezone {
+    if (timezone != null && timezone!.trim().isNotEmpty) {
+      return timezone!.trim();
+    }
+    return 'Asia/Jakarta';
   }
+
+  /// Format timezone langsung dari data (alias untuk displayTimezone).
+  String get timezoneAbbreviation => displayTimezone;
 
   AttendanceLogItem copyWith({
     String? id,
@@ -66,6 +68,7 @@ class AttendanceLogItem {
   factory AttendanceLogItem.fromJson(
     Map<String, dynamic> json, {
     int index = 0,
+    String? fallbackTimezone,
   }) {
     final workLoc = json['workLocation'];
     String? locName;
@@ -101,7 +104,12 @@ class AttendanceLogItem {
         'lateBy',
         'minutesLate',
       ]),
-      timezone: _firstString(json, const ['timezone', 'timeZone', 'tz']),
+      timezone: _firstString(json, const [
+        'timezone',
+        'timeZone',
+        'tz',
+        'time_zone',
+      ]) ?? fallbackTimezone,
       date: json['date']?.toString(),
     );
   }

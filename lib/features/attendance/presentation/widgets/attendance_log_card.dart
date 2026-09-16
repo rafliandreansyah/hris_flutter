@@ -45,9 +45,8 @@ class AttendanceLogCard extends StatelessWidget {
     final dateStr = DateFormat('EEEE, dd MMM yyyy', 'en_US').format(
       log.dateTime,
     );
-    final timeStr =
-        '${DateFormat('hh:mm a', 'en_US').format(log.dateTime)} '
-        '${log.timezoneAbbreviation}';
+    final time24Str = DateFormat('HH:mm').format(log.dateTime);
+    final timezoneStr = log.displayTimezone;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -98,12 +97,49 @@ class AttendanceLogCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                timeStr,
-                                style: AppTypography.titleMedium.copyWith(
-                                  color: timeColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    time24Str,
+                                    style: AppTypography.titleMedium.copyWith(
+                                      color: timeColor,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppColors.darkSurfaceContainerHigh
+                                            : AppColors.surfaceContainerHigh,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: borderCol.withValues(alpha: 0.8),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        timezoneStr,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.labelSmall.copyWith(
+                                          color: subtitleCol,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 10.5,
+                                          letterSpacing: 0.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),

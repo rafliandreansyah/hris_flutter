@@ -63,6 +63,8 @@ class AttendanceTodayData extends Equatable {
   final List<WorkLocationItem> availableWorkLocations;
   final WorkLocationItem? selectedWorkLocation;
   final String attendanceMethod;
+  final bool isDayOff;
+  final bool hasSchedule;
 
   const AttendanceTodayData({
     this.inTime,
@@ -91,6 +93,8 @@ class AttendanceTodayData extends Equatable {
     this.availableWorkLocations = const [],
     this.selectedWorkLocation,
     this.attendanceMethod = 'photo',
+    this.isDayOff = false,
+    this.hasSchedule = true,
   });
 
   bool get isClockedIn => inTime != null && inTime!.isNotEmpty && inTime != '--:--';
@@ -141,6 +145,8 @@ class AttendanceTodayData extends Equatable {
     List<WorkLocationItem>? availableWorkLocations,
     WorkLocationItem? selectedWorkLocation,
     String? attendanceMethod,
+    bool? isDayOff,
+    bool? hasSchedule,
   }) {
     return AttendanceTodayData(
       inTime: inTime ?? this.inTime,
@@ -169,6 +175,8 @@ class AttendanceTodayData extends Equatable {
       availableWorkLocations: availableWorkLocations ?? this.availableWorkLocations,
       selectedWorkLocation: selectedWorkLocation ?? this.selectedWorkLocation,
       attendanceMethod: attendanceMethod ?? this.attendanceMethod,
+      isDayOff: isDayOff ?? this.isDayOff,
+      hasSchedule: hasSchedule ?? this.hasSchedule,
     );
   }
 
@@ -200,5 +208,7 @@ class AttendanceTodayData extends Equatable {
         availableWorkLocations,
         selectedWorkLocation,
         attendanceMethod,
+        isDayOff,
+        hasSchedule,
       ];
 }

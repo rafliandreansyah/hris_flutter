@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_event.dart';
@@ -68,6 +69,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     return distance <= selectedWorkLocation.radius;
   }
 
+  AttendanceLocationUpdated? _lastLocationEvent;
+
   Future<void> _onFetchRequested(
     AttendanceFetchRequested event,
     Emitter<AttendanceState> emit,
@@ -80,18 +83,93 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final data = await repository.getTodayAttendance();
       final clockTime = data.serverTime;
 
-      // Poin 7: Jangan fallback userLatitude ke officeLatitude.
-      // Biarkan null agar BLoC tahu GPS belum tersedia.
-      // isInsideGeofence berasal dari repository (false untuk normal, true untuk isAnyWhere).
+      // Pertahankan lokasi GPS yang sudah didapatkan saat reload/refresh
+      double? lat = _lastLocationEvent?.latitude;
+      double? lng = _lastLocationEvent?.longitude;
+      double accuracy = _lastLocationEvent?.accuracy ?? 5.0;
+
+      if (state is AttendanceLoaded) {
+        final current = state as AttendanceLoaded;
+        lat ??= current.userLatitude;
+        lng ??= current.userLongitude;
+        if (_lastLocationEvent == null) {
+          accuracy = current.gpsAccuracyMeters;
+        }
+      }
+
+      // Pertahankan lokasi kerja yang terakhir dipilih jika reload/refresh
+      WorkLocationItem? activeLocation = data.selectedWorkLocation;
+      if (state is AttendanceLoaded) {
+        final current = state as AttendanceLoaded;
+        final prevLocation = current.data.selectedWorkLocation;
+        if (prevLocation != null) {
+          final matched = data.availableWorkLocations.where(
+            (loc) => loc.id == prevLocation.id,
+          );
+          if (matched.isNotEmpty) {
+            activeLocation = matched.first;
+          } else {
+            activeLocation = prevLocation;
+          }
+        }
+      }
+
+      // Update parameter lokasi kantor jika activeLocation berbeda dari default server
+      String officeName = data.officeName;
+      String officeDetail = data.officeDetail;
+      double officeLat = data.officeLatitude;
+      double officeLng = data.officeLongitude;
+      double geofenceRadius = data.geofenceRadiusMeters;
+
+      if (activeLocation != null) {
+        if (activeLocation.name.isNotEmpty) {
+          officeName = activeLocation.name;
+        }
+        if (activeLocation.address.isNotEmpty) {
+          officeDetail = activeLocation.address;
+        }
+        if (activeLocation.latitude != null) {
+          officeLat = activeLocation.latitude!;
+        }
+        if (activeLocation.longitude != null) {
+          officeLng = activeLocation.longitude!;
+        }
+        geofenceRadius = activeLocation.isAnyWhere
+            ? 0.0
+            : (activeLocation.radius < 5 ? 50.0 : activeLocation.radius);
+      }
+
+      final isGpsAcquired = lat != null && lng != null;
+      final isInside = isGpsAcquired
+          ? _calculateIsInsideGeofence(
+              userLat: lat,
+              userLng: lng,
+              selectedWorkLocation: activeLocation,
+            )
+          : (activeLocation?.isAnyWhere ?? false
+              ? true
+              : data.isInsideGeofence);
+
       emit(
         AttendanceLoaded(
-          data: data,
+          data: data.copyWith(
+            selectedWorkLocation: activeLocation,
+            officeName: officeName,
+            officeDetail: officeDetail,
+            officeLatitude: officeLat,
+            officeLongitude: officeLng,
+            geofenceRadiusMeters: geofenceRadius,
+            userLatitude: lat,
+            userLongitude: lng,
+            isInsideGeofence: isInside,
+            gpsAccuracy: isGpsAcquired ? '±${accuracy.toStringAsFixed(0)}m' : '±5m',
+          ),
           currentClockTime: clockTime,
-          userLatitude: null,
-          userLongitude: null,
-          gpsAccuracyMeters: 5.0,
-          isInsideGeofence: data.isInsideGeofence,
-          isGpsAcquired: false,
+          userLatitude: lat,
+          userLongitude: lng,
+          gpsAccuracyMeters: accuracy,
+          isInsideGeofence: isInside,
+          isGpsAcquired: isGpsAcquired,
         ),
       );
     } on ApiException catch (e) {
@@ -122,6 +200,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     AttendanceLocationUpdated event,
     Emitter<AttendanceState> emit,
   ) {
+    _lastLocationEvent = event;
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
 
@@ -134,6 +213,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
       emit(
         current.copyWith(
+          clearAttendanceSuccess: true,
           userLatitude: event.latitude,
           userLongitude: event.longitude,
           gpsAccuracyMeters: event.accuracy,
@@ -178,6 +258,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
       emit(
         current.copyWith(
+          clearAttendanceSuccess: true,
           isInsideGeofence: isInside,
           data: current.data.copyWith(
             selectedWorkLocation: loc,
@@ -193,6 +274,103 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     }
   }
 
+  /// Helper terpusat untuk membangun state [AttendanceLoaded] dengan mempertahankan lokasi
+  /// kerja terpilih ([selectedWorkLocation]) dan memastikan koordinat kantor, radius geofence,
+  /// serta status [isInsideGeofence] selalu disinkronkan dari lokasi kerja tersebut, bukan tertimpa
+  /// oleh default server.
+  AttendanceLoaded _buildLoadedWithActiveLocation({
+    required AttendanceLoaded current,
+    required AttendanceTodayData updatedData,
+    String? actionMessage,
+    bool isSubmittingAction = false,
+    AttendanceSuccessInfo? attendanceSuccess,
+  }) {
+    // 1. Cari activeLocation dari data yang sudah ada sebelumnya
+    WorkLocationItem? activeLocation = updatedData.selectedWorkLocation;
+    final prevLocation = current.data.selectedWorkLocation;
+    if (prevLocation != null) {
+      final matched = updatedData.availableWorkLocations.where(
+        (loc) => loc.id == prevLocation.id,
+      );
+      if (matched.isNotEmpty) {
+        activeLocation = matched.first;
+      } else {
+        final matchedByName = updatedData.availableWorkLocations.where(
+          (loc) => loc.name.toLowerCase() == prevLocation.name.toLowerCase(),
+        );
+        if (matchedByName.isNotEmpty) {
+          activeLocation = matchedByName.first;
+        } else {
+          activeLocation = prevLocation;
+        }
+      }
+    }
+
+    // 2. Sinkronkan nama, detail, dan koordinat kantor dari activeLocation
+    String officeName = updatedData.officeName;
+    String officeDetail = updatedData.officeDetail;
+    double officeLat = updatedData.officeLatitude;
+    double officeLng = updatedData.officeLongitude;
+    double geofenceRadius = updatedData.geofenceRadiusMeters;
+
+    if (activeLocation != null) {
+      if (activeLocation.name.isNotEmpty) {
+        officeName = activeLocation.name;
+      }
+      if (activeLocation.address.isNotEmpty) {
+        officeDetail = activeLocation.address;
+      }
+      if (activeLocation.latitude != null) {
+        officeLat = activeLocation.latitude!;
+      }
+      if (activeLocation.longitude != null) {
+        officeLng = activeLocation.longitude!;
+      }
+      geofenceRadius = activeLocation.isAnyWhere
+          ? 0.0
+          : (activeLocation.radius < 5 ? 50.0 : activeLocation.radius);
+    }
+
+    // 3. Koordinat GPS user & perhitungan ulang geofence
+    final userLat = current.userLatitude ?? updatedData.userLatitude;
+    final userLng = current.userLongitude ?? updatedData.userLongitude;
+    final isGpsAcquired = current.isGpsAcquired || (userLat != null && userLng != null);
+
+    final isInside = (activeLocation?.isAnyWhere ?? false)
+        ? true
+        : ((userLat != null && userLng != null)
+            ? _calculateIsInsideGeofence(
+                userLat: userLat,
+                userLng: userLng,
+                selectedWorkLocation: activeLocation,
+              )
+            : updatedData.isInsideGeofence);
+
+    return current.copyWith(
+      isInsideGeofence: isInside,
+      isGpsAcquired: isGpsAcquired,
+      userLatitude: userLat,
+      userLongitude: userLng,
+      isSubmittingAction: isSubmittingAction,
+      actionMessage: actionMessage,
+      attendanceSuccess: attendanceSuccess,
+      data: updatedData.copyWith(
+        selectedWorkLocation: activeLocation,
+        availableWorkLocations: updatedData.availableWorkLocations.isNotEmpty
+            ? updatedData.availableWorkLocations
+            : current.data.availableWorkLocations,
+        officeName: officeName,
+        officeDetail: officeDetail,
+        officeLatitude: officeLat,
+        officeLongitude: officeLng,
+        geofenceRadiusMeters: geofenceRadius,
+        userLatitude: userLat,
+        userLongitude: userLng,
+        isInsideGeofence: isInside,
+      ),
+    );
+  }
+
   Future<void> _onClockInSubmitted(
     AttendanceClockInSubmitted event,
     Emitter<AttendanceState> emit,
@@ -201,7 +379,17 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final current = state as AttendanceLoaded;
       final loc = current.data.selectedWorkLocation;
       final isAnyWhere = loc?.isAnyWhere ?? false;
-      if (loc != null && !isAnyWhere && !current.isInsideGeofence) {
+      final effectiveUserLat = current.userLatitude ?? event.latitude;
+      final effectiveUserLng = current.userLongitude ?? event.longitude;
+      final isInside = isAnyWhere ||
+          current.isInsideGeofence ||
+          (loc != null &&
+              _calculateIsInsideGeofence(
+                userLat: effectiveUserLat,
+                userLng: effectiveUserLng,
+                selectedWorkLocation: loc,
+              ));
+      if (loc != null && !isAnyWhere && !isInside) {
         emit(
           current.copyWith(
             isSubmittingAction: false,
@@ -224,14 +412,34 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           photoFile: event.photoFile,
         );
 
+        final activeLoc = current.data.selectedWorkLocation ?? updatedData.selectedWorkLocation;
+        final officeName = (activeLoc != null && activeLoc.name.isNotEmpty)
+            ? activeLoc.name
+            : updatedData.officeName;
+        final recordTime = updatedData.inTime ?? AppDateUtil.formatDateTimeHHmm(DateTime.now());
+        final formattedDate = AppDateUtil.formatDateFull(updatedData.serverTime, locale: 'id');
+        final effectiveTz = _resolveTimezone(updatedData.timezone);
+
+        final successInfo = AttendanceSuccessInfo(
+          attendanceType: 'in',
+          title: 'Presensi Masuk Berhasil',
+          message: 'Presensi Masuk Anda berhasil dicatat oleh sistem.',
+          date: updatedData.serverTime,
+          formattedDate: formattedDate,
+          formattedTime: '$recordTime $effectiveTz',
+          locationName: officeName,
+        );
+
         emit(
-          current.copyWith(
-            data: updatedData.copyWith(
-              availableWorkLocations: current.data.availableWorkLocations,
-              selectedWorkLocation: current.data.selectedWorkLocation,
+          _buildLoadedWithActiveLocation(
+            current: current.copyWith(
+              userLatitude: effectiveUserLat,
+              userLongitude: effectiveUserLng,
             ),
-            isSubmittingAction: false,
+            updatedData: updatedData,
             actionMessage: 'Clock In berhasil dicatat!',
+            isSubmittingAction: false,
+            attendanceSuccess: successInfo,
           ),
         );
       } catch (e) {
@@ -253,7 +461,17 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final current = state as AttendanceLoaded;
       final loc = current.data.selectedWorkLocation;
       final isAnyWhere = loc?.isAnyWhere ?? false;
-      if (loc != null && !isAnyWhere && !current.isInsideGeofence) {
+      final effectiveUserLat = current.userLatitude ?? event.latitude;
+      final effectiveUserLng = current.userLongitude ?? event.longitude;
+      final isInside = isAnyWhere ||
+          current.isInsideGeofence ||
+          (loc != null &&
+              _calculateIsInsideGeofence(
+                userLat: effectiveUserLat,
+                userLng: effectiveUserLng,
+                selectedWorkLocation: loc,
+              ));
+      if (loc != null && !isAnyWhere && !isInside) {
         emit(
           current.copyWith(
             isSubmittingAction: false,
@@ -276,14 +494,34 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           photoFile: event.photoFile,
         );
 
+        final activeLoc = current.data.selectedWorkLocation ?? updatedData.selectedWorkLocation;
+        final officeName = (activeLoc != null && activeLoc.name.isNotEmpty)
+            ? activeLoc.name
+            : updatedData.officeName;
+        final recordTime = updatedData.outTime ?? AppDateUtil.formatDateTimeHHmm(DateTime.now());
+        final formattedDate = AppDateUtil.formatDateFull(updatedData.serverTime, locale: 'id');
+        final effectiveTz = _resolveTimezone(updatedData.timezone);
+
+        final successInfo = AttendanceSuccessInfo(
+          attendanceType: 'out',
+          title: 'Presensi Pulang Berhasil',
+          message: 'Presensi Pulang Anda berhasil dicatat oleh sistem.',
+          date: updatedData.serverTime,
+          formattedDate: formattedDate,
+          formattedTime: '$recordTime $effectiveTz',
+          locationName: officeName,
+        );
+
         emit(
-          current.copyWith(
-            data: updatedData.copyWith(
-              availableWorkLocations: current.data.availableWorkLocations,
-              selectedWorkLocation: current.data.selectedWorkLocation,
+          _buildLoadedWithActiveLocation(
+            current: current.copyWith(
+              userLatitude: effectiveUserLat,
+              userLongitude: effectiveUserLng,
             ),
-            isSubmittingAction: false,
+            updatedData: updatedData,
             actionMessage: 'Clock Out berhasil dicatat!',
+            isSubmittingAction: false,
+            attendanceSuccess: successInfo,
           ),
         );
       } catch (e) {
@@ -312,13 +550,11 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
             : 'Selesai istirahat (Break In)';
 
         emit(
-          current.copyWith(
-            data: updatedData.copyWith(
-              availableWorkLocations: current.data.availableWorkLocations,
-              selectedWorkLocation: current.data.selectedWorkLocation,
-            ),
-            isSubmittingAction: false,
+          _buildLoadedWithActiveLocation(
+            current: current,
+            updatedData: updatedData,
             actionMessage: message,
+            isSubmittingAction: false,
           ),
         );
       } catch (e) {
@@ -358,6 +594,12 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         );
       }
     }
+  }
+
+  static String _resolveTimezone(String? timezone) {
+    final tz = (timezone ?? '').trim();
+    if (tz.isNotEmpty) return tz;
+    return 'Asia/Jakarta';
   }
 
   @override

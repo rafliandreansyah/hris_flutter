@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_bloc.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_event.dart';
@@ -578,12 +579,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
 
     // 1. Loading awal / refresh
     if (isLoading && requests.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     // 2. Empty state
@@ -671,12 +667,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
 
     // 2. Loading awal / refresh
     if (isLoading && requests.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     // 3. Empty state

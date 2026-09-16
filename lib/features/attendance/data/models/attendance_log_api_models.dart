@@ -50,6 +50,13 @@ class AttendanceLogListResponse {
   });
 
   factory AttendanceLogListResponse.fromJson(Map<String, dynamic> json) {
+    final parentTimezone = (json['data'] is Map<String, dynamic>
+            ? (json['data'] as Map<String, dynamic>)['timezone'] ??
+                (json['data'] as Map<String, dynamic>)['timeZone']
+            : null) ??
+        json['timezone'] ??
+        json['timeZone'];
+
     final rawSource = json['data'] is Map<String, dynamic>
         ? ((json['data'] as Map<String, dynamic>)['logs'] is List
               ? (json['data'] as Map<String, dynamic>)['logs'] as List
@@ -62,7 +69,11 @@ class AttendanceLogListResponse {
     for (var i = 0; i < rawSource.length; i++) {
       final entry = rawSource[i];
       if (entry is Map<String, dynamic>) {
-        items.add(AttendanceLogItem.fromJson(entry, index: i));
+        items.add(AttendanceLogItem.fromJson(
+          entry,
+          index: i,
+          fallbackTimezone: parentTimezone?.toString(),
+        ));
       }
     }
 

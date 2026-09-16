@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_bloc.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_event.dart';
@@ -569,12 +570,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
 
     // 1. Loading awal / refresh
     if (isLoading && requests.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     // 2. Empty state
@@ -662,12 +658,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
 
     // 2. Loading awal / refresh
     if (isLoading && requests.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     // 3. Empty state

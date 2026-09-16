@@ -7,12 +7,14 @@ import 'package:hris_flutter/features/dashboard/data/models/dashboard_response_m
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
+import 'package:hris_flutter/features/dashboard/presentation/widgets/attendance_hero_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_shimmer_loading.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/leave_balance_preview_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_bloc.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_event.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 
 void main() {
@@ -314,7 +316,87 @@ void main() {
       await tester.tap(find.text('Coba Lagi').last, warnIfMissed: false);
       await tester.pump(const Duration(milliseconds: 300));
     });
+
+    testWidgets('Dashboard renders Libur Kerja and calendarOff icon when isDayOff is true', (
+      WidgetTester tester,
+    ) async {
+      final dayOffData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+        todaySchedule: const TodayScheduleInfo(
+          id: 'sch-101',
+          isDayOff: true,
+          shift: null,
+        ),
+      );
+
+      final repo = MockSuccessDashboardRepository(data: dayOffData);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(repository: repo),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Libur Kerja'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AttendanceHeroCard),
+          matching: find.byIcon(LucideIcons.calendarOff),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Dashboard renders Tidak Ada Jadwal Kerja when todaySchedule is null', (
+      WidgetTester tester,
+    ) async {
+      final noScheduleData = DashboardData(
+        id: 'emp-102',
+        firstName: 'Jane',
+        email: 'jane@example.com',
+        todaySchedule: null,
+      );
+
+      final repo = MockSuccessDashboardRepository(data: noScheduleData);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(repository: repo),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Tidak Ada Jadwal Kerja'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AttendanceHeroCard),
+          matching: find.byIcon(LucideIcons.calendarX),
+        ),
+        findsOneWidget,
+      );
+    });
   });
+}
+
+class MockSuccessDashboardRepository implements DashboardRepository {
+  final DashboardData data;
+  final List<MenuItemModel> menus;
+
+  MockSuccessDashboardRepository({
+    required this.data,
+    this.menus = const [],
+  });
+
+  @override
+  Future<DashboardData> getDashboardData() async => data;
+
+  @override
+  Future<List<MenuItemModel>> getMenus() async => menus;
 }
 
 class MockFailureDashboardRepository implements DashboardRepository {

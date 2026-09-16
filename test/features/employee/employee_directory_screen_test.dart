@@ -291,10 +291,6 @@ void main() {
 
       // Bottom sheet elements should be displayed
       expect(find.text('Filter Data Pegawai'), findsOneWidget);
-      expect(
-        find.text('Saring daftar pegawai berdasarkan perusahaan, departemen, dan jabatan'),
-        findsOneWidget,
-      );
       expect(find.text('Perusahaan (Company)'), findsOneWidget);
       expect(find.text('Departemen (Department)'), findsOneWidget);
       expect(find.text('Jabatan (Position)'), findsOneWidget);

@@ -1,10 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_photo_picker_card.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/create_plan_activity/create_plan_activity_bloc.dart';
@@ -67,6 +68,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
   ActivityTypeModel? _selectedActivityType;
   DateTime _selectedDateTime = DateTime.now().add(const Duration(hours: 1));
   XFile? _pickedFile;
+  ImageCompressResult? _compressResult;
+  bool _isCompressingPhoto = false;
 
   @override
   void dispose() {
@@ -143,7 +146,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      showDragHandle: false,
+      showDragHandle: true,
       backgroundColor: isDark
           ? AppColors.darkSurfaceContainerLowest
           : AppColors.surfaceContainerLowest,
@@ -166,23 +169,9 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
             return SafeArea(
               child: Container(
                 height: MediaQuery.of(modalContext).size.height * 0.75,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 16),
                 child: Column(
                   children: [
-                    // Drag Handle
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkOutlineMuted
-                              : const Color(0xFFCBD5E1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
 
                     // Header
                     Padding(
@@ -345,6 +334,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
 
     showModalBottomSheet(
       context: context,
+      showDragHandle: true,
       backgroundColor: isDark
           ? AppColors.darkSurfaceContainerLowest
           : AppColors.surfaceContainerLowest,
@@ -356,7 +346,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.fromLTRB(0, 4, 0, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,30 +416,6 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
     );
   }
 
-  Future<void> _pickAttachment(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final file = await picker.pickImage(
-        source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
-      );
-      if (file != null && mounted) {
-        setState(() => _pickedFile = file);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memilih berkas: $e'),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-    }
-  }
-
   void _handleSubmit() {
     if (_selectedEmployee == null) {
       _showWarningSnackBar('Silakan pilih Pegawai / Bawahan yang ditugaskan.');
@@ -488,7 +454,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
         description: _descriptionController.text.trim(),
         latitude: 0,
         longitude: 0,
-        file: _pickedFile,
+        file: _compressResult?.file ?? _pickedFile,
       ),
     );
   }
@@ -998,101 +964,26 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                     cardBg: cardBg,
                     borderCol: borderCol,
                     title: 'Lampiran / Dokumen Panduan (Opsional)',
-                    child: _pickedFile == null
-                        ? Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () =>
-                                      _pickAttachment(ImageSource.camera),
-                                  icon: const Icon(
-                                    LucideIcons.camera,
-                                    size: 16,
-                                  ),
-                                  label: const Text('Ambil Foto'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.brandTeal,
-                                    side: BorderSide(color: borderCol),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () =>
-                                      _pickAttachment(ImageSource.gallery),
-                                  icon: const Icon(LucideIcons.image, size: 16),
-                                  label: const Text('Pilih Galeri'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.brandTeal,
-                                    side: BorderSide(color: borderCol),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: inputBg,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: borderCol),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    File(_pickedFile!.path),
-                                    width: 44,
-                                    height: 44,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _pickedFile!.name,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: textCol,
-                                          fontSize: 12.5,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const Text(
-                                        'Berkas terpilih',
-                                        style: TextStyle(
-                                          color: AppColors.brandTeal,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    LucideIcons.trash2,
-                                    size: 18,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _pickedFile = null),
-                                ),
-                              ],
-                            ),
-                          ),
+                    child: AppPhotoPickerCard(
+                      file: _pickedFile,
+                      compressResult: _compressResult,
+                      isCompressing: _isCompressingPhoto,
+                      sheetTitle: 'Pilih Lampiran Panduan',
+                      sampleTitle: 'Gunakan Sampel Panduan',
+                      sampleSubtitle: 'Simulasi dokumen panduan rencana aktivitas',
+                      uploadPlaceholderTitle: 'Tap to Capture or Upload Document',
+                      uploadPlaceholderSubtitle: 'Kamera atau Galeri (Maksimal 100 KB)',
+                      previewTitle: 'Lampiran Panduan Aktivitas',
+                      onFileChanged: (file, result) {
+                        setState(() {
+                          _pickedFile = file;
+                          _compressResult = result;
+                        });
+                      },
+                      onLoadingChanged: (loading) {
+                        setState(() => _isCompressingPhoto = loading);
+                      },
+                    ),
                   ),
                   const SizedBox(height: 28),
 

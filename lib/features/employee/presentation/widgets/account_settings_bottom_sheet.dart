@@ -21,11 +21,19 @@ Future<void> showAccountSettingsBottomSheet(
   String? status,
   String? avatarUrl,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final surfaceColor = isDark
+      ? AppColors.darkSurfaceContainerLowest
+      : AppColors.surfaceContainerLowest;
+
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    showDragHandle: false,
-    backgroundColor: Colors.transparent,
+    showDragHandle: true,
+    backgroundColor: surfaceColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    ),
     barrierColor: Colors.black.withValues(alpha: 0.45),
     builder: (context) => AccountSettingsBottomSheet(
       name: name ?? 'Sarah Jenkins',
@@ -80,45 +88,18 @@ class AccountSettingsBottomSheet extends StatelessWidget {
         ? AppColors.darkSurfaceContainer
         : AppColors.surfaceContainer;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
-            blurRadius: 24,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. Drag Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : AppColors.outlineMuted,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // 2. Title
-                Text(
-                  l10n?.accountSettings ?? 'Account Settings',
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Title
+              Text(
+                l10n?.accountSettings ?? 'Account Settings',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
                     fontSize: 18,
@@ -409,8 +390,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   void _showLanguageDialog(BuildContext context) {

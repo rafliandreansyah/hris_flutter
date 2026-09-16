@@ -122,5 +122,40 @@ void main() {
       final reconstructed = AttendanceDetailModel.fromJson(jsonOutput);
       expect(reconstructed, equals(model));
     });
+
+    test('should preserve exact server attendanceTime from string without device local conversion', () {
+      final json = {
+        'id': 'att-offset-test',
+        'attendanceType': 'Clock In',
+        'attendanceTime': '2026-09-16T14:11:23+07:00',
+        'attendanceMethod': 'Face',
+        'timezone': 'WIB',
+      };
+
+      final model = AttendanceDetailModel.fromJson(json);
+
+      expect(model.attendanceTime?.hour, 14);
+      expect(model.attendanceTime?.minute, 11);
+      expect(model.attendanceTime?.second, 23);
+      expect(model.formattedTime24, '14:11:23');
+      expect(model.formattedDate, 'Wednesday, 16 September 2026');
+    });
+
+    test('should preserve SQL datetime format without shift', () {
+      final json = {
+        'id': 'att-sql-test',
+        'attendanceType': 'Clock In',
+        'attendanceTime': '2026-09-16 14:11:23',
+        'attendanceMethod': 'Face',
+        'timezone': 'WIB',
+      };
+
+      final model = AttendanceDetailModel.fromJson(json);
+
+      expect(model.attendanceTime?.hour, 14);
+      expect(model.attendanceTime?.minute, 11);
+      expect(model.attendanceTime?.second, 23);
+      expect(model.formattedTime24, '14:11:23');
+    });
   });
 }

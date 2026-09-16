@@ -9,6 +9,8 @@ class AttendanceServerClockCard extends StatelessWidget {
   final String clockTimeString;
   final String timezone;
   final String shiftName;
+  final bool isDayOff;
+  final bool hasSchedule;
 
   const AttendanceServerClockCard({
     super.key,
@@ -16,6 +18,8 @@ class AttendanceServerClockCard extends StatelessWidget {
     required this.clockTimeString,
     this.timezone = 'Asia/Jakarta',
     this.shiftName = 'Regular Shift (09:00 - 18:00)',
+    this.isDayOff = false,
+    this.hasSchedule = true,
   });
 
   @override
@@ -112,12 +116,16 @@ class AttendanceServerClockCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Regular Shift Info
+          // Shift & Schedule Info
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                LucideIcons.briefcase,
+                isDayOff
+                    ? LucideIcons.calendarOff
+                    : (!hasSchedule
+                        ? LucideIcons.calendarX
+                        : LucideIcons.briefcase),
                 size: 18,
                 color: onContainerCol,
               ),
@@ -129,6 +137,29 @@ class AttendanceServerClockCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              if (isDayOff) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkSurfaceContainerHighest
+                        : AppColors.warningContainer,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    'Libur',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: isDark
+                          ? AppColors.darkOnSurface
+                          : AppColors.onWarningContainer,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ],

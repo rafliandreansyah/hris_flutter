@@ -21,7 +21,7 @@ void main() {
       expect(item.punctuality, AttendanceLogPunctuality.onTime);
       expect(item.locationName, 'Jakarta HQ Office');
       expect(item.method, 'GPS Mobile');
-      expect(item.timezoneAbbreviation, 'WIB');
+      expect(item.displayTimezone, 'Asia/Jakarta');
       expect(item.dateTime, DateTime(2026, 8, 27, 8, 45));
     });
 
@@ -46,7 +46,7 @@ void main() {
       expect(lateItem.isLate, isTrue);
       expect(lateItem.lateMinutes, 18);
       expect(lateItem.punctuality, AttendanceLogPunctuality.late);
-      expect(lateItem.timezoneAbbreviation, 'WITA');
+      expect(lateItem.displayTimezone, 'Asia/Makassar');
     });
 
     test('parses official API v1 attendances schema correctly', () {
@@ -67,7 +67,7 @@ void main() {
       expect(item.id, '123e4567-e89b-12d3-a456-426614174000');
       expect(item.date, '2026-09-08');
       expect(item.timezone, 'Asia/Jakarta');
-      expect(item.timezoneAbbreviation, 'WIB');
+      expect(item.displayTimezone, 'Asia/Jakarta');
       expect(item.type, AttendanceLogType.clockIn);
       expect(item.locationName, 'Head Office');
       expect(item.locationId, '123e4567-e89b-12d3-a456-426614174000');
@@ -84,7 +84,50 @@ void main() {
       expect(item.locationName, isNull);
       expect(item.method, isNull);
       expect(item.lateMinutes, isNull);
-      expect(item.timezoneAbbreviation, 'WIB');
+      expect(item.displayTimezone, 'Asia/Jakarta');
+    });
+
+    test('takes timezone directly from timezone field with fallback to Asia/Jakarta', () {
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'Asia/Jakarta'}).displayTimezone,
+        'Asia/Jakarta',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'Asia/Pontianak'}).displayTimezone,
+        'Asia/Pontianak',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': '+07:00'}).displayTimezone,
+        '+07:00',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'Asia/Makassar'}).displayTimezone,
+        'Asia/Makassar',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'Asia/Bali'}).displayTimezone,
+        'Asia/Bali',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': '+08:00'}).displayTimezone,
+        '+08:00',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'Asia/Jayapura'}).displayTimezone,
+        'Asia/Jayapura',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': '+09:00'}).displayTimezone,
+        '+09:00',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {'timezone': 'UTC'}).displayTimezone,
+        'UTC',
+      );
+      expect(
+        AttendanceLogItem.fromJson(const {}).displayTimezone,
+        'Asia/Jakarta',
+      );
     });
   });
 
@@ -119,6 +162,20 @@ void main() {
       expect(response.data.length, 1);
       expect(response.meta.page, 2);
       expect(response.meta.totalPages, 4);
+    });
+
+    test('propagates parent timezone to child log items when item timezone is missing', () {
+      final response = AttendanceLogListResponse.fromJson({
+        'data': {
+          'timezone': 'Asia/Makassar',
+          'logs': [
+            {'id': 'C', 'dateTime': '2026-08-27T08:45:00', 'type': 'IN'},
+          ],
+        },
+      });
+
+      expect(response.data.first.timezone, 'Asia/Makassar');
+      expect(response.data.first.displayTimezone, 'Asia/Makassar');
     });
 
     test('parses flat list response without meta key and infers meta from data length', () {

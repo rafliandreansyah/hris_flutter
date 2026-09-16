@@ -59,6 +59,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get noWorkSchedule => 'Tidak Ada Jadwal Kerja';
 
   @override
+  String get dayOffSchedule => 'Libur Kerja';
+
+  @override
+  String get dayOffNotice => 'Jadwal Libur Kerja';
+
+  @override
+  String get dayOffDescription =>
+      'Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).';
+
+  @override
   String get quickAccess => 'Akses Cepat';
 
   @override

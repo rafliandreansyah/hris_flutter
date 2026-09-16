@@ -496,11 +496,11 @@ void main() {
       expect(mockRepo.lastStatus, 'requested');
       expect(bloc.state.filterCriteria.statusApprove, 'requested');
 
-      // Reset menghapus status filter.
+      // Reset mengembalikan status filter ke default requested.
       bloc.add(const OvertimeListFilterReset());
       await Future.delayed(const Duration(milliseconds: 50));
-      expect(bloc.state.filterCriteria.statusApprove, isNull);
-      expect(mockRepo.lastStatus, 'all');
+      expect(bloc.state.filterCriteria.statusApprove, 'requested');
+      expect(mockRepo.lastStatus, 'requested');
 
       bloc.close();
     });
@@ -672,11 +672,11 @@ void main() {
       expect(criteria.endDateParam, '2026-08-31');
     });
 
-    test('statusApprove dihitung sebagai filter aktif kecuali all', () {
+    test('statusApprove dihitung sebagai filter aktif jika bukan requested', () {
       expect(
         const OvertimeFilterCriteria(statusApprove: 'requested')
             .hasActiveFilter,
-        isTrue,
+        isFalse,
       );
       expect(
         const OvertimeFilterCriteria(statusApprove: 'rejected')
@@ -684,7 +684,7 @@ void main() {
         1,
       );
       expect(const OvertimeFilterCriteria(statusApprove: 'all').hasActiveFilter,
-          isFalse);
+          isTrue);
       expect(
         const OvertimeFilterCriteria(statusApprove: null).activeFilterCount,
         0,

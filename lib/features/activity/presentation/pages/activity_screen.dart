@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_bloc.dart';
@@ -589,12 +590,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     final searchQuery = state.searchQuery;
 
     if (isMyLoading && myActivities.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     if (filteredList.isEmpty) {
@@ -823,12 +819,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
 
     // 2. Loading Awal / Refresh
     if (isTeamLoading && teamActivities.isEmpty) {
-      return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
-      );
+      return const RequestCardShimmerLoading();
     }
 
     // 3. Status Kosong (Empty State)
@@ -1179,50 +1170,34 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      showDragHandle: false,
-      backgroundColor: Colors.transparent,
+      showDragHandle: true,
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+      ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Material(
-              color: surfaceColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Drag handle
-                        Center(
-                          child: Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkOutlineMuted
-                                  : const Color(0xFFCBD5E1),
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Title & Close
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Tambah Aktivitas Kerja',
+              child: SafeArea(
+                top: false,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Title & Close
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Tambah Aktivitas Kerja',
                               style: AppTypography.titleMedium.copyWith(
                                 color: textCol,
                                 fontWeight: FontWeight.w700,
@@ -1553,8 +1528,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                     ),
                   ),
                 ),
-              ),
-            );
+              );
           },
         );
       },
