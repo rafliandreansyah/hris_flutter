@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +106,8 @@ void main() {
 
       // Tap button to open dialog
       await tester.tap(find.text('Show Dialog'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       // Check dialog elements
       expect(find.text('Izin Kamera Diperlukan'), findsOneWidget);
@@ -116,7 +118,8 @@ void main() {
 
       // Dismiss dialog
       await tester.tap(find.text('Nanti Saja'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Izin Kamera Diperlukan'), findsNothing);
     });
@@ -179,4 +182,115 @@ void main() {
       expect(granted, isTrue);
     });
   });
+
+  group('PermissionUtil Rationale Dialog Flow Tests', () {
+    tearDown(() {
+      PermissionUtil.bypassInTest = true;
+      PermissionUtil.testPermissionStatusHandler = null;
+      PermissionUtil.testPermissionRequestHandler = null;
+    });
+
+    testWidgets('shows rationale dialog for camera permission and handles deny', (
+      WidgetTester tester,
+    ) async {
+      PermissionUtil.bypassInTest = false;
+      PermissionUtil.testPermissionStatusHandler = (perm) async => false;
+
+      HrisPermissionResult? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () async {
+                  result = await PermissionUtil.requestCameraPermission(
+                    context: context,
+                    showRationale: true,
+                  );
+                },
+                child: const Text('Request Camera'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Request Camera'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Izin Kamera Diperlukan'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('permission_dialog_allow_button')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('permission_dialog_deny_button')),
+        findsOneWidget,
+      );
+
+      // Tap Deny
+      await tester.tap(
+        find.byKey(const ValueKey('permission_dialog_deny_button')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(result, isNotNull);
+      expect(result!.isGranted, isFalse);
+      expect(find.text('Izin Kamera Diperlukan'), findsNothing);
+    });
+
+    testWidgets(
+      'shows composite rationale dialog for attendance (location + camera) and allows',
+      (WidgetTester tester) async {
+        PermissionUtil.bypassInTest = false;
+        PermissionUtil.testPermissionStatusHandler = (perm) async => false;
+        PermissionUtil.testPermissionRequestHandler =
+            (perm) async => PermissionStatus.granted;
+
+        bool? granted;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () async {
+                    granted =
+                        await PermissionUtil.requestAttendancePermissions(
+                      context: context,
+                      showRationale: true,
+                    );
+                  },
+                  child: const Text('Start Attendance'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Start Attendance'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Izin Presensi Kehadiran'), findsOneWidget);
+        expect(find.text('Lokasi & GPS'), findsOneWidget);
+        expect(find.text('Kamera'), findsOneWidget);
+        expect(find.text('Izinkan Semua'), findsOneWidget);
+
+        // Tap Allow All
+        await tester.tap(
+          find.byKey(const ValueKey('permission_dialog_allow_button')),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(granted, isTrue);
+        expect(find.text('Izin Presensi Kehadiran'), findsNothing);
+      },
+    );
+  });
 }
+

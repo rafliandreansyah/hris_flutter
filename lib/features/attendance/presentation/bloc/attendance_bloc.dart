@@ -231,10 +231,10 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   }
 
   /// Handler pergantian lokasi kerja oleh user.
-  void _onWorkLocationChanged(
+  Future<void> _onWorkLocationChanged(
     AttendanceWorkLocationChanged event,
     Emitter<AttendanceState> emit,
-  ) {
+  ) async {
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
       final loc = event.selectedLocation;
@@ -256,21 +256,94 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         selectedWorkLocation: loc,
       );
 
-      emit(
-        current.copyWith(
-          clearAttendanceSuccess: true,
-          isInsideGeofence: isInside,
-          data: current.data.copyWith(
-            selectedWorkLocation: loc,
-            officeName: officeName,
-            officeDetail: officeDetail,
-            officeLatitude: officeLat,
-            officeLongitude: officeLng,
-            geofenceRadiusMeters: geofenceRadius,
+      if (!event.setAsDefault) {
+        // Hanya ubah state lokal, tanpa memanggil API
+        emit(
+          current.copyWith(
+            clearAttendanceSuccess: true,
             isInsideGeofence: isInside,
+            data: current.data.copyWith(
+              selectedWorkLocation: loc,
+              officeName: officeName,
+              officeDetail: officeDetail,
+              officeLatitude: officeLat,
+              officeLongitude: officeLng,
+              geofenceRadiusMeters: geofenceRadius,
+              isInsideGeofence: isInside,
+            ),
           ),
-        ),
-      );
+        );
+        return;
+      }
+
+      // setAsDefault == true: kirim ke API dan update isDefault
+      emit(current.copyWith(isSubmittingAction: true));
+
+      try {
+        final message = await repository.setDefaultWorkLocation(
+          workLocationId: loc.id,
+          employeeWorkLocationId: loc.employeeWorkLocationId,
+        );
+
+        // Perbarui isDefault: item terpilih = true, lainnya = false
+        final updatedLocations = current.data.availableWorkLocations.map((item) {
+          return item.copyWith(isDefault: item.id == loc.id);
+        }).toList();
+        final updatedLoc = loc.copyWith(isDefault: true);
+
+        emit(
+          current.copyWith(
+            isSubmittingAction: false,
+            isInsideGeofence: isInside,
+            actionMessage: message,
+            data: current.data.copyWith(
+              selectedWorkLocation: updatedLoc,
+              availableWorkLocations: updatedLocations,
+              officeName: officeName,
+              officeDetail: officeDetail,
+              officeLatitude: officeLat,
+              officeLongitude: officeLng,
+              geofenceRadiusMeters: geofenceRadius,
+              isInsideGeofence: isInside,
+            ),
+          ),
+        );
+      } on ApiException catch (e) {
+        // API gagal: tetap update lokasi terpilih (lokal), tapi tampilkan error
+        emit(
+          current.copyWith(
+            isSubmittingAction: false,
+            isInsideGeofence: isInside,
+            errorMessage: e.message,
+            data: current.data.copyWith(
+              selectedWorkLocation: loc,
+              officeName: officeName,
+              officeDetail: officeDetail,
+              officeLatitude: officeLat,
+              officeLongitude: officeLng,
+              geofenceRadiusMeters: geofenceRadius,
+              isInsideGeofence: isInside,
+            ),
+          ),
+        );
+      } catch (e) {
+        emit(
+          current.copyWith(
+            isSubmittingAction: false,
+            isInsideGeofence: isInside,
+            errorMessage: _extractErrorMessage(e),
+            data: current.data.copyWith(
+              selectedWorkLocation: loc,
+              officeName: officeName,
+              officeDetail: officeDetail,
+              officeLatitude: officeLat,
+              officeLongitude: officeLng,
+              geofenceRadiusMeters: geofenceRadius,
+              isInsideGeofence: isInside,
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -574,6 +647,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   ) async {
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
+      emit(current.copyWith(isSubmittingAction: true));
       try {
         await repository.reportLocationIssue(
           issueDescription: event.issueDescription,
@@ -583,12 +657,14 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
         emit(
           current.copyWith(
+            isSubmittingAction: false,
             actionMessage: 'Laporan kendala lokasi berhasil dikirim',
           ),
         );
       } catch (e) {
         emit(
           current.copyWith(
+            isSubmittingAction: false,
             errorMessage: 'Gagal mengirim laporan kendala lokasi: ${_extractErrorMessage(e)}',
           ),
         );

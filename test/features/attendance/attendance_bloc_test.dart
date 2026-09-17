@@ -15,6 +15,9 @@ import 'package:image_picker/image_picker.dart';
 class MockAttendanceRepository implements AttendanceRepository {
   AttendanceTodayData currentData;
   bool shouldThrow;
+  bool setDefaultCalled = false;
+  String? lastSetDefaultWorkLocationId;
+  String? lastSetDefaultEmployeeWorkLocationId;
 
   MockAttendanceRepository({
     AttendanceTodayData? initialData,
@@ -142,6 +145,18 @@ class MockAttendanceRepository implements AttendanceRepository {
       attendanceType: 'Clock In',
       attendanceMethod: 'Face Recognition',
     );
+  }
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    if (shouldThrow) throw const ApiException(message: 'Gagal mengubah default lokasi');
+    setDefaultCalled = true;
+    lastSetDefaultWorkLocationId = workLocationId;
+    lastSetDefaultEmployeeWorkLocationId = employeeWorkLocationId;
+    return 'Lokasi kerja default berhasil diperbarui';
   }
 }
 
@@ -512,6 +527,139 @@ void main() {
       expect(loaded.errorMessage, isNull);
       expect(loaded.data.isClockedIn, isTrue);
       expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+
+      await bloc.close();
+    });
+
+    test('AttendanceWorkLocationChanged with setAsDefault=false updates local state only without calling API', () async {
+      const loc1 = WorkLocationItem(
+        id: 'loc-1',
+        name: 'Head Office',
+        address: 'HQ Address',
+        isDefault: true,
+        employeeWorkLocationId: 'ewl-1',
+      );
+      const loc2 = WorkLocationItem(
+        id: 'loc-2',
+        name: 'Branch Office',
+        address: 'Branch Address',
+        isDefault: false,
+        employeeWorkLocationId: 'ewl-2',
+      );
+
+      final repo = MockAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          selectedWorkLocation: loc1,
+          availableWorkLocations: const [loc1, loc2],
+        ),
+      );
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Trigger location change without setAsDefault
+      bloc.add(const AttendanceWorkLocationChanged(loc2, setAsDefault: false));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.data.selectedWorkLocation?.id, 'loc-2');
+      expect(loaded.data.officeName, 'Branch Office');
+      expect(repo.setDefaultCalled, isFalse);
+      expect(loaded.actionMessage, isNull);
+
+      await bloc.close();
+    });
+
+    test('AttendanceWorkLocationChanged with setAsDefault=true calls API and updates default tags', () async {
+      const loc1 = WorkLocationItem(
+        id: 'loc-1',
+        name: 'Head Office',
+        address: 'HQ Address',
+        isDefault: true,
+        employeeWorkLocationId: 'ewl-1',
+      );
+      const loc2 = WorkLocationItem(
+        id: 'loc-2',
+        name: 'Branch Office',
+        address: 'Branch Address',
+        isDefault: false,
+        employeeWorkLocationId: 'ewl-2',
+      );
+
+      final repo = MockAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          selectedWorkLocation: loc1,
+          availableWorkLocations: const [loc1, loc2],
+        ),
+      );
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Trigger location change with setAsDefault = true
+      bloc.add(const AttendanceWorkLocationChanged(loc2, setAsDefault: true));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(repo.setDefaultCalled, isTrue);
+      expect(repo.lastSetDefaultWorkLocationId, 'loc-2');
+      expect(repo.lastSetDefaultEmployeeWorkLocationId, 'ewl-2');
+      expect(loaded.data.selectedWorkLocation?.id, 'loc-2');
+      expect(loaded.data.selectedWorkLocation?.isDefault, isTrue);
+      expect(loaded.actionMessage, 'Lokasi kerja default berhasil diperbarui');
+
+      // Verify availableWorkLocations list has updated defaults:
+      final available = loaded.data.availableWorkLocations;
+      expect(available.firstWhere((l) => l.id == 'loc-2').isDefault, isTrue);
+      expect(available.firstWhere((l) => l.id == 'loc-1').isDefault, isFalse);
+
+      await bloc.close();
+    });
+
+    test('AttendanceWorkLocationChanged with setAsDefault=true emits errorMessage on API failure', () async {
+      const loc1 = WorkLocationItem(
+        id: 'loc-1',
+        name: 'Head Office',
+        address: 'HQ Address',
+        isDefault: true,
+        employeeWorkLocationId: 'ewl-1',
+      );
+      const loc2 = WorkLocationItem(
+        id: 'loc-2',
+        name: 'Branch Office',
+        address: 'Branch Address',
+        isDefault: false,
+        employeeWorkLocationId: 'ewl-2',
+      );
+
+      final repo = MockAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          selectedWorkLocation: loc1,
+          availableWorkLocations: const [loc1, loc2],
+        ),
+      );
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Set repo to throw
+      repo.shouldThrow = true;
+
+      bloc.add(const AttendanceWorkLocationChanged(loc2, setAsDefault: true));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state, isA<AttendanceLoaded>());
+      final loaded = bloc.state as AttendanceLoaded;
+      expect(loaded.isSubmittingAction, isFalse);
+      expect(loaded.errorMessage, 'Gagal mengubah default lokasi');
 
       await bloc.close();
     });

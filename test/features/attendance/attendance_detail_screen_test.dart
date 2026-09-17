@@ -102,9 +102,6 @@ void main() {
       expect(find.text('Bukti Foto Presensi'), findsOneWidget);
       expect(find.text('Ketuk untuk memperbesar foto'), findsOneWidget);
 
-      // Correction button
-      expect(find.text('Ajukan Koreksi Absensi'), findsOneWidget);
-
       bloc.close();
     });
 

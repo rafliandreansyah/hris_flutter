@@ -39,6 +39,7 @@ abstract class ApiEndpoints {
   static const String employeeProfile = '/employees/profile';
   static const String employeeDashboard = '/employee/dashboard';
   static const String employeeCoworkers = '/employee/coworkers';
+  static const String employeeDefaultWorkLocation = '/employee/default-work-location';
 
   // ==========================================
   // --- 🏢 ORGANIZATION FILTER ENDPOINTS ---

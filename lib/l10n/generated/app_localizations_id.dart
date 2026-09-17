@@ -203,6 +203,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String earlyByMinutes(int minutes) {
+    return 'Pulang Lebih Awal $minutes mnt';
+  }
+
+  @override
   String get verifiedIdentityNotice =>
       'Identitas terverifikasi dengan biometrik dan geofence GPS';
 

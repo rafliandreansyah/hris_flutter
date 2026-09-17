@@ -108,9 +108,7 @@ class AttendanceLoaded extends AttendanceState {
       gpsAccuracyMeters: gpsAccuracyMeters ?? this.gpsAccuracyMeters,
       isInsideGeofence: isInsideGeofence ?? this.isInsideGeofence,
       isGpsAcquired: isGpsAcquired ?? this.isGpsAcquired,
-      attendanceSuccess: clearAttendanceSuccess
-          ? null
-          : (attendanceSuccess ?? this.attendanceSuccess),
+      attendanceSuccess: clearAttendanceSuccess ? null : attendanceSuccess,
     );
   }
 

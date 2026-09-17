@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
+import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:hris_flutter/core/widgets/app_image_preview_dialog.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -185,6 +186,17 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
 
   Future<void> _pickPhoto(ImageSource source) async {
     try {
+      if (source == ImageSource.camera) {
+        final res =
+            await PermissionUtil.requestCameraPermission(context: context);
+        if (!res.isGranted) return;
+      } else {
+        final res =
+            await PermissionUtil.requestGalleryPermission(context: context);
+        if (!res.isGranted) return;
+      }
+      if (!mounted) return;
+
       final picker = ImagePicker();
       final photo = await picker.pickImage(
         source: source,

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:intl/intl.dart';
 
 class AttendanceEmployeeInfo extends Equatable {
@@ -52,25 +53,22 @@ class AttendanceEmployeeInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        firstName,
-        lastName,
-        photoUrl,
-        company,
-        department,
-        position,
-        level,
-      ];
+    id,
+    firstName,
+    lastName,
+    photoUrl,
+    company,
+    department,
+    position,
+    level,
+  ];
 }
 
 class AttendanceWorkLocationInfo extends Equatable {
   final String id;
   final String name;
 
-  const AttendanceWorkLocationInfo({
-    required this.id,
-    required this.name,
-  });
+  const AttendanceWorkLocationInfo({required this.id, required this.name});
 
   factory AttendanceWorkLocationInfo.fromJson(Map<String, dynamic> json) {
     return AttendanceWorkLocationInfo(
@@ -80,10 +78,7 @@ class AttendanceWorkLocationInfo extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
+    return {'id': id, 'name': name};
   }
 
   @override
@@ -105,7 +100,7 @@ class AttendanceShiftInfo extends Equatable {
 
   String get timeRange {
     if (startTime != null && endTime != null) {
-      return '$startTime - $endTime';
+      return '${AppDateUtil.formatTimeHHmm(startTime)} - ${AppDateUtil.formatTimeHHmm(endTime)}';
     }
     return startTime ?? endTime ?? '-';
   }
@@ -120,12 +115,7 @@ class AttendanceShiftInfo extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'startTime': startTime,
-      'endTime': endTime,
-    };
+    return {'id': id, 'name': name, 'startTime': startTime, 'endTime': endTime};
   }
 
   @override
@@ -145,6 +135,7 @@ class AttendanceDetailModel extends Equatable {
   final String? filePath;
   final String? attendanceRequestId;
   final int lateInMinutes;
+  final int earlyOutInMinutes;
   final String? workDate;
   final AttendanceShiftInfo? shift;
   final String? timezone;
@@ -162,6 +153,7 @@ class AttendanceDetailModel extends Equatable {
     this.filePath,
     this.attendanceRequestId,
     this.lateInMinutes = 0,
+    this.earlyOutInMinutes = 0,
     this.workDate,
     this.shift,
     this.timezone,
@@ -172,14 +164,62 @@ class AttendanceDetailModel extends Equatable {
     return type.contains('in') || type.contains('masuk');
   }
 
-  bool get isLate => lateInMinutes > 0;
+  bool get isLate => isClockIn && lateInMinutes > 0;
+
+  /// Menghitung menit pulang lebih awal secara akurat:
+  /// 1. Menggunakan nilai [earlyOutInMinutes] jika > 0.
+  /// 2. Jika absen pulang dan server mencatat nilai selisih waktu di [lateInMinutes].
+  /// 3. Jika belum dihitung oleh server, menghitung selisih antara [attendanceTime] dan [shift.endTime].
+  int get effectiveEarlyOutMinutes {
+    if (isClockIn) return 0;
+    if (earlyOutInMinutes > 0) return earlyOutInMinutes;
+    if (lateInMinutes > 0) return lateInMinutes;
+    if (attendanceTime == null || shift?.endTime == null) return 0;
+
+    try {
+      final endParts = shift!.endTime!.split(':');
+      if (endParts.length < 2) return 0;
+      final endHour = int.parse(endParts[0]);
+      final endMinute = int.parse(endParts[1]);
+
+      final attTime = attendanceTime!;
+      final shiftEndMinutes = endHour * 60 + endMinute;
+      final attMinutes = attTime.hour * 60 + attTime.minute;
+
+      if (shift?.startTime != null) {
+        final startParts = shift!.startTime!.split(':');
+        if (startParts.length >= 2) {
+          final startHour = int.parse(startParts[0]);
+          final startMinute = int.parse(startParts[1]);
+          final shiftStartMinutes = startHour * 60 + startMinute;
+
+          if (shiftEndMinutes < shiftStartMinutes) {
+            // Shift lintas malam (overnight)
+            if (attMinutes < shiftEndMinutes) {
+              return shiftEndMinutes - attMinutes;
+            }
+            return 0;
+          }
+        }
+      }
+
+      if (attMinutes < shiftEndMinutes) {
+        return shiftEndMinutes - attMinutes;
+      }
+    } catch (_) {}
+
+    return 0;
+  }
+
+  bool get isEarlyOut => !isClockIn && effectiveEarlyOutMinutes > 0;
 
   bool get hasAttendanceRequest =>
       attendanceRequestId != null && attendanceRequestId!.trim().isNotEmpty;
 
   bool get isPhotoMethod {
     final method = attendanceMethod.toLowerCase();
-    final hasPhotoKeyword = method.contains('photo') ||
+    final hasPhotoKeyword =
+        method.contains('photo') ||
         method.contains('foto') ||
         method.contains('face') ||
         method.contains('selfie');
@@ -200,7 +240,10 @@ class AttendanceDetailModel extends Equatable {
     }
     if (workDate != null && workDate!.isNotEmpty) {
       try {
-        final cleanWorkDate = workDate!.trim().replaceFirst(RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'), '');
+        final cleanWorkDate = workDate!.trim().replaceFirst(
+          RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'),
+          '',
+        );
         final parsed = DateTime.parse(cleanWorkDate);
         return DateFormat('EEEE, dd MMMM yyyy').format(parsed);
       } catch (_) {
@@ -239,7 +282,10 @@ class AttendanceDetailModel extends Equatable {
 
     // Hapus offset timezone (+07:00, -05:00, +0700) atau 'Z' di akhir string.
     // Nilai waktu dari server sudah bersih mengikuti timezone masing-masing pegawai di database.
-    final cleanStr = trimmed.replaceFirst(RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'), '');
+    final cleanStr = trimmed.replaceFirst(
+      RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'),
+      '',
+    );
     final parsed = DateTime.tryParse(cleanStr);
     if (parsed != null) {
       return DateTime(
@@ -276,18 +322,26 @@ class AttendanceDetailModel extends Equatable {
       attendanceMethod: json['attendanceMethod'] as String? ?? '',
       employee: json['employee'] != null
           ? AttendanceEmployeeInfo.fromJson(
-              json['employee'] as Map<String, dynamic>)
+              json['employee'] as Map<String, dynamic>,
+            )
           : null,
       latitude: parsedLat,
       longitude: parsedLng,
       workLocation: json['workLocation'] != null
           ? AttendanceWorkLocationInfo.fromJson(
-              json['workLocation'] as Map<String, dynamic>)
+              json['workLocation'] as Map<String, dynamic>,
+            )
           : null,
       address: json['address'] as String?,
       filePath: json['filePath'] as String?,
       attendanceRequestId: json['attendanceRequestId'] as String?,
       lateInMinutes: (json['lateInMinutes'] as num?)?.toInt() ?? 0,
+      earlyOutInMinutes: ((json['earlyOutInMinutes'] ??
+              json['earlyLeaveInMinutes'] ??
+              json['earlyInMinutes'] ??
+              json['earlyMinutes']) as num?)
+          ?.toInt() ??
+          0,
       workDate: json['workDate'] as String?,
       shift: json['shift'] != null
           ? AttendanceShiftInfo.fromJson(json['shift'] as Map<String, dynamic>)
@@ -310,6 +364,7 @@ class AttendanceDetailModel extends Equatable {
       'filePath': filePath,
       'attendanceRequestId': attendanceRequestId,
       'lateInMinutes': lateInMinutes,
+      'earlyOutInMinutes': earlyOutInMinutes,
       'workDate': workDate,
       'shift': shift?.toJson(),
       'timezone': timezone,
@@ -318,20 +373,21 @@ class AttendanceDetailModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        attendanceType,
-        attendanceTime,
-        attendanceMethod,
-        employee,
-        latitude,
-        longitude,
-        workLocation,
-        address,
-        filePath,
-        attendanceRequestId,
-        lateInMinutes,
-        workDate,
-        shift,
-        timezone,
-      ];
+    id,
+    attendanceType,
+    attendanceTime,
+    attendanceMethod,
+    employee,
+    latitude,
+    longitude,
+    workLocation,
+    address,
+    filePath,
+    attendanceRequestId,
+    lateInMinutes,
+    earlyOutInMinutes,
+    workDate,
+    shift,
+    timezone,
+  ];
 }

@@ -214,5 +214,54 @@ void main() {
 
       await bloc.close();
     });
+
+    test('AttendanceClockTicked following clock-in automatically clears attendanceSuccess as a one-shot event', () async {
+      const defaultLoc = WorkLocationItem(
+        id: 'loc-default',
+        name: 'Headquarters',
+        address: 'HQ Street 1',
+        latitude: -6.2000,
+        longitude: 106.8000,
+        radius: 100,
+      );
+
+      final initialData = AttendanceTodayData(
+        serverTime: DateTime(2026, 9, 16, 9, 0, 0),
+        selectedWorkLocation: defaultLoc,
+        availableWorkLocations: const [defaultLoc],
+        officeName: defaultLoc.name,
+        officeDetail: defaultLoc.address,
+        officeLatitude: defaultLoc.latitude!,
+        officeLongitude: defaultLoc.longitude!,
+        geofenceRadiusMeters: defaultLoc.radius,
+      );
+
+      final repo = MockAttendanceRepository(initialData: initialData);
+      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+      bloc.add(const AttendanceFetchRequested());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(
+        const AttendanceClockInSubmitted(
+          latitude: -6.2000,
+          longitude: 106.8000,
+          attendanceMethod: 'photo',
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      var state = bloc.state as AttendanceLoaded;
+      expect(state.attendanceSuccess, isNotNull);
+
+      // Now dispatch clock tick (simulating the background 1-second timer)
+      bloc.add(AttendanceClockTicked(state.currentClockTime.add(const Duration(seconds: 1))));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      state = bloc.state as AttendanceLoaded;
+      // attendanceSuccess must be null, preventing flickering/re-showing dialogs
+      expect(state.attendanceSuccess, isNull);
+
+      await bloc.close();
+    });
   });
 }

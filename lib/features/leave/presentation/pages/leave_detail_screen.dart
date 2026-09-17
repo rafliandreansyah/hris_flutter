@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_detail/leave_detail_bloc.dart';
@@ -70,6 +71,7 @@ class _LeaveDetailView extends StatefulWidget {
 
 class _LeaveDetailViewState extends State<_LeaveDetailView> {
   bool _hasChanged = false;
+  bool? _submittingIsApproved;
 
   void _handlePop() {
     if (context.canPop()) {
@@ -117,6 +119,9 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
   Future<void> _handleApprove(BuildContext context, bool isApproved) async {
     final notes = await LeaveActionDialog.show(context, isApproved: isApproved);
     if (notes != null && context.mounted) {
+      setState(() {
+        _submittingIsApproved = isApproved;
+      });
       context.read<LeaveDetailBloc>().add(
             LeaveDetailApproveSubmitted(
               isApproved: isApproved,
@@ -146,6 +151,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
           prev.errorMessage != curr.errorMessage,
       listener: (context, state) {
         if (state.status == LeaveDetailStatus.actionSuccess) {
+          _submittingIsApproved = null;
           _hasChanged = true;
           if (state.actionMessage != null) {
             AppDialogUtil.showSuccess(
@@ -154,6 +160,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
             );
           }
         } else if (state.status == LeaveDetailStatus.deleteSuccess) {
+          _submittingIsApproved = null;
           _hasChanged = true;
           AppDialogUtil.showSuccess(
             context,
@@ -166,12 +173,14 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
               }
             },
           );
-        } else if (state.status == LeaveDetailStatus.actionFailure &&
-            state.errorMessage != null) {
-          AppDialogUtil.showError(
-            context,
-            message: state.errorMessage!,
-          );
+        } else if (state.status == LeaveDetailStatus.actionFailure) {
+          _submittingIsApproved = null;
+          if (state.errorMessage != null) {
+            AppDialogUtil.showError(
+              context,
+              message: state.errorMessage!,
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -429,6 +438,8 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
   ) {
     final isSubmitting =
         state.status == LeaveDetailStatus.submittingAction;
+    final isApproving = isSubmitting && _submittingIsApproved == true;
+    final isRejecting = isSubmitting && _submittingIsApproved == false;
 
     return Container(
       decoration: BoxDecoration(
@@ -452,56 +463,34 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
         children: [
           // ── Tombol Reject ───────────────────────────────────────────
           Expanded(
-            child: OutlinedButton.icon(
+            child: AppButton(
+              key: const ValueKey('leave_detail_reject_button'),
+              text: isRejecting ? 'Memproses...' : 'Reject',
+              leadingIcon: isRejecting ? null : LucideIcons.x,
+              isLoading: isRejecting,
+              variant: AppButtonVariant.outlined,
+              foregroundColor: const Color(0xFFEF4444),
+              borderColor: const Color(0xFFEF4444),
+              height: 48,
+              borderRadius: 100,
               onPressed:
                   isSubmitting ? null : () => _handleApprove(context, false),
-              icon: const Icon(LucideIcons.x, size: 18),
-              label: const Text(
-                'Reject',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFEF4444),
-                side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
             ),
           ),
           const SizedBox(width: 14),
 
           // ── Tombol Approve ──────────────────────────────────────────
           Expanded(
-            child: ElevatedButton.icon(
+            child: AppButton(
+              key: const ValueKey('leave_detail_approve_button'),
+              text: isApproving ? 'Memproses...' : 'Approve',
+              leadingIcon: isApproving ? null : LucideIcons.check,
+              isLoading: isApproving,
+              variant: AppButtonVariant.primary,
+              height: 48,
+              borderRadius: 100,
               onPressed:
                   isSubmitting ? null : () => _handleApprove(context, true),
-              icon: isSubmitting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(LucideIcons.check, size: 18),
-              label: Text(
-                isSubmitting ? 'Memproses...' : 'Approve',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark
-                    ? AppColors.inversePrimary
-                    : AppColors.brandTeal,
-                foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
             ),
           ),
         ],

@@ -95,44 +95,89 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                 ),
               ),
 
-              // Punctuality Badge (On Time / Late by X mins)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: detail.isLate
-                      ? (isDark
+              // Punctuality Badge (On Time / Late by X mins / Early by X mins)
+              Builder(
+                builder: (context) {
+                  final Color badgeBg;
+                  final Color contentColor;
+                  final IconData badgeIcon;
+                  final String badgeText;
+
+                  if (isClockIn) {
+                    if (detail.isLate) {
+                      badgeBg = isDark
                           ? AppColors.errorRed.withValues(alpha: 0.2)
-                          : AppColors.errorContainer)
-                      : (isDark
+                          : AppColors.errorContainer;
+                      contentColor = isDark
+                          ? const Color(0xFFFCA5A5)
+                          : AppColors.onErrorContainer;
+                      badgeIcon = LucideIcons.clockAlert;
+                      badgeText = l10n?.lateByMinutes(detail.lateInMinutes) ??
+                          'Late by ${detail.lateInMinutes} mins';
+                    } else {
+                      badgeBg = isDark
                           ? AppColors.success.withValues(alpha: 0.2)
-                          : AppColors.successContainer),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      detail.isLate ? LucideIcons.clockAlert : LucideIcons.checkCircle2,
-                      size: 13,
-                      color: detail.isLate
-                          ? (isDark ? const Color(0xFFFCA5A5) : AppColors.onErrorContainer)
-                          : (isDark ? const Color(0xFF86EFAC) : AppColors.onSuccessContainer),
+                          : AppColors.successContainer;
+                      contentColor = isDark
+                          ? const Color(0xFF86EFAC)
+                          : AppColors.onSuccessContainer;
+                      badgeIcon = LucideIcons.checkCircle2;
+                      badgeText = l10n?.onTime ?? 'On Time';
+                    }
+                  } else {
+                    // Clock Out (Absen Pulang)
+                    if (detail.isEarlyOut) {
+                      badgeBg = isDark
+                          ? AppColors.warning.withValues(alpha: 0.25)
+                          : AppColors.warningContainer;
+                      contentColor = isDark
+                          ? const Color(0xFFFDE68A)
+                          : AppColors.onWarningContainer;
+                      badgeIcon = LucideIcons.clockAlert;
+                      badgeText = l10n?.earlyByMinutes(
+                              detail.effectiveEarlyOutMinutes) ??
+                          'Pulang Lebih Awal ${detail.effectiveEarlyOutMinutes} mnt';
+                    } else {
+                      badgeBg = isDark
+                          ? AppColors.success.withValues(alpha: 0.2)
+                          : AppColors.successContainer;
+                      contentColor = isDark
+                          ? const Color(0xFF86EFAC)
+                          : AppColors.onSuccessContainer;
+                      badgeIcon = LucideIcons.checkCircle2;
+                      badgeText = l10n?.onTime ?? 'On Time';
+                    }
+                  }
+
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
                     ),
-                    const SizedBox(width: 5),
-                    Text(
-                      detail.isLate
-                          ? (l10n?.lateByMinutes(detail.lateInMinutes) ??
-                              'Late by ${detail.lateInMinutes} mins')
-                          : (l10n?.onTime ?? 'On Time'),
-                      style: AppTypography.labelSmall.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: detail.isLate
-                            ? (isDark ? const Color(0xFFFCA5A5) : AppColors.onErrorContainer)
-                            : (isDark ? const Color(0xFF86EFAC) : AppColors.onSuccessContainer),
-                      ),
+                    decoration: BoxDecoration(
+                      color: badgeBg,
+                      borderRadius: BorderRadius.circular(100),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          badgeIcon,
+                          size: 13,
+                          color: contentColor,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          badgeText,
+                          style: AppTypography.labelSmall.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: contentColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
 
               // Outside Attendance Chip (If requested via outside attendance)

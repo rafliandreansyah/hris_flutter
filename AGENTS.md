@@ -32,3 +32,37 @@
    - **Pagination (Load More)**: Use a small **`CircularProgressIndicator(strokeWidth: 2.5)`** at the bottom of the list.
    - **Form Actions / Submit**: Use **`CircularProgressIndicator`** inside the action button (e.g. submit, approve, reject).
    - **Pull-to-Refresh**: Use standard Flutter **`RefreshIndicator`**.
+9. **Reusable Global Widgets & Button Loading Standards**:
+   - **Reuse Existing Widgets**: Always check and reuse global widgets in `lib/core/widgets/` (such as **`AppButton`**, `AppTextField`, etc.) instead of constructing raw `ElevatedButton`, `OutlinedButton`, or custom button styles directly in features, sheets, or dialogs.
+   - **Consistent Button Loading States**: Every async action button (Submit, Save, Approve, Reject, Clock In/Out, Filter, etc.) must implement `isLoading` via `AppButton(isLoading: isSubmitting, ...)`. When loading, the button displays a centered `CircularProgressIndicator(strokeWidth: 2.5)` with matching contrast foreground color, and disables further taps (`onPressed: null`).
+10. **Dialog & Alert Standards (`pro_dialog`)**:
+    - **Centralized Usage**: All alerts, confirmations, and status feedback dialogs across features must use **`AppDialogUtil`** backed by **`package:pro_dialog`** (`showSuccess`, `showError`, `showWarning`, `showLoading`, `showPermissionDialog`).
+    - **No Raw Dialogs / SnackBars**: Avoid raw `showDialog`, `AlertDialog`, or raw `SnackBar` for critical action feedback (login failures, clock in/out confirmation, location errors, etc.).
+    - **Consistent Theming & Overflow Safety**: Always adhere to `ProDialogTheme` tokens (matching Stitch M3 surface, colors, and typography), auto-vertical button layout on compact screens, and scrollable `ConstrainedBox` for multi-item or custom content.
+11. **Permission Request Standards (`PermissionUtil` & `pro_dialog`)**:
+    - **Centralized Permission Flow**: Never invoke `Permission.<type>.request()`, `Geolocator.requestPermission()`, or `ImagePicker.pickImage()` directly in presentation screens or widgets. Always route requests through **`PermissionUtil`**.
+    - **Permission Rationale Dialog First**: If an essential permission has not yet been granted, `PermissionUtil` must present `AppDialogUtil.showPermissionDialog` (with the security shield icon and structured permission cards) before triggering native OS dialogs.
+    - **Strict Non-Dismissible**: Permission rationale and permanently denied dialogs MUST set `barrierDismissible: false` and `PopScope(canPop: false)`. The user cannot dismiss via background tap or back gestures and must explicitly tap action buttons ("Izinkan" / "Tolak" or "Buka Pengaturan" / "Nanti Saja").
+    - **Compound Workflows**: Multi-permission features (e.g. Attendance requiring Location + Camera; Activity Proof requiring Location + Camera + Gallery) must use compound requests (`PermissionUtil.requestAttendancePermissions`, `PermissionUtil.requestActivityProofPermissions`) to present a single composite dialog listing all required permissions with an "Izinkan Semua" button.
+    - **Fast-Path Bypass**: If the requested permissions are already granted by the system, skip the rationale dialog immediately to maintain a snappy user experience.
+12. **Standard Filter Bottom Sheet Pattern & Reusable Components (`lib/core/widgets/filter/`)**:
+    - **Single Source of Truth for Requests**: All request modules (`attendance_request`, `leave`, `overtime`) MUST reuse the unified component **`AppRequestFilterBottomSheet`** (`lib/core/widgets/filter/app_request_filter_bottom_sheet.dart`) and **`showAppRequestFilterBottomSheet`** rather than duplicating boilerplate form and lifecycle code.
+    - **Uniform Architecture**: Custom filter bottom sheets across modules (e.g. `activity`, `employee`) MUST reuse the modular building blocks from `lib/core/widgets/filter/`:
+      - **Field Selector**: **`FilterFieldSelector`** (`lib/core/widgets/filter/filter_field_selector.dart`) for all form picker cards (label, value, icon, lock/clear/loading states, helper text).
+      - **Option Picker Modal**: **`showFilterOptionSelector`** (`lib/core/widgets/filter/filter_option_selector_modal.dart`) with auto-search box for >5 items, checkmark indicator for active option, and anti-alias sheet.
+      - **Status Segmented Chips**: **`FilterStatusSegmentedRow`** (`lib/core/widgets/filter/filter_status_segmented_row.dart`) with 4 equal horizontal buttons (`Semua`, `Diajukan` / `Requested`, `Approved`, `Rejected`), border 1.5px, subtle teal tint `#F0FDFA` when selected.
+      - **Date Range Picker**: **`showAppDateRangePicker`** (`lib/core/widgets/filter/app_date_range_picker.dart`) fully styled with Stitch M3 Teal Oasis date picker tokens.
+    - **Header**:
+      - Rounded circular icon badge (36x36, primary/brandTeal 10% opacity, `LucideIcons.slidersHorizontal`, size 18).
+      - Title using `AppTypography.titleMedium` (16sp, bold/w700).
+      - Action `TextButton.icon` with `LucideIcons.rotateCcw` (size 14) labeled "Reset Filter".
+      - Trailing `Divider(height: 1)`.
+    - **Organization Cascading (Company -> Department -> Position)**:
+      - Always consume `OrganizationFilterBloc`.
+      - Department and Position fields must be disabled (locked with `LucideIcons.lock`, opacity 0.6, and helper text "Pilih perusahaan terlebih dahulu") until a company is selected.
+      - Selecting a company resets downstream selections and dispatches `OrganizationFilterCompanySelected`.
+      - Selecting a department resets position and dispatches `OrganizationFilterDepartmentSelected`.
+    - **Footer Actions**:
+      - Row with two `AppButton` widgets at `height: 50`: "Batal" (`AppButtonVariant.outlined`) and "Terapkan Filter" (`AppButtonVariant.primary`, `leadingIcon: LucideIcons.filter`).
+
+

@@ -314,4 +314,82 @@ void main() {
     expect(find.text('Harap tunggu beberapa saat.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('showPermissionDialog renders permissions, cannot dismiss outside, and handles Deny/Allow', (
+    tester,
+  ) async {
+    bool? permissionResult;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () async {
+                  permissionResult = await AppDialogUtil.showPermissionDialog(
+                    context,
+                    title: 'Izin Akses Presensi',
+                    description: 'Mohon izinkan akses berikut untuk mencatat kehadiran:',
+                    permissions: [
+                      AppPermissionItem.location(),
+                      AppPermissionItem.camera(),
+                    ],
+                    allowText: 'Izinkan Semua',
+                    denyText: 'Tolak Akses',
+                  );
+                },
+                child: const Text('Request Permissions'),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    // Open permission dialog
+    await tester.tap(find.text('Request Permissions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Verify Title & Description
+    expect(find.text('Izin Akses Presensi'), findsOneWidget);
+    expect(find.text('Mohon izinkan akses berikut untuk mencatat kehadiran:'), findsOneWidget);
+
+    // Verify Items
+    expect(find.text('Lokasi & GPS'), findsOneWidget);
+    expect(find.text('Kamera'), findsOneWidget);
+
+    // Verify Buttons
+    expect(find.text('Tolak Akses'), findsOneWidget);
+    expect(find.text('Izinkan Semua'), findsOneWidget);
+
+    // Verify cannot be dismissed by tapping outside (barrier)
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('Izin Akses Presensi'), findsOneWidget);
+
+    // Tap Deny
+    await tester.tap(find.byKey(const ValueKey('permission_dialog_deny_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(permissionResult, isFalse);
+    expect(find.text('Izin Akses Presensi'), findsNothing);
+
+    // Reopen dialog to test Allow
+    await tester.tap(find.text('Request Permissions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Izin Akses Presensi'), findsOneWidget);
+
+    // Tap Allow
+    await tester.tap(find.byKey(const ValueKey('permission_dialog_allow_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(permissionResult, isTrue);
+    expect(find.text('Izin Akses Presensi'), findsNothing);
+  });
 }

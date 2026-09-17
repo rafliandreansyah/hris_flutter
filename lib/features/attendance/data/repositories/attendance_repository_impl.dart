@@ -60,6 +60,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         final isDefault = locMap['isDefault'] == true || wl['isDefault'] == true;
         final isAnyWhere = wl['isAnyWhere'] == true || locMap['isAnyWhere'] == true;
         final id = (wl['id'] ?? locMap['workLocationId'] ?? locMap['id'] ?? '').toString();
+        final employeeWorkLocationId = locMap['id']?.toString();
         final name = (wl['name'] ?? locMap['name']) as String? ?? 'Unnamed Location';
         final address = (wl['address'] ?? locMap['address']) as String? ?? '';
         final radius = ((wl['radius'] ?? locMap['radius']) as num?)?.toDouble() ?? 50.0;
@@ -74,6 +75,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
             longitude: rawLng != null ? double.tryParse(rawLng.toString()) : null,
             isAnyWhere: isAnyWhere,
             isDefault: isDefault,
+            employeeWorkLocationId: employeeWorkLocationId,
           ),
         );
       }
@@ -419,5 +421,21 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) {
     return remoteDataSource.getAttendanceDetail(id);
+  }
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    final response = await remoteDataSource.setDefaultWorkLocation(
+      workLocationId: workLocationId,
+      employeeWorkLocationId: employeeWorkLocationId,
+    );
+
+    final message = response['message']?.toString();
+    return (message != null && message.isNotEmpty)
+        ? message
+        : 'Lokasi kerja default berhasil diperbarui';
   }
 }

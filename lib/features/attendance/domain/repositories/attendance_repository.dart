@@ -62,4 +62,10 @@ abstract class AttendanceRepository {
 
   /// Mengambil detail presensi berdasarkan id.
   Future<AttendanceDetailModel> getAttendanceDetail(String id);
+
+  /// Mengupdate lokasi kerja default karyawan via API.
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  });
 }

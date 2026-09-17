@@ -7,6 +7,10 @@ import 'package:hris_flutter/features/attendance/data/models/create_attendance_r
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_event.dart';
+import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:image_picker/image_picker.dart';
@@ -141,6 +145,14 @@ class TestAttendanceRepository implements AttendanceRepository {
       attendanceType: 'Clock In',
       attendanceMethod: 'Face Recognition',
     );
+  }
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    return 'Lokasi kerja default berhasil diperbarui';
   }
 }
 
@@ -396,7 +408,8 @@ void main() {
 
       // Tap Clock In Now button
       await tester.tap(find.text('Clock In Now'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Status should now be Clock Out Now and recorded
       expect(find.text('Clock Out Now'), findsOneWidget);
@@ -642,7 +655,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Clock In Now'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('Clock Out Now'), findsOneWidget);
       expect(find.text('Recorded'), findsOneWidget);
@@ -773,6 +787,61 @@ void main() {
       expect(find.text('Tidak Ada Jadwal Kerja'), findsWidgets);
       expect(find.byIcon(LucideIcons.calendarX), findsWidgets);
     });
+
+    testWidgets('Clock In shows AttendanceSuccessDialog and subsequent clock ticks do not duplicate or flicker dialog', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const anyWhereLocation = WorkLocationItem(
+        id: 'loc-remote',
+        name: 'Remote Work',
+        isAnyWhere: true,
+        isDefault: true,
+      );
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          availableWorkLocations: const [anyWhereLocation],
+          selectedWorkLocation: anyWhereLocation,
+          isInsideGeofence: true,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Clock In Now'));
+      await tester.tap(find.text('Clock In Now'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // AttendanceSuccessDialog must appear exactly once
+      expect(find.text('Presensi Masuk Berhasil'), findsOneWidget);
+      expect(find.byKey(const ValueKey('attendance_success_dialog_ok_button')), findsOneWidget);
+
+      // Trigger 3 clock ticks (simulating 1-second interval timer in background)
+      final bloc = BlocProvider.of<AttendanceBloc>(tester.element(find.byType(Scaffold)));
+      final currentTime = (bloc.state as AttendanceLoaded).currentClockTime;
+      bloc.add(AttendanceClockTicked(currentTime.add(const Duration(seconds: 1))));
+      await tester.pump();
+      bloc.add(AttendanceClockTicked(currentTime.add(const Duration(seconds: 2))));
+      await tester.pump();
+      bloc.add(AttendanceClockTicked(currentTime.add(const Duration(seconds: 3))));
+      await tester.pump();
+
+      // Ensure dialog is NOT duplicated and remains exactly one
+      expect(find.text('Presensi Masuk Berhasil'), findsOneWidget);
+      expect(find.byKey(const ValueKey('attendance_success_dialog_ok_button')), findsOneWidget);
+    });
   });
 }
 
@@ -852,4 +921,12 @@ class Test404AttendanceRepository implements AttendanceRepository {
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async =>
       throw UnimplementedError();
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    return 'Lokasi kerja default berhasil diperbarui';
+  }
 }

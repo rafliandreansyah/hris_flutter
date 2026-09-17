@@ -470,6 +470,12 @@ abstract class AppLocalizations {
   /// **'Terlambat {minutes} mnt'**
   String lateByMinutes(int minutes);
 
+  /// Early leave duration label
+  ///
+  /// In id, this message translates to:
+  /// **'Pulang Lebih Awal {minutes} mnt'**
+  String earlyByMinutes(int minutes);
+
   /// No description provided for @verifiedIdentityNotice.
   ///
   /// In id, this message translates to:

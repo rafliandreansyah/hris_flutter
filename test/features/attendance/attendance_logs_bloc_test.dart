@@ -139,6 +139,14 @@ class MockAttendanceLogsRepository implements AttendanceRepository {
       attendanceMethod: 'GPS',
     );
   }
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    return 'Lokasi kerja default berhasil diperbarui';
+  }
 }
 
 void main() {

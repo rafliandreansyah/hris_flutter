@@ -355,4 +355,12 @@ class MockTeamAttendanceRepository implements AttendanceRepository {
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async =>
       throw UnimplementedError();
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    return 'Lokasi kerja default berhasil diperbarui';
+  }
 }

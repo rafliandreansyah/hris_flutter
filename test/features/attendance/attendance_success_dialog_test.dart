@@ -43,7 +43,8 @@ void main() {
 
     // Open dialog
     await tester.tap(find.text('Open Dialog'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Verify Title & Message
     expect(find.text('Presensi Masuk Berhasil'), findsOneWidget);
@@ -59,14 +60,16 @@ void main() {
 
     // Verify dialog cannot be dismissed by tapping outside (barrier)
     await tester.tapAt(const Offset(10, 10));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
     expect(find.byType(AttendanceSuccessDialog), findsOneWidget);
 
     // Tap OK button
     final okButton = find.byKey(const ValueKey('attendance_success_dialog_ok_button'));
     expect(okButton, findsOneWidget);
     await tester.tap(okButton);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(okPressed, isTrue);
     expect(find.byType(AttendanceSuccessDialog), findsNothing);

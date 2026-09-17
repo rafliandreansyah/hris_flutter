@@ -33,6 +33,10 @@ abstract class AttendanceRemoteDataSource {
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
   Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
   Future<AttendanceDetailModel> getAttendanceDetail(String id);
+  Future<Map<String, dynamic>> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  });
 }
 
 class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
@@ -280,6 +284,35 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           statusCode: 403,
         );
       }
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (workLocationId != null && workLocationId.trim().isNotEmpty) {
+        body['workLocationId'] = workLocationId.trim();
+      }
+      if (employeeWorkLocationId != null &&
+          employeeWorkLocationId.trim().isNotEmpty) {
+        body['employeeWorkLocationId'] = employeeWorkLocationId.trim();
+      }
+
+      final response = await apiClient.put(
+        ApiEndpoints.employeeDefaultWorkLocation,
+        data: body,
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+      return {};
+    } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
   }

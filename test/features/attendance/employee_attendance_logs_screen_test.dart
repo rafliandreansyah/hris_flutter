@@ -134,6 +134,14 @@ class MockEmployeeLogsRepository implements AttendanceRepository {
       attendanceMethod: 'Face Recognition',
     );
   }
+
+  @override
+  Future<String> setDefaultWorkLocation({
+    String? workLocationId,
+    String? employeeWorkLocationId,
+  }) async {
+    return 'Lokasi kerja default berhasil diperbarui';
+  }
 }
 
 void main() {

@@ -230,7 +230,7 @@ class AttendanceActionButtons extends StatelessWidget {
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: Colors.white,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
                 : Row(
@@ -267,51 +267,63 @@ class AttendanceActionButtons extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
               ),
               onPressed: isLoading ? null : onBreakPressed,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.coffee,
-                    size: 20,
-                    color: isDark
-                        ? AppColors.inversePrimary
-                        : AppColors.brandTeal,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    breakButtonText,
-                    style: AppTypography.titleMedium.copyWith(
-                      color: isDark
-                          ? AppColors.inversePrimary
-                          : AppColors.brandTeal,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
+              child: isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isDark
+                              ? AppColors.inversePrimary
+                              : AppColors.brandTeal,
+                        ),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.coffee,
+                          size: 20,
+                          color: isDark
+                              ? AppColors.inversePrimary
+                              : AppColors.brandTeal,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          breakButtonText,
+                          style: AppTypography.titleMedium.copyWith(
+                            color: isDark
+                                ? AppColors.inversePrimary
+                                : AppColors.brandTeal,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
 
         // 3. Report Location Issue Button
-        if (onReportIssuePressed != null) ...[
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton.icon(
-              onPressed: isLoading ? null : onReportIssuePressed,
-              icon: const Icon(LucideIcons.messageSquareWarning, size: 16),
-              label: const Text(
-                'Report Location Issue',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: isDark
-                    ? AppColors.darkOnSurfaceVariant
-                    : AppColors.surfaceVariant,
+        if (onReportIssuePressed != null && !isAttendanceCompleted) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor:
+                  isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: const StadiumBorder(),
+            ),
+            onPressed: onReportIssuePressed,
+            child: Text(
+              'Report Location Issue',
+              style: AppTypography.labelMedium.copyWith(
+                color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
           ),

@@ -157,5 +157,49 @@ void main() {
       expect(model.attendanceTime?.second, 23);
       expect(model.formattedTime24, '14:11:23');
     });
+
+    test('should parse earlyOutInMinutes and compute isEarlyOut correctly', () {
+      final json = {
+        'id': 'att-out-test',
+        'attendanceType': 'Clock Out',
+        'attendanceTime': '2026-09-16 16:35:00',
+        'attendanceMethod': 'Face',
+        'earlyOutInMinutes': 25,
+        'shift': {
+          'id': 'shift-1',
+          'name': 'Standard',
+          'startTime': '08:00',
+          'endTime': '17:00',
+        },
+      };
+
+      final model = AttendanceDetailModel.fromJson(json);
+
+      expect(model.isClockIn, isFalse);
+      expect(model.earlyOutInMinutes, 25);
+      expect(model.effectiveEarlyOutMinutes, 25);
+      expect(model.isEarlyOut, isTrue);
+    });
+
+    test('should automatically calculate effectiveEarlyOutMinutes if not provided in json', () {
+      final json = {
+        'id': 'att-out-calc-test',
+        'attendanceType': 'Clock Out',
+        'attendanceTime': '2026-09-16 16:40:00',
+        'attendanceMethod': 'Face',
+        'shift': {
+          'id': 'shift-1',
+          'name': 'Standard',
+          'startTime': '08:00',
+          'endTime': '17:00',
+        },
+      };
+
+      final model = AttendanceDetailModel.fromJson(json);
+
+      expect(model.isClockIn, isFalse);
+      expect(model.effectiveEarlyOutMinutes, 20); // 17:00 - 16:40 = 20 mins
+      expect(model.isEarlyOut, isTrue);
+    });
   });
 }

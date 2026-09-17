@@ -5,6 +5,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 
 class AttendanceLogFilterCriteria extends Equatable {
   final DateTime? startDate;
@@ -359,51 +360,28 @@ class _AttendanceLogsFilterBottomSheetState
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: AppButton(
+                        text: 'Reset',
+                        variant: AppButtonVariant.outlined,
+                        height: 48,
+                        borderRadius: 12,
                         onPressed: () {
                           setState(() {
                             _criteria = const AttendanceLogFilterCriteria();
                           });
                         },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textCol,
-                          side: BorderSide(color: borderCol),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                        ),
-                        child: Text(
-                          'Reset',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: textCol,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 2,
-                      child: ElevatedButton(
+                      child: AppButton(
+                        text: 'Terapkan Filter',
+                        variant: AppButtonVariant.primary,
+                        height: 48,
+                        borderRadius: 12,
                         onPressed: () =>
                             Navigator.of(context).pop(_criteria),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor: brandFg,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                        ),
-                        child: Text(
-                          'Terapkan Filter',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: brandFg,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
                       ),
                     ),
                   ],

@@ -84,6 +84,16 @@
       }
     }
   },
+  "earlyByMinutes": "Early by {minutes} mins",
+  "@earlyByMinutes": {
+    "description": "Early leave duration label",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
   "verifiedIdentityNotice": "Identity verified via biometrics and GPS geofence",
   "attendanceLocation": "Attendance Location",
   "openInMaps": "Open in Maps",

@@ -81,6 +81,16 @@
       }
     }
   },
+  "earlyByMinutes": "Pulang Lebih Awal {minutes} mnt",
+  "@earlyByMinutes": {
+    "description": "Early leave duration label",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
   "verifiedIdentityNotice": "Identitas terverifikasi dengan biometrik dan geofence GPS",
   "attendanceLocation": "Lokasi Presensi",
   "openInMaps": "Buka di Maps",

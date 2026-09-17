@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
@@ -16,10 +17,18 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Login Oasish HRIS menggunakan Global Widgets (AppTextField & AppButton)
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final AuthBloc? authBloc;
+
+  const LoginScreen({super.key, this.authBloc});
 
   @override
   Widget build(BuildContext context) {
+    if (authBloc != null) {
+      return BlocProvider.value(
+        value: authBloc!,
+        child: const _LoginFormView(),
+      );
+    }
     return BlocProvider(
       create: (context) => AuthBloc(),
       child: const _LoginFormView(),
@@ -281,14 +290,10 @@ class _LoginFormViewState extends State<_LoginFormView> {
                                           );
                                           context.go(Routes.DASHBOARD);
                                         } else if (state is AuthFailure) {
-                                          ScaffoldMessenger.of(
+                                          AppDialogUtil.showError(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(state.message),
-                                              backgroundColor:
-                                                  AppColors.errorRed,
-                                            ),
+                                            title: 'Login Gagal',
+                                            message: state.message,
                                           );
                                         }
                                       },

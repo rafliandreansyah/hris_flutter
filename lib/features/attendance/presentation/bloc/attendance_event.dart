@@ -48,10 +48,16 @@ class AttendanceLocationUpdated extends AttendanceEvent {
 class AttendanceWorkLocationChanged extends AttendanceEvent {
   final WorkLocationItem selectedLocation;
 
-  const AttendanceWorkLocationChanged(this.selectedLocation);
+  /// Jika `true`, lokasi ini juga akan dikirim ke API sebagai default.
+  final bool setAsDefault;
+
+  const AttendanceWorkLocationChanged(
+    this.selectedLocation, {
+    this.setAsDefault = false,
+  });
 
   @override
-  List<Object?> get props => [selectedLocation];
+  List<Object?> get props => [selectedLocation, setAsDefault];
 }
 
 class AttendanceClockInSubmitted extends AttendanceEvent {

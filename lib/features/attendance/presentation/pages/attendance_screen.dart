@@ -10,6 +10,7 @@ import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
+import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
@@ -62,6 +63,7 @@ class _AttendanceScreenView extends StatefulWidget {
 class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   bool _isUpdatingLocation = false;
   bool _hasShownNoMethodDialog = false;
+  bool _isShowingSuccessDialog = false;
 
   @override
   void initState() {
@@ -97,12 +99,11 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
     }
 
     try {
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      final locResult = await PermissionUtil.requestLocationPermission(
+        context: context,
+        showRationale: showFeedback,
+      );
+      if (!locResult.isGranted) {
         if (showFeedback && mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -249,6 +250,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   void _showReportLocationDialog(BuildContext context) {
     final textController = TextEditingController();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final attendanceBloc = context.read<AttendanceBloc>();
 
     showModalBottomSheet(
       context: context,
@@ -261,7 +263,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (bottomSheetContext) {
-        return Padding(
+        return BlocProvider.value(
+          value: attendanceBloc,
+          child: Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
@@ -308,36 +312,46 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                 ),
               ),
               const SizedBox(height: 20),
-              AppButton(
-                text: 'Kirim Laporan',
-                onPressed: () {
-                  final text = textController.text.trim();
-                  if (text.isNotEmpty) {
-                    final bloc = context.read<AttendanceBloc>();
-                    final currentState = bloc.state;
-                    final lat = currentState is AttendanceLoaded
-                        ? currentState.userLatitude ?? -6.2253
-                        : -6.2253;
-                    final lng = currentState is AttendanceLoaded
-                        ? currentState.userLongitude ?? 106.8097
-                        : 106.8097;
+              BlocBuilder<AttendanceBloc, AttendanceState>(
+                builder: (context, state) {
+                  final isSubmitting =
+                      state is AttendanceLoaded && state.isSubmittingAction;
+                  return AppButton(
+                    text: 'Kirim Laporan',
+                    isLoading: isSubmitting,
+                    onPressed: isSubmitting
+                        ? null
+                        : () {
+                            final text = textController.text.trim();
+                            if (text.isNotEmpty) {
+                              final bloc = context.read<AttendanceBloc>();
+                              final currentState = bloc.state;
+                              final lat = currentState is AttendanceLoaded
+                                  ? currentState.userLatitude ?? -6.2253
+                                  : -6.2253;
+                              final lng = currentState is AttendanceLoaded
+                                  ? currentState.userLongitude ?? 106.8097
+                                  : 106.8097;
 
-                    bloc.add(
-                      AttendanceReportIssueSubmitted(
-                        issueDescription: text,
-                        latitude: lat,
-                        longitude: lng,
-                      ),
-                    );
-                    Navigator.pop(bottomSheetContext);
-                  }
+                              bloc.add(
+                                AttendanceReportIssueSubmitted(
+                                  issueDescription: text,
+                                  latitude: lat,
+                                  longitude: lng,
+                                ),
+                              );
+                              Navigator.pop(bottomSheetContext);
+                            }
+                          },
+                  );
                 },
               ),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    },
+  );
   }
 
   Future<void> _handleClockAction(
@@ -413,6 +427,11 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
     // 6. Eksekusi berdasarkan metode dari server (photo vs biometric)
     if (data.isBiometricMethod) {
+      final locGranted =
+          await PermissionUtil.requestLocationPermission(context: context);
+      if (!locGranted.isGranted) return;
+      if (!context.mounted) return;
+
       try {
         final authenticated = await BiometricService.instance.authenticate(
           localizedReason:
@@ -460,6 +479,12 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       }
     } else {
       // Default: Photo / Selfie
+      // Pastikan izin Presensi (Lokasi + Kamera) aktif via rationale dialog
+      final permissionsGranted =
+          await PermissionUtil.requestAttendancePermissions(context: context);
+      if (!permissionsGranted) return;
+      if (!context.mounted) return;
+
       try {
         final result = await ImageCompressUtil.pickAndCompress(
           source: ImageSource.camera,
@@ -516,6 +541,16 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       backgroundColor: scaffoldBg,
       body: SafeArea(
         child: BlocConsumer<AttendanceBloc, AttendanceState>(
+          listenWhen: (previous, current) {
+            if (previous is AttendanceLoaded && current is AttendanceLoaded) {
+              return previous.attendanceSuccess != current.attendanceSuccess ||
+                  previous.actionMessage != current.actionMessage ||
+                  previous.errorMessage != current.errorMessage ||
+                  previous.data.hasAttendanceMethod !=
+                      current.data.hasAttendanceMethod;
+            }
+            return previous != current;
+          },
           listener: (context, state) {
             if (state is AttendanceLoaded) {
               if (!state.data.hasAttendanceMethod && !_hasShownNoMethodDialog) {
@@ -538,12 +573,14 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               }
 
               // 1. Tampilkan Dialog Sukses Presensi jika ada (Clock In / Clock Out)
-              if (state.attendanceSuccess != null) {
+              if (state.attendanceSuccess != null && !_isShowingSuccessDialog) {
+                _isShowingSuccessDialog = true;
                 final info = state.attendanceSuccess!;
                 AttendanceSuccessDialog.show(
                   context,
                   successInfo: info,
                   onOk: () {
+                    _isShowingSuccessDialog = false;
                     Navigator.of(context, rootNavigator: true).pop();
                     context.pushReplacement(
                       Routes.ATTENDANCE_LOGS,
@@ -720,10 +757,14 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                         AttendanceWorkLocationCard(
                           selectedLocation: data.selectedWorkLocation,
                           availableLocations: data.availableWorkLocations,
-                          onLocationChanged: (newLocation) {
+                          onLocationChanged: (newLocation,
+                              {setAsDefault = false}) {
                             context.read<AttendanceBloc>().add(
-                              AttendanceWorkLocationChanged(newLocation),
-                            );
+                                  AttendanceWorkLocationChanged(
+                                    newLocation,
+                                    setAsDefault: setAsDefault,
+                                  ),
+                                );
                           },
                         ),
                         const SizedBox(height: 16),

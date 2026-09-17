@@ -3,8 +3,11 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pro_dialog/pro_dialog.dart';
 
 /// Enum tipe perizinan yang sering digunakan di modul-modul HRIS Oasish
 enum HrisPermissionType {
@@ -73,8 +76,22 @@ class HrisPermissionResult {
 class PermissionUtil {
   static final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
+  /// Flag untuk mengontrol apakah bypass otomatis dijalankan saat unit test.
+  /// Bermanfaat saat pengujian widget yang sengaja ingin memverifikasi tampilan dialog rationale.
+  @visibleForTesting
+  static bool bypassInTest = true;
+
+  /// Handler mock opsional untuk status perizinan saat testing
+  @visibleForTesting
+  static Future<bool> Function(Permission permission)? testPermissionStatusHandler;
+
+  /// Handler mock opsional untuk request perizinan saat testing
+  @visibleForTesting
+  static Future<PermissionStatus> Function(Permission permission)? testPermissionRequestHandler;
+
   /// Menandakan apakah berjalan dalam lingkungan unit test / flutter_test
   static bool get _isTestEnvironment {
+    if (!bypassInTest) return false;
     try {
       return Platform.environment.containsKey('FLUTTER_TEST');
     } catch (_) {
@@ -88,6 +105,9 @@ class PermissionUtil {
 
   /// Periksa status izin kamera
   static Future<bool> hasCameraPermission() async {
+    if (testPermissionStatusHandler != null) {
+      return await testPermissionStatusHandler!(Permission.camera);
+    }
     if (_isTestEnvironment) return true;
     try {
       final status = await Permission.camera.status;
@@ -101,10 +121,44 @@ class PermissionUtil {
   /// Meminta izin kamera
   static Future<HrisPermissionResult> requestCameraPermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
     try {
-      final status = await Permission.camera.request();
+      final isGrantedAlready = await hasCameraPermission();
+      if (isGrantedAlready) {
+        return HrisPermissionResult.granted('Akses kamera telah diberikan.');
+      }
+
+      // Tampilkan rationale dialog jika belum ada izin dan showRationale aktif
+      if (showRationale && context != null && context.mounted) {
+        final allowed = await AppDialogUtil.showPermissionDialog(
+          context,
+          title: 'Izin Kamera Diperlukan',
+          description:
+              'Aplikasi HRIS Oasish membutuhkan akses kamera untuk mengambil foto selfie kehadiran dan verifikasi aktivitas kerja.',
+          permissions: [
+            AppPermissionItem.camera(
+              description:
+                  'Untuk verifikasi selfie presensi kehadiran dan bukti aktivitas.',
+            ),
+          ],
+          barrierDismissible: false,
+          canPop: false,
+        );
+
+        if (!allowed) {
+          return HrisPermissionResult.denied('Izin kamera ditolak oleh pengguna.');
+        }
+      }
+
+      PermissionStatus status;
+      if (testPermissionRequestHandler != null) {
+        status = await testPermissionRequestHandler!(Permission.camera);
+      } else {
+        status = await Permission.camera.request();
+      }
+
       final result = HrisPermissionResult.fromStatus(
         status,
         message: status.isGranted
@@ -134,6 +188,9 @@ class PermissionUtil {
 
   /// Periksa status izin akses galeri foto
   static Future<bool> hasGalleryPermission() async {
+    if (testPermissionStatusHandler != null) {
+      return await testPermissionStatusHandler!(Permission.photos);
+    }
     if (_isTestEnvironment) return true;
     try {
       if (Platform.isAndroid) {
@@ -158,11 +215,40 @@ class PermissionUtil {
   /// Meminta izin galeri foto (menyesuaikan Android 13+ vs Android lama vs iOS)
   static Future<HrisPermissionResult> requestGalleryPermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
     try {
+      final isGrantedAlready = await hasGalleryPermission();
+      if (isGrantedAlready) {
+        return HrisPermissionResult.granted('Akses galeri telah diberikan.');
+      }
+
+      if (showRationale && context != null && context.mounted) {
+        final allowed = await AppDialogUtil.showPermissionDialog(
+          context,
+          title: 'Izin Galeri Foto Diperlukan',
+          description:
+              'Aplikasi HRIS Oasish membutuhkan akses galeri foto untuk memilih foto bukti reimburse atau lampiran dokumen.',
+          permissions: [
+            AppPermissionItem.gallery(
+              description:
+                  'Untuk memilih foto nota reimburse dan dokumen klaim.',
+            ),
+          ],
+          barrierDismissible: false,
+          canPop: false,
+        );
+
+        if (!allowed) {
+          return HrisPermissionResult.denied('Izin galeri ditolak oleh pengguna.');
+        }
+      }
+
       PermissionStatus status;
-      if (Platform.isAndroid) {
+      if (testPermissionRequestHandler != null) {
+        status = await testPermissionRequestHandler!(Permission.photos);
+      } else if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
         if (androidInfo.version.sdkInt >= 33) {
           status = await Permission.photos.request();
@@ -202,6 +288,9 @@ class PermissionUtil {
 
   /// Periksa izin penyimpanan dokumen (Slip Gaji, Bukti Potong Pajak, SOP)
   static Future<bool> hasDocumentStoragePermission() async {
+    if (testPermissionStatusHandler != null) {
+      return await testPermissionStatusHandler!(Permission.storage);
+    }
     if (_isTestEnvironment) return true;
     try {
       if (Platform.isAndroid) {
@@ -223,15 +312,50 @@ class PermissionUtil {
   /// Meminta izin penyimpanan dokumen
   static Future<HrisPermissionResult> requestDocumentStoragePermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
     try {
+      final isGrantedAlready = await hasDocumentStoragePermission();
+      if (isGrantedAlready) {
+        return HrisPermissionResult.granted(
+            'Izin penyimpanan dokumen telah diberikan.');
+      }
+
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
         if (androidInfo.version.sdkInt >= 33) {
           return HrisPermissionResult.granted('Menggunakan Scoped Storage.');
         }
-        final status = await Permission.storage.request();
+
+        if (showRationale && context != null && context.mounted) {
+          final allowed = await AppDialogUtil.showPermissionDialog(
+            context,
+            title: 'Izin Penyimpanan Dokumen Diperlukan',
+            description:
+                'Izin penyimpanan diperlukan untuk mengunduh slip gaji dan dokumen ke memori perangkat.',
+            permissions: [
+              AppPermissionItem.storage(
+                description:
+                    'Untuk menyimpan slip gaji (PDF) dan berkas ke memori perangkat.',
+              ),
+            ],
+            barrierDismissible: false,
+            canPop: false,
+          );
+
+          if (!allowed) {
+            return HrisPermissionResult.denied(
+                'Izin penyimpanan ditolak oleh pengguna.');
+          }
+        }
+
+        PermissionStatus status;
+        if (testPermissionRequestHandler != null) {
+          status = await testPermissionRequestHandler!(Permission.storage);
+        } else {
+          status = await Permission.storage.request();
+        }
         final result = HrisPermissionResult.fromStatus(status);
 
         if (result.isPermanentlyDenied && context != null && context.mounted) {
@@ -258,6 +382,9 @@ class PermissionUtil {
 
   /// Periksa apakah izin lokasi sudah diberikan
   static Future<bool> hasLocationPermission() async {
+    if (testPermissionStatusHandler != null) {
+      return await testPermissionStatusHandler!(Permission.locationWhenInUse);
+    }
     if (_isTestEnvironment) return true;
     try {
       final status = await Permission.locationWhenInUse.status;
@@ -271,10 +398,43 @@ class PermissionUtil {
   /// Meminta izin lokasi saat aplikasi digunakan (WhenInUse)
   static Future<HrisPermissionResult> requestLocationPermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
     try {
-      var status = await Permission.locationWhenInUse.request();
+      final isGrantedAlready = await hasLocationPermission();
+      if (isGrantedAlready) {
+        return HrisPermissionResult.granted('Izin lokasi telah diberikan.');
+      }
+
+      if (showRationale && context != null && context.mounted) {
+        final allowed = await AppDialogUtil.showPermissionDialog(
+          context,
+          title: 'Izin Lokasi GPS Diperlukan',
+          description:
+              'Aplikasi HRIS Oasish membutuhkan akses lokasi GPS untuk memvalidasi posisi presensi dan rute aktivitas Anda.',
+          permissions: [
+            AppPermissionItem.location(
+              description:
+                  'Untuk validasi radius kantor dan peta aktivitas lapangan.',
+            ),
+          ],
+          barrierDismissible: false,
+          canPop: false,
+        );
+
+        if (!allowed) {
+          return HrisPermissionResult.denied('Izin lokasi ditolak oleh pengguna.');
+        }
+      }
+
+      PermissionStatus status;
+      if (testPermissionRequestHandler != null) {
+        status = await testPermissionRequestHandler!(Permission.locationWhenInUse);
+      } else {
+        status = await Permission.locationWhenInUse.request();
+      }
+
       final result = HrisPermissionResult.fromStatus(
         status,
         message: status.isGranted
@@ -338,6 +498,9 @@ class PermissionUtil {
 
   /// Periksa status izin notifikasi
   static Future<bool> hasNotificationPermission() async {
+    if (testPermissionStatusHandler != null) {
+      return await testPermissionStatusHandler!(Permission.notification);
+    }
     if (_isTestEnvironment) return true;
     try {
       final status = await Permission.notification.status;
@@ -351,10 +514,44 @@ class PermissionUtil {
   /// Meminta izin notifikasi (Android 13+ & iOS)
   static Future<HrisPermissionResult> requestNotificationPermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
     try {
-      final status = await Permission.notification.request();
+      final isGrantedAlready = await hasNotificationPermission();
+      if (isGrantedAlready) {
+        return HrisPermissionResult.granted('Izin notifikasi telah aktif.');
+      }
+
+      if (showRationale && context != null && context.mounted) {
+        final allowed = await AppDialogUtil.showPermissionDialog(
+          context,
+          title: 'Izin Notifikasi Diperlukan',
+          description:
+              'Aktifkan notifikasi HRIS Oasish agar Anda tidak melewatkan pengingat jam kerja, status persetujuan cuti, dan pengumuman perusahaan.',
+          permissions: [
+            AppPermissionItem.notification(
+              description:
+                  'Pengingat jam kerja, approval cuti/lembur, dan pengumuman kantor.',
+            ),
+          ],
+          barrierDismissible: false,
+          canPop: false,
+        );
+
+        if (!allowed) {
+          return HrisPermissionResult.denied(
+              'Izin notifikasi ditolak oleh pengguna.');
+        }
+      }
+
+      PermissionStatus status;
+      if (testPermissionRequestHandler != null) {
+        status = await testPermissionRequestHandler!(Permission.notification);
+      } else {
+        status = await Permission.notification.request();
+      }
+
       final result = HrisPermissionResult.fromStatus(
         status,
         message: status.isGranted
@@ -439,29 +636,139 @@ class PermissionUtil {
   /// Meminta izin lengkap untuk alur Presensi Kehadiran (Lokasi + Kamera)
   static Future<bool> requestAttendancePermissions({
     required BuildContext context,
+    bool showRationale = true,
   }) async {
-    final locationResult = await requestLocationPermission(context: context);
-    if (!locationResult.isGranted) return false;
+    if (_isTestEnvironment) return true;
 
-    if (!context.mounted) return false;
-    final cameraResult = await requestCameraPermission(context: context);
-    return cameraResult.isGranted;
+    final hasLoc = await hasLocationPermission();
+    final hasCam = await hasCameraPermission();
+
+    // Jika keduanya sudah diberikan, langsung berhasil tanpa dialog
+    if (hasLoc && hasCam) return true;
+
+    // Jika belum diberikan dan rationale aktif, tampilkan 1 dialog komposit yang elegan
+    if (showRationale && context.mounted) {
+      final items = <AppPermissionItem>[];
+      if (!hasLoc) {
+        items.add(AppPermissionItem.location(
+          description: 'Untuk verifikasi radius lokasi presensi kantor Anda.',
+        ));
+      }
+      if (!hasCam) {
+        items.add(AppPermissionItem.camera(
+          description: 'Untuk verifikasi foto selfie saat melakukan presensi.',
+        ));
+      }
+
+      final allowed = await AppDialogUtil.showPermissionDialog(
+        context,
+        title: 'Izin Presensi Kehadiran',
+        description:
+            'Aplikasi HRIS Oasish membutuhkan akses berikut untuk memvalidasi kehadiran Anda secara akurat:',
+        permissions: items,
+        allowText: items.length > 1 ? 'Izinkan Semua' : 'Izinkan',
+        barrierDismissible: false,
+        canPop: false,
+      );
+
+      if (!allowed) return false;
+    }
+
+    // Eksekusi request OS untuk izin yang belum ada (tanpa dialog rationale berulang)
+    if (!hasLoc) {
+      if (!context.mounted) return false;
+      final locResult = await requestLocationPermission(
+        context: context,
+        showRationale: false,
+      );
+      if (!locResult.isGranted) return false;
+    }
+
+    if (!hasCam) {
+      if (!context.mounted) return false;
+      final camResult = await requestCameraPermission(
+        context: context,
+        showRationale: false,
+      );
+      if (!camResult.isGranted) return false;
+    }
+
+    return true;
   }
 
   /// Meminta izin lengkap untuk alur Catat Aktivitas Lapangan (Lokasi + Kamera + Galeri)
   static Future<bool> requestActivityProofPermissions({
     required BuildContext context,
+    bool showRationale = true,
   }) async {
-    final loc = await requestLocationPermission(context: context);
-    if (!loc.isGranted) return false;
+    if (_isTestEnvironment) return true;
 
-    if (!context.mounted) return false;
-    final cam = await requestCameraPermission(context: context);
-    if (!cam.isGranted) return false;
+    final hasLoc = await hasLocationPermission();
+    final hasCam = await hasCameraPermission();
+    final hasGal = await hasGalleryPermission();
 
-    if (!context.mounted) return false;
-    final gal = await requestGalleryPermission(context: context);
-    return gal.isGranted;
+    if (hasLoc && hasCam && hasGal) return true;
+
+    if (showRationale && context.mounted) {
+      final items = <AppPermissionItem>[];
+      if (!hasLoc) {
+        items.add(AppPermissionItem.location(
+          description: 'Untuk mencatat koordinat lokasi kegiatan lapangan.',
+        ));
+      }
+      if (!hasCam) {
+        items.add(AppPermissionItem.camera(
+          description: 'Untuk mengambil foto bukti kegiatan langsung di lapangan.',
+        ));
+      }
+      if (!hasGal) {
+        items.add(AppPermissionItem.gallery(
+          description: 'Untuk memilih foto dokumentasi kegiatan dari galeri.',
+        ));
+      }
+
+      final allowed = await AppDialogUtil.showPermissionDialog(
+        context,
+        title: 'Izin Aktivitas Lapangan',
+        description:
+            'Aplikasi HRIS Oasish membutuhkan akses berikut untuk mendokumentasikan kegiatan lapangan:',
+        permissions: items,
+        allowText: items.length > 1 ? 'Izinkan Semua' : 'Izinkan',
+        barrierDismissible: false,
+        canPop: false,
+      );
+
+      if (!allowed) return false;
+    }
+
+    if (!hasLoc) {
+      if (!context.mounted) return false;
+      final loc = await requestLocationPermission(
+        context: context,
+        showRationale: false,
+      );
+      if (!loc.isGranted) return false;
+    }
+
+    if (!hasCam) {
+      if (!context.mounted) return false;
+      final cam = await requestCameraPermission(
+        context: context,
+        showRationale: false,
+      );
+      if (!cam.isGranted) return false;
+    }
+
+    if (!hasGal) {
+      if (!context.mounted) return false;
+      final gal = await requestGalleryPermission(
+        context: context,
+        showRationale: false,
+      );
+      if (!gal.isGranted) return false;
+    }
+
+    return true;
   }
 
   // ===========================================================================
@@ -479,21 +786,30 @@ class PermissionUtil {
     }
   }
 
-  /// Dialog elegan bertema Oasish HRIS saat izin ditolak permanen
-  static void showPermissionDeniedDialog({
+  /// Dialog elegan bertema Oasish HRIS saat izin ditolak permanen berbasis `pro_dialog`.
+  ///
+  /// Menggunakan [barrierDismissible: false] dan [PopScope(canPop: false)] sehingga pengguna
+  /// harus secara eksplisit memilih tombol "Buka Pengaturan" atau "Nanti Saja".
+  static Future<bool> showPermissionDeniedDialog({
     required BuildContext context,
     required HrisPermissionType type,
     required String title,
     required String description,
-  }) {
+    String settingsText = 'Buka Pengaturan',
+    String cancelText = 'Nanti Saja',
+    bool barrierDismissible = false,
+  }) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dialogBg = isDark
+    final surfaceColor = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
 
     IconData getIcon() {
       switch (type) {
@@ -515,81 +831,111 @@ class PermissionUtil {
       }
     }
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: dialogBg,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                getIcon(),
-                color: const Color(0xFF0D9488),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: textCol,
-                ),
-              ),
-            ),
-          ],
+    final result = await showProDialog<bool>(
+      context,
+      type: DialogType.warning,
+      title: title,
+      description: description,
+      icon: getIcon(),
+      iconBackgroundColor: AppColors.warning,
+      barrierDismissible: barrierDismissible,
+      showCloseButton: false,
+      theme: ProDialogTheme(
+        backgroundColor: surfaceColor,
+        borderRadius: 24.0,
+        maxWidth: 400.0,
+        iconSize: 32.0,
+        iconBackgroundSize: 64.0,
+        elevation: 8.0,
+        barrierColor: Colors.black.withValues(alpha: 0.55),
+        animationStyle: DialogAnimationStyle.bounce,
+        iconAnimationStyle: IconAnimationStyle.bounce,
+        titleStyle: AppTypography.headlineMedium.copyWith(
+          fontWeight: FontWeight.w800,
+          color: textCol,
+          fontSize: 19,
+          letterSpacing: -0.3,
         ),
-        content: Text(
-          description,
-          style: AppTypography.bodySmall.copyWith(
-            color: subtitleCol,
-            fontSize: 13,
-            height: 1.45,
+        descriptionStyle: AppTypography.bodyMedium.copyWith(
+          color: subtitleCol,
+          fontSize: 13,
+          height: 1.35,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+      ),
+      customContent: const PopScope(
+        canPop: false,
+        child: SizedBox.shrink(),
+      ),
+      buttons: [
+        DialogButton(
+          text: cancelText,
+          style: DialogButtonStyle.outlined,
+          onPressed: () => Navigator.of(context).pop(false),
+          customWidget: AppButton(
+            key: const ValueKey('permission_denied_cancel_button'),
+            text: cancelText,
+            variant: AppButtonVariant.outlined,
+            borderColor: borderCol,
+            height: 46,
+            borderRadius: 12,
+            onPressed: () => Navigator.of(context).pop(false),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'Nanti Saja',
-              style: TextStyle(
-                color: subtitleCol,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
+        DialogButton(
+          text: settingsText,
+          isPrimary: true,
+          color: AppColors.brandTeal,
+          onPressed: () {
+            Navigator.of(context).pop(true);
+            openSettings();
+          },
+          customWidget: AppButton(
+            key: const ValueKey('permission_denied_settings_button'),
+            text: settingsText,
+            variant: AppButtonVariant.primary,
+            height: 46,
+            borderRadius: 12,
             onPressed: () {
-              Navigator.of(ctx).pop();
+              Navigator.of(context).pop(true);
               openSettings();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            child: const Text(
-              'Buka Pengaturan',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
+
+    return result ?? false;
+  }
+
+  /// Meminta izin dengan dialog penjelasan awal (Permission Request Dialog via `pro_dialog`).
+  ///
+  /// Menampilkan dialog yang dikunci ([barrierDismissible: false] dan [PopScope(canPop: false)])
+  /// sebelum meminta izin OS. Jika pengguna menekan "Izinkan", barulah callback [onPermissionGranted] dipanggil.
+  static Future<bool> requestWithRationale({
+    required BuildContext context,
+    required List<AppPermissionItem> permissions,
+    required Future<bool> Function() onPermissionGranted,
+    String? title,
+    String? description,
+    String allowText = 'Izinkan',
+    String denyText = 'Tolak',
+  }) async {
+    if (_isTestEnvironment) return await onPermissionGranted();
+
+    final allowed = await AppDialogUtil.showPermissionDialog(
+      context,
+      title: title ?? 'Izin Akses Aplikasi',
+      description: description ??
+          'HRIS Oasish membutuhkan akses izin berikut untuk dapat menjalankan fitur ini dengan optimal:',
+      permissions: permissions,
+      allowText: allowText,
+      denyText: denyText,
+      barrierDismissible: false,
+      canPop: false,
+    );
+
+    if (!allowed) return false;
+    return await onPermissionGranted();
   }
 }

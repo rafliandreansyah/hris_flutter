@@ -200,50 +200,6 @@ class _AttendanceDetailView extends StatelessWidget {
                     const SizedBox(height: 16),
                     AttendanceProofCard(detail: detail),
                   ],
-
-                  const SizedBox(height: 24),
-
-                  // Section 7: Bottom Action Button (Ajukan Koreksi Absensi)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Formulir koreksi absensi belum tersedia',
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        LucideIcons.fileEdit,
-                        size: 18,
-                        color: AppColors.brandTeal,
-                      ),
-                      label: Text(
-                        l10n?.requestAttendanceCorrection ??
-                            'Ajukan Koreksi Absensi',
-                        style: AppTypography.labelMedium.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.brandTeal,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: AppColors.brandTeal,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
-
                   const SizedBox(height: 32),
                 ],
               ),
@@ -405,132 +361,134 @@ class _AttendanceDetailView extends StatelessWidget {
         ? detail.attendanceMethod
         : 'Biometric Check-In';
 
-    return Row(
-      children: [
-        // 1. Shift Card
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: borderCol, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      LucideIcons.calendarClock,
-                      size: 15,
-                      color: AppColors.brandTeal,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      l10n?.shiftSchedule ?? 'Jadwal Shift',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: subtitleCol,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          // 1. Shift Card
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderCol, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.calendarClock,
+                        size: 15,
+                        color: AppColors.brandTeal,
                       ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n?.shiftSchedule ?? 'Jadwal Shift',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: subtitleCol,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    shiftName,
+                    style: AppTypography.titleSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: textCol,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  shiftName,
-                  style: AppTypography.titleSmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: textCol,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  shiftTime,
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 11.5,
-                    color: subtitleCol,
+                  const SizedBox(height: 2),
+                  Text(
+                    shiftTime,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 11.5,
+                      color: subtitleCol,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(width: 12),
+          const SizedBox(width: 12),
 
-        // 2. Attendance Method Card
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: borderCol, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      LucideIcons.shieldCheck,
-                      size: 15,
-                      color: AppColors.brandTeal,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      l10n?.attendanceMethod ?? 'Metode Presensi',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: subtitleCol,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+          // 2. Attendance Method Card
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderCol, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.shieldCheck,
+                        size: 15,
+                        color: AppColors.brandTeal,
                       ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n?.attendanceMethod ?? 'Metode Presensi',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: subtitleCol,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    method,
+                    style: AppTypography.titleSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: textCol,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  method,
-                  style: AppTypography.titleSmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: textCol,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Verified Attendance',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 11.5,
-                    color: subtitleCol,
+                  const SizedBox(height: 2),
+                  Text(
+                    'Verified Attendance',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 11.5,
+                      color: subtitleCol,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

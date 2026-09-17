@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
@@ -1222,74 +1223,22 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: Row(
                 children: [
-                  // Outlined Button: Batal
                   Expanded(
-                    child: SizedBox(
+                    child: AppButton(
+                      text: 'Batal',
+                      variant: AppButtonVariant.outlined,
                       height: 50,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: borderCol),
-                          shape: const StadiumBorder(),
-                          foregroundColor: labelCol,
-                        ),
-                        child: Text(
-                          'Batal',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: labelCol,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                   const SizedBox(width: 12),
-
-                  // Filled Button: Terapkan Filter
                   Expanded(
-                    child: SizedBox(
+                    child: AppButton(
+                      text: 'Terapkan Filter',
+                      leadingIcon: LucideIcons.filter,
+                      variant: AppButtonVariant.primary,
                       height: 50,
-                      child: ElevatedButton(
-                        onPressed: _applyFilters,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor: isDark
-                              ? const Color(0xFF003732)
-                              : Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          shape: const StadiumBorder(),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.filter,
-                              size: 18,
-                              color: isDark
-                                  ? const Color(0xFF003732)
-                                  : Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'Terapkan Filter',
-                                style: AppTypography.bodyMedium.copyWith(
-                                  color: isDark
-                                      ? const Color(0xFF003732)
-                                      : Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      onPressed: _applyFilters,
                     ),
                   ),
                 ],

@@ -19,6 +19,8 @@ class AppButton extends StatelessWidget {
   final TextStyle? textStyle;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final Color? borderColor;
+  final EdgeInsetsGeometry? padding;
 
   const AppButton({
     super.key,
@@ -34,6 +36,8 @@ class AppButton extends StatelessWidget {
     this.textStyle,
     this.backgroundColor,
     this.foregroundColor,
+    this.borderColor,
+    this.padding,
   });
 
   @override
@@ -65,7 +69,9 @@ class AppButton extends StatelessWidget {
             foregroundColor ??
             (isDark ? AppColors.inversePrimary : AppColors.brandTeal);
         borderSide = BorderSide(
-          color: isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted,
+          color:
+              borderColor ??
+              (isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted),
           width: 1.5,
         );
         break;
@@ -79,6 +85,10 @@ class AppButton extends StatelessWidget {
         defaultBg = backgroundColor ?? AppColors.errorRed;
         defaultFg = foregroundColor ?? AppColors.onError;
         break;
+    }
+
+    if (borderColor != null) {
+      borderSide = BorderSide(color: borderColor!, width: 1.5);
     }
 
     final shape = RoundedRectangleBorder(
@@ -109,7 +119,14 @@ class AppButton extends StatelessWidget {
                 Icon(leadingIcon, size: 18, color: defaultFg),
                 const SizedBox(width: 8),
               ],
-              Text(text, style: resolvedTextStyle),
+              Flexible(
+                child: Text(
+                  text,
+                  style: resolvedTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               if (trailingIcon != null) ...[
                 const SizedBox(width: 8),
                 Icon(trailingIcon, size: 18, color: defaultFg),
@@ -129,7 +146,7 @@ class AppButton extends StatelessWidget {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: shape,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 16),
         ),
         onPressed: isLoading ? null : onPressed,
         child: buttonChild,

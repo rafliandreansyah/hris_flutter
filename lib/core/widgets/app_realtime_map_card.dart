@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/config/maps_config.dart';
+import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Callback signature for real-time location coordinates update.
@@ -134,15 +135,12 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
         return;
       }
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) setState(() => _isLocating = false);
-          return;
-        }
-      }
-      if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+      final locResult = await PermissionUtil.requestLocationPermission(
+        context: context,
+        showRationale: true,
+      );
+      if (!locResult.isGranted) {
         if (mounted) setState(() => _isLocating = false);
         return;
       }

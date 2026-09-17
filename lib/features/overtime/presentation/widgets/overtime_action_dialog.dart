@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Modal dialog konfirmasi untuk menyetujui atau menolak pengajuan lembur
@@ -132,45 +133,26 @@ class _OvertimeActionDialogState extends State<OvertimeActionDialog> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppButton(
+                    text: 'Batal',
+                    variant: AppButtonVariant.outlined,
+                    height: 44,
+                    borderRadius: 12,
                     onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: BorderSide(color: borderCol),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Batal',
-                      style: TextStyle(
-                        color: textCol,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: AppButton(
+                    text: widget.isApproved ? 'Setujui' : 'Tolak',
+                    variant: widget.isApproved
+                        ? AppButtonVariant.primary
+                        : AppButtonVariant.danger,
+                    height: 44,
+                    borderRadius: 12,
                     onPressed: () {
                       Navigator.of(context).pop(_notesController.text.trim());
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryActionColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      widget.isApproved ? 'Setujui' : 'Tolak',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
                   ),
                 ),
               ],

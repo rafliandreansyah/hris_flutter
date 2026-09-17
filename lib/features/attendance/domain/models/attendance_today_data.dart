@@ -11,6 +11,9 @@ class WorkLocationItem extends Equatable {
   final bool isAnyWhere;
   final bool isDefault;
 
+  /// ID record join `employeeWorkLocation` (bukan ID work location itu sendiri).
+  final String? employeeWorkLocationId;
+
   const WorkLocationItem({
     required this.id,
     required this.name,
@@ -20,7 +23,34 @@ class WorkLocationItem extends Equatable {
     this.longitude,
     this.isAnyWhere = false,
     this.isDefault = false,
+    this.employeeWorkLocationId,
   });
+
+  /// Membuat salinan dengan field yang diperbarui.
+  WorkLocationItem copyWith({
+    String? id,
+    String? name,
+    String? address,
+    double? radius,
+    double? latitude,
+    double? longitude,
+    bool? isAnyWhere,
+    bool? isDefault,
+    String? employeeWorkLocationId,
+  }) {
+    return WorkLocationItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      address: address ?? this.address,
+      radius: radius ?? this.radius,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      isAnyWhere: isAnyWhere ?? this.isAnyWhere,
+      isDefault: isDefault ?? this.isDefault,
+      employeeWorkLocationId:
+          employeeWorkLocationId ?? this.employeeWorkLocationId,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -32,6 +62,7 @@ class WorkLocationItem extends Equatable {
         longitude,
         isAnyWhere,
         isDefault,
+        employeeWorkLocationId,
       ];
 }
 
