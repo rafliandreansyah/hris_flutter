@@ -39,6 +39,14 @@ class MockCoworkerRepository implements EmployeeRepository {
   Future<EmployeeDetailData> getEmployeeDetail(String employeeId) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return 'Password berhasil diperbarui';
+  }
 }
 
 void main() {

@@ -15,6 +15,7 @@ import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart'
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:hris_flutter/features/employee/presentation/pages/change_password_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/coworker_list_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
@@ -54,6 +55,13 @@ class AppRouter {
         path: Routes.RESET,
         name: Routes.RESET,
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+
+      // 3b. Change Password Screen
+      GoRoute(
+        path: Routes.CHANGE_PASSWORD,
+        name: Routes.CHANGE_PASSWORD,
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
 
       // 4. Dashboard / Home Screen

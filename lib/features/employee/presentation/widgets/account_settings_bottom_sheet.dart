@@ -260,7 +260,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                             'Perbarui kata sandi akun keamanan Anda',
                         onTap: () {
                           Navigator.of(context).pop();
-                          context.push(Routes.RESET);
+                          context.push(Routes.CHANGE_PASSWORD);
                         },
                       ),
                       Divider(height: 1, thickness: 1, color: borderCol),

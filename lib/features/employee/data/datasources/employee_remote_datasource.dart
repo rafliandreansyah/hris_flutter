@@ -21,6 +21,12 @@ abstract class EmployeeRemoteDataSource {
 
   /// Mengambil daftar rekan kerja (coworkers) dari endpoint `/employee/coworkers`.
   Future<List<EmployeeDirectoryItem>> getCoworkers();
+
+  /// Memperbarui password pegawai dari endpoint `/employee/update-password`.
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  });
 }
 
 class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
@@ -111,5 +117,31 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
           ? rawData['message']?.toString() ?? 'Gagal memuat rekan kerja.'
           : 'Gagal memuat rekan kerja.',
     );
+  }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final response = await _apiClient.put(
+      ApiEndpoints.employeeUpdatePassword,
+      data: {
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      },
+    );
+
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic>) {
+      if (rawData['success'] == true) {
+        return rawData['message']?.toString() ?? 'Password berhasil diperbarui.';
+      }
+      throw ApiException(
+        message: rawData['message']?.toString() ?? 'Gagal memperbarui password.',
+      );
+    }
+
+    return 'Password berhasil diperbarui.';
   }
 }

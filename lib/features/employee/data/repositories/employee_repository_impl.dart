@@ -38,4 +38,15 @@ class EmployeeRepositoryImpl implements EmployeeRepository {
   Future<List<EmployeeDirectoryItem>> getCoworkers() {
     return _remoteDataSource.getCoworkers();
   }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) {
+    return _remoteDataSource.updatePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+  }
 }

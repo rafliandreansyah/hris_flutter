@@ -156,6 +156,14 @@ class _FakePlanEmployeeRepository implements EmployeeRepository {
   Future<List<EmployeeDirectoryItem>> getCoworkers() async {
     return [];
   }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return 'Password berhasil diperbarui';
+  }
 }
 
 void main() {

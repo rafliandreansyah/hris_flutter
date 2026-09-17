@@ -46,6 +46,14 @@ class MockEmployeeDetailRepository implements EmployeeRepository {
     }
     return mockCoworkers ?? [];
   }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return 'Password berhasil diperbarui';
+  }
 }
 
 void main() {

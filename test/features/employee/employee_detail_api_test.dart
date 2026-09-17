@@ -63,6 +63,14 @@ class MockEmployeeDetailRepository implements EmployeeRepository {
     }
     return [];
   }
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return 'Password berhasil diperbarui';
+  }
 }
 
 void main() {

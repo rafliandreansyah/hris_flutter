@@ -18,4 +18,10 @@ abstract class EmployeeRepository {
 
   /// Mengambil daftar rekan kerja (coworkers) dari endpoint `/employee/coworkers`.
   Future<List<EmployeeDirectoryItem>> getCoworkers();
+
+  /// Memperbarui kata sandi pegawai.
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  });
 }
