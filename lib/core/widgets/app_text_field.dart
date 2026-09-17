@@ -12,6 +12,7 @@ class AppTextField extends StatefulWidget {
   final TextEditingController? controller;
   final bool isPassword;
   final bool obscureText;
+  final bool isRequired;
   final IconData? prefixIcon;
   final Widget? prefixWidget;
   final Widget? suffixWidget;
@@ -35,6 +36,7 @@ class AppTextField extends StatefulWidget {
     this.controller,
     this.isPassword = false,
     this.obscureText = false,
+    this.isRequired = false,
     this.prefixIcon,
     this.prefixWidget,
     this.suffixWidget,
@@ -62,6 +64,40 @@ class _AppTextFieldState extends State<AppTextField> {
   void initState() {
     super.initState();
     _isObscured = widget.isPassword || widget.obscureText;
+  }
+
+  Widget _buildLabel(String label, Color labelCol) {
+    final hasAsterisk = label.contains('*');
+    final isFieldRequired = widget.isRequired || hasAsterisk;
+    final cleanLabel =
+        hasAsterisk ? label.replaceAll('*', '').trimRight() : label;
+
+    if (!isFieldRequired) {
+      return Text(
+        cleanLabel,
+        style: AppTypography.labelMedium.copyWith(
+          color: labelCol,
+        ),
+      );
+    }
+
+    return Text.rich(
+      TextSpan(
+        text: cleanLabel,
+        style: AppTypography.labelMedium.copyWith(
+          color: labelCol,
+        ),
+        children: const [
+          TextSpan(
+            text: ' *',
+            style: TextStyle(
+              color: AppColors.errorRed,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -112,12 +148,7 @@ class _AppTextFieldState extends State<AppTextField> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (widget.label != null)
-                Text(
-                  widget.label!,
-                  style: AppTypography.labelMedium.copyWith(
-                    color: labelCol,
-                  ),
-                )
+                _buildLabel(widget.label!, labelCol)
               else
                 const SizedBox.shrink(),
               if (widget.labelTrailing != null) widget.labelTrailing!,

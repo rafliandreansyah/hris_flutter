@@ -13,6 +13,8 @@ import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 
 class MockAuthRepo implements AuthRepository {
   String language = 'id';
+  bool logoutCalled = false;
+
   @override
   Future<String> updateLanguage(String lang) async {
     language = lang;
@@ -29,7 +31,9 @@ class MockAuthRepo implements AuthRepository {
   @override
   Future<bool> hasActiveSession() async => true;
   @override
-  Future<void> logout() async {}
+  Future<void> logout() async {
+    logoutCalled = true;
+  }
 }
 
 class MockStorage implements SecureStorageService {
@@ -43,7 +47,7 @@ class MockStorage implements SecureStorageService {
 }
 
 void main() {
-  Widget createTestWidget({LocaleBloc? bloc}) {
+  Widget createTestWidget({LocaleBloc? bloc, AuthRepository? authRepository}) {
     return BlocProvider<LocaleBloc>(
       create: (_) =>
           bloc ??
@@ -57,8 +61,11 @@ void main() {
             locale: state.locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(
-              body: AccountSettingsBottomSheet(avatarUrl: ''),
+            home: Scaffold(
+              body: AccountSettingsBottomSheet(
+                avatarUrl: '',
+                authRepository: authRepository,
+              ),
             ),
           );
         },
@@ -104,7 +111,8 @@ void main() {
 
     // Tap Logout button
     await tester.tap(find.text('Keluar dari Akun (Logout)'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     // Verify confirmation dialog
     expect(find.text('Konfirmasi Logout'), findsOneWidget);
@@ -117,9 +125,33 @@ void main() {
 
     // Tap Batal
     await tester.tap(find.text('Batal'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Konfirmasi Logout'), findsNothing);
+  });
+
+  testWidgets('Tapping Keluar in confirmation dialog calls logout',
+      (WidgetTester tester) async {
+    final mockAuth = MockAuthRepo();
+    await tester.pumpWidget(createTestWidget(authRepository: mockAuth));
+    await tester.pumpAndSettle();
+
+    // Tap Logout button
+    await tester.tap(find.text('Keluar dari Akun (Logout)'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // Verify confirmation dialog
+    expect(find.text('Konfirmasi Logout'), findsOneWidget);
+    expect(find.text('Keluar'), findsOneWidget);
+
+    // Tap Keluar
+    await tester.tap(find.text('Keluar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(mockAuth.logoutCalled, isTrue);
   });
 
   testWidgets('Tapping Bahasa opens dialog and selects English',

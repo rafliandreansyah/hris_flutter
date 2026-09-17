@@ -97,6 +97,8 @@ class AppDialogUtil {
     bool isPrimary = false,
     DialogButtonStyle style = DialogButtonStyle.filled,
     Color? color,
+    Color? textColor,
+    Color? borderColor,
     IconData? icon,
     bool isLoading = false,
     String? semanticLabel,
@@ -112,23 +114,27 @@ class AppDialogUtil {
 
     if (isTextOnly) {
       bgColor = Colors.transparent;
-      fgColor = effectiveColor;
+      fgColor = textColor ?? effectiveColor;
       border = null;
     } else if (isOutlined) {
       bgColor = Colors.transparent;
-      fgColor = effectiveColor;
+      fgColor = textColor ?? effectiveColor;
       border = Border.all(
-        color: effectiveColor.withValues(alpha: 0.55),
+        color: borderColor ?? effectiveColor.withValues(alpha: 0.55),
         width: 1.5,
       );
     } else if (isPrimary) {
       bgColor = effectiveColor;
-      fgColor = AppColors.onPrimary;
-      border = null;
+      fgColor = textColor ?? AppColors.onPrimary;
+      border = borderColor != null
+          ? Border.all(color: borderColor, width: 1.5)
+          : null;
     } else {
       bgColor = const Color(0xFFF1F5F9);
-      fgColor = const Color(0xFF64748B);
-      border = null;
+      fgColor = textColor ?? const Color(0xFF64748B);
+      border = borderColor != null
+          ? Border.all(color: borderColor, width: 1.5)
+          : null;
     }
 
     final customWidget = Material(
@@ -335,6 +341,144 @@ class AppDialogUtil {
           },
         ),
       ],
+    );
+  }
+
+  /// Menampilkan dialog konfirmasi terstandarisasi menggunakan package `pro_dialog`.
+  ///
+  /// Mendukung aksi konfirmasi umum maupun destruktif (seperti Logout atau Hapus data).
+  /// Mengembalikan `true` jika pengguna mengonfirmasi, atau `false` jika membatalkan.
+  static Future<bool> showConfirmation(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String confirmText = 'Konfirmasi',
+    String cancelText = 'Batal',
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    DialogType type = DialogType.custom,
+    IconData? icon,
+    Color? iconColor,
+    Color? iconBackgroundColor,
+    Color? confirmButtonColor,
+    IconData? confirmIcon,
+    bool isDestructive = false,
+    Axis? buttonsAxis,
+    ProDialogTheme? theme,
+    bool barrierDismissible = true,
+  }) async {
+    final effectiveColor = confirmButtonColor ??
+        (isDestructive ? AppColors.errorRed : AppColors.brandTeal);
+    final effectiveIcon = icon ??
+        (isDestructive ? LucideIcons.triangleAlert : LucideIcons.helpCircle);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+
+    final effectiveAxis = buttonsAxis ??
+        ((confirmText.length > 12 ||
+                cancelText.length > 12 ||
+                (confirmText.length + cancelText.length) > 18)
+            ? Axis.vertical
+            : Axis.horizontal);
+
+    final dialogTheme = theme ??
+        ProDialogTheme(
+          backgroundColor: surfaceColor,
+          borderRadius: 24.0,
+          maxWidth: 400.0,
+          iconSize: 32.0,
+          iconBackgroundSize: 64.0,
+          elevation: 8.0,
+          barrierColor: Colors.black.withValues(alpha: 0.55),
+          animationStyle: DialogAnimationStyle.bounce,
+          iconAnimationStyle: IconAnimationStyle.bounce,
+          titleStyle: AppTypography.headlineMedium.copyWith(
+            fontWeight: FontWeight.w800,
+            color: textCol,
+            fontSize: 19,
+            letterSpacing: -0.3,
+          ),
+          descriptionStyle: AppTypography.bodyMedium.copyWith(
+            color: subtitleCol,
+            fontSize: 13,
+            height: 1.35,
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+        );
+
+    final result = await showProDialog<bool>(
+      context,
+      type: type,
+      title: title,
+      description: message,
+      icon: effectiveIcon,
+      iconColor: iconColor ?? Colors.white,
+      iconBackgroundColor: iconBackgroundColor ?? effectiveColor,
+      barrierDismissible: barrierDismissible,
+      showCloseButton: false,
+      buttonsAxis: effectiveAxis,
+      theme: dialogTheme,
+      buttons: [
+        _createSafeDialogButton(
+          text: cancelText,
+          style: DialogButtonStyle.outlined,
+          color: isDark ? AppColors.darkOutline : AppColors.textSecondary,
+          textColor: isDark ? AppColors.darkOnSurface : AppColors.onSurface,
+          borderColor:
+              isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted,
+          onPressed: () {
+            Navigator.of(context).pop(false);
+            onCancel?.call();
+          },
+        ),
+        _createSafeDialogButton(
+          text: confirmText,
+          isPrimary: true,
+          color: effectiveColor,
+          icon: confirmIcon,
+          onPressed: () {
+            Navigator.of(context).pop(true);
+            onConfirm?.call();
+          },
+        ),
+      ],
+    );
+
+    return result ?? false;
+  }
+
+  /// Menampilkan dialog konfirmasi Logout terstandarisasi menggunakan package `pro_dialog`.
+  static Future<bool> showLogoutDialog(
+    BuildContext context, {
+    String? title,
+    String? message,
+    String? confirmText,
+    String? cancelText,
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    ProDialogTheme? theme,
+  }) {
+    return showConfirmation(
+      context,
+      title: title ?? 'Konfirmasi Logout',
+      message: message ?? 'Apakah Anda yakin ingin keluar dari sesi akun ini?',
+      confirmText: confirmText ?? 'Keluar',
+      cancelText: cancelText ?? 'Batal',
+      icon: LucideIcons.logOut,
+      iconBackgroundColor: AppColors.errorRed,
+      confirmButtonColor: AppColors.errorRed,
+      confirmIcon: LucideIcons.logOut,
+      isDestructive: true,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+      theme: theme,
     );
   }
 

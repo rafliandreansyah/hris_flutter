@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
@@ -79,6 +80,21 @@ void main() {
       expect(find.text('Password Baru *'), findsOneWidget);
       expect(find.text('Konfirmasi Password Baru *'), findsOneWidget);
       expect(find.byType(AppTextField), findsNWidgets(3));
+
+      // Verifikasi tanda bintang (*) berwarna merah (AppColors.errorRed)
+      final labelTexts = tester.widgetList<Text>(find.byType(Text)).where(
+            (widget) =>
+                widget.textSpan != null &&
+                widget.textSpan!.toPlainText().contains('*'),
+          );
+      expect(labelTexts.length, 3);
+      for (final textWidget in labelTexts) {
+        final span = textWidget.textSpan as TextSpan;
+        final asteriskSpan = span.children?.firstWhere(
+          (s) => s.toPlainText().contains('*'),
+        ) as TextSpan?;
+        expect(asteriskSpan?.style?.color, AppColors.errorRed);
+      }
 
       // 4. Kriteria Kelayakan Password
       expect(find.text('KRITERIA KELAYAKAN PASSWORD'), findsOneWidget);

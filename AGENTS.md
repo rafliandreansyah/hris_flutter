@@ -64,5 +64,10 @@
       - Selecting a department resets position and dispatches `OrganizationFilterDepartmentSelected`.
     - **Footer Actions**:
       - Row with two `AppButton` widgets at `height: 50`: "Batal" (`AppButtonVariant.outlined`) and "Terapkan Filter" (`AppButtonVariant.primary`, `leadingIcon: LucideIcons.filter`).
+13. **Required Form Field Asterisk Standards**:
+    - **Mandatory Red Asterisk (`*`)**: For all required form input fields, form labels, section headers, or upload cards across all features, the mandatory asterisk indicator (`*`) MUST ALWAYS be styled in red (`AppColors.errorRed` / `AppColors.error`, e.g., `TextSpan(text: ' *', style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold))`).
+    - **AppTextField Standard**: `AppTextField` automatically renders the required asterisk (`*`) in red (either cleanly extracted from `label` containing `*` or when `isRequired: true`).
+    - **Zero Plain Asterisks**: Never render a required asterisk `*` in the default label or onSurface text color.
+
 
 

@@ -392,4 +392,108 @@ void main() {
     expect(permissionResult, isTrue);
     expect(find.text('Izin Akses Presensi'), findsNothing);
   });
+
+  testWidgets('showConfirmation returns boolean on confirm and cancel', (
+    tester,
+  ) async {
+    bool? confirmResult;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () async {
+                  confirmResult = await AppDialogUtil.showConfirmation(
+                    context,
+                    title: 'Konfirmasi Aksi',
+                    message: 'Apakah Anda yakin ingin melanjutkan?',
+                    confirmText: 'Lanjutkan',
+                    cancelText: 'Batal',
+                  );
+                },
+                child: const Text('Show Confirmation'),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    // Open confirmation dialog
+    await tester.tap(find.text('Show Confirmation'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Konfirmasi Aksi'), findsOneWidget);
+    expect(find.text('Apakah Anda yakin ingin melanjutkan?'), findsOneWidget);
+    expect(find.text('Batal'), findsOneWidget);
+    expect(find.text('Lanjutkan'), findsOneWidget);
+
+    // Tap Cancel
+    await tester.tap(find.text('Batal'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(confirmResult, isFalse);
+    expect(find.text('Konfirmasi Aksi'), findsNothing);
+
+    // Reopen and tap Confirm
+    await tester.tap(find.text('Show Confirmation'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Lanjutkan'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(confirmResult, isTrue);
+    expect(find.text('Konfirmasi Aksi'), findsNothing);
+  });
+
+  testWidgets('showLogoutDialog renders logout title, message, and buttons', (
+    tester,
+  ) async {
+    bool? logoutResult;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () async {
+                  logoutResult = await AppDialogUtil.showLogoutDialog(
+                    context,
+                  );
+                },
+                child: const Text('Show Logout'),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show Logout'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Konfirmasi Logout'), findsOneWidget);
+    expect(
+      find.text('Apakah Anda yakin ingin keluar dari sesi akun ini?'),
+      findsOneWidget,
+    );
+    expect(find.text('Batal'), findsOneWidget);
+    expect(find.text('Keluar'), findsOneWidget);
+
+    // Tap Keluar
+    await tester.tap(find.text('Keluar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(logoutResult, isTrue);
+    expect(find.text('Konfirmasi Logout'), findsNothing);
+  });
 }

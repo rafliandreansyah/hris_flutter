@@ -5,9 +5,11 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -20,6 +22,7 @@ Future<void> showAccountSettingsBottomSheet(
   String? employeeId,
   String? status,
   String? avatarUrl,
+  AuthRepository? authRepository,
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final surfaceColor = isDark
@@ -41,6 +44,7 @@ Future<void> showAccountSettingsBottomSheet(
       employeeId: employeeId ?? 'EMP-2024-019',
       status: status ?? 'Active',
       avatarUrl: avatarUrl,
+      authRepository: authRepository,
     ),
   );
 }
@@ -51,6 +55,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
   final String employeeId;
   final String status;
   final String? avatarUrl;
+  final AuthRepository? authRepository;
 
   const AccountSettingsBottomSheet({
     super.key,
@@ -60,6 +65,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
     this.status = 'Active',
     this.avatarUrl =
         'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+    this.authRepository,
   });
 
   @override
@@ -313,13 +319,13 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: isDark
-                        ? const Color(0xFF2A1215)
-                        : const Color(0xFFFEF2F2),
+                        ? AppColors.errorRed.withValues(alpha: 0.1)
+                        : AppColors.errorContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isDark
-                          ? const Color(0xFF5C1D24)
-                          : const Color(0xFFFECACA),
+                          ? AppColors.errorRed.withValues(alpha: 0.25)
+                          : AppColors.errorRed.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -340,13 +346,13 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: isDark
-                                    ? const Color(0xFF451218)
-                                    : const Color(0xFFFEE2E2),
+                                    ? AppColors.errorRed.withValues(alpha: 0.2)
+                                    : AppColors.errorRed.withValues(alpha: 0.12),
                               ),
                               child: const Icon(
                                 LucideIcons.logOut,
                                 size: 20,
-                                color: Color(0xFFDC2626),
+                                color: AppColors.errorRed,
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -357,7 +363,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                                   Text(
                                     l10n?.logout ?? 'Keluar dari Akun (Logout)',
                                     style: AppTypography.bodyLarge.copyWith(
-                                      color: const Color(0xFFDC2626),
+                                      color: AppColors.errorRed,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15,
                                     ),
@@ -368,8 +374,8 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                                         'Keluar dari sesi login perangkat ini',
                                     style: AppTypography.bodyMedium.copyWith(
                                       color: isDark
-                                          ? const Color(0xFFF87171)
-                                          : const Color(0xFF991B1B),
+                                          ? AppColors.darkOnSurfaceVariant
+                                          : AppColors.onSurfaceVariant,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -460,39 +466,24 @@ class AccountSettingsBottomSheet extends StatelessWidget {
     );
   }
 
-  void _showLogoutConfirmationDialog(BuildContext context) {
+  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    showDialog(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(l10n?.logoutConfirmationTitle ?? 'Konfirmasi Logout'),
-        content: Text(
-          l10n?.logoutConfirmationDesc ??
-              'Apakah Anda yakin ingin keluar dari sesi akun ini?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-            child: Text(l10n?.cancel ?? 'Batal'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-            ),
-            onPressed: () async {
-              Navigator.of(dialogCtx).pop(); // Tutup dialog
-              Navigator.of(context).pop(); // Tutup bottom sheet
-              await AuthRepositoryImpl().logout();
-              if (context.mounted) {
-                context.go(Routes.LOGIN);
-              }
-            },
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialogUtil.showLogoutDialog(
+      context,
+      title: l10n?.logoutConfirmationTitle ?? 'Konfirmasi Logout',
+      message: l10n?.logoutConfirmationDesc ??
+          'Apakah Anda yakin ingin keluar dari sesi akun ini?',
+      confirmText: 'Keluar',
+      cancelText: l10n?.cancel ?? 'Batal',
     );
+
+    if (confirmed && context.mounted) {
+      Navigator.of(context).pop(); // Tutup bottom sheet
+      await (authRepository ?? AuthRepositoryImpl()).logout();
+      if (context.mounted && GoRouter.maybeOf(context) != null) {
+        context.go(Routes.LOGIN);
+      }
+    }
   }
 }
 

@@ -334,7 +334,8 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
         children: [
           // 1. Password Saat Ini
           AppTextField(
-            label: 'Password Saat Ini *',
+            label: 'Password Saat Ini',
+            isRequired: true,
             hintText: 'Masukkan password saat ini',
             controller: _oldPasswordController,
             isPassword: true,
@@ -373,7 +374,8 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
 
           // 2. Password Baru
           AppTextField(
-            label: 'Password Baru *',
+            label: 'Password Baru',
+            isRequired: true,
             hintText: 'Masukkan password baru',
             controller: _newPasswordController,
             isPassword: true,
@@ -393,7 +395,8 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
 
           // 3. Konfirmasi Password Baru
           AppTextField(
-            label: 'Konfirmasi Password Baru *',
+            label: 'Konfirmasi Password Baru',
+            isRequired: true,
             hintText: 'Konfirmasi password baru',
             controller: _confirmPasswordController,
             isPassword: true,
