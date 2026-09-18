@@ -18,6 +18,9 @@ abstract class Routes {
   static const String EMPLOYEE_ATTENDANCE_LOGS = '/employee-attendance-logs';
   static const String ATTENDANCE_DETAIL = '/attendance-detail';
   static const String ATTENDANCE_REQUESTS = '/attendance-requests';
+  static const String ATTENDANCE_REQUEST_DETAIL = '/attendance-request-detail';
+  static const String LIVE_ATTENDANCE = '/live-attendance';
+  static const String SCHEDULE_ATTENDANCE = '/schedule-attendance';
   static const String LEAVE = '/leave';
   static const String LEAVE_DETAIL = '/leave-detail';
   static const String CREATE_LEAVE = '/create-leave';

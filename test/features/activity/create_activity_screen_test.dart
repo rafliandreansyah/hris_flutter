@@ -78,6 +78,8 @@ class _MockActivityRepository implements ActivityRepository {
     );
   }
 
+  String? lastCreatedLocationAddress;
+
   @override
   Future<CreateActivityResponse> createActivity({
     required String activityTypeId,
@@ -89,6 +91,7 @@ class _MockActivityRepository implements ActivityRepository {
     String status = 'ongoing',
     XFile? file,
   }) async {
+    lastCreatedLocationAddress = locationAddress;
     return CreateActivityResponse(
       success: true,
       message: 'Activity created',
@@ -269,6 +272,7 @@ void main() {
       WidgetTester tester,
     ) async {
       ActivityItem? returnedActivity;
+      final mockRepo = _MockActivityRepository();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -281,7 +285,7 @@ void main() {
                       context,
                       MaterialPageRoute(
                         builder: (_) => CreateActivityScreen(
-                          repository: _MockActivityRepository(),
+                          repository: mockRepo,
                         ),
                       ),
                     );
@@ -319,16 +323,15 @@ void main() {
       );
       await tester.pump();
 
-      // 3. Fill Address
-      final addressField = find.widgetWithText(
-        TextField,
-        'e.g., Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
+      // 3. Verify Address field is NOT in UI (geocoded automatically on submit)
+      expect(
+        find.widgetWithText(
+          TextField,
+          'e.g., Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
+        ),
+        findsNothing,
       );
-      await tester.enterText(
-        addressField,
-        'SCBD Lot 28, Jl. Jend. Sudirman Kav. 52-53',
-      );
-      await tester.pump();
+      expect(find.text('Address (Alamat Lengkap)'), findsNothing);
 
       // 4. Fill Description
       final descField = find.widgetWithText(
@@ -366,6 +369,8 @@ void main() {
       );
       expect(returnedActivity!.status, ActivityStatus.inProgress);
       expect(returnedActivity!.isMyActivity, isTrue);
+      expect(mockRepo.lastCreatedLocationAddress, isNotNull);
+      expect(mockRepo.lastCreatedLocationAddress!.isNotEmpty, isTrue);
     });
   });
 }

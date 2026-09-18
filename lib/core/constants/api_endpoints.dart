@@ -62,7 +62,11 @@ abstract class ApiEndpoints {
   static const String attendanceSummary = '/attendance/summary';
   static const String outsideAttendance = '/attendance/outside';
   static const String attendanceRequests = '/attendances/requests';
+  static const String attendanceLiveRequest = '/attendances/requests/live';
+  static const String attendanceScheduleRequest = '/attendances/requests/schedule';
   static String attendanceDetail(String id) => '/attendances/$id';
+  static String attendanceRequestDetail(String id) => '/attendances/requests/$id';
+  static String attendanceRequestApprove(String id) => '/attendances/requests/$id/approve';
 
   // ==========================================
   // --- 🏖️ LEAVE & TIME-OFF ENDPOINTS ---

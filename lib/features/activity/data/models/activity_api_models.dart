@@ -218,7 +218,8 @@ ActivityItem activityItemFromApiJson(
     initials = existingItem.initials;
   }
 
-  final locationName = json['locationName']?.toString();
+  final locationName = json['locationName']?.toString().trim();
+  final locationAddress = json['locationAddress']?.toString().trim();
   final empId = json['employeeId']?.toString() ??
       empMap?['id']?.toString() ??
       existingItem?.employeeId;
@@ -254,7 +255,10 @@ ActivityItem activityItemFromApiJson(
     status: status,
     location: locationName != null && locationName.isNotEmpty
         ? locationName
-        : (existingItem?.location ?? 'Kantor / Lokasi Kerja'),
+        : (existingItem?.location ??
+            (status == ActivityStatus.planned
+                ? 'Lokasi belum ditentukan'
+                : 'Kantor / Lokasi Kerja')),
     time: timeFormatted,
     date: effectiveDate,
     isMyActivity: effectiveIsMyActivity,
@@ -277,9 +281,13 @@ ActivityItem activityItemFromApiJson(
     latitude: lat,
     longitude: lng,
     fullAddress: existingItem?.fullAddress ??
-        (locationName != null && locationName.isNotEmpty
-            ? locationName
-            : 'SCBD Lot 28, Jl. Jend. Sudirman Kav. 52-53'),
+        ((locationAddress != null && locationAddress.isNotEmpty)
+            ? locationAddress
+            : ((locationName != null && locationName.isNotEmpty)
+                ? locationName
+                : (status == ActivityStatus.planned
+                    ? ''
+                    : 'SCBD Lot 28, Jl. Jend. Sudirman Kav. 52-53'))),
     districtCity: existingItem?.districtCity ??
         'Kec. Kebayoran Baru, Kota Jakarta Selatan, DKI Jakarta 12190',
     gpsAccuracy: existingItem?.gpsAccuracy ?? '±3m',

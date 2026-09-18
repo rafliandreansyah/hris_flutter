@@ -429,10 +429,6 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
       _showWarningSnackBar('Nama lokasi / tempat aktivitas wajib diisi.');
       return;
     }
-    if (_addressController.text.trim().isEmpty) {
-      _showWarningSnackBar('Alamat lengkap lokasi aktivitas wajib diisi.');
-      return;
-    }
     if (_descriptionController.text.trim().isEmpty) {
       _showWarningSnackBar('Deskripsi agenda / tugas aktivitas wajib diisi.');
       return;
@@ -893,14 +889,14 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildFieldLabel('Alamat Lengkap', isRequired: true),
+                        _buildFieldLabel('Alamat Lengkap (Opsional)', isRequired: false),
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _addressController,
                           maxLines: 2,
                           decoration: InputDecoration(
                             hintText:
-                                'Misal: Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
+                                'Opsional: Dapat dilengkapi bawahan saat aktivitas dimulai',
                             hintStyle: TextStyle(
                               color: subtitleCol.withValues(alpha: 0.7),
                               fontSize: 13,

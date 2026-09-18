@@ -18,6 +18,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
 
 /// Halaman Detail Aktivitas & Verifikasi (Activity Detail & Verification)
@@ -792,6 +793,40 @@ class _ActivityDetailView extends StatelessWidget {
                                 return;
                               }
 
+                              if (isFinish) {
+                                final confirmed =
+                                    await AppDialogUtil.showConfirmation(
+                                  sheetCtx,
+                                  title: 'Selesaikan Aktivitas',
+                                  message:
+                                      'Apakah Anda yakin ingin menyelesaikan aktivitas ini? Pastikan seluruh catatan dan bukti telah sesuai.',
+                                  confirmText: 'Ya, Selesaikan',
+                                  cancelText: 'Batal',
+                                  icon: LucideIcons.checkCircle2,
+                                  iconBackgroundColor: AppColors.brandTeal,
+                                  confirmButtonColor: AppColors.brandTeal,
+                                  confirmIcon: LucideIcons.checkCircle2,
+                                );
+                                if (!confirmed) return;
+                              } else {
+                                final confirmed =
+                                    await AppDialogUtil.showConfirmation(
+                                  sheetCtx,
+                                  title: 'Batalkan Aktivitas',
+                                  message:
+                                      'Apakah Anda yakin ingin membatalkan aktivitas ini? Aktivitas yang dibatalkan tidak dapat dilanjutkan kembali.',
+                                  confirmText: 'Ya, Batalkan',
+                                  cancelText: 'Batal',
+                                  icon: LucideIcons.triangleAlert,
+                                  iconBackgroundColor: AppColors.errorRed,
+                                  confirmButtonColor: AppColors.errorRed,
+                                  confirmIcon: LucideIcons.xCircle,
+                                  isDestructive: true,
+                                );
+                                if (!confirmed) return;
+                              }
+
+                              if (!sheetCtx.mounted) return;
                               Navigator.of(sheetCtx).pop();
 
                               if (isFinish) {
@@ -878,9 +913,14 @@ class _ActivityDetailView extends StatelessWidget {
       }
     } catch (_) {}
 
-    final addressController = TextEditingController(
-      text: item.fullAddress.isNotEmpty ? item.fullAddress : item.location,
-    );
+    final initialAddr = (item.fullAddress.trim().isNotEmpty && item.fullAddress != '-')
+        ? item.fullAddress.trim()
+        : ((item.location.trim().isNotEmpty &&
+                item.location != '-' &&
+                !item.location.toLowerCase().contains('belum ditentukan'))
+            ? item.location.trim()
+            : '');
+    final addressController = TextEditingController(text: initialAddr);
     XFile? selectedFile;
     bool isCompressingPhoto = false;
     String? errorText;
@@ -1453,11 +1493,17 @@ class _ActivityDetailView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    item.location,
+                    (item.location.trim().isNotEmpty && item.location != '-')
+                        ? item.location
+                        : (item.status == ActivityStatus.planned
+                            ? 'Lokasi belum ditentukan'
+                            : 'Lokasi tidak tersedia'),
                     style: AppTypography.bodyMedium.copyWith(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: textCol,
+                      color: (item.location.trim().isEmpty || item.location == '-')
+                          ? subtitleCol
+                          : textCol,
                     ),
                   ),
                 ),

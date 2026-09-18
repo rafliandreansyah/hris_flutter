@@ -8,9 +8,12 @@ import 'package:hris_flutter/features/activity/presentation/pages/create_activit
 import 'package:hris_flutter/features/activity/presentation/pages/create_plan_activity_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_detail_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/attendance_request_detail_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_requests_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/live_attendance_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/schedule_attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
@@ -207,6 +210,65 @@ class AppRouter {
         path: Routes.ATTENDANCE_REQUESTS,
         name: Routes.ATTENDANCE_REQUESTS,
         builder: (context, state) => const AttendanceRequestsScreen(),
+      ),
+
+      // 13c. Attendance Request Detail Screen (Google Stitch Outside Attendance Request Detail)
+      GoRoute(
+        path: Routes.ATTENDANCE_REQUEST_DETAIL,
+        name: Routes.ATTENDANCE_REQUEST_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          bool isApprover = false;
+
+          if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+            isApprover = extra['isApprover'] as bool? ?? false;
+          } else if (extra is String) {
+            id = extra;
+          }
+
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          if (state.uri.queryParameters.containsKey('isApprover')) {
+            isApprover = state.uri.queryParameters['isApprover'] == 'true';
+          }
+
+          return AttendanceRequestDetailScreen(id: id, isApprover: isApprover);
+        },
+      ),
+
+      // 13c. Live Attendance Screen (Google Stitch Outside Office Live Attendance)
+      GoRoute(
+        path: Routes.LIVE_ATTENDANCE,
+        name: Routes.LIVE_ATTENDANCE,
+        builder: (context, state) {
+          final extra = state.extra;
+          String? initialMethod;
+          if (extra is String) {
+            initialMethod = extra;
+          } else if (extra is Map<String, dynamic>) {
+            initialMethod = extra['attendanceMethod'] as String?;
+          }
+          return LiveAttendanceScreen(initialMethod: initialMethod);
+        },
+      ),
+
+      // 13d. Schedule Attendance Screen (Google Stitch Outside Office Schedule Attendance)
+      GoRoute(
+        path: Routes.SCHEDULE_ATTENDANCE,
+        name: Routes.SCHEDULE_ATTENDANCE,
+        builder: (context, state) {
+          final extra = state.extra;
+          String? initialMethod;
+          if (extra is String) {
+            initialMethod = extra;
+          } else if (extra is Map<String, dynamic>) {
+            initialMethod = extra['attendanceMethod'] as String?;
+          }
+          return ScheduleAttendanceScreen(initialMethod: initialMethod);
+        },
       ),
 
       // 14. Leave & Time Off Screen (Google Stitch slice)

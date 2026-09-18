@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 
 class _FakePlanActivityRepository implements ActivityRepository {
   String? lastEmployeeId;
+  String? lastLocationAddress;
 
   @override
   Future<ActivityListResponse> getActivities({
@@ -101,6 +102,7 @@ class _FakePlanActivityRepository implements ActivityRepository {
     XFile? file,
   }) async {
     lastEmployeeId = employeeId;
+    lastLocationAddress = locationAddress;
     return const CreateActivityResponse(
       success: true,
       message: 'Rencana aktivitas berhasil dibuat!',
@@ -300,5 +302,55 @@ void main() {
 
     // Should find red asterisks for sections & fields
     expect(redAsteriskSpans.length, greaterThanOrEqualTo(4));
+  });
+
+  testWidgets('Supervisor can submit plan activity with empty locationAddress', (tester) async {
+    final activityRepo = _FakePlanActivityRepository();
+    final employeeRepo = _FakePlanEmployeeRepository();
+
+    final bloc = CreatePlanActivityBloc(
+      activityRepository: activityRepo,
+      employeeRepository: employeeRepo,
+    )..add(const CreatePlanActivityStarted());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CreatePlanActivityScreen(
+          activityRepository: activityRepo,
+          employeeRepository: employeeRepo,
+          bloc: bloc,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // 1. Select employee
+    await tester.tap(find.text('Ketuk untuk memilih bawahan...'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Budi Santoso'));
+    await tester.pumpAndSettle();
+
+    // 2. Select activity type
+    await tester.tap(find.text('Pilih jenis aktivitas...'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Instalasi Perangkat'));
+    await tester.pumpAndSettle();
+
+    // 3. Fill venue name & description, leaving address empty!
+    final textFields = find.byType(TextFormField);
+    await tester.enterText(textFields.at(0), 'Gedung Menara Mandiri');
+    // textFields.at(1) is address -> leave empty!
+    await tester.enterText(textFields.at(2), 'Pengecekan perangkat jaringan');
+    await tester.pumpAndSettle();
+
+    // 4. Tap submit button
+    final submitButton = find.byKey(const ValueKey('submit_plan_activity_button'));
+    await tester.ensureVisible(submitButton);
+    await tester.tap(submitButton);
+    await tester.pumpAndSettle();
+
+    // 5. Verify submitted successfully with empty locationAddress
+    expect(activityRepo.lastLocationAddress, '');
   });
 }

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
+import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
+import 'package:hris_flutter/features/attendance/data/models/live_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/live_attendance_response.dart';
+import 'package:hris_flutter/features/attendance/data/models/schedule_attendance_request.dart';
+import 'package:hris_flutter/features/attendance/data/models/schedule_attendance_response.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_event.dart';
@@ -80,6 +85,39 @@ class _MockAttendanceRequestRepository implements AttendanceRequestRepository {
         totalPages: 1,
       ),
     );
+  }
+
+  @override
+  Future<LiveAttendanceResponse> submitLiveAttendance(
+    LiveAttendanceRequest request,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ScheduleAttendanceResponse> submitScheduleAttendance(
+    ScheduleAttendanceRequest request,
+  ) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AttendanceRequestDetailData> getAttendanceRequestDetail(String id) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> approveAttendanceRequest({
+    required String id,
+    required bool isApproved,
+    String? approverNotes,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteAttendanceRequest(String id) async {
+    throw UnimplementedError();
   }
 }
 

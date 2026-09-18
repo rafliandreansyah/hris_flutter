@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
@@ -167,17 +168,25 @@ class _AttendanceRequestsScreenViewState
         await showAttendanceTypeSelectionBottomSheet(context);
     if (selectedMethod != null && mounted) {
       if (selectedMethod == AttendanceOutsideMethod.live) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Metode Live Attendance (Real-Time) dipilih'),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Metode Schedule Attendance (Terencana) dipilih'),
-          ),
-        );
+        final refresh = await context.push<bool>(Routes.LIVE_ATTENDANCE);
+        if (refresh == true && mounted) {
+          context.read<AttendanceRequestListBloc>().add(
+                const AttendanceRequestListFetchRequested(
+                  isRefresh: true,
+                  isTeam: false,
+                ),
+              );
+        }
+      } else if (selectedMethod == AttendanceOutsideMethod.schedule) {
+        final refresh = await context.push<bool>(Routes.SCHEDULE_ATTENDANCE);
+        if (refresh == true && mounted) {
+          context.read<AttendanceRequestListBloc>().add(
+                const AttendanceRequestListFetchRequested(
+                  isRefresh: true,
+                  isTeam: false,
+                ),
+              );
+        }
       }
     }
   }
@@ -593,13 +602,22 @@ class _AttendanceRequestsScreenViewState
           final item = state.myRequests[index];
           return AttendanceRequestCard(
             item: item,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Detail presensi: ${item.formattedDate}'),
-                  duration: const Duration(seconds: 1),
-                ),
+            onTap: () async {
+              final updated = await context.push<bool>(
+                Routes.ATTENDANCE_REQUEST_DETAIL,
+                extra: {
+                  'id': item.id,
+                  'isApprover': false,
+                },
               );
+              if (updated == true && context.mounted) {
+                context.read<AttendanceRequestListBloc>().add(
+                      const AttendanceRequestListFetchRequested(
+                        isRefresh: true,
+                        isTeam: false,
+                      ),
+                    );
+              }
             },
           );
         },
@@ -673,13 +691,22 @@ class _AttendanceRequestsScreenViewState
           final item = state.teamRequests[index];
           return AttendanceRequestCard(
             item: item,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Tinjau pengajuan presensi: ${item.name}'),
-                  duration: const Duration(seconds: 1),
-                ),
+            onTap: () async {
+              final updated = await context.push<bool>(
+                Routes.ATTENDANCE_REQUEST_DETAIL,
+                extra: {
+                  'id': item.id,
+                  'isApprover': true,
+                },
               );
+              if (updated == true && context.mounted) {
+                context.read<AttendanceRequestListBloc>().add(
+                      const AttendanceRequestListFetchRequested(
+                        isRefresh: true,
+                        isTeam: true,
+                      ),
+                    );
+              }
             },
           );
         },

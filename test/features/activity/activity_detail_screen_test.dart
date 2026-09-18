@@ -397,10 +397,36 @@ void main() {
         expect(find.byKey(const ValueKey('action_notes_field')), findsOneWidget);
         expect(find.byKey(const ValueKey('submit_action_confirm_btn')), findsOneWidget);
 
-        // Submit complete
+        // Tap submit complete -> confirmation dialog should appear
         await tester.tap(find.byKey(const ValueKey('submit_action_confirm_btn')));
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify confirmation dialog is displayed
+        expect(
+          find.text(
+            'Apakah Anda yakin ingin menyelesaikan aktivitas ini? Pastikan seluruh catatan dan bukti telah sesuai.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batal'), findsOneWidget);
+        expect(find.text('Ya, Selesaikan'), findsOneWidget);
+
+        // Tap Batal on confirmation dialog -> should dismiss dialog, not call finishActivity
+        await tester.tap(find.text('Batal'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(mockRepo.finishCalled, isFalse);
+        expect(find.byKey(const ValueKey('submit_action_confirm_btn')), findsOneWidget);
+
+        // Tap submit again and confirm
+        await tester.tap(find.byKey(const ValueKey('submit_action_confirm_btn')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(find.text('Ya, Selesaikan'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
 
         expect(mockRepo.finishCalled, isTrue);
       },
@@ -443,11 +469,36 @@ void main() {
         expect(find.text('Catatan tidak boleh kosong!'), findsOneWidget);
         expect(mockRepo.cancelCalled, isFalse);
 
-        // Enter notes and submit
+        // Enter notes and tap submit -> cancel confirmation dialog should appear
         await tester.enterText(notesField, 'Kendala cuaca ekstrem di lokasi kerja.');
         await tester.tap(submitBtn);
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify cancel confirmation dialog
+        expect(
+          find.text(
+            'Apakah Anda yakin ingin membatalkan aktivitas ini? Aktivitas yang dibatalkan tidak dapat dilanjutkan kembali.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('Batal'), findsOneWidget);
+        expect(find.text('Ya, Batalkan'), findsOneWidget);
+
+        // Tap Batal on confirmation dialog -> should dismiss dialog, not cancel
+        await tester.tap(find.text('Batal'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(mockRepo.cancelCalled, isFalse);
+
+        // Tap submit again and confirm cancellation
+        await tester.tap(submitBtn);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(find.text('Ya, Batalkan'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
 
         expect(mockRepo.cancelCalled, isTrue);
         expect(mockRepo.lastNotes, 'Kendala cuaca ekstrem di lokasi kerja.');
@@ -489,6 +540,26 @@ void main() {
         // Phase 2 verification
         expect(find.text('Phase 2: Completion & Report'), findsOneWidget);
         expect(find.text('Klien sangat puas dengan demo aplikasi.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Planned activity with empty location displays fallback Lokasi belum ditentukan',
+      (tester) async {
+        final plannedActivity = testActivity.copyWith(
+          id: 'ACT-PLAN-EMPTY',
+          status: ActivityStatus.planned,
+          location: '',
+          fullAddress: '',
+        );
+
+        await tester.pumpWidget(createTestWidget(activity: plannedActivity));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(find.text('Lokasi belum ditentukan'), findsOneWidget);
+        // Map card should be hidden for planned activities
+        expect(find.byType(ActivityMapCard), findsNothing);
       },
     );
   });

@@ -21,6 +21,20 @@ class MapsConfig {
       googleMapsApiKey.isNotEmpty &&
       googleMapsApiKey != 'YOUR_GOOGLE_MAPS_API_KEY';
 
+  /// Mapbox Public Access Token untuk Geocoding & Reverse Geocoding API.
+  /// Dapatkan Access Token gratis melalui Mapbox Console: https://account.mapbox.com/
+  static const String mapboxAccessToken =
+      'pk.eyJ1IjoibXVyYXRlY2giLCJhIjoiY211NmV5Y3AxMGM1bjJ4czlzZHJsbXNlYyJ9.xrD33AwW8bTdvfJRJoYKzg';
+
+  /// Memeriksa apakah Mapbox Access Token telah dikonfigurasi
+  static bool get isMapboxConfigured =>
+      mapboxAccessToken.isNotEmpty &&
+      !mapboxAccessToken.startsWith('YOUR_MAPBOX');
+
+  /// Base URL endpoint Mapbox Geocoding v5 API
+  static const String mapboxGeocodingBaseUrl =
+      'https://api.mapbox.com/geocoding/v5/mapbox.places';
+
   /// Koordinat default (SCBD Tower Jakarta)
   static const double defaultLatitude = -6.2253;
   static const double defaultLongitude = 106.8097;

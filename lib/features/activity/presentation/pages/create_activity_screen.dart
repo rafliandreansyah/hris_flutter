@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API)
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
+import 'package:hris_flutter/core/utils/mapbox_geocoding_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_photo_picker_card.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
@@ -51,7 +51,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
   // Controllers
   final TextEditingController _locationNameController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   // State (UI-only, non-business logic)
@@ -59,6 +58,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
   XFile? _pickedPhoto;
   ImageCompressResult? _compressResult;
   bool _isCompressingPhoto = false;
+  bool _isGeocoding = false;
   String? _samplePhotoUrl;
   double _latitude = -6.2088;
   double _longitude = 106.8456;
@@ -67,7 +67,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
   @override
   void dispose() {
     _locationNameController.dispose();
-    _addressController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -87,30 +86,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
           _longitude = pos.longitude;
           _gpsAccuracy = '±${pos.accuracy.round()}m';
         });
-        // Hide dulu karena ada biayanya untuk geocoding
-        // try {
-        //   final placemarks = await Geocoding().placemarkFromCoordinates(pos.latitude, pos.longitude);
-        //   if (placemarks.isNotEmpty) {
-        //     final place = placemarks.first;
-        //     final street = place.street ?? '';
-        //     final subLoc = place.subLocality ?? '';
-        //     final locality = place.locality ?? place.subAdministrativeArea ?? '';
-        //     final admin = place.administrativeArea ?? '';
-        //     final fullAddr = [street, subLoc, locality, admin]
-        //         .where((e) => e.trim().isNotEmpty)
-        //         .join(', ');
-        //     final locName = subLoc.isNotEmpty
-        //         ? subLoc
-        //         : (place.name?.isNotEmpty == true ? place.name! : locality);
-
-        //     if (_addressController.text.trim().isEmpty && fullAddr.isNotEmpty) {
-        //       setState(() => _addressController.text = fullAddr);
-        //     }
-        //     if (_locationNameController.text.trim().isEmpty && locName.isNotEmpty) {
-        //       setState(() => _locationNameController.text = locName);
-        //     }
-        //   }
-        // } catch (_) {}
       } else {
         setState(() {
           _latitude = -6.2088 + (DateTime.now().millisecond % 5) * 0.0001;
@@ -231,7 +206,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     );
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     // Validasi Form
     if (_selectedActivityType == null) {
       _showWarningSnackBar('Silakan pilih Activity Type terlebih dahulu.');
@@ -239,10 +214,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     }
     if (_locationNameController.text.trim().isEmpty) {
       _showWarningSnackBar('Nama lokasi / venue wajib diisi.');
-      return;
-    }
-    if (_addressController.text.trim().isEmpty) {
-      _showWarningSnackBar('Alamat lengkap lokasi wajib diisi.');
       return;
     }
     if (_descriptionController.text.trim().isEmpty) {
@@ -254,13 +225,31 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
       return;
     }
 
+    setState(() => _isGeocoding = true);
+    String geocodedAddress;
+    try {
+      geocodedAddress = await MapboxGeocodingUtil.getSafeAddress(
+        latitude: _latitude,
+        longitude: _longitude,
+      );
+    } catch (_) {
+      geocodedAddress =
+          'Lat: ${_latitude.toStringAsFixed(6)}, Lng: ${_longitude.toStringAsFixed(6)}';
+    } finally {
+      if (mounted) {
+        setState(() => _isGeocoding = false);
+      }
+    }
+
+    if (!mounted) return;
+
     context.read<CreateActivityBloc>().add(
       CreateActivitySubmitted(
         activityTypeId: _selectedActivityType!.id,
         latitude: _latitude,
         longitude: _longitude,
         locationName: _locationNameController.text.trim(),
-        locationAddress: _addressController.text.trim(),
+        locationAddress: geocodedAddress,
         description: _descriptionController.text.trim(),
         file: _compressResult?.file ?? _pickedPhoto,
       ),
@@ -419,17 +408,6 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                         _gpsAccuracy = acc;
                       });
                     },
-                    // onAddressDetected: (fullAddr, locName) {
-                    //   // Disabled sementara karena geocoding API berbayar
-                    //   if (_addressController.text.trim().isEmpty &&
-                    //       fullAddr.isNotEmpty) {
-                    //     setState(() => _addressController.text = fullAddr);
-                    //   }
-                    //   if (_locationNameController.text.trim().isEmpty &&
-                    //       locName.isNotEmpty) {
-                    //     setState(() => _locationNameController.text = locName);
-                    //   }
-                    // },
                   ),
 
                   const SizedBox(height: 16),
@@ -528,27 +506,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
                         const SizedBox(height: 16),
 
-                        // Field 3: Address (Alamat Lengkap) Input
-                        _buildFieldLabel(
-                          label: 'Address (Alamat Lengkap)',
-                          isRequired: true,
-                          textCol: textCol,
-                        ),
-                        const SizedBox(height: 6),
-                        _buildTextInput(
-                          controller: _addressController,
-                          hintText:
-                              'e.g., Jl. Jend. Sudirman Kav. 52-53, Jakarta Selatan',
-                          prefixIcon: LucideIcons.mapPin,
-                          textCol: textCol,
-                          subtitleCol: subtitleCol,
-                          inputBg: inputBg,
-                          borderCol: borderCol,
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Field 4: Description / Task Objective Input
+                        // Field 3: Description / Task Objective Input
                         _buildFieldLabel(
                           label: 'Description / Task Objective',
                           isRequired: true,
@@ -619,15 +577,15 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: BlocBuilder<CreateActivityBloc, CreateActivityState>(
                 builder: (context, createState) {
-                  final isSubmitting = createState.isSubmitting;
+                  final isBusy = createState.isSubmitting || _isGeocoding;
                   return SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: AppButton(
                       text: 'Submit & Start Activity',
                       leadingIcon: LucideIcons.checkCircle2,
-                      onPressed: isSubmitting ? null : _handleSubmit,
-                      isLoading: isSubmitting,
+                      onPressed: isBusy ? null : _handleSubmit,
+                      isLoading: isBusy,
                     ),
                   );
                 },
