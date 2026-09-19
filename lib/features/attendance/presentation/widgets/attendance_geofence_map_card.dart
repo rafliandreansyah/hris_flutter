@@ -96,81 +96,141 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
   @override
   void didUpdateWidget(covariant AttendanceGeofenceMapCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.officeLatitude != widget.officeLatitude ||
+    final officeChanged = oldWidget.officeLatitude != widget.officeLatitude ||
         oldWidget.officeLongitude != widget.officeLongitude ||
-        oldWidget.userLatitude != widget.userLatitude ||
+        oldWidget.officeName != widget.officeName;
+
+    if (officeChanged) {
+      // Prioritaskan fokus dan animasi langsung ke lokasi baru yang dipilih user
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _animateToSelectedLocation(forceOffice: true);
+      });
+    } else if (oldWidget.userLatitude != widget.userLatitude ||
         oldWidget.userLongitude != widget.userLongitude ||
         oldWidget.isAnyWhere != widget.isAnyWhere ||
         oldWidget.hasWorkLocation != widget.hasWorkLocation) {
-      _fitCameraBetweenLocations();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fitCameraBetweenLocations();
+      });
     }
   }
 
-  /// Memfokuskan kamera Google Maps secara cerdas.
+  /// Memfokuskan kamera ke lokasi kantor terpilih (atau lokasi user jika isAnyWhere)
+  void _animateToSelectedLocation({bool forceOffice = false}) {
+    if (_mapController == null) return;
+
+    try {
+      if (widget.isAnyWhere || !widget.hasWorkLocation) {
+        if (widget.userLatitude != null && widget.userLongitude != null) {
+          _mapController!.animateCamera(
+            CameraUpdate.newLatLngZoom(
+              LatLng(widget.userLatitude!, widget.userLongitude!),
+              16.5,
+            ),
+          );
+        }
+        return;
+      }
+
+      final officeLatLng = LatLng(widget.officeLatitude, widget.officeLongitude);
+
+      if (forceOffice || widget.userLatitude == null || widget.userLongitude == null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: officeLatLng,
+              zoom: 16.0,
+            ),
+          ),
+        );
+        return;
+      }
+
+      _fitCameraBetweenLocations();
+    } catch (e) {
+      debugPrint('[AttendanceGeofenceMapCard] animateCamera error: $e');
+    }
+  }
+
+  /// Memfokuskan kamera Google Maps secara cerdas antara kantor dan user.
   void _fitCameraBetweenLocations() {
     if (_mapController == null) return;
 
-    // Jika isAnyWhere atau tidak punya work location, fokus ke GPS user
-    if (widget.isAnyWhere || !widget.hasWorkLocation) {
-      if (widget.userLatitude != null && widget.userLongitude != null) {
+    try {
+      // Jika isAnyWhere atau tidak punya work location, fokus ke GPS user
+      if (widget.isAnyWhere || !widget.hasWorkLocation) {
+        if (widget.userLatitude != null && widget.userLongitude != null) {
+          _mapController!.animateCamera(
+            CameraUpdate.newLatLngZoom(
+              LatLng(widget.userLatitude!, widget.userLongitude!),
+              16.5,
+            ),
+          );
+        }
+        return;
+      }
+
+      final officeLatLng = LatLng(widget.officeLatitude, widget.officeLongitude);
+
+      if (widget.userLatitude == null || widget.userLongitude == null) {
         _mapController!.animateCamera(
-          CameraUpdate.newLatLngZoom(
-            LatLng(widget.userLatitude!, widget.userLongitude!),
-            16.5,
+          CameraUpdate.newCameraPosition(
+            CameraPosition(target: officeLatLng, zoom: 16.0),
           ),
         );
+        return;
       }
-      return;
-    }
 
-    final officeLatLng = LatLng(widget.officeLatitude, widget.officeLongitude);
+      final userLatLng = LatLng(widget.userLatitude!, widget.userLongitude!);
 
-    if (widget.userLatitude == null || widget.userLongitude == null) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(officeLatLng, 16.0),
+      // Hitung jarak riil dalam meter antara kantor dan posisi GPS pengguna
+      final distanceMeters = Geolocator.distanceBetween(
+        officeLatLng.latitude,
+        officeLatLng.longitude,
+        userLatLng.latitude,
+        userLatLng.longitude,
       );
-      return;
-    }
 
-    final userLatLng = LatLng(widget.userLatitude!, widget.userLongitude!);
+      // Batas jarak dekat: 2x radius geofence kantor atau minimal 250 meter
+      final closeThreshold = math.max(widget.geofenceRadiusMeters * 2.0, 250.0);
 
-    // Hitung jarak riil dalam meter antara kantor dan posisi GPS pengguna
-    final distanceMeters = Geolocator.distanceBetween(
-      officeLatLng.latitude,
-      officeLatLng.longitude,
-      userLatLng.latitude,
-      userLatLng.longitude,
-    );
-
-    // Batas jarak dekat: 2x radius geofence kantor atau minimal 250 meter
-    final closeThreshold = math.max(widget.geofenceRadiusMeters * 2.0, 250.0);
-
-    if (distanceMeters <= closeThreshold) {
-      // Saat jarak dekat, pusatkan kamera pada titik tengah antara kantor dan pengguna
-      // dengan level zoom yang lebih lega (agak dijauhin: 16.0) agar lingkaran geofence,
-      // pin kantor, titik GPS, dan jalan sekitar terlihat jelas tanpa terpotong atau terlalu dekat.
-      final midpoint = LatLng(
-        (officeLatLng.latitude + userLatLng.latitude) / 2,
-        (officeLatLng.longitude + userLatLng.longitude) / 2,
-      );
-      final closeZoom = widget.geofenceRadiusMeters > 150 ? 15.5 : 16.0;
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(midpoint, closeZoom),
-      );
-    } else {
-      // Saat jarak jauh, pertahankan LatLngBounds dengan padding 65.0 (kondisi yang sudah pas)
-      final southwest = LatLng(
-        math.min(officeLatLng.latitude, userLatLng.latitude),
-        math.min(officeLatLng.longitude, userLatLng.longitude),
-      );
-      final northeast = LatLng(
-        math.max(officeLatLng.latitude, userLatLng.latitude),
-        math.max(officeLatLng.longitude, userLatLng.longitude),
-      );
-      final bounds = LatLngBounds(southwest: southwest, northeast: northeast);
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 65.0),
-      );
+      if (distanceMeters <= closeThreshold) {
+        // Saat jarak dekat, pusatkan kamera pada titik tengah antara kantor dan pengguna
+        // dengan level zoom yang lebih lega (16.0) agar lingkaran geofence terlihat jelas.
+        final midpoint = LatLng(
+          (officeLatLng.latitude + userLatLng.latitude) / 2,
+          (officeLatLng.longitude + userLatLng.longitude) / 2,
+        );
+        final closeZoom = widget.geofenceRadiusMeters > 150 ? 15.5 : 16.0;
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(midpoint, closeZoom),
+        );
+      } else {
+        // Saat jarak jauh, coba LatLngBounds dengan padding 65.0
+        try {
+          final southwest = LatLng(
+            math.min(officeLatLng.latitude, userLatLng.latitude),
+            math.min(officeLatLng.longitude, userLatLng.longitude),
+          );
+          final northeast = LatLng(
+            math.max(officeLatLng.latitude, userLatLng.latitude),
+            math.max(officeLatLng.longitude, userLatLng.longitude),
+          );
+          final bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+          _mapController!.animateCamera(
+            CameraUpdate.newLatLngBounds(bounds, 65.0),
+          );
+        } catch (_) {
+          // Fallback jika newLatLngBounds gagal (misal ukuran viewport map belum terhitung)
+          _mapController!.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(target: officeLatLng, zoom: 16.0),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[AttendanceGeofenceMapCard] _fitCameraBetweenLocations error: $e');
     }
   }
 
@@ -639,7 +699,9 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
       mapToolbarEnabled: false,
       onMapCreated: (controller) {
         _mapController = controller;
-        _fitCameraBetweenLocations();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _animateToSelectedLocation(forceOffice: true);
+        });
       },
       circles: circles,
       markers: markers,

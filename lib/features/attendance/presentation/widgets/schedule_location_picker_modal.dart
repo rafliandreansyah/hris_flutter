@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -43,6 +45,7 @@ Future<ScheduleLocationResult?> showScheduleLocationPickerModal(
     context: context,
     isScrollControlled: true,
     showDragHandle: false,
+    enableDrag: false,
     useSafeArea: true,
     backgroundColor: surfaceColor,
     shape: const RoundedRectangleBorder(
@@ -66,7 +69,7 @@ class ScheduleLocationPickerModal extends StatefulWidget {
 
   /// Bypass flag untuk lingkungan pengujian (unit/widget test)
   @visibleForTesting
-  static bool bypassInTest = true;
+  static bool bypassInTest = false;
 
   const ScheduleLocationPickerModal({
     super.key,
@@ -91,6 +94,10 @@ class _ScheduleLocationPickerModalState
   late String _currentAddress;
   String? _currentLocationName;
 
+  double? _lastGeocodedLat;
+  double? _lastGeocodedLng;
+  bool _hasMovedPin = false;
+
   bool _isGeocoding = false;
   bool _hasLocationPermission = false;
 
@@ -110,11 +117,19 @@ class _ScheduleLocationPickerModalState
     _currentLat = widget.initialLatitude ?? MapsConfig.defaultLatitude;
     _currentLng = widget.initialLongitude ?? MapsConfig.defaultLongitude;
     _currentAddress = widget.initialAddress ?? 'Menara Mandiri, Jakarta Selatan';
+    _lastGeocodedLat = _currentLat;
+    _lastGeocodedLng = _currentLng;
+    _hasMovedPin = false;
 
     if (!_isTestEnvironment &&
         (Platform.isAndroid || Platform.isIOS)) {
       _checkLocationPermission();
-      _reverseGeocode(_currentLat, _currentLng);
+      if (widget.initialLatitude == null) {
+        _centerToCurrentLocation();
+      } else if (widget.initialAddress == null ||
+          widget.initialAddress!.trim().isEmpty) {
+        _reverseGeocode(_currentLat, _currentLng);
+      }
     }
   }
 
@@ -132,7 +147,7 @@ class _ScheduleLocationPickerModalState
     }
   }
 
-  /// Melakukan reverse geocoding via Mapbox saat peta selesai digeser
+  /// Melakukan reverse geocoding via Mapbox secara terkontrol (hemat kuota)
   Future<void> _reverseGeocode(double lat, double lng) async {
     if (_isTestEnvironment) return;
 
@@ -148,6 +163,9 @@ class _ScheduleLocationPickerModalState
           _currentAddress = res?.placeName ??
               'Lat: ${lat.toStringAsFixed(6)}, Lng: ${lng.toStringAsFixed(6)}';
           _currentLocationName = res?.locationName;
+          _lastGeocodedLat = lat;
+          _lastGeocodedLng = lng;
+          _hasMovedPin = false;
           _isGeocoding = false;
         });
       }
@@ -156,10 +174,19 @@ class _ScheduleLocationPickerModalState
         setState(() {
           _currentAddress =
               'Lat: ${lat.toStringAsFixed(6)}, Lng: ${lng.toStringAsFixed(6)}';
+          _lastGeocodedLat = lat;
+          _lastGeocodedLng = lng;
+          _hasMovedPin = false;
           _isGeocoding = false;
         });
       }
     }
+  }
+
+  /// Trigger manual untuk mengambil alamat pin saat ini via tombol "Cek Alamat"
+  Future<void> _fetchAddressForCurrentPin() async {
+    if (_isGeocoding) return;
+    await _reverseGeocode(_currentLat, _currentLng);
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -169,8 +196,20 @@ class _ScheduleLocationPickerModalState
 
   void _onCameraIdle() {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
-      _reverseGeocode(_currentLat, _currentLng);
+    // PENTING: Jangan otomatis memanggil reverse geocoding ke Mapbox di sini
+    // agar menghemat kuota API saat pengguna menggeser peta berulang kali.
+    // Cukup perbarui state koordinat dan tandai bahwa pin telah digeser.
+    _debounceTimer = Timer(const Duration(milliseconds: 150), () {
+      if (mounted) {
+        setState(() {
+          final hasMoved = _lastGeocodedLat == null ||
+              (_currentLat - _lastGeocodedLat!).abs() > 0.00002 ||
+              (_currentLng - _lastGeocodedLng!).abs() > 0.00002;
+          if (hasMoved) {
+            _hasMovedPin = true;
+          }
+        });
+      }
     });
   }
 
@@ -206,7 +245,7 @@ class _ScheduleLocationPickerModalState
         ),
       );
 
-      _reverseGeocode(_currentLat, _currentLng);
+      await _reverseGeocode(_currentLat, _currentLng);
     } catch (_) {}
   }
 
@@ -311,12 +350,34 @@ class _ScheduleLocationPickerModalState
                       target: LatLng(_currentLat, _currentLng),
                       zoom: 16.5,
                     ),
+                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                      Factory<OneSequenceGestureRecognizer>(
+                        () => EagerGestureRecognizer(),
+                      ),
+                    },
                     myLocationEnabled: _hasLocationPermission,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
                     compassEnabled: false,
-                    mapToolbarEnabled: false,
-                    onMapCreated: (ctrl) => _mapController = ctrl,
+                    onMapCreated: (ctrl) {
+                      _mapController = ctrl;
+                      if (widget.initialLatitude != null &&
+                          widget.initialLongitude != null) {
+                        try {
+                          ctrl.animateCamera(
+                            CameraUpdate.newCameraPosition(
+                              CameraPosition(
+                                target: LatLng(
+                                  widget.initialLatitude!,
+                                  widget.initialLongitude!,
+                                ),
+                                zoom: 16.5,
+                              ),
+                            ),
+                          );
+                        } catch (_) {}
+                      }
+                    },
                     onCameraMove: _onCameraMove,
                     onCameraIdle: _onCameraIdle,
                   )
@@ -344,9 +405,11 @@ class _ScheduleLocationPickerModalState
                             ),
                           ],
                         ),
-                        child: const Text(
-                          'Geser peta ke lokasi presensi',
-                          style: TextStyle(
+                        child: Text(
+                          _hasMovedPin
+                              ? 'Pin siap • Tekan "Cek Alamat" di bawah'
+                              : 'Geser peta ke lokasi presensi',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -473,56 +536,183 @@ class _ScheduleLocationPickerModalState
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                if (_isGeocoding)
-                  Row(
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkSurfaceContainerLow
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _hasMovedPin
+                          ? AppColors.brandTeal.withValues(alpha: 0.5)
+                          : borderCol,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.brandTeal,
+                      // Status Icon
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: (_hasMovedPin
+                                  ? const Color(0xFFF59E0B)
+                                  : tealBrand)
+                              .withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          LucideIcons.mapPin,
+                          size: 16,
+                          color: _hasMovedPin
+                              ? const Color(0xFFD97706)
+                              : tealBrand,
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      // Address Text / Geocoding Status
+                      Expanded(
+                        child: _isGeocoding
+                            ? Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.brandTeal,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Mengambil alamat dari Mapbox...',
+                                      style: AppTypography.bodySmall.copyWith(
+                                        color: subtitleCol,
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _currentAddress,
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: textCol,
+                                      fontSize: 12.5,
+                                      height: 1.25,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (_hasMovedPin) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Pin bergeser. Tekan Cek Alamat untuk nama jalan.',
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: isDark
+                                            ? const Color(0xFFFBBF24)
+                                            : const Color(0xFFD97706),
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                      ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Mendeteksi alamat titik peta...',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
+                      // Button / Icon Cek Alamat (Manual Trigger untuk hemat Mapbox API)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: const Key(
+                              'schedule-location-picker-check-address-button'),
+                          onTap:
+                              _isGeocoding ? null : _fetchAddressForCurrentPin,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _hasMovedPin
+                                  ? tealBrand
+                                  : tealBrand.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: tealBrand,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _hasMovedPin
+                                      ? LucideIcons.search
+                                      : LucideIcons.refreshCw,
+                                  size: 13,
+                                  color: _hasMovedPin
+                                      ? Colors.white
+                                      : tealBrand,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Cek Alamat',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: _hasMovedPin
+                                        ? Colors.white
+                                        : tealBrand,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                  )
-                else
-                  Text(
-                    _currentAddress,
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: textCol,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 14),
+                ),
+                const SizedBox(height: 12),
                 AppButton(
                   key: const Key('schedule-location-picker-confirm-button'),
                   text: 'Pilih Lokasi Ini',
                   variant: AppButtonVariant.primary,
                   leadingIcon: LucideIcons.checkCircle,
                   height: 48,
-                  onPressed: () {
-                    Navigator.of(context).pop(
-                      ScheduleLocationResult(
-                        latitude: _currentLat,
-                        longitude: _currentLng,
-                        address: _currentAddress,
-                        locationName: _currentLocationName,
-                      ),
-                    );
+                  isLoading: _isGeocoding,
+                  onPressed: () async {
+                    if (_hasMovedPin && !_isTestEnvironment) {
+                      await _fetchAddressForCurrentPin();
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop(
+                        ScheduleLocationResult(
+                          latitude: _currentLat,
+                          longitude: _currentLng,
+                          address: _currentAddress,
+                          locationName: _currentLocationName,
+                        ),
+                      );
+                    }
                   },
                 ),
               ],

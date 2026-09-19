@@ -67,6 +67,9 @@ dependencies:
   pro_dialog: ^1.0.9
   alice: ^1.5.0
   alice_dio: ^1.2.3
+  flutter_widget_from_html: ^0.17.4
+  syncfusion_flutter_pdfviewer: ^34.2.8
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

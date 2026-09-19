@@ -22,6 +22,7 @@ class AttendanceRequestLocationCard extends StatefulWidget {
 class _AttendanceRequestLocationCardState
     extends State<AttendanceRequestLocationCard> {
   GoogleMapController? _mapController;
+  int _selectedLocationIndex = 0; // 0 = Masuk, 1 = Pulang
 
   bool get _isTestEnvironment {
     try {
@@ -54,9 +55,24 @@ class _AttendanceRequestLocationCardState
     final brandTealCol =
         isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
-    final lat = widget.detail.latitude ?? 0.0;
-    final lng = widget.detail.longitude ?? 0.0;
-    final hasCoords = widget.detail.hasValidCoordinates;
+    final detail = widget.detail;
+    final hasOutCoords = detail.hasValidCoordinatesOut;
+    final showToggle = detail.isInOut && (hasOutCoords || detail.addressOut != null);
+
+    final isViewingOut = detail.isOut || (showToggle && _selectedLocationIndex == 1);
+
+    final lat = isViewingOut
+        ? (detail.latitudeOut ?? detail.latitude ?? 0.0)
+        : (detail.latitude ?? detail.latitudeOut ?? 0.0);
+    final lng = isViewingOut
+        ? (detail.longitudeOut ?? detail.longitude ?? 0.0)
+        : (detail.longitude ?? detail.longitudeOut ?? 0.0);
+    final address = isViewingOut
+        ? (detail.addressOut ?? detail.address)
+        : (detail.address ?? detail.addressOut);
+    final hasCoords = isViewingOut
+        ? (detail.hasValidCoordinatesOut || detail.hasValidCoordinates)
+        : (detail.hasValidCoordinates || detail.hasValidCoordinatesOut);
     final targetLatLng = LatLng(lat, lng);
 
     return Container(
@@ -125,6 +141,16 @@ class _AttendanceRequestLocationCardState
                 ),
             ],
           ),
+          if (showToggle) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _buildSegmentChip(0, 'Lokasi Masuk', isDark, brandTealCol),
+                const SizedBox(width: 8),
+                _buildSegmentChip(1, 'Lokasi Pulang', isDark, brandTealCol),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
 
           // Address & Coordinates Info
@@ -149,9 +175,8 @@ class _AttendanceRequestLocationCardState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      (widget.detail.address != null &&
-                              widget.detail.address!.trim().isNotEmpty)
-                          ? widget.detail.address!.trim()
+                      (address != null && address.trim().isNotEmpty)
+                          ? address.trim()
                           : 'Lokasi Luar Kantor',
                       style: AppTypography.titleMedium.copyWith(
                         color: textCol,
@@ -186,7 +211,13 @@ class _AttendanceRequestLocationCardState
               border: Border.all(color: borderCol),
             ),
             clipBehavior: Clip.antiAlias,
-            child: _buildMapWidget(targetLatLng, hasCoords, isDark, subtitleCol),
+            child: _buildMapWidget(
+              targetLatLng,
+              hasCoords,
+              isDark,
+              subtitleCol,
+              address,
+            ),
           ),
         ],
       ),
@@ -198,6 +229,7 @@ class _AttendanceRequestLocationCardState
     bool hasCoords,
     bool isDark,
     Color subtitleCol,
+    String? currentAddress,
   ) {
     if (_isTestEnvironment || !hasCoords) {
       return Container(
@@ -228,6 +260,9 @@ class _AttendanceRequestLocationCardState
     }
 
     return GoogleMap(
+      key: ValueKey(
+        'attendance_request_map_${targetLatLng.latitude.toStringAsFixed(5)}_${targetLatLng.longitude.toStringAsFixed(5)}',
+      ),
       initialCameraPosition: CameraPosition(
         target: targetLatLng,
         zoom: 15.5,
@@ -237,7 +272,7 @@ class _AttendanceRequestLocationCardState
           markerId: const MarkerId('attendance_request_location'),
           position: targetLatLng,
           infoWindow: InfoWindow(
-            title: widget.detail.address ?? 'Lokasi Presensi',
+            title: currentAddress ?? widget.detail.address ?? 'Lokasi Presensi',
           ),
         ),
       },
@@ -248,6 +283,74 @@ class _AttendanceRequestLocationCardState
       onMapCreated: (controller) {
         _mapController = controller;
       },
+    );
+  }
+
+  Widget _buildSegmentChip(
+    int index,
+    String label,
+    bool isDark,
+    Color brandTealCol,
+  ) {
+    final isSelected = _selectedLocationIndex == index;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedLocationIndex = index;
+        });
+        final detail = widget.detail;
+        final hasOutCoords = detail.hasValidCoordinatesOut;
+        final showToggle =
+            detail.isInOut && (hasOutCoords || detail.addressOut != null);
+        final nextViewingOut =
+            detail.isOut || (showToggle && index == 1);
+        final nextLat = nextViewingOut
+            ? (detail.latitudeOut ?? detail.latitude ?? 0.0)
+            : (detail.latitude ?? detail.latitudeOut ?? 0.0);
+        final nextLng = nextViewingOut
+            ? (detail.longitudeOut ?? detail.longitude ?? 0.0)
+            : (detail.longitude ?? detail.longitudeOut ?? 0.0);
+        if (nextLat != 0.0 || nextLng != 0.0) {
+          try {
+            _mapController?.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(nextLat, nextLng),
+                  zoom: 15.5,
+                ),
+              ),
+            );
+          } catch (_) {}
+        }
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark
+                  ? AppColors.primaryContainer.withValues(alpha: 0.25)
+                  : const Color(0xFFF0FDFA))
+              : (isDark
+                  ? AppColors.darkSurfaceContainerLow
+                  : const Color(0xFFF8FAFC)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? brandTealCol
+                : (isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0)),
+            width: isSelected ? 1.2 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            color: isSelected ? brandTealCol : AppColors.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 11,
+          ),
+        ),
+      ),
     );
   }
 }

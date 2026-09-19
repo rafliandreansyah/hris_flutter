@@ -84,6 +84,10 @@ class AttendanceRequestItem extends Equatable {
   final bool isSelf;
   final String? attendanceType;
   final String? approverNotes;
+  final DateTime? attendanceInTime;
+  final DateTime? attendanceOutTime;
+  final DateTime? attendanceTime;
+  final String? timezone;
 
   const AttendanceRequestItem({
     required this.id,
@@ -105,11 +109,43 @@ class AttendanceRequestItem extends Equatable {
     this.isSelf = false,
     this.attendanceType,
     this.approverNotes,
+    this.attendanceInTime,
+    this.attendanceOutTime,
+    this.attendanceTime,
+    this.timezone,
   });
+
+  // ── Tipe Presensi Helpers ──────────────────────────────────────────
+  bool get isIn => attendanceType?.trim().toLowerCase() == 'in';
+
+  bool get isOut => attendanceType?.trim().toLowerCase() == 'out';
+
+  bool get isInOut {
+    final t = attendanceType?.trim().toLowerCase();
+    return t == 'inout' || t == 'in_out' || t == 'in-out';
+  }
+
+  String get attendanceTypeBadge {
+    if (isInOut) return 'IN & OUT';
+    if (isOut) return 'OUT';
+    if (isIn) return 'IN';
+    return attendanceType?.toUpperCase() ?? '';
+  }
+
+  String get attendanceTypeLabel {
+    if (isInOut) return 'Presensi Masuk & Pulang';
+    if (isOut) return 'Presensi Pulang';
+    return 'Presensi Masuk';
+  }
 
   /// Format tanggal presensi, e.g. "29 Agustus 2026"
   String get formattedDate {
-    if (date == null) return '-';
+    final effectiveDate = date ??
+        attendanceInTime ??
+        attendanceTime ??
+        attendanceOutTime ??
+        createdAt;
+    if (effectiveDate == null) return '-';
     const months = [
       'Januari',
       'Februari',
@@ -124,22 +160,59 @@ class AttendanceRequestItem extends Equatable {
       'November',
       'Desember',
     ];
-    return '${date!.day} ${months[date!.month - 1]} ${date!.year}';
+    return '${effectiveDate.day} ${months[effectiveDate.month - 1]} ${effectiveDate.year}';
   }
 
-  /// Format jam kerja, e.g. "Jam Kerja: Masuk 08:30 WIB s/d Pulang 17:00 WIB"
+  /// Format jam kerja / jam presensi berdasarkan attendanceType (in, out, inout)
   String get formattedWorkHours {
+    final tz = (timezone != null && timezone!.trim().isNotEmpty)
+        ? timezone!.trim()
+        : 'WIB';
+
+    // 1. Kasus IN: Tampilkan hanya jam masuk
+    if (isIn) {
+      final sTime = startTime?.trim();
+      if (sTime != null && sTime.isNotEmpty) {
+        return 'Jam Masuk: $sTime $tz';
+      }
+      return 'Presensi Masuk';
+    }
+
+    // 2. Kasus OUT: Tampilkan hanya jam pulang
+    if (isOut) {
+      final eTime = endTime?.trim();
+      if (eTime != null && eTime.isNotEmpty) {
+        return 'Jam Pulang: $eTime $tz';
+      }
+      return 'Presensi Pulang';
+    }
+
+    // 3. Kasus INOUT: Tampilkan masuk & pulang
+    if (isInOut) {
+      final sTime = startTime?.trim();
+      final eTime = endTime?.trim();
+      if (sTime != null && sTime.isNotEmpty && eTime != null && eTime.isNotEmpty) {
+        return 'Masuk $sTime • Pulang $eTime $tz';
+      } else if (sTime != null && sTime.isNotEmpty) {
+        return 'Jam Masuk: $sTime $tz';
+      } else if (eTime != null && eTime.isNotEmpty) {
+        return 'Jam Pulang: $eTime $tz';
+      }
+      return 'Presensi Masuk & Pulang';
+    }
+
+    // 4. Default fallback jika tipe presensi tidak ditentukan
     if (workHours != null && workHours!.trim().isNotEmpty) {
       return workHours!;
     }
     final sTime = startTime?.trim();
     final eTime = endTime?.trim();
     if (sTime != null && sTime.isNotEmpty && eTime != null && eTime.isNotEmpty) {
-      return 'Jam Kerja: Masuk $sTime WIB s/d Pulang $eTime WIB';
+      return 'Jam Kerja: Masuk $sTime $tz s/d Pulang $eTime $tz';
     } else if (sTime != null && sTime.isNotEmpty) {
-      return 'Jam Masuk: $sTime WIB';
+      return 'Jam Masuk: $sTime $tz';
     } else if (eTime != null && eTime.isNotEmpty) {
-      return 'Jam Pulang: $eTime WIB';
+      return 'Jam Pulang: $eTime $tz';
     }
     return 'Jam Kerja: Jam Operasional Normal';
   }
@@ -161,9 +234,12 @@ class AttendanceRequestItem extends Equatable {
       'November',
       'Desember',
     ];
+    final tz = (timezone != null && timezone!.trim().isNotEmpty)
+        ? timezone!.trim()
+        : 'WIB';
     final h = createdAt!.hour.toString().padLeft(2, '0');
     final m = createdAt!.minute.toString().padLeft(2, '0');
-    return 'Diajukan: ${createdAt!.day} ${months[createdAt!.month - 1]} ${createdAt!.year}, $h:$m WIB';
+    return 'Diajukan: ${createdAt!.day} ${months[createdAt!.month - 1]} ${createdAt!.year}, $h:$m $tz';
   }
 
   @override
@@ -187,5 +263,9 @@ class AttendanceRequestItem extends Equatable {
         isSelf,
         attendanceType,
         approverNotes,
+        attendanceInTime,
+        attendanceOutTime,
+        attendanceTime,
+        timezone,
       ];
 }

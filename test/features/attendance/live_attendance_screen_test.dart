@@ -310,9 +310,18 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Memastikan dialog sukses muncul
+      // Memastikan dialog sukses muncul tepat satu kali
       expect(find.text('Presensi Live Berhasil'), findsOneWidget);
       expect(find.text('Presensi live berhasil dikirim.'), findsOneWidget);
+
+      // Simulasikan berlalunya beberapa detik jam WIB
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      // Memastikan dialog tetap tampil tepat satu kali (tidak loop berulang-ulang)
+      expect(find.text('Presensi Live Berhasil'), findsOneWidget);
+
       expect(repo.submitted, isNotNull);
       expect(repo.submitted!.attendanceMethod, 'biometric');
       expect(repo.submitted!.file, isNull);
@@ -320,6 +329,21 @@ void main() {
 
       BiometricService.testAuthenticateHandler = null;
       bloc.close();
+    });
+
+    testWidgets(
+        'LiveAttendanceScreen boots cleanly with default constructor without bloc or repository provided in context', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: LiveAttendanceScreen(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Presensi Luar (Live)'), findsOneWidget);
     });
   });
 }

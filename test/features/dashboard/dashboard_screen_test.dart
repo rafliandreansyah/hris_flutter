@@ -232,6 +232,138 @@ void main() {
     });
 
     testWidgets(
+        'UpdatesFeedCard renders multiple announcements up to 5 items', (
+      WidgetTester tester,
+    ) async {
+      final announcements = List.generate(
+        5,
+        (i) => AnnouncementItem(
+          id: 'ann-$i',
+          title: 'Pengumuman Penting #$i',
+          createdAt: '2026-09-18T10:00:00.000Z',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: UpdatesFeedCard(
+                announcements: announcements,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Updates'), findsOneWidget);
+      expect(find.text('See All'), findsOneWidget);
+      for (int i = 0; i < 5; i++) {
+        expect(find.text('Pengumuman Penting #$i'), findsOneWidget);
+      }
+      expect(find.text('Tidak ada pengumuman'), findsNothing);
+    });
+
+    testWidgets(
+        'UpdatesFeedCard invokes onAnnouncementTap with correct item when tapped', (
+      WidgetTester tester,
+    ) async {
+      AnnouncementItem? tappedItem;
+      final announcements = [
+        const AnnouncementItem(
+          id: 'ann-123',
+          title: 'Perubahan Jam Kerja Ramadhan',
+          createdAt: '2026-09-18T10:00:00.000Z',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: UpdatesFeedCard(
+              announcements: announcements,
+              onAnnouncementTap: (item) {
+                tappedItem = item;
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Perubahan Jam Kerja Ramadhan'));
+      await tester.pumpAndSettle();
+
+      expect(tappedItem, isNotNull);
+      expect(tappedItem?.id, equals('ann-123'));
+      expect(tappedItem?.title, equals('Perubahan Jam Kerja Ramadhan'));
+    });
+
+    testWidgets(
+        'Tapping announcement item on Dashboard navigates to Announcement Detail', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+        latestAnnouncement: const [
+          AnnouncementItem(
+            id: 'ann-target-99',
+            title: 'Pengumuman Libur Nasional',
+            createdAt: '2026-09-18T10:00:00.000Z',
+          ),
+        ],
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+      String? capturedExtraId;
+
+      final testRouter = GoRouter(
+        initialLocation: '/dashboard',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(repository: repo),
+          ),
+          GoRoute(
+            path: Routes.ANNOUNCEMENT_DETAIL,
+            builder: (context, state) {
+              capturedExtraId = state.extra as String?;
+              return const Scaffold(
+                body: Text('Announcement Detail Screen Destination'),
+              );
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: testRouter,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Pengumuman Libur Nasional'), findsOneWidget);
+
+      await tester.tap(find.text('Pengumuman Libur Nasional'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Announcement Detail Screen Destination'),
+        findsOneWidget,
+      );
+      expect(capturedExtraId, equals('ann-target-99'));
+    });
+
+    testWidgets(
         'DashboardScreen displays error state and error dialog on repository error with English message', (
       WidgetTester tester,
     ) async {

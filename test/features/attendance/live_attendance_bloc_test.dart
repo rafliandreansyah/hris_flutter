@@ -389,5 +389,46 @@ void main() {
       await expectation;
       await bloc.close();
     });
+
+    test('LiveAttendanceClockTicked diabaikan dan tidak emit state baru setelah submissionSuccess bernilai true', () async {
+      final bloc = LiveAttendanceBloc(
+        repository: mockRepo,
+        initialTime: initialTime,
+        autoStartTimer: false,
+        addressFetcher: ({required latitude, required longitude}) async =>
+            'Jl. Sudirman',
+      );
+
+      bloc.add(const LiveAttendanceLocationUpdated(
+        latitude: -6.2297,
+        longitude: 106.8166,
+        accuracy: '±2m',
+      ));
+      bloc.add(const LiveAttendanceReasonChanged('Uji loop dialog'));
+      bloc.add(LiveAttendancePhotoChanged(XFile('test/selfie.jpg')));
+      bloc.add(const LiveAttendanceSubmitted());
+
+      // Tunggu hingga submissionSuccess
+      await expectLater(
+        bloc.stream.skip(3),
+        emitsInOrder([
+          predicate<LiveAttendanceState>((s) => s.isSubmitting),
+          predicate<LiveAttendanceState>((s) => s.submissionSuccess),
+        ]),
+      );
+
+      // Sekarang coba kirim LiveAttendanceClockTicked
+      bool hasEmitted = false;
+      final sub = bloc.stream.listen((_) => hasEmitted = true);
+
+      bloc.add(LiveAttendanceClockTicked(DateTime.now().add(const Duration(seconds: 1))));
+      bloc.add(LiveAttendanceClockTicked(DateTime.now().add(const Duration(seconds: 2))));
+
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(hasEmitted, isFalse, reason: 'Clock tick tidak boleh me-reemit state setelah submit sukses');
+
+      await sub.cancel();
+      await bloc.close();
+    });
   });
 }

@@ -68,6 +68,10 @@
     - **Mandatory Red Asterisk (`*`)**: For all required form input fields, form labels, section headers, or upload cards across all features, the mandatory asterisk indicator (`*`) MUST ALWAYS be styled in red (`AppColors.errorRed` / `AppColors.error`, e.g., `TextSpan(text: ' *', style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold))`).
     - **AppTextField Standard**: `AppTextField` automatically renders the required asterisk (`*`) in red (either cleanly extracted from `label` containing `*` or when `isRequired: true`).
     - **Zero Plain Asterisks**: Never render a required asterisk `*` in the default label or onSurface text color.
+14. **Request Items Employee Info Standard (`EmployeeInfoRow`)**:
+    - **Single Standard for Request Modules**: Across all request modules (`attendance_request`, `leave`, `overtime`, etc.) and feeds (`activity`), all request item cards displayed in list views MUST ALWAYS use the global widget **`EmployeeInfoRow`** (`lib/core/widgets/employee_info_row.dart`) for rendering employee identity (avatar, name, role • department, employee number badge, company badge).
+    - **Consistency Across Cards**: Never build manual or ad-hoc avatar + employee info columns in request cards. Always pass `name`, `role`, `department`, `company`, `employeeId`, `avatarUrl`, `initials`, and a compact `avatarSize` (typically 40–44) into `EmployeeInfoRow`.
+
 
 
 

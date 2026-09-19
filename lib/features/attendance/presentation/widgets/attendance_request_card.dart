@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -10,11 +11,7 @@ class AttendanceRequestCard extends StatelessWidget {
   final AttendanceRequestItem item;
   final VoidCallback? onTap;
 
-  const AttendanceRequestCard({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const AttendanceRequestCard({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +20,18 @@ class AttendanceRequestCard extends StatelessWidget {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : const Color(0xFF64748B);
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : const Color(0xFFE2E8F0);
     final innerBoxBg = isDark
         ? AppColors.darkSurfaceContainerLow
         : const Color(0xFFF8FAFC);
-    final brandColor =
-        isDark ? AppColors.inversePrimary : const Color(0xFF0D9488);
+    final brandColor = isDark
+        ? AppColors.inversePrimary
+        : const Color(0xFF0D9488);
 
     final status = item.status;
 
@@ -57,78 +57,54 @@ class AttendanceRequestCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header: Avatar + Info Pegawai + Badge Status ────────
+              // ── Header: Info Pegawai (via EmployeeInfoRow) + Badge Status ────────
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildAvatar(isDark, brandColor),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          item.name,
-                          style: AppTypography.titleMedium.copyWith(
-                            color: textCol,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15.5,
+                        if (item.isSelf)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.user,
+                                  size: 13,
+                                  color: brandColor,
+                                ),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    'Your request',
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: brandColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          item.role.isNotEmpty
-                              ? item.role
-                              : (item.department.isNotEmpty
-                                  ? item.department
-                                  : 'Pegawai'),
-                          style: AppTypography.labelMedium.copyWith(
-                            color: subtitleCol,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        EmployeeInfoRow(
+                          name: item.name,
+                          role: item.role,
+                          department: item.department,
+                          company: item.company.isNotEmpty ? item.company : null,
+                          employeeId: item.employeeNumber,
+                          avatarUrl: item.avatarUrl,
+                          initials: item.initials,
+                          avatarSize: 42,
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
                   // Status Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: status.backgroundColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: status.dotColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          status.label,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: status.textColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildStatusBadge(status),
                 ],
               ),
 
@@ -149,7 +125,7 @@ class AttendanceRequestCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Baris 1: Tanggal
+                    // Baris 1: Tanggal & Badge Tipe
                     Row(
                       children: [
                         Icon(
@@ -168,19 +144,17 @@ class AttendanceRequestCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (item.attendanceTypeBadge.isNotEmpty)
+                          _buildTypeBadge(item, isDark),
                       ],
                     ),
 
                     const SizedBox(height: 6),
 
-                    // Baris 2: Jam Kerja
+                    // Baris 2: Jam Kerja / Jam Presensi
                     Row(
                       children: [
-                        Icon(
-                          LucideIcons.clock,
-                          size: 15,
-                          color: subtitleCol,
-                        ),
+                        Icon(LucideIcons.clock, size: 15, color: subtitleCol),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -231,25 +205,6 @@ class AttendanceRequestCard extends StatelessWidget {
                         fontSize: 11,
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Tinjau Pengajuan',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: brandColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          LucideIcons.chevronRight,
-                          size: 16,
-                          color: brandColor,
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -260,45 +215,81 @@ class AttendanceRequestCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(bool isDark, Color brandColor) {
-    if (item.avatarUrl != null && item.avatarUrl!.trim().isNotEmpty) {
-      return ClipOval(
-        child: Image.network(
-          item.avatarUrl!,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-              _buildFallbackAvatar(isDark, brandColor),
-        ),
-      );
-    }
-    return _buildFallbackAvatar(isDark, brandColor);
-  }
+  Widget _buildTypeBadge(AttendanceRequestItem item, bool isDark) {
+    Color bg;
+    Color fg;
+    Color border;
 
-  Widget _buildFallbackAvatar(bool isDark, Color brandColor) {
+    if (item.isInOut) {
+      bg = isDark
+          ? const Color(0xFF312E81).withValues(alpha: 0.35)
+          : const Color(0xFFEEF2FF);
+      fg = isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA);
+      border = isDark ? const Color(0xFF4338CA) : const Color(0xFFC7D2FE);
+    } else if (item.isOut) {
+      bg = isDark
+          ? const Color(0xFF7C2D12).withValues(alpha: 0.35)
+          : const Color(0xFFFFF7ED);
+      fg = isDark ? const Color(0xFFFDBA74) : const Color(0xFFC2410C);
+      border = isDark ? const Color(0xFF9A3412) : const Color(0xFFFED7AA);
+    } else {
+      bg = isDark
+          ? const Color(0xFF134E4A).withValues(alpha: 0.35)
+          : const Color(0xFFF0FDFA);
+      fg = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E);
+      border = isDark ? const Color(0xFF115E59) : const Color(0xFFCCFBF1);
+    }
+
     return Container(
-      width: 40,
-      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkPrimaryContainer
-            : const Color(0xFFF0FDFA),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isDark ? AppColors.darkOutlineMuted : const Color(0xFFCCFBF1),
-          width: 1,
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: border, width: 0.8),
+      ),
+      child: Text(
+        item.attendanceTypeBadge,
+        style: AppTypography.labelSmall.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+          fontSize: 10.5,
+          letterSpacing: 0.2,
         ),
       ),
-      child: Center(
-        child: Text(
-          item.initials,
-          style: AppTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w700,
-            color: brandColor,
-            fontSize: 14,
+    );
+  }
+
+  Widget _buildStatusBadge(AttendanceRequestStatus status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: status.backgroundColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: status.dotColor,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
+          const SizedBox(width: 6),
+          Text(
+            status.label,
+            style: AppTypography.labelSmall.copyWith(
+              color: status.textColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

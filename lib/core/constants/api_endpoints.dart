@@ -97,7 +97,11 @@ abstract class ApiEndpoints {
   // ==========================================
   // --- 📢 ANNOUNCEMENT & AUDIT ENDPOINTS ---
   // ==========================================
+  static const String announcement = '/announcement';
   static const String announcements = '/announcements';
+  static String announcementDetail(String id) => '/announcement/$id';
+  static String announcementAcknowledge(String id) =>
+      '/announcement/$id/acknowledge';
   static const String auditLogs = '/audit-logs/my';
 
   // ==========================================

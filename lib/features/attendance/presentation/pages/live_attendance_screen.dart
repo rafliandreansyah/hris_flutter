@@ -14,6 +14,8 @@ import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_image_preview_dialog.dart';
 import 'package:hris_flutter/core/widgets/app_realtime_map_card.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
+import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
+import 'package:hris_flutter/features/attendance/data/repositories/attendance_request_repository_impl.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_bloc.dart';
@@ -58,11 +60,34 @@ class LiveAttendanceScreen extends StatelessWidget {
     }
 
     return BlocProvider<LiveAttendanceBloc>(
-      create: (context) => LiveAttendanceBloc(
-        repository: repository ?? context.read<AttendanceRequestRepository>(),
-        attendanceRepository: attendanceRepository ??
-            (context.read<AttendanceRepository?>()),
-      )..add(LiveAttendanceStarted(initialMethod: initialMethod)),
+      create: (context) {
+        AttendanceRequestRepository reqRepo;
+        if (repository != null) {
+          reqRepo = repository!;
+        } else {
+          try {
+            reqRepo = context.read<AttendanceRequestRepository>();
+          } catch (_) {
+            reqRepo = AttendanceRequestRepositoryImpl();
+          }
+        }
+
+        AttendanceRepository? attRepo;
+        if (attendanceRepository != null) {
+          attRepo = attendanceRepository;
+        } else {
+          try {
+            attRepo = context.read<AttendanceRepository>();
+          } catch (_) {
+            attRepo = AttendanceRepositoryImpl();
+          }
+        }
+
+        return LiveAttendanceBloc(
+          repository: reqRepo,
+          attendanceRepository: attRepo,
+        )..add(LiveAttendanceStarted(initialMethod: initialMethod));
+      },
       child: _LiveAttendanceView(imagePicker: imagePicker),
     );
   }
@@ -85,6 +110,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
 
   ImageCompressResult? _compressResult;
   bool _isCompressing = false;
+  bool _isSuccessDialogShown = false;
 
   static const List<String> _monthsId = [
     'Januari',
@@ -236,6 +262,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     }
 
     if (!context.mounted) return;
+    _isSuccessDialogShown = false;
     context.read<LiveAttendanceBloc>().add(const LiveAttendanceSubmitted());
   }
 
@@ -254,8 +281,16 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
         isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
 
     return BlocConsumer<LiveAttendanceBloc, LiveAttendanceState>(
+      listenWhen: (previous, current) {
+        return (previous.submissionSuccess != current.submissionSuccess &&
+                current.submissionSuccess) ||
+            (previous.errorMessage != current.errorMessage &&
+                current.errorMessage != null &&
+                !current.isSubmitting);
+      },
       listener: (context, state) {
-        if (state.submissionSuccess) {
+        if (state.submissionSuccess && !_isSuccessDialogShown) {
+          _isSuccessDialogShown = true;
           AppDialogUtil.showSuccess(
             context,
             title: 'Presensi Live Berhasil',

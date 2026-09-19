@@ -175,6 +175,10 @@ class AttendanceRequestApiModel {
   final DateTime? createdAt;
   final String? attendanceType;
   final String? approverNotes;
+  final DateTime? attendanceInTime;
+  final DateTime? attendanceOutTime;
+  final DateTime? attendanceTime;
+  final String? timezone;
 
   const AttendanceRequestApiModel({
     required this.id,
@@ -188,6 +192,10 @@ class AttendanceRequestApiModel {
     this.createdAt,
     this.attendanceType,
     this.approverNotes,
+    this.attendanceInTime,
+    this.attendanceOutTime,
+    this.attendanceTime,
+    this.timezone,
   });
 
   factory AttendanceRequestApiModel.fromJson(Map<String, dynamic> json) {
@@ -206,13 +214,22 @@ class AttendanceRequestApiModel {
       if (str.contains('T') || str.contains(' ')) {
         final dt = DateTime.tryParse(str);
         if (dt != null) {
-          final h = dt.hour.toString().padLeft(2, '0');
-          final m = dt.minute.toString().padLeft(2, '0');
+          final local = dt.toLocal();
+          final h = local.hour.toString().padLeft(2, '0');
+          final m = local.minute.toString().padLeft(2, '0');
           return '$h:$m';
         }
       }
       return str;
     }
+
+    final rawType = (json['attendanceType'] ?? json['type'])?.toString();
+    final normType = rawType?.toLowerCase().trim();
+    final tz = json['timezone']?.toString() ?? 'WIB';
+
+    final aTime = parseDate(json['attendanceTime']);
+    final inTime = parseDate(json['attendanceInTime'] ?? (normType == 'in' ? json['attendanceTime'] : null));
+    final outTime = parseDate(json['attendanceOutTime'] ?? (normType == 'out' ? json['attendanceTime'] : null));
 
     return AttendanceRequestApiModel(
       id: json['id']?.toString() ?? '',
@@ -223,19 +240,39 @@ class AttendanceRequestApiModel {
       date: parseDate(json['date'] ??
           json['attendanceDate'] ??
           json['startDate'] ??
-          json['workDate']),
-      startTime: parseTime(json['startTime'] ?? json['start_time'] ?? json['clockIn'] ?? json['checkInTime']),
-      endTime: parseTime(json['endTime'] ?? json['end_time'] ?? json['clockOut'] ?? json['checkOutTime']),
+          json['workDate'] ??
+          json['attendanceInTime'] ??
+          json['attendanceTime'] ??
+          json['attendanceOutTime'] ??
+          json['createdAt']),
+      startTime: parseTime(json['attendanceInTime'] ??
+          json['startTime'] ??
+          json['start_time'] ??
+          json['clockIn'] ??
+          json['checkInTime'] ??
+          (normType == 'in' ? json['attendanceTime'] : null)),
+      endTime: parseTime(json['attendanceOutTime'] ??
+          json['endTime'] ??
+          json['end_time'] ??
+          json['clockOut'] ??
+          json['checkOutTime'] ??
+          (normType == 'out' ? json['attendanceTime'] : null)),
       workHours: json['workHours']?.toString() ?? json['shiftHours']?.toString(),
-      notes: json['notes']?.toString() ??
-          json['reason']?.toString() ??
+      notes: json['reason']?.toString() ??
+          json['notes']?.toString() ??
           json['description']?.toString() ??
           json['note']?.toString() ??
           '',
       status: json['status']?.toString() ?? json['statusApprove']?.toString() ?? '',
       createdAt: parseDate(json['createdAt'] ?? json['created_at'] ?? json['submittedAt']),
-      attendanceType: json['type']?.toString() ?? json['attendanceType']?.toString(),
-      approverNotes: json['approverNotes']?.toString() ?? json['approver_note']?.toString(),
+      attendanceType: rawType,
+      approverNotes: json['approverNotes']?.toString() ??
+          json['approverNote']?.toString() ??
+          json['approver_note']?.toString(),
+      attendanceInTime: inTime,
+      attendanceOutTime: outTime,
+      attendanceTime: aTime,
+      timezone: tz,
     );
   }
 }
@@ -328,5 +365,9 @@ AttendanceRequestItem attendanceRequestItemFromApiJson(
     isSelf: !isApprover,
     attendanceType: model.attendanceType,
     approverNotes: model.approverNotes,
+    attendanceInTime: model.attendanceInTime,
+    attendanceOutTime: model.attendanceOutTime,
+    attendanceTime: model.attendanceTime,
+    timezone: model.timezone,
   );
 }

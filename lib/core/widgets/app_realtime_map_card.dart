@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 // import 'package:geocoding/geocoding.dart'; // Disabled sementara (biaya API Google)
 import 'package:geolocator/geolocator.dart';
@@ -72,7 +74,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
 
   /// Flag pengujian unit/widget test untuk melewati GoogleMap dan animasi berulang
   @visibleForTesting
-  static bool bypassInTest = true;
+  static bool bypassInTest = false;
 
   bool get _isTestEnvironment {
     if (bypassInTest) return true;
@@ -374,6 +376,12 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                         target: targetLocation,
                         zoom: 16.5,
                       ),
+                      gestureRecognizers:
+                          <Factory<OneSequenceGestureRecognizer>>{
+                        Factory<OneSequenceGestureRecognizer>(
+                          () => EagerGestureRecognizer(),
+                        ),
+                      },
                       // Murni lingkaran biru GPS tanpa pin marker merah/buatan
                       markers: const <Marker>{},
                       circles: {

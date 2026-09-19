@@ -31,7 +31,15 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
 
-    final hasImage = detail.filePath != null && detail.filePath!.trim().isNotEmpty;
+    final hasInImage =
+        detail.filePath != null && detail.filePath!.trim().isNotEmpty;
+    final hasOutImage =
+        detail.filePathOut != null && detail.filePathOut!.trim().isNotEmpty;
+    final isOutOnly = detail.isOut;
+
+    final primaryOutImage = detail.filePathOut ?? detail.filePath;
+    final hasPrimaryOutImage =
+        primaryOutImage != null && primaryOutImage.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -61,10 +69,40 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          if (hasImage) ...[
+          if (detail.isInOut && hasInImage && hasOutImage) ...[
+            // Tampilkan foto masuk dan pulang jika kedua foto ada
             AppImageThumbnailPreview(
               imageUrl: detail.filePath,
-              title: 'Foto Bukti Presensi',
+              title: 'Foto Bukti Masuk',
+              subtitle: detail.formattedDate,
+              hintText:
+                  'Foto Presensi Masuk • Ketuk untuk memperbesar foto',
+              height: 180.0,
+            ),
+            const SizedBox(height: 12),
+            AppImageThumbnailPreview(
+              imageUrl: detail.filePathOut,
+              title: 'Foto Bukti Pulang',
+              subtitle: detail.formattedDate,
+              hintText:
+                  'Foto Presensi Pulang • Ketuk untuk memperbesar foto',
+              height: 180.0,
+            ),
+          ] else if (isOutOnly && hasPrimaryOutImage) ...[
+            AppImageThumbnailPreview(
+              imageUrl: primaryOutImage,
+              title: 'Foto Bukti Presensi Pulang',
+              subtitle: detail.formattedDate,
+              hintText:
+                  'Selfie / Foto Lokasi Kunjungan • Ketuk untuk memperbesar foto',
+              height: 190.0,
+            ),
+          ] else if (hasInImage) ...[
+            AppImageThumbnailPreview(
+              imageUrl: detail.filePath,
+              title: detail.isIn
+                  ? 'Foto Bukti Presensi Masuk'
+                  : 'Foto Bukti Presensi',
               subtitle: detail.formattedDate,
               hintText:
                   'Selfie / Foto Lokasi Kunjungan • Ketuk untuk memperbesar foto',

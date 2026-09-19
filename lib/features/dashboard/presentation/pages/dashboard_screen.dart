@@ -138,22 +138,6 @@ class _DashboardViewState extends State<_DashboardView> {
     return '$dayName, ${dt.day} $monthName';
   }
 
-  String _formatAnnouncementTime(String? createdAt) {
-    if (createdAt == null || createdAt.isEmpty) {
-      return 'Terbaru · Company Announcement';
-    }
-    final dt = DateTime.tryParse(createdAt);
-    if (dt == null) return 'Terbaru · Company Announcement';
-    final now = DateTime.now();
-    final diff = now.difference(dt);
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m lalu · Company Announcement';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}h lalu · Company Announcement';
-    } else {
-      return '${diff.inDays}h lalu · Company Announcement';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -439,11 +423,6 @@ class _DashboardViewState extends State<_DashboardView> {
               // Lokasi Perusahaan
               final companyName = data.company?.name ?? 'HQ, Building A';
 
-              // Pengumuman Terakhir
-              final hasAnnouncement = data.latestAnnouncement.isNotEmpty;
-              final announcement = hasAnnouncement
-                  ? data.latestAnnouncement.first
-                  : null;
 
               return RefreshIndicator(
                 color: AppColors.brandTeal,
@@ -493,11 +472,18 @@ class _DashboardViewState extends State<_DashboardView> {
 
                       // 3. Section: Updates / Feed Pengumuman
                       UpdatesFeedCard(
-                        hasAnnouncement: hasAnnouncement,
-                        title: announcement?.title,
-                        timeAndCategory: _formatAnnouncementTime(
-                          announcement?.createdAt,
-                        ),
+                        announcements: data.latestAnnouncement,
+                        onAnnouncementTap: (announcement) async {
+                          await context.push(
+                            Routes.ANNOUNCEMENT_DETAIL,
+                            extra: announcement.id,
+                          );
+                          if (context.mounted) {
+                            context.read<DashboardBloc>().add(
+                              const DashboardFetchRequested(isRefresh: true),
+                            );
+                          }
+                        },
                       ),
                       const SizedBox(height: 32),
 

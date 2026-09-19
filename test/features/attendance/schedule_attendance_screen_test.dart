@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_request.dart';
@@ -250,6 +251,75 @@ void main() {
       expect(find.text('Form Belum Lengkap'), findsOneWidget);
       expect(find.text('Alasan pengajuan presensi terjadwal wajib diisi.'), findsOneWidget);
 
+      bloc.close();
+    });
+
+    testWidgets(
+        'ScheduleAttendanceScreen boots cleanly with default constructor without bloc or repository provided in context', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ScheduleAttendanceScreen(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Presensi Luar (Schedule)'), findsOneWidget);
+    });
+
+    testWidgets('ScheduleAttendanceScreen submit berhasil memunculkan dialog sukses tepat satu kali', (tester) async {
+      BiometricService.testAuthenticateHandler = ({String localizedReason = ''}) async => true;
+      final repo = _FakeAttendanceRequestRepo();
+      final bloc = ScheduleAttendanceBloc(
+        repository: repo,
+        initialDate: DateTime(2026, 9, 17),
+      );
+
+      // Siapkan state yang valid untuk submission
+      bloc.add(const ScheduleAttendanceMethodChanged('biometric'));
+      bloc.add(const ScheduleAttendanceInLocationChanged(
+        latitude: -6.2250,
+        longitude: 106.8090,
+        address: 'Menara Mandiri Jakarta',
+      ));
+
+      await tester.pumpWidget(
+        _wrapWidget(ScheduleAttendanceScreen(bloc: bloc)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Isi teks alasan
+      await tester.enterText(
+        find.byKey(const Key('schedule-reason-input')),
+        'Kunjungan rutin cabang Sudirman',
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Tap Ajukan
+      await tester.tap(find.byKey(const Key('schedule-attendance-submit-button')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Verifikasi dialog sukses muncul tepat satu kali
+      expect(find.text('Pengajuan Berhasil'), findsOneWidget);
+      expect(find.text('Pengajuan presensi terjadwal berhasil diajukan.'), findsOneWidget);
+
+      // Simulasikan berlalunya waktu dan frame berikutnya
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      // Dialog tetap tepat satu kali
+      expect(find.text('Pengajuan Berhasil'), findsOneWidget);
+
+      expect(repo.submitted, isNotNull);
+      expect(repo.submitted!.reason, 'Kunjungan rutin cabang Sudirman');
+      expect(repo.submitted!.addressIn, 'Menara Mandiri Jakarta');
+
+      BiometricService.testAuthenticateHandler = null;
       bloc.close();
     });
   });

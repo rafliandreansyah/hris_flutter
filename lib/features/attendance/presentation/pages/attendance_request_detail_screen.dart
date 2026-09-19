@@ -99,9 +99,19 @@ class _AttendanceRequestDetailViewState
       ..writeln('Status: ${detail.statusLabel}')
       ..writeln('Tanggal: ${detail.formattedDate}')
       ..writeln('Tipe: ${detail.attendanceTypeLabel}')
-      ..writeln('Metode: ${detail.method.toUpperCase()}')
-      ..writeln('Masuk: ${detail.formattedInTime}')
-      ..writeln('Pulang: ${detail.formattedOutTime}')
+      ..writeln('Metode: ${detail.method.toUpperCase()}');
+
+    if (detail.isIn && !detail.isInOut) {
+      text.writeln('Masuk: ${detail.formattedInTime}');
+    } else if (detail.isOut) {
+      text.writeln('Pulang: ${detail.formattedOutTime}');
+    } else {
+      text
+        ..writeln('Masuk: ${detail.formattedInTime}')
+        ..writeln('Pulang: ${detail.formattedOutTime}');
+    }
+
+    text
       ..writeln('Lokasi: ${detail.address ?? "-"}')
       ..writeln('Alasan: ${detail.reason ?? '-'}');
 

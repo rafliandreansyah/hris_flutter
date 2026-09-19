@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
@@ -82,7 +83,9 @@ class _MockAttendanceRequestRepository implements AttendanceRequestRepository {
   }
 
   @override
-  Future<AttendanceRequestDetailData> getAttendanceRequestDetail(String id) async {
+  Future<AttendanceRequestDetailData> getAttendanceRequestDetail(
+    String id,
+  ) async {
     throw UnimplementedError();
   }
 
@@ -113,7 +116,8 @@ final _testItems = [
     date: DateTime(2026, 8, 29),
     startTime: '08:30',
     endTime: '17:00',
-    notes: 'Presentasi implementasi integrasi payment gateway ke klien di Menara Sudirman.',
+    notes:
+        'Presentasi implementasi integrasi payment gateway ke klien di Menara Sudirman.',
     status: AttendanceRequestStatus.requested,
     createdAt: DateTime(2026, 8, 29, 13, 35),
     isSelf: true,
@@ -139,17 +143,14 @@ final _testItems = [
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Widget buildTestWidget({
-    required AttendanceRequestRepository repository,
-  }) {
-    return MaterialApp(
-      home: AttendanceRequestsScreen(repository: repository),
-    );
+  Widget buildTestWidget({required AttendanceRequestRepository repository}) {
+    return MaterialApp(home: AttendanceRequestsScreen(repository: repository));
   }
 
   group('AttendanceRequestsScreen Widget Tests', () {
-    testWidgets('merender AppBar judul Presensi Luar Kantor dan subtitle',
-        (tester) async {
+    testWidgets('merender AppBar judul Presensi Luar Kantor dan subtitle', (
+      tester,
+    ) async {
       final repo = _MockAttendanceRequestRepository(myItems: _testItems);
       await tester.pumpWidget(buildTestWidget(repository: repo));
       await tester.pumpAndSettle();
@@ -163,8 +164,9 @@ void main() {
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
     });
 
-    testWidgets('merender TabBar Pengajuan Saya dan Persetujuan Tim',
-        (tester) async {
+    testWidgets('merender TabBar Pengajuan Saya dan Persetujuan Tim', (
+      tester,
+    ) async {
       final repo = _MockAttendanceRequestRepository(myItems: _testItems);
       await tester.pumpWidget(buildTestWidget(repository: repo));
       await tester.pumpAndSettle();
@@ -174,83 +176,91 @@ void main() {
     });
 
     testWidgets(
-        'di Tab Pengajuan Saya (Tab 0), search bar tidak muncul dan FAB tampil',
-        (tester) async {
-      final repo = _MockAttendanceRequestRepository(myItems: _testItems);
-      await tester.pumpWidget(buildTestWidget(repository: repo));
-      await tester.pumpAndSettle();
+      'di Tab Pengajuan Saya (Tab 0), search bar tidak muncul dan FAB tampil',
+      (tester) async {
+        final repo = _MockAttendanceRequestRepository(myItems: _testItems);
+        await tester.pumpWidget(buildTestWidget(repository: repo));
+        await tester.pumpAndSettle();
 
-      // Search bar tidak boleh muncul pada Tab 0 (height 0)
-      final searchBoxFinder = find.byType(TextField);
-      expect(searchBoxFinder, findsOneWidget);
-      final searchBox = tester.widget<TextField>(searchBoxFinder);
-      expect(searchBox.decoration?.hintText, contains('Cari nama pegawai'));
+        // Search bar tidak boleh muncul pada Tab 0 (height 0)
+        final searchBoxFinder = find.byType(TextField);
+        expect(searchBoxFinder, findsOneWidget);
+        final searchBox = tester.widget<TextField>(searchBoxFinder);
+        expect(searchBox.decoration?.hintText, contains('Cari nama pegawai'));
 
-      // AnimatedContainer wrapper search bar tingginya 0 saat Tab 0
-      final animatedContainers = tester.widgetList<AnimatedContainer>(
-        find.byType(AnimatedContainer),
-      );
-      final searchContainer = animatedContainers.firstWhere(
-        (c) => c.constraints?.maxHeight == 0 || c.child is AnimatedOpacity,
-      );
-      expect(searchContainer, isNotNull);
+        // AnimatedContainer wrapper search bar tingginya 0 saat Tab 0
+        final animatedContainers = tester.widgetList<AnimatedContainer>(
+          find.byType(AnimatedContainer),
+        );
+        final searchContainer = animatedContainers.firstWhere(
+          (c) => c.constraints?.maxHeight == 0 || c.child is AnimatedOpacity,
+        );
+        expect(searchContainer, isNotNull);
 
-      // FAB tampil dengan teks "Ajukan Presensi"
-      expect(find.byKey(const ValueKey('add_attendance_request_fab')),
-          findsOneWidget);
-      expect(find.text('Ajukan Presensi'), findsOneWidget);
-    });
-
-    testWidgets(
-        'klik FAB di Tab Pengajuan Saya memunculkan AttendanceTypeSelectionBottomSheet',
-        (tester) async {
-      final repo = _MockAttendanceRequestRepository(myItems: _testItems);
-      await tester.pumpWidget(buildTestWidget(repository: repo));
-      await tester.pumpAndSettle();
-
-      final fab = find.byKey(const ValueKey('add_attendance_request_fab'));
-      await tester.tap(fab);
-      await tester.pumpAndSettle();
-
-      // Modal Bottom Sheet Stitch Screen 2
-      expect(find.text('Pilih Metode Presensi Luar'), findsOneWidget);
-      expect(find.text('Live Attendance (Real-Time)'), findsOneWidget);
-      expect(find.text('Schedule Attendance (Terencana)'), findsOneWidget);
-      expect(find.text('Instant Check-In / Out'), findsOneWidget);
-      expect(find.text('Custom Date & Time'), findsOneWidget);
-      expect(find.text('Batal'), findsOneWidget);
-
-      // Tap Batal menutup modal
-      await tester.tap(find.text('Batal'));
-      await tester.pumpAndSettle();
-      expect(find.text('Pilih Metode Presensi Luar'), findsNothing);
-    });
+        // FAB tampil dengan teks "Ajukan Presensi"
+        expect(
+          find.byKey(const ValueKey('add_attendance_request_fab')),
+          findsOneWidget,
+        );
+        expect(find.text('Ajukan Presensi'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'pindah ke Tab Persetujuan Tim memunculkan search bar dan menyembunyikan FAB',
-        (tester) async {
-      final repo = _MockAttendanceRequestRepository(
-        myItems: _testItems,
-        teamItems: _testItems,
-      );
-      await tester.pumpWidget(buildTestWidget(repository: repo));
-      await tester.pumpAndSettle();
+      'klik FAB di Tab Pengajuan Saya memunculkan AttendanceTypeSelectionBottomSheet',
+      (tester) async {
+        final repo = _MockAttendanceRequestRepository(myItems: _testItems);
+        await tester.pumpWidget(buildTestWidget(repository: repo));
+        await tester.pumpAndSettle();
 
-      // Pindah ke tab 1 (Persetujuan Tim)
-      await tester.tap(find.text('Persetujuan Tim'));
-      await tester.pumpAndSettle();
+        final fab = find.byKey(const ValueKey('add_attendance_request_fab'));
+        await tester.tap(fab);
+        await tester.pumpAndSettle();
 
-      // FAB disembunyikan (SizedBox.shrink atau opacity 0)
-      final fabFinder = find.byKey(const ValueKey('add_attendance_request_fab'));
-      expect(fabFinder, findsNothing);
+        // Modal Bottom Sheet Stitch Screen 2
+        expect(find.text('Pilih Metode Presensi Luar'), findsOneWidget);
+        expect(find.text('Live Attendance (Real-Time)'), findsOneWidget);
+        expect(find.text('Schedule Attendance (Terencana)'), findsOneWidget);
+        expect(find.text('Instant Check-In / Out'), findsOneWidget);
+        expect(find.text('Custom Date & Time'), findsOneWidget);
+        expect(find.text('Batal'), findsOneWidget);
 
-      // Tidak ada horizontal chip filter di bawah search
-      expect(find.text('Semua Departemen'), findsNothing);
-      expect(find.text('Engineering'), findsNothing);
-    });
+        // Tap Batal menutup modal
+        await tester.tap(find.text('Batal'));
+        await tester.pumpAndSettle();
+        expect(find.text('Pilih Metode Presensi Luar'), findsNothing);
+      },
+    );
 
-    testWidgets('HTTP 403 pada Persetujuan Tim merender Forbidden State',
-        (tester) async {
+    testWidgets(
+      'pindah ke Tab Persetujuan Tim memunculkan search bar dan menyembunyikan FAB',
+      (tester) async {
+        final repo = _MockAttendanceRequestRepository(
+          myItems: _testItems,
+          teamItems: _testItems,
+        );
+        await tester.pumpWidget(buildTestWidget(repository: repo));
+        await tester.pumpAndSettle();
+
+        // Pindah ke tab 1 (Persetujuan Tim)
+        await tester.tap(find.text('Persetujuan Tim'));
+        await tester.pumpAndSettle();
+
+        // FAB disembunyikan (SizedBox.shrink atau opacity 0)
+        final fabFinder = find.byKey(
+          const ValueKey('add_attendance_request_fab'),
+        );
+        expect(fabFinder, findsNothing);
+
+        // Tidak ada horizontal chip filter di bawah search
+        expect(find.text('Semua Departemen'), findsNothing);
+        expect(find.text('Engineering'), findsNothing);
+      },
+    );
+
+    testWidgets('HTTP 403 pada Persetujuan Tim merender Forbidden State', (
+      tester,
+    ) async {
       final repo = _MockAttendanceRequestRepository(
         teamForbidden: true,
         myItems: _testItems,
@@ -275,38 +285,81 @@ void main() {
       expect(find.text('Budi Santoso'), findsOneWidget);
     });
 
-    testWidgets('AttendanceRequestCard merender data lengkap sesuai Stitch Screen 1',
-        (tester) async {
-      final item = _testItems[0];
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: AttendanceRequestCard(item: item),
+    testWidgets(
+      'AttendanceRequestCard merender data lengkap sesuai Stitch Screen 1',
+      (tester) async {
+        final item = _testItems[0];
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: AttendanceRequestCard(item: item)),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Budi Santoso'), findsOneWidget);
-      expect(find.text('Senior Backend Engineer'), findsOneWidget);
-      expect(find.text('Menunggu'), findsOneWidget);
-      expect(find.text('29 Agustus 2026'), findsOneWidget);
-      expect(
-        find.text('Jam Kerja: Masuk 08:30 WIB s/d Pulang 17:00 WIB'),
-        findsOneWidget,
-      );
-      expect(
-        find.text(
-          '"Presentasi implementasi integrasi payment gateway ke klien di Menara Sudirman."',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('Tinjau Pengajuan'), findsOneWidget);
-      expect(find.text('Diajukan: 29 Agustus 2026, 13:35 WIB'), findsOneWidget);
-    });
+        expect(find.byType(EmployeeInfoRow), findsOneWidget);
+        expect(find.text('Budi Santoso'), findsOneWidget);
+        expect(find.textContaining('Senior Backend Engineer'), findsOneWidget);
+        expect(find.text('Menunggu'), findsOneWidget);
+        expect(find.text('29 Agustus 2026'), findsOneWidget);
+        expect(
+          find.text('Jam Kerja: Masuk 08:30 WIB s/d Pulang 17:00 WIB'),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            '"Presentasi implementasi integrasi payment gateway ke klien di Menara Sudirman."',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Diajukan: 29 Agustus 2026, 13:35 WIB'),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('AttendanceTypeSelectionBottomSheet memilih Live Attendance',
-        (tester) async {
+    testWidgets(
+      'AttendanceRequestCard merender badge tipe IN, OUT, dan format waktu adaptif',
+      (tester) async {
+        final itemIn = AttendanceRequestItem(
+          id: 'in-req-1',
+          name: 'Sarah Jenkins',
+          attendanceType: 'in',
+          startTime: '08:15',
+          date: DateTime(2026, 9, 18),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: AttendanceRequestCard(item: itemIn)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('IN'), findsOneWidget);
+        expect(find.text('Jam Masuk: 08:15 WIB'), findsOneWidget);
+
+        final itemOut = AttendanceRequestItem(
+          id: 'out-req-1',
+          name: 'Sarah Jenkins',
+          attendanceType: 'out',
+          endTime: '17:15',
+          date: DateTime(2026, 9, 18),
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: AttendanceRequestCard(item: itemOut)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('OUT'), findsOneWidget);
+        expect(find.text('Jam Pulang: 17:15 WIB'), findsOneWidget);
+      },
+    );
+
+    testWidgets('AttendanceTypeSelectionBottomSheet memilih Live Attendance', (
+      tester,
+    ) async {
       AttendanceOutsideMethod? chosenMethod;
       await tester.pumpWidget(
         MaterialApp(
@@ -314,8 +367,9 @@ void main() {
             body: Builder(
               builder: (ctx) => ElevatedButton(
                 onPressed: () async {
-                  chosenMethod =
-                      await showAttendanceTypeSelectionBottomSheet(ctx);
+                  chosenMethod = await showAttendanceTypeSelectionBottomSheet(
+                    ctx,
+                  );
                 },
                 child: const Text('Buka'),
               ),

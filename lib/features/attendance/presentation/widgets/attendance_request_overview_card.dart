@@ -96,7 +96,9 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               _buildIconChip(
-                icon: detail.isIn ? LucideIcons.logIn : LucideIcons.logOut,
+                icon: detail.isInOut
+                    ? LucideIcons.arrowLeftRight
+                    : (detail.isOut ? LucideIcons.logOut : LucideIcons.logIn),
                 label: detail.attendanceTypeBadge,
                 subtitleCol: subtitleCol,
               ),
@@ -104,77 +106,13 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // ── Grid Jam Masuk & Pulang ────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: innerBoxBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: borderCol.withValues(alpha: 0.6),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Masuk',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        detail.formattedInTime,
-                        style: AppTypography.titleMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 32,
-                  color: borderCol.withValues(alpha: 0.6),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pulang',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        detail.formattedOutTime,
-                        style: AppTypography.titleMedium.copyWith(
-                          color: detail.attendanceOutTime != null
-                              ? textCol
-                              : subtitleCol,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          // ── Waktu Presensi (Dinamis: hemat ruang untuk tipe in atau out) ──
+          _buildTimeSection(
+            innerBoxBg: innerBoxBg,
+            borderCol: borderCol,
+            textCol: textCol,
+            subtitleCol: subtitleCol,
+            isDark: isDark,
           ),
           const SizedBox(height: 14),
 
@@ -237,6 +175,205 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
             style: AppTypography.labelSmall.copyWith(
               color: subtitleCol,
               fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeSection({
+    required Color innerBoxBg,
+    required Color borderCol,
+    required Color textCol,
+    required Color subtitleCol,
+    required bool isDark,
+  }) {
+    // 1. Jika presensi masuk saja: Tampilkan hanya waktu masuk (hemat ruang)
+    if (detail.isIn && !detail.isInOut) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: innerBoxBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: borderCol.withValues(alpha: 0.6),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.primaryContainer.withValues(alpha: 0.25)
+                    : const Color(0xFFF0FDFA),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                LucideIcons.logIn,
+                size: 18,
+                color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Waktu Masuk',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: subtitleCol,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    detail.formattedInTime,
+                    style: AppTypography.titleMedium.copyWith(
+                      color: textCol,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 2. Jika presensi pulang saja: Tampilkan hanya waktu pulang (hemat ruang)
+    if (detail.isOut) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: innerBoxBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: borderCol.withValues(alpha: 0.6),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF7C2D12).withValues(alpha: 0.25)
+                    : const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                LucideIcons.logOut,
+                size: 18,
+                color: isDark ? const Color(0xFFFDBA74) : const Color(0xFFC2410C),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Waktu Pulang',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: subtitleCol,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    detail.formattedOutTime,
+                    style: AppTypography.titleMedium.copyWith(
+                      color: textCol,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 3. Jika inout: Tampilkan kedua waktu (Masuk & Pulang berdampingan)
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: innerBoxBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: borderCol.withValues(alpha: 0.6),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Masuk',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: subtitleCol,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail.formattedInTime,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: textCol,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 32,
+            color: borderCol.withValues(alpha: 0.6),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pulang',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: subtitleCol,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail.formattedOutTime,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: detail.attendanceOutTime != null
+                        ? textCol
+                        : subtitleCol,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

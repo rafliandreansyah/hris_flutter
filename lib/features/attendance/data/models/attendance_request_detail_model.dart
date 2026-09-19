@@ -29,6 +29,7 @@ class AttendanceRequestDetailData extends Equatable {
   final String method;
   final String? reason;
   final String? attendanceType;
+  final DateTime? attendanceTime;
   final DateTime? attendanceInTime;
   final DateTime? attendanceOutTime;
   final String? approverNote;
@@ -36,6 +37,10 @@ class AttendanceRequestDetailData extends Equatable {
   final double? latitude;
   final double? longitude;
   final String? address;
+  final String? filePathOut;
+  final double? latitudeOut;
+  final double? longitudeOut;
+  final String? addressOut;
   final DateTime? createdAt;
   final String timezone;
 
@@ -47,6 +52,7 @@ class AttendanceRequestDetailData extends Equatable {
     required this.method,
     this.reason,
     this.attendanceType,
+    this.attendanceTime,
     this.attendanceInTime,
     this.attendanceOutTime,
     this.approverNote,
@@ -54,6 +60,10 @@ class AttendanceRequestDetailData extends Equatable {
     this.latitude,
     this.longitude,
     this.address,
+    this.filePathOut,
+    this.latitudeOut,
+    this.longitudeOut,
+    this.addressOut,
     this.createdAt,
     this.timezone = 'WIB',
   });
@@ -71,6 +81,17 @@ class AttendanceRequestDetailData extends Equatable {
       if (val is num) return val.toDouble();
       return double.tryParse(val.toString());
     }
+
+    final rawType = (json['attendanceType'] ?? json['type'])?.toString();
+    final normType = rawType?.toLowerCase().trim();
+
+    final aTime = parseDate(json['attendanceTime']);
+    final inTime = parseDate(json['attendanceInTime'] ??
+        json['clockIn'] ??
+        (normType == 'in' ? json['attendanceTime'] : null));
+    final outTime = parseDate(json['attendanceOutTime'] ??
+        json['clockOut'] ??
+        (normType == 'out' ? json['attendanceTime'] : null));
 
     return AttendanceRequestDetailData(
       id: json['id']?.toString() ?? '',
@@ -92,11 +113,10 @@ class AttendanceRequestDetailData extends Equatable {
       reason: json['reason']?.toString() ??
           json['notes']?.toString() ??
           json['description']?.toString(),
-      attendanceType:
-          json['attendanceType']?.toString() ?? json['type']?.toString(),
-      attendanceInTime: parseDate(json['attendanceInTime'] ?? json['clockIn']),
-      attendanceOutTime:
-          parseDate(json['attendanceOutTime'] ?? json['clockOut']),
+      attendanceType: rawType,
+      attendanceTime: aTime,
+      attendanceInTime: inTime,
+      attendanceOutTime: outTime,
       approverNote: json['approverNote']?.toString() ??
           json['approverNotes']?.toString() ??
           json['approver_note']?.toString(),
@@ -104,6 +124,10 @@ class AttendanceRequestDetailData extends Equatable {
       latitude: parseDouble(json['latitude']),
       longitude: parseDouble(json['longitude']),
       address: json['address']?.toString(),
+      filePathOut: resolveFileUrl(json['filePathOut']?.toString()),
+      latitudeOut: parseDouble(json['latitudeOut']),
+      longitudeOut: parseDouble(json['longitudeOut']),
+      addressOut: json['addressOut']?.toString(),
       createdAt: parseDate(json['createdAt']),
       timezone: json['timezone']?.toString() ?? 'WIB',
     );
@@ -165,6 +189,7 @@ class AttendanceRequestDetailData extends Equatable {
         'method': method,
         'reason': reason,
         'attendanceType': attendanceType,
+        'attendanceTime': attendanceTime?.toIso8601String(),
         'attendanceInTime': attendanceInTime?.toIso8601String(),
         'attendanceOutTime': attendanceOutTime?.toIso8601String(),
         'approverNote': approverNote,
@@ -172,6 +197,10 @@ class AttendanceRequestDetailData extends Equatable {
         'latitude': latitude,
         'longitude': longitude,
         'address': address,
+        'filePathOut': filePathOut,
+        'latitudeOut': latitudeOut,
+        'longitudeOut': longitudeOut,
+        'addressOut': addressOut,
         'createdAt': createdAt?.toIso8601String(),
         'timezone': timezone,
       };
@@ -185,6 +214,7 @@ class AttendanceRequestDetailData extends Equatable {
     String? method,
     String? reason,
     String? attendanceType,
+    DateTime? attendanceTime,
     DateTime? attendanceInTime,
     DateTime? attendanceOutTime,
     String? approverNote,
@@ -194,6 +224,11 @@ class AttendanceRequestDetailData extends Equatable {
     double? latitude,
     double? longitude,
     String? address,
+    String? filePathOut,
+    bool clearFilePathOut = false,
+    double? latitudeOut,
+    double? longitudeOut,
+    String? addressOut,
     DateTime? createdAt,
     String? timezone,
   }) {
@@ -205,6 +240,7 @@ class AttendanceRequestDetailData extends Equatable {
       method: method ?? this.method,
       reason: reason ?? this.reason,
       attendanceType: attendanceType ?? this.attendanceType,
+      attendanceTime: attendanceTime ?? this.attendanceTime,
       attendanceInTime: attendanceInTime ?? this.attendanceInTime,
       attendanceOutTime: attendanceOutTime ?? this.attendanceOutTime,
       approverNote:
@@ -213,6 +249,10 @@ class AttendanceRequestDetailData extends Equatable {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       address: address ?? this.address,
+      filePathOut: clearFilePathOut ? null : (filePathOut ?? this.filePathOut),
+      latitudeOut: latitudeOut ?? this.latitudeOut,
+      longitudeOut: longitudeOut ?? this.longitudeOut,
+      addressOut: addressOut ?? this.addressOut,
       createdAt: createdAt ?? this.createdAt,
       timezone: timezone ?? this.timezone,
     );
@@ -251,20 +291,47 @@ class AttendanceRequestDetailData extends Equatable {
   bool get isPhotoMethod => method.trim().toLowerCase() == 'photo';
 
   /// Apakah presensi masuk
-  bool get isIn =>
-      attendanceType == null || attendanceType!.trim().toLowerCase() == 'in';
+  bool get isIn {
+    final t = attendanceType?.trim().toLowerCase();
+    if (t == 'in') return true;
+    if (t == 'out' || t == 'inout' || t == 'in_out' || t == 'in-out') return false;
+    return attendanceOutTime == null;
+  }
 
-  /// Label tipe presensi (Masuk / Pulang)
-  String get attendanceTypeLabel => isIn ? 'Presensi Masuk' : 'Presensi Pulang';
+  /// Apakah presensi pulang
+  bool get isOut => attendanceType?.trim().toLowerCase() == 'out';
 
-  /// Badge tipe presensi (IN / OUT)
-  String get attendanceTypeBadge => isIn ? 'IN' : 'OUT';
+  /// Apakah presensi mencakup masuk dan pulang
+  bool get isInOut {
+    final t = attendanceType?.trim().toLowerCase();
+    return t == 'inout' || t == 'in_out' || t == 'in-out';
+  }
 
-  /// Apakah koordinat valid
+  /// Label tipe presensi (Masuk / Pulang / Masuk & Pulang)
+  String get attendanceTypeLabel {
+    if (isInOut) return 'Presensi Masuk & Pulang';
+    if (isOut) return 'Presensi Pulang';
+    return 'Presensi Masuk';
+  }
+
+  /// Badge tipe presensi (IN / OUT / IN & OUT)
+  String get attendanceTypeBadge {
+    if (isInOut) return 'IN & OUT';
+    if (isOut) return 'OUT';
+    return 'IN';
+  }
+
+  /// Apakah koordinat masuk valid
   bool get hasValidCoordinates =>
       latitude != null &&
       longitude != null &&
       (latitude != 0.0 || longitude != 0.0);
+
+  /// Apakah koordinat pulang valid
+  bool get hasValidCoordinatesOut =>
+      latitudeOut != null &&
+      longitudeOut != null &&
+      (latitudeOut != 0.0 || longitudeOut != 0.0);
 
   // ==========================================
   // --- DATE & TIME FORMATTING HELPERS ---
@@ -272,7 +339,7 @@ class AttendanceRequestDetailData extends Equatable {
 
   /// Format tanggal utama (misal: "29 Agustus 2026")
   String get formattedDate {
-    final date = attendanceInTime ?? attendanceOutTime ?? createdAt;
+    final date = attendanceInTime ?? attendanceTime ?? attendanceOutTime ?? createdAt;
     if (date == null) return '-';
     final monthName = _monthsIndonesian[date.month - 1];
     return '${date.day} $monthName ${date.year}';
@@ -280,17 +347,19 @@ class AttendanceRequestDetailData extends Equatable {
 
   /// Format waktu masuk (misal: "08:30 WIB")
   String get formattedInTime {
-    if (attendanceInTime == null) return '-';
-    final h = attendanceInTime!.hour.toString().padLeft(2, '0');
-    final m = attendanceInTime!.minute.toString().padLeft(2, '0');
+    final time = attendanceInTime ?? (isIn ? attendanceTime : null);
+    if (time == null) return '-';
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
     return '$h:$m $timezone';
   }
 
   /// Format waktu pulang (misal: "17:30 WIB")
   String get formattedOutTime {
-    if (attendanceOutTime == null) return '-';
-    final h = attendanceOutTime!.hour.toString().padLeft(2, '0');
-    final m = attendanceOutTime!.minute.toString().padLeft(2, '0');
+    final time = attendanceOutTime ?? (isOut ? attendanceTime : null);
+    if (time == null) return '-';
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
     return '$h:$m $timezone';
   }
 
@@ -312,6 +381,7 @@ class AttendanceRequestDetailData extends Equatable {
         method,
         reason,
         attendanceType,
+        attendanceTime,
         attendanceInTime,
         attendanceOutTime,
         approverNote,
@@ -319,6 +389,10 @@ class AttendanceRequestDetailData extends Equatable {
         latitude,
         longitude,
         address,
+        filePathOut,
+        latitudeOut,
+        longitudeOut,
+        addressOut,
         createdAt,
         timezone,
       ];

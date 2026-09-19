@@ -242,6 +242,7 @@ class ScheduleAttendanceBloc
 
     emit(state.copyWith(
       isSubmitting: true,
+      submissionSuccess: false,
       clearErrorMessage: true,
     ));
 

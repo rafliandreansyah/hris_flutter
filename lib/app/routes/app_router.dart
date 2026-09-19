@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/features/announcement/presentation/pages/announcement_detail_screen.dart';
+import 'package:hris_flutter/features/announcement/presentation/pages/announcement_list_screen.dart';
+import 'package:hris_flutter/features/announcement/presentation/pages/pdf_viewer_screen.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_detail_screen.dart';
 import 'package:hris_flutter/features/activity/presentation/pages/activity_screen.dart';
@@ -358,6 +361,61 @@ class AppRouter {
         path: Routes.NOTIFICATIONS,
         name: Routes.NOTIFICATIONS,
         builder: (context, state) => const NotificationScreen(),
+      ),
+
+      // 21. Announcement List Screen (Google Stitch M3 Teal Oasis)
+      GoRoute(
+        path: Routes.ANNOUNCEMENT,
+        name: Routes.ANNOUNCEMENT,
+        builder: (context, state) => const AnnouncementListScreen(),
+      ),
+
+      // 22. Announcement Detail Screen
+      GoRoute(
+        path: Routes.ANNOUNCEMENT_DETAIL,
+        name: Routes.ANNOUNCEMENT_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          if (extra is String) {
+            id = extra;
+          } else if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+          }
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          return AnnouncementDetailScreen(id: id);
+        },
+      ),
+
+      // 23. PDF Viewer Screen
+      GoRoute(
+        path: Routes.PDF_VIEWER,
+        name: Routes.PDF_VIEWER,
+        builder: (context, state) {
+          final extra = state.extra;
+          String title = 'Dokumen PDF';
+          String fileName = 'document.pdf';
+          String fileUrl = '';
+
+          if (extra is Map<String, dynamic>) {
+            title = extra['title']?.toString() ?? title;
+            fileName = extra['fileName']?.toString() ?? fileName;
+            fileUrl = extra['fileUrl']?.toString() ?? '';
+          }
+
+          if (fileUrl.isEmpty &&
+              state.uri.queryParameters.containsKey('fileUrl')) {
+            fileUrl = state.uri.queryParameters['fileUrl']!;
+          }
+
+          return PdfViewerScreen(
+            title: title,
+            fileName: fileName,
+            fileUrl: fileUrl,
+          );
+        },
       ),
     ],
     redirect: (context, state) {

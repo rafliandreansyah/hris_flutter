@@ -85,6 +85,7 @@ class LiveAttendanceBloc
     LiveAttendanceClockTicked event,
     Emitter<LiveAttendanceState> emit,
   ) {
+    if (state.submissionSuccess) return;
     emit(state.copyWith(currentClockTime: event.time));
   }
 
@@ -149,6 +150,7 @@ class LiveAttendanceBloc
 
     emit(state.copyWith(
       isSubmitting: true,
+      submissionSuccess: false,
       errorMessage: () => null,
     ));
 
@@ -169,6 +171,9 @@ class LiveAttendanceBloc
       );
 
       final response = await repository.submitLiveAttendance(request);
+
+      _clockTimer?.cancel();
+      _clockTimer = null;
 
       emit(state.copyWith(
         isSubmitting: false,
