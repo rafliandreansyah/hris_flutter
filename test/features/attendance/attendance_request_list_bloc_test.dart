@@ -222,7 +222,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(
+            throw const ApiException(
               message: 'Tidak memiliki hak akses approver',
               statusCode: 403,
             );
@@ -276,7 +276,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(
+            throw const ApiException(
               message: 'Internal Server Error',
               statusCode: 500,
             );

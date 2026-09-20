@@ -90,7 +90,7 @@ void main() {
     });
 
     test('Status helpers strictly handle requested, approved, rejected', () {
-      final requestedData = OvertimeDetailData.fromJson({
+      final requestedData = OvertimeDetailData.fromJson(const {
         "id": "1",
         "status": "requested",
       });
@@ -100,7 +100,7 @@ void main() {
       expect(requestedData.isRejected, isFalse);
       expect(requestedData.statusLabel, 'Pending Approval');
 
-      final approvedData = OvertimeDetailData.fromJson({
+      final approvedData = OvertimeDetailData.fromJson(const {
         "id": "2",
         "status": "approved",
       });
@@ -109,7 +109,7 @@ void main() {
       expect(approvedData.isRejected, isFalse);
       expect(approvedData.statusLabel, 'Approved');
 
-      final rejectedData = OvertimeDetailData.fromJson({
+      final rejectedData = OvertimeDetailData.fromJson(const {
         "id": "3",
         "status": "rejected",
       });

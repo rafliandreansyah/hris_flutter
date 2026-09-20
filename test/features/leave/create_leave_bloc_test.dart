@@ -149,7 +149,7 @@ void main() {
 
     test('emits loadingTypes then typesLoaded with error on ApiException',
         () async {
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Gagal mengambil jenis cuti dari server.',
         statusCode: 500,
       );
@@ -230,7 +230,7 @@ void main() {
     });
 
     test('emits submitting then failure on ApiException', () async {
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Kuota cuti tidak mencukupi.',
         statusCode: 422,
       );

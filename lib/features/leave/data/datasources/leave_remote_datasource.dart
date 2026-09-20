@@ -111,7 +111,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return LeaveRequestListResponse.fromJson(rawData, isApprover: approver);
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat data pengajuan cuti.',
     );
   }
@@ -128,7 +128,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return detailResponse.data;
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat detail pengajuan cuti.',
     );
   }
@@ -175,7 +175,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       return [];
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat jenis cuti.',
     );
   }

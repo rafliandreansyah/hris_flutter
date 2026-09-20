@@ -81,12 +81,12 @@ abstract class AppTheme {
       ),
 
       // Cards
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.surfaceContainerLowest,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.borderLg, // 16px
-          side: const BorderSide(color: AppColors.outlineMuted, width: 1),
+          side: BorderSide(color: AppColors.outlineMuted, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -164,25 +164,25 @@ abstract class AppTheme {
         labelStyle: AppTypography.labelMedium.copyWith(
           color: AppColors.textSecondary,
         ),
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput, // 12px
-          borderSide: const BorderSide(color: AppColors.outlineMuted, width: 1),
+          borderSide: BorderSide(color: AppColors.outlineMuted, width: 1),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.outlineMuted, width: 1),
+          borderSide: BorderSide(color: AppColors.outlineMuted, width: 1),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.brandTeal, width: 1.5),
+          borderSide: BorderSide(color: AppColors.brandTeal, width: 1.5),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.errorRed, width: 1),
+          borderSide: BorderSide(color: AppColors.errorRed, width: 1),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.errorRed, width: 1.5),
+          borderSide: BorderSide(color: AppColors.errorRed, width: 1.5),
         ),
       ),
 
@@ -202,7 +202,7 @@ abstract class AppTheme {
         backgroundColor: AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderXl),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderXl),
         titleTextStyle: AppTypography.titleMedium.copyWith(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w700,
@@ -213,13 +213,13 @@ abstract class AppTheme {
       ),
 
       // Bottom Sheet
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.surfaceContainerLowest,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         showDragHandle: true,
         dragHandleColor: AppColors.outlineVariant,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl),
           ),
@@ -233,7 +233,7 @@ abstract class AppTheme {
         contentTextStyle: AppTypography.bodyMedium.copyWith(
           color: AppColors.inverseOnSurface,
         ),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderInput),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderInput),
         elevation: 4,
       ),
 
@@ -296,7 +296,7 @@ abstract class AppTheme {
       ),
 
       // Floating Action Button
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.brandTeal,
         foregroundColor: AppColors.onPrimary,
         elevation: 3,
@@ -316,7 +316,7 @@ abstract class AppTheme {
           if (states.contains(WidgetState.selected)) return AppColors.brandTeal;
           return Colors.transparent;
         }),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
         side: const BorderSide(color: AppColors.outlineMuted, width: 1.5),
       ),
       radioTheme: RadioThemeData(
@@ -412,12 +412,12 @@ abstract class AppTheme {
       ),
 
       // Cards
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: AppColors.darkSurfaceContainer,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.borderLg,
-          side: const BorderSide(color: AppColors.darkOutlineMuted, width: 1),
+          side: BorderSide(color: AppColors.darkOutlineMuted, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -495,34 +495,34 @@ abstract class AppTheme {
         labelStyle: AppTypography.labelMedium.copyWith(
           color: AppColors.darkOnSurfaceVariant,
         ),
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.darkOutlineMuted,
             width: 1,
           ),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.darkOutlineMuted,
             width: 1,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.darkPrimary,
             width: 1.5,
           ),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.errorRed, width: 1),
+          borderSide: BorderSide(color: AppColors.errorRed, width: 1),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: AppRadius.borderInput,
-          borderSide: const BorderSide(color: AppColors.errorRed, width: 1.5),
+          borderSide: BorderSide(color: AppColors.errorRed, width: 1.5),
         ),
       ),
 
@@ -542,7 +542,7 @@ abstract class AppTheme {
         backgroundColor: AppColors.darkSurfaceContainer,
         surfaceTintColor: Colors.transparent,
         elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderXl),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderXl),
         titleTextStyle: AppTypography.titleMedium.copyWith(
           color: AppColors.darkOnSurface,
           fontWeight: FontWeight.w700,
@@ -553,13 +553,13 @@ abstract class AppTheme {
       ),
 
       // Bottom Sheet
-      bottomSheetTheme: BottomSheetThemeData(
+      bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.darkSurfaceContainer,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         showDragHandle: true,
         dragHandleColor: AppColors.darkOutline,
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl),
           ),
@@ -573,7 +573,7 @@ abstract class AppTheme {
         contentTextStyle: AppTypography.bodyMedium.copyWith(
           color: AppColors.darkOnSurface,
         ),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderInput),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderInput),
         elevation: 4,
       ),
 
@@ -636,7 +636,7 @@ abstract class AppTheme {
       ),
 
       // Floating Action Button
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.darkPrimary,
         foregroundColor: AppColors.darkOnPrimary,
         elevation: 3,
@@ -658,7 +658,7 @@ abstract class AppTheme {
           }
           return Colors.transparent;
         }),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.borderSm),
         side: const BorderSide(color: AppColors.darkOutlineMuted, width: 1.5),
       ),
       radioTheme: RadioThemeData(

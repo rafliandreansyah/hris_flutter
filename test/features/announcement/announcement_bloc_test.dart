@@ -222,7 +222,7 @@ void main() {
       await pumpEventQueue();
 
       bloc.add(const AnnouncementSearchChanged('libur nasional'));
-      await pumpEventQueue();
+      await Future<void>.delayed(const Duration(milliseconds: 350));
 
       expect(bloc.state.searchQuery, 'libur nasional');
       expect(repo.lastSearch, 'libur nasional');

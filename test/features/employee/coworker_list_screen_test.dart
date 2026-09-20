@@ -46,7 +46,7 @@ class _FakeCoworkerRepository implements EmployeeRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final coworker1 = const EmployeeDirectoryItem(
+  const coworker1 = EmployeeDirectoryItem(
     id: 'cw-1',
     name: 'Budi Santoso',
     role: 'UI/UX Designer',
@@ -57,7 +57,7 @@ void main() {
     initials: 'BS',
   );
 
-  final coworker2 = const EmployeeDirectoryItem(
+  const coworker2 = EmployeeDirectoryItem(
     id: 'cw-2',
     name: 'Dewi Lestari',
     role: 'Frontend Engineer',

@@ -20,13 +20,14 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
   }
 
   Future<void> _checkInitialAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
     try {
-      final hasSession = await AuthRepositoryImpl().hasActiveSession();
+      final results = await Future.wait([
+        AuthRepositoryImpl().hasActiveSession(),
+        Future.delayed(const Duration(milliseconds: 750)),
+      ]);
       if (!mounted) return;
 
+      final hasSession = results.first as bool;
       if (hasSession) {
         context.replaceNamed(Routes.DASHBOARD);
       } else {
@@ -61,12 +62,12 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
               ],
             ),
           ),
-          Align(
+          const Align(
             alignment: Alignment.bottomCenter,
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding: EdgeInsets.only(bottom: 20),
                 child: AppNameVersionText(),
               ),
             ),

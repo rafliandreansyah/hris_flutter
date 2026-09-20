@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_request_repository_impl.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_event.dart';
@@ -21,7 +22,7 @@ class AttendanceRequestListBloc
     on<AttendanceRequestListFetchRequested>(_onFetchRequested);
     on<AttendanceRequestListLoadMoreRequested>(_onLoadMoreRequested);
     on<AttendanceRequestListTabChanged>(_onTabChanged);
-    on<AttendanceRequestListSearchChanged>(_onSearchChanged);
+    on<AttendanceRequestListSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<AttendanceRequestListFilterApplied>(_onFilterApplied);
     on<AttendanceRequestListFilterReset>(_onFilterReset);
   }

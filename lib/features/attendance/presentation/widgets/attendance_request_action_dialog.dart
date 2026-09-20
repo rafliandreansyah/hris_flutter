@@ -121,6 +121,8 @@ class _AttendanceRequestActionDialogState
             TextField(
               controller: _notesController,
               maxLines: 3,
+              onTapOutside: (event) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               style: AppTypography.bodyMedium.copyWith(color: textCol),
               decoration: InputDecoration(
                 hintText: widget.isApproved

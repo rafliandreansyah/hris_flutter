@@ -27,6 +27,7 @@ class AppTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final AutovalidateMode? autovalidateMode;
   final EdgeInsetsGeometry? contentPadding;
+  final TapRegionCallback? onTapOutside;
 
   const AppTextField({
     super.key,
@@ -51,6 +52,7 @@ class AppTextField extends StatefulWidget {
     this.focusNode,
     this.autovalidateMode,
     this.contentPadding,
+    this.onTapOutside,
   });
 
   @override
@@ -171,6 +173,8 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.isPassword ? 1 : widget.maxLines,
           validator: widget.validator,
           autovalidateMode: widget.autovalidateMode,
+          onTapOutside: widget.onTapOutside ??
+              (event) => FocusManager.instance.primaryFocus?.unfocus(),
           style: AppTypography.bodyMedium.copyWith(color: textCol),
           decoration: InputDecoration(
             hintText: widget.hintText,

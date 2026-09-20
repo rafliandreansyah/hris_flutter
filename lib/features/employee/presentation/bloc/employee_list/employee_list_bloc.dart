@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -38,7 +39,7 @@ class EmployeeListBloc extends Bloc<EmployeeListEvent, EmployeeListState> {
     on<EmployeeListStarted>(_onStarted);
     on<EmployeeListRefreshed>(_onRefreshed);
     on<EmployeeListLoadMore>(_onLoadMore);
-    on<EmployeeListSearchChanged>(_onSearchChanged);
+    on<EmployeeListSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<EmployeeListFilterApplied>(_onFilterApplied);
   }
 

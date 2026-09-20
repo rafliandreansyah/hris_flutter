@@ -178,7 +178,7 @@ void main() {
     ),
   ];
 
-  final testEmployees = const [
+  const testEmployees = [
     EmployeeDirectoryItem(
       id: 'EMP-092',
       name: 'Sarah Jenkins',
@@ -205,7 +205,7 @@ void main() {
         )..add(const AttendanceLogsStarted()),
         employeeListBloc: EmployeeListBloc(
           initialCustomEmployees: testEmployees,
-        )..add(EmployeeListStarted(customEmployees: testEmployees)),
+        )..add(const EmployeeListStarted(customEmployees: testEmployees)),
       ),
     );
   }
@@ -318,7 +318,7 @@ void main() {
             attendanceLogsBloc: logsBloc,
             employeeListBloc: EmployeeListBloc(
               initialCustomEmployees: testEmployees,
-            )..add(EmployeeListStarted(customEmployees: testEmployees)),
+            )..add(const EmployeeListStarted(customEmployees: testEmployees)),
           ),
         ),
       );
@@ -384,7 +384,7 @@ void main() {
               )..add(const AttendanceLogsStarted()),
               employeeListBloc: EmployeeListBloc(
                 initialCustomEmployees: testEmployees,
-              )..add(EmployeeListStarted(customEmployees: testEmployees)),
+              )..add(const EmployeeListStarted(customEmployees: testEmployees)),
             ),
           ),
           GoRoute(
@@ -435,7 +435,7 @@ void main() {
               attendanceLogsBloc: logsBloc,
               employeeListBloc: EmployeeListBloc(
                 initialCustomEmployees: testEmployees,
-              )..add(EmployeeListStarted(customEmployees: testEmployees)),
+              )..add(const EmployeeListStarted(customEmployees: testEmployees)),
             ),
           ),
         );

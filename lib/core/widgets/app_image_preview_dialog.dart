@@ -135,7 +135,6 @@ class AppImagePreviewDialog extends StatelessWidget {
                         if (fileSizeBytes != null || subtitle != null) ...[
                           const SizedBox(height: 4),
                           Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
                               if (fileSizeBytes != null) ...[
                                 Container(
@@ -179,17 +178,20 @@ class AppImagePreviewDialog extends StatelessWidget {
                                     ],
                                   ),
                                 ),
+                                if (subtitle != null) const SizedBox(width: 6),
                               ],
-                              if (subtitle != null) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  subtitle!,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
+                              if (subtitle != null)
+                                Expanded(
+                                  child: Text(
+                                    subtitle!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ),
-                              ],
                             ],
                           ),
                         ],

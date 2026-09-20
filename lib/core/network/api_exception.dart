@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:hris_flutter/core/constants/api_endpoints.dart';
 
 /// Kelas penanganan error jaringan dan respons API terstruktur.
 class ApiException implements Exception {
@@ -48,7 +49,7 @@ class ApiException implements Exception {
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final responseData = error.response?.data;
-        String errorMessage = 'Terjadi kesalahan pada server ($statusCode).';
+        String errorMessage = '';
 
         if (responseData is Map<String, dynamic>) {
           if (responseData.containsKey('message') &&
@@ -69,8 +70,17 @@ class ApiException implements Exception {
               type: error.type,
             );
           case 401:
+            final path = error.requestOptions.path;
+            final uriPath = error.requestOptions.uri.path;
+            final isLogin = path == ApiEndpoints.auth ||
+                path == ApiEndpoints.login ||
+                uriPath.endsWith(ApiEndpoints.auth) ||
+                uriPath.endsWith(ApiEndpoints.login);
+            final defaultFallback = isLogin
+                ? 'Email atau kata sandi salah.'
+                : 'Sesi Anda telah berakhir. Silakan login kembali.';
             return ApiException(
-              message: errorMessage.isNotEmpty ? errorMessage : 'Sesi Anda telah berakhir. Silakan login kembali.',
+              message: errorMessage.isNotEmpty ? errorMessage : defaultFallback,
               statusCode: 401,
               data: responseData,
               type: error.type,
@@ -107,7 +117,9 @@ class ApiException implements Exception {
             );
           default:
             return ApiException(
-              message: errorMessage,
+              message: errorMessage.isNotEmpty
+                  ? errorMessage
+                  : 'Terjadi kesalahan pada server ($statusCode).',
               statusCode: statusCode,
               data: responseData,
               type: error.type,

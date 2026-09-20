@@ -205,7 +205,7 @@ class AttendanceHeroCard extends StatelessWidget {
                   Expanded(
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           LucideIcons.building2,
                           size: 14,
                           color: AppColors.accentTealLight,

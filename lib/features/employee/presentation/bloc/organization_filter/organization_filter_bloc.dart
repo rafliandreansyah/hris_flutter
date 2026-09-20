@@ -26,7 +26,7 @@ class OrganizationFilterBloc
     OrganizationFilterStarted event,
     Emitter<OrganizationFilterState> emit,
   ) async {
-    if (state.companies.isNotEmpty && !event.forceRefresh) {
+    if (state.companies.isNotEmpty && !event.forceRefresh && state.isCompaniesCacheValid) {
       return;
     }
 
@@ -40,6 +40,7 @@ class OrganizationFilterBloc
       emit(state.copyWith(
         status: OrganizationFilterStatus.loaded,
         companies: companies,
+        lastFetchedCompanies: DateTime.now(),
       ));
     } catch (e) {
       emit(state.copyWith(

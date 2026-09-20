@@ -126,6 +126,15 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         return null;
       }
 
+      // Pastikan saklar layanan GPS perangkat dalam keadaan aktif
+      if (mounted) {
+        final gpsEnabled = await PermissionUtil.ensureLocationServiceEnabled(
+          context,
+          promptToEnable: showFeedback,
+        );
+        if (!gpsEnabled) return null;
+      }
+
       // 1. Coba ambil lokasi terakhir (cached) secara instan (~10ms) untuk iOS/Android
       Position? position;
       try {
@@ -302,6 +311,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               TextField(
                 controller: textController,
                 maxLines: 3,
+                onTapOutside: (event) =>
+                    FocusManager.instance.primaryFocus?.unfocus(),
                 decoration: InputDecoration(
                   hintText:
                       'Contoh: GPS melompat atau sinyal di lobi utama lemah...',
@@ -322,6 +333,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                     onPressed: isSubmitting
                         ? null
                         : () {
+                            FocusManager.instance.primaryFocus?.unfocus();
                             final text = textController.text.trim();
                             if (text.isNotEmpty) {
                               final bloc = context.read<AttendanceBloc>();

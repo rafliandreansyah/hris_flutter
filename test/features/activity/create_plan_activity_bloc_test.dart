@@ -74,7 +74,7 @@ class _MockPlanActivityRepository implements ActivityRepository {
   @override
   Future<ActivityTypesResponse> getActivityTypes() async {
     if (getTypesShouldFail) {
-      throw ApiException(message: 'Gagal memuat tipe aktivitas');
+      throw const ApiException(message: 'Gagal memuat tipe aktivitas');
     }
     return const ActivityTypesResponse(
       success: true,
@@ -113,7 +113,7 @@ class _MockPlanActivityRepository implements ActivityRepository {
     XFile? file,
   }) async {
     if (createPlanShouldFail) {
-      throw ApiException(message: 'Gagal membuat rencana aktivitas');
+      throw const ApiException(message: 'Gagal membuat rencana aktivitas');
     }
     lastEmployeeId = employeeId;
     lastActivityTypeId = activityTypeId;
@@ -158,7 +158,7 @@ class _MockPlanEmployeeRepository implements EmployeeRepository {
     String? search,
   }) async {
     if (getEmployeesShouldFail) {
-      throw ApiException(message: 'Gagal memuat daftar pegawai');
+      throw const ApiException(message: 'Gagal memuat daftar pegawai');
     }
     return const EmployeeListResponse(
       success: true,

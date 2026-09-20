@@ -152,9 +152,16 @@ Future<AppRequestFilterData?> showAppRequestFilterBottomSheet(
         statusHelperText: statusHelperText ?? 'Default memuat status pengajuan diminta (requested)',
       );
 
-      if (organizationFilterBloc != null) {
+      OrganizationFilterBloc? resolvedOrgBloc = organizationFilterBloc;
+      if (resolvedOrgBloc == null) {
+        try {
+          resolvedOrgBloc = context.read<OrganizationFilterBloc>();
+        } catch (_) {}
+      }
+
+      if (resolvedOrgBloc != null) {
         return BlocProvider<OrganizationFilterBloc>.value(
-          value: organizationFilterBloc,
+          value: resolvedOrgBloc..add(const OrganizationFilterStarted()),
           child: sheetWidget,
         );
       }

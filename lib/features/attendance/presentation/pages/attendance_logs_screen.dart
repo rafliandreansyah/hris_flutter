@@ -672,7 +672,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 onPressed: () => context.read<AttendanceLogsBloc>().add(
                   const AttendanceLogsLoadMore(),
                 ),
-                icon: Icon(LucideIcons.history, size: 18),
+                icon: const Icon(LucideIcons.history, size: 18),
                 label: const Text('Load Previous Period'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: brandColor,
@@ -725,6 +725,8 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             ),
             child: TextField(
               controller: _teamSearchController,
+              onTapOutside: (event) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               style: AppTypography.bodyMedium.copyWith(
                 color: textCol,
                 fontSize: 14,

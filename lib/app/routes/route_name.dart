@@ -31,4 +31,9 @@ abstract class Routes {
   static const String ANNOUNCEMENT = '/announcement';
   static const String ANNOUNCEMENT_DETAIL = '/announcement-detail';
   static const String PDF_VIEWER = '/pdf-viewer';
+  static const String WARNING_LETTER = '/warning-letter';
+  static const String WARNING_LETTER_DETAIL = '/warning-letter-detail';
+  static const String CREATE_WARNING_LETTER = '/create-warning-letter';
+  static const String WORK_SCHEDULE = '/work-schedule';
+  static const String EMPLOYEE_SCHEDULE_SELECT = '/employee-schedule-select';
 }

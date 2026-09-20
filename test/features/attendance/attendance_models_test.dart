@@ -109,7 +109,7 @@ void main() {
 
       final data = AttendanceTodayData(
         serverTime: DateTime(2026, 8, 27, 8, 45, 20),
-        availableWorkLocations: [loc1, loc2],
+        availableWorkLocations: const [loc1, loc2],
         selectedWorkLocation: loc1,
       );
 

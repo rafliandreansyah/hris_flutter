@@ -55,7 +55,7 @@ void main() {
   group('CoworkerListBloc Unit Tests', () {
     late MockCoworkerRepository mockRepo;
 
-    final sampleCoworker1 = const EmployeeDirectoryItem(
+    const sampleCoworker1 = EmployeeDirectoryItem(
       id: 'cw-1',
       name: 'Budi Santoso',
       firstName: 'Budi',
@@ -68,7 +68,7 @@ void main() {
       initials: 'BS',
     );
 
-    final sampleCoworker2 = const EmployeeDirectoryItem(
+    const sampleCoworker2 = EmployeeDirectoryItem(
       id: 'cw-2',
       name: 'Dewi Lestari',
       firstName: 'Dewi',
@@ -98,7 +98,7 @@ void main() {
     test('CoworkerListStarted with initialCoworkers loads immediately without API call', () async {
       final bloc = CoworkerListBloc(repository: mockRepo);
 
-      bloc.add(CoworkerListStarted(initialCoworkers: [sampleCoworker1, sampleCoworker2]));
+      bloc.add(const CoworkerListStarted(initialCoworkers: [sampleCoworker1, sampleCoworker2]));
 
       await expectLater(
         bloc.stream,
@@ -136,7 +136,7 @@ void main() {
 
     test('CoworkerListSearchChanged filters coworkers by name, role, and department', () async {
       final bloc = CoworkerListBloc(repository: mockRepo);
-      bloc.add(CoworkerListStarted(initialCoworkers: [sampleCoworker1, sampleCoworker2]));
+      bloc.add(const CoworkerListStarted(initialCoworkers: [sampleCoworker1, sampleCoworker2]));
       await bloc.stream.firstWhere((s) => s.status == CoworkerListStatus.success);
 
       // Search by name "Dewi"

@@ -465,7 +465,7 @@ class _EmployeeAttendanceLogsViewState
                 onPressed: () => context.read<AttendanceLogsBloc>().add(
                       const AttendanceLogsLoadMore(),
                     ),
-                icon: Icon(LucideIcons.history, size: 18),
+                icon: const Icon(LucideIcons.history, size: 18),
                 label: const Text('Load Previous Period'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: brandColor,

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/announcement/data/models/announcement_model.dart';
 import 'package:hris_flutter/features/announcement/data/repositories/announcement_repository_impl.dart';
 import 'package:hris_flutter/features/announcement/domain/repositories/announcement_repository.dart';
@@ -18,7 +19,7 @@ class AnnouncementListBloc
     on<AnnouncementListStarted>(_onStarted);
     on<AnnouncementListRefreshed>(_onRefreshed);
     on<AnnouncementListLoadMore>(_onLoadMore);
-    on<AnnouncementSearchChanged>(_onSearchChanged);
+    on<AnnouncementSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<AnnouncementFilterApplied>(_onFilterApplied);
     on<AnnouncementFilterReset>(_onFilterReset);
   }

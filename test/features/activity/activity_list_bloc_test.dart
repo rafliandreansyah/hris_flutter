@@ -268,7 +268,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(
+            throw const ApiException(
               message: 'Forbidden access to approver activities',
               statusCode: 403,
             );

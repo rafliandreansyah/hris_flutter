@@ -104,6 +104,8 @@ class _OvertimeActionDialogState extends State<OvertimeActionDialog> {
             TextField(
               controller: _notesController,
               maxLines: 3,
+              onTapOutside: (event) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
               style: TextStyle(color: textCol, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: widget.isApproved

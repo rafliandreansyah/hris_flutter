@@ -144,32 +144,38 @@ class _AppDocumentUploadCardState extends State<AppDocumentUploadCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    widget.titleIcon,
-                    color: AppColors.brandTeal,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.title,
-                    style: AppTypography.labelSmall.copyWith(
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      widget.titleIcon,
                       color: AppColors.brandTeal,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      size: 16,
                     ),
-                  ),
-                  if (widget.isRequired)
-                    const Text(
-                      ' *',
-                      style: TextStyle(
-                        color: AppColors.errorRed,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        widget.title,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.brandTeal,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
-                ],
+                    if (widget.isRequired)
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: AppColors.errorRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               if (widget.isRequired)
                 _buildTag(
                   label: widget.requiredTagText,

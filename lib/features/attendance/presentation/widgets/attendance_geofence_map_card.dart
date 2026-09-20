@@ -532,7 +532,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               LucideIcons.circleAlert,
               size: 15,
               color: AppColors.errorRed,
@@ -832,7 +832,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   LucideIcons.globe,
                   color: AppColors.brandTeal,
                   size: 36,
@@ -880,7 +880,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   LucideIcons.mapPinOff,
                   color: AppColors.errorRed,
                   size: 36,

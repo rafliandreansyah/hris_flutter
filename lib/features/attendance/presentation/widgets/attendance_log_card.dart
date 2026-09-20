@@ -34,7 +34,7 @@ class AttendanceLogCard extends StatelessWidget {
     final outColor = isDark
         ? AppColors.tertiaryFixedDim
         : AppColors.tertiaryContainer;
-    final lateColor = AppColors.errorRed;
+    const lateColor = AppColors.errorRed;
 
     final isClockIn = log.type == AttendanceLogType.clockIn;
     final accentColor = !isClockIn

@@ -79,7 +79,7 @@ void main() {
     });
 
     test('hasAttendanceRequest should be false when attendanceRequestId is null or empty', () {
-      final model1 = AttendanceDetailModel(
+      const model1 = AttendanceDetailModel(
         id: '1',
         attendanceType: 'Clock In',
         attendanceMethod: 'Biometric',
@@ -87,7 +87,7 @@ void main() {
       );
       expect(model1.hasAttendanceRequest, isFalse);
 
-      final model2 = AttendanceDetailModel(
+      const model2 = AttendanceDetailModel(
         id: '2',
         attendanceType: 'Clock In',
         attendanceMethod: 'Biometric',
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('isPhotoMethod should be false if method does not contain photo or filePath is null', () {
-      final modelWithoutFile = AttendanceDetailModel(
+      const modelWithoutFile = AttendanceDetailModel(
         id: '1',
         attendanceType: 'Clock In',
         attendanceMethod: 'Photo Scan',
@@ -105,7 +105,7 @@ void main() {
       );
       expect(modelWithoutFile.isPhotoMethod, isFalse);
 
-      final modelWithoutPhotoMethod = AttendanceDetailModel(
+      const modelWithoutPhotoMethod = AttendanceDetailModel(
         id: '2',
         attendanceType: 'Clock In',
         attendanceMethod: 'Fingerprint',

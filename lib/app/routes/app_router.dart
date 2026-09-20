@@ -33,6 +33,15 @@ import 'package:hris_flutter/features/overtime/presentation/pages/create_overtim
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_detail_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/features/warning_letter/data/repositories/warning_letter_repository_impl.dart';
+import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_detail/warning_letter_detail_bloc.dart';
+import 'package:hris_flutter/features/warning_letter/presentation/pages/create_warning_letter_screen.dart';
+import 'package:hris_flutter/features/warning_letter/presentation/pages/warning_letter_detail_screen.dart';
+import 'package:hris_flutter/features/warning_letter/presentation/pages/warning_letter_screen.dart';
+import 'package:hris_flutter/features/schedule/data/models/work_schedule_response_model.dart';
+import 'package:hris_flutter/features/schedule/presentation/pages/employee_schedule_select_screen.dart';
+import 'package:hris_flutter/features/schedule/presentation/pages/work_schedule_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -416,6 +425,72 @@ class AppRouter {
             fileUrl: fileUrl,
           );
         },
+      ),
+
+      // 24. Warning Letter Screen (Google Stitch M3 Teal Oasis)
+      GoRoute(
+        path: Routes.WARNING_LETTER,
+        name: Routes.WARNING_LETTER,
+        builder: (context, state) => const WarningLetterScreen(),
+      ),
+
+      // 25. Create Warning Letter Form Screen (Google Stitch M3 Teal Oasis)
+      GoRoute(
+        path: Routes.CREATE_WARNING_LETTER,
+        name: Routes.CREATE_WARNING_LETTER,
+        builder: (context, state) => const CreateWarningLetterScreen(),
+      ),
+
+      // 26. Warning Letter Detail Screen (Google Stitch M3 Teal Oasis)
+      GoRoute(
+        path: Routes.WARNING_LETTER_DETAIL,
+        name: Routes.WARNING_LETTER_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+
+          if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+          } else if (extra is String) {
+            id = extra;
+          }
+
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+
+          return BlocProvider<WarningLetterDetailBloc>(
+            create: (context) => WarningLetterDetailBloc(
+              repository: WarningLetterRepositoryImpl(),
+            ),
+            child: WarningLetterDetailScreen(id: id),
+          );
+        },
+      ),
+
+      // 27. Work Schedule Screen (Jadwal Kerja Pegawai / Diri Sendiri)
+      GoRoute(
+        path: Routes.WORK_SCHEDULE,
+        name: Routes.WORK_SCHEDULE,
+        builder: (context, state) {
+          final employeeId = state.uri.queryParameters['employeeId'];
+          WorkScheduleEmployee? preview;
+          final extra = state.extra;
+          if (extra is WorkScheduleEmployee) {
+            preview = extra;
+          }
+          return WorkScheduleScreen(
+            employeeId: employeeId,
+            employeePreview: preview,
+          );
+        },
+      ),
+
+      // 28. Employee Schedule Select Screen
+      GoRoute(
+        path: Routes.EMPLOYEE_SCHEDULE_SELECT,
+        name: Routes.EMPLOYEE_SCHEDULE_SELECT,
+        builder: (context, state) => const EmployeeScheduleSelectScreen(),
       ),
     ],
     redirect: (context, state) {

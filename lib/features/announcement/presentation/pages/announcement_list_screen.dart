@@ -251,6 +251,8 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
                   ),
                   child: TextField(
                     controller: _searchController,
+                    onTapOutside: (event) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
                     onChanged: _onSearchChanged,
                     textInputAction: TextInputAction.search,
                     style: AppTypography.bodyMedium.copyWith(

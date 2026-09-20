@@ -171,6 +171,8 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                 ),
                 child: TextField(
                   controller: _searchController,
+                  onTapOutside: (event) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                   onChanged: _onSearchChanged,
                   style: AppTypography.bodyMedium.copyWith(
                     color: textCol,

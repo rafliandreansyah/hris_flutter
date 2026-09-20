@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/leave/data/repositories/leave_repository_impl.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_event.dart';
@@ -14,8 +15,7 @@ import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bo
 ///    saat pertama kali dipilih; HTTP 403 (bukan approver) di-set menjadi
 ///    state `isTeamForbidden` khusus tanpa merusak tab My Requests.
 ///
-/// Debounce search (300ms) dilakukan di UI layer sebelum mengirim event
-/// [LeaveListSearchChanged], mengikuti pola ActivityScreen.
+/// Debounce search dilakukan di BLoC layer via [debounceRestartable].
 class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
   final LeaveRepository _repository;
 
@@ -29,7 +29,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     on<LeaveListTabChanged>(_onTabChanged);
     on<LeaveListFetchRequested>(_onFetchRequested);
     on<LeaveListLoadMoreRequested>(_onLoadMoreRequested);
-    on<LeaveListSearchChanged>(_onSearchChanged);
+    on<LeaveListSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<LeaveListFilterApplied>(_onFilterApplied);
     on<LeaveListFilterReset>(_onFilterReset);
   }

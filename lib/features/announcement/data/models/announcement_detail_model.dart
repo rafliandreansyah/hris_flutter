@@ -490,6 +490,15 @@ class AnnouncementAuthor extends Equatable {
     return list.isNotEmpty ? list.join(' ') : 'Pengurus HR';
   }
 
+  String get initials {
+    final parts = fullName.split(' ').where((s) => s.isNotEmpty).toList();
+    if (parts.isEmpty) return 'HR';
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  }
+
   String get positionAndDeptLabel {
     final pos = position?.name ?? '';
     final dept = department?.name ?? '';

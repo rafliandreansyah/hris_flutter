@@ -222,9 +222,12 @@ void main() {
 
       // Employee Information
       expect(find.text('Budi Santoso'), findsOneWidget);
-      expect(find.text('Site Supervisor (L4)'), findsOneWidget);
       expect(
-        find.text('Operations • PT Oasish Tech Nusantara'),
+        find.text('Site Supervisor (L4) • Operations'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('PT Oasish Tech Nusantara'),
         findsOneWidget,
       );
 

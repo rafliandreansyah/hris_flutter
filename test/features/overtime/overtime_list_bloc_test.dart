@@ -72,11 +72,11 @@ class _MockOvertimeRepository implements OvertimeRepository {
         approver: approver,
       );
     }
-    return OvertimeRequestListResponse(
+    return const OvertimeRequestListResponse(
       success: true,
       message: 'OK',
-      data: const [],
-      meta: const OvertimePaginationMeta(
+      data: [],
+      meta: OvertimePaginationMeta(
         page: 1,
         limit: 30,
         total: 0,
@@ -247,7 +247,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(
+            throw const ApiException(
               message: 'Forbidden access to approver overtime requests',
               statusCode: 403,
             );
@@ -290,7 +290,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(message: 'Server error', statusCode: 500);
+            throw const ApiException(message: 'Server error', statusCode: 500);
           }
           return _okResponse();
         },
@@ -436,7 +436,7 @@ void main() {
 
       final bloc = OvertimeListBloc(repository: mockRepo);
       bloc.add(const OvertimeListSearchChanged('sarah'));
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 350));
 
       expect(bloc.state.searchQuery, 'sarah');
       expect(mockRepo.lastSearch, 'sarah');

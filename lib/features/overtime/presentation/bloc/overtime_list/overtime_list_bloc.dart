@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/overtime/data/repositories/overtime_repository_impl.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_event.dart';
@@ -14,8 +15,7 @@ import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_fil
 ///    pertama kali dipilih; HTTP 403 (bukan approver) di-set menjadi state
 ///    `isTeamForbidden` khusus tanpa merusak tab My Overtime.
 ///
-/// Debounce search (300ms) dilakukan di UI layer sebelum mengirim event
-/// [OvertimeListSearchChanged], mengikuti pola ActivityScreen.
+/// Debounce search dilakukan di BLoC layer via [debounceRestartable].
 class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
   final OvertimeRepository _repository;
 
@@ -29,7 +29,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     on<OvertimeListTabChanged>(_onTabChanged);
     on<OvertimeListFetchRequested>(_onFetchRequested);
     on<OvertimeListLoadMoreRequested>(_onLoadMoreRequested);
-    on<OvertimeListSearchChanged>(_onSearchChanged);
+    on<OvertimeListSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<OvertimeListFilterApplied>(_onFilterApplied);
     on<OvertimeListFilterReset>(_onFilterReset);
   }

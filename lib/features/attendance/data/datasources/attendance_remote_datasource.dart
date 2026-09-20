@@ -98,7 +98,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         return CreateAttendanceResponse.fromJson(rawData);
       }
 
-      throw ApiException(message: 'Format data respons tidak valid');
+      throw const ApiException(message: 'Format data respons tidak valid');
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
@@ -207,7 +207,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         return AttendanceLogListResponse.fromJson(rawData);
       }
 
-      throw ApiException(
+      throw const ApiException(
         message: 'Gagal memuat riwayat absensi.',
       );
     } on DioException catch (e) {
@@ -232,7 +232,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       return [];
     } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
-        throw ApiException(
+        throw const ApiException(
           message: 'Tidak ada hak akses',
           statusCode: 403,
         );
@@ -276,10 +276,10 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
             : rawData;
         return AttendanceDetailModel.fromJson(data);
       }
-      throw ApiException(message: 'Format data tidak valid');
+      throw const ApiException(message: 'Format data tidak valid');
     } on DioException catch (e) {
       if (e.response?.statusCode == 403) {
-        throw ApiException(
+        throw const ApiException(
           message: 'Tidak ada hak akses',
           statusCode: 403,
         );

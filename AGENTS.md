@@ -71,6 +71,11 @@
 14. **Request Items Employee Info Standard (`EmployeeInfoRow`)**:
     - **Single Standard for Request Modules**: Across all request modules (`attendance_request`, `leave`, `overtime`, etc.) and feeds (`activity`), all request item cards displayed in list views MUST ALWAYS use the global widget **`EmployeeInfoRow`** (`lib/core/widgets/employee_info_row.dart`) for rendering employee identity (avatar, name, role • department, employee number badge, company badge).
     - **Consistency Across Cards**: Never build manual or ad-hoc avatar + employee info columns in request cards. Always pass `name`, `role`, `department`, `company`, `employeeId`, `avatarUrl`, `initials`, and a compact `avatarSize` (typically 40–44) into `EmployeeInfoRow`.
+15. **Keyboard Dismiss & Form Action Standards (`onTapOutside` & Unfocus on Submit)**:
+    - **Global `AppTextField`**: Always configure default `onTapOutside: widget.onTapOutside ?? (event) => FocusManager.instance.primaryFocus?.unfocus()` so tapping outside any text field immediately dismisses the software keyboard on iOS and Android.
+    - **Direct TextField / TextFormField**: Any raw input field across forms, search bars, dialogs, or filter sheets MUST specify `onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus()`.
+    - **Form Action Handlers**: All form submit and action handlers (`_handleSubmit`, `_submitForm`, dialog submit buttons) MUST invoke `FocusManager.instance.primaryFocus?.unfocus()` on the very first line before validation and BLoC event dispatching.
+    - **Bottom Action Buttons Placement**: Form action buttons must be placed in `Scaffold.bottomNavigationBar` (with `SafeArea(top: false, child: ...)`), keeping buttons anchored at the bottom of the screen instead of jumping above the keyboard while typing, maintaining a clean and spacious viewport.
 
 
 

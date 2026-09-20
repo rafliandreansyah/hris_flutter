@@ -263,6 +263,8 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
   }
 
   void _handleSubmit(CreateOvertimeState state) {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     if (_notesController.text.trim().isEmpty) {
       _showWarningSnackBar('Alasan pengajuan lembur wajib diisi.');
       return;
@@ -856,6 +858,8 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                           controller: _notesController,
                           maxLines: 4,
                           maxLength: 250,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           style: AppTypography.bodyMedium,
                           decoration: InputDecoration(
                             hintText:
@@ -923,9 +927,8 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             ),
           ),
 
-          // ── STICKY BOTTOM BAR: Submit Button (Konsisten dengan CreateLeaveScreen) ─
-          bottomSheet: Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+          // ── STICKY BOTTOM BAR: Submit Button ──────────────────────────────
+          bottomNavigationBar: Container(
             decoration: BoxDecoration(
               color: cardBg,
               border: Border(top: BorderSide(color: borderCol)),
@@ -937,13 +940,19 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                 ),
               ],
             ),
-            child: AppButton(
-              key: const ValueKey('submit_overtime_btn'),
-              text: 'Kirim Pengajuan Lembur',
-              leadingIcon: LucideIcons.send,
-              isLoading: isSubmitting,
-              onPressed:
-                  (isSubmitting || !canSubmit) ? null : () => _handleSubmit(state),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: AppButton(
+                  key: const ValueKey('submit_overtime_btn'),
+                  text: 'Kirim Pengajuan Lembur',
+                  leadingIcon: LucideIcons.send,
+                  isLoading: isSubmitting,
+                  onPressed:
+                      (isSubmitting || !canSubmit) ? null : () => _handleSubmit(state),
+                ),
+              ),
             ),
           ),
         );

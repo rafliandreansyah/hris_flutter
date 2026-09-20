@@ -153,11 +153,11 @@ void main() {
     });
 
     test('Status rejection mapping and copyWith works correctly', () {
-      final model = LeaveRequestDetailData(
+      const model = LeaveRequestDetailData(
         id: '123',
         status: 'rejected',
-        leaveType: const LeaveTypeDetailModel(id: '1', name: 'Sick'),
-        employee: const LeaveEmployeeDetailModel(id: '1', firstName: 'John'),
+        leaveType: LeaveTypeDetailModel(id: '1', name: 'Sick'),
+        employee: LeaveEmployeeDetailModel(id: '1', firstName: 'John'),
       );
 
       expect(model.isRejected, isTrue);

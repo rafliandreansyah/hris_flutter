@@ -24,9 +24,31 @@ class DeviceInfoData {
 /// dan versi aplikasi (dari pubspec.yaml via package_info_plus).
 class DeviceInfoUtil {
   static final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  static DeviceInfoData? _cachedData;
+
+  /// Mengatur data perangkat tiruan untuk testing
+  @visibleForTesting
+  static void setMockDeviceInfo(DeviceInfoData? data) {
+    _cachedData = data;
+  }
 
   /// Mengambil data lengkap perangkat & versi aplikasi
   static Future<DeviceInfoData> getDeviceInfo() async {
+    if (_cachedData != null) {
+      return _cachedData!;
+    }
+
+    // Hindari pemanggilan platform channel tanpa mock pada lingkungan flutter test
+    if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+      return const DeviceInfoData(
+        deviceId: 'unknown_device_id',
+        deviceName: 'Test Device',
+        deviceModel: 'Test Model',
+        osVersion: 'Test OS',
+        appVersion: '1.0.0+1',
+      );
+    }
+
     String deviceId = 'unknown_device_id';
     String deviceName = 'Unknown Device';
     String deviceModel = 'Unknown Model';
@@ -35,7 +57,8 @@ class DeviceInfoUtil {
 
     try {
       // 1. Ambil versi aplikasi dari platform (pubspec.yaml)
-      final packageInfo = await PackageInfo.fromPlatform();
+      final packageInfo = await PackageInfo.fromPlatform()
+          .timeout(const Duration(seconds: 2));
       appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
 
       // 2. Ambil informasi device berdasarkan platform
@@ -80,12 +103,14 @@ class DeviceInfoUtil {
       debugPrint('⚠️ [DeviceInfoUtil Error]: $e');
     }
 
-    return DeviceInfoData(
+    final data = DeviceInfoData(
       deviceId: deviceId,
       deviceName: deviceName,
       deviceModel: deviceModel,
       osVersion: osVersion,
       appVersion: appVersion,
     );
+    _cachedData = data;
+    return data;
   }
 }

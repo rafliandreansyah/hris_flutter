@@ -145,7 +145,7 @@ class _MockDetailRepo implements ActivityRepository {
 class _MockFailureDetailRepo extends _MockDetailRepo {
   @override
   Future<ActivityDetailResponse> getActivityDetail(String id) async {
-    throw ApiException(message: 'Network error 500', statusCode: 500);
+    throw const ApiException(message: 'Network error 500', statusCode: 500);
   }
 }
 

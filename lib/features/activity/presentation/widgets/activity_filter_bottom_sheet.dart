@@ -168,9 +168,16 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
         availablePositions: availablePositions,
       );
 
-      if (organizationFilterBloc != null) {
+      OrganizationFilterBloc? resolvedOrgBloc = organizationFilterBloc;
+      if (resolvedOrgBloc == null) {
+        try {
+          resolvedOrgBloc = context.read<OrganizationFilterBloc>();
+        } catch (_) {}
+      }
+
+      if (resolvedOrgBloc != null) {
         return BlocProvider<OrganizationFilterBloc>.value(
-          value: organizationFilterBloc,
+          value: resolvedOrgBloc..add(const OrganizationFilterStarted()),
           child: sheetWidget,
         );
       }
@@ -582,6 +589,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                                 ),
                               ),
                               child: TextField(
+                                onTapOutside: (event) =>
+                                    FocusManager.instance.primaryFocus?.unfocus(),
                                 onChanged: (val) {
                                   setModalState(() {
                                     searchQuery = val;

@@ -40,7 +40,7 @@ class _MockOvertimeRepository implements OvertimeRepository {
   }) async {
     await Future.delayed(const Duration(milliseconds: 10));
     if (approver && teamForbidden) {
-      throw ApiException(
+      throw const ApiException(
         message: 'Forbidden access to approver overtime requests',
         statusCode: 403,
       );

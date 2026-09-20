@@ -74,6 +74,50 @@ void main() {
       expect(find.text('surat_dokter.jpg'), findsNothing);
     });
 
+    testWidgets('renders long subtitle with ellipsis without RenderFlex overflow', (tester) async {
+      final xFile = XFile(tempImageFile.path);
+
+      // Set mobile physical size
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () {
+                AppImagePreviewDialog.show(
+                  context,
+                  xFile: xFile,
+                  title: 'Foto Surat Peringatan',
+                  subtitle:
+                      'Ref: Surat Peringatan Lisan / Teguran/PT. Oasish Indonesia/09/2026/0001',
+                );
+              },
+              child: const Text('Buka Preview'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Buka Preview'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Foto Surat Peringatan'), findsOneWidget);
+      expect(
+        find.text(
+          'Ref: Surat Peringatan Lisan / Teguran/PT. Oasish Indonesia/09/2026/0001',
+        ),
+        findsOneWidget,
+      );
+      // No FlutterError should have been triggered (no overflow)
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('renders error state when file is null and imageUrl is empty', (tester) async {
       await tester.pumpWidget(
         buildTestApp(

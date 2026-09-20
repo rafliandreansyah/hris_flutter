@@ -92,13 +92,13 @@ void main() {
       repository = _MockLeaveRepository();
     });
 
-    final testDetail = LeaveRequestDetailData(
+    const testDetail = LeaveRequestDetailData(
       id: 'leave-123',
       status: 'requested',
       totalDays: 2,
       notes: 'Sick leave note',
-      leaveType: const LeaveTypeDetailModel(id: 'lt-1', name: 'Sick Leave'),
-      employee: const LeaveEmployeeDetailModel(
+      leaveType: LeaveTypeDetailModel(id: 'lt-1', name: 'Sick Leave'),
+      employee: LeaveEmployeeDetailModel(
         id: 'emp-1',
         firstName: 'Sarah',
         lastName: 'Jenkins',
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('emits [loading, failure] with statusCode when LeaveDetailStarted fails with 404', () async {
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Data tidak ditemukan',
         statusCode: 404,
       );

@@ -458,6 +458,8 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                           ),
                           child: TextField(
                             controller: _searchController,
+                            onTapOutside: (event) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
                             style: AppTypography.bodyMedium.copyWith(
                               color: textCol,
                               fontSize: 14,

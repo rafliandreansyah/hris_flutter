@@ -142,7 +142,7 @@ void main() {
     test(
         'emits [loading, failure] on AttendanceRequestDetailStarted failure with ApiException',
         () async {
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Data permohonan presensi tidak ditemukan',
         statusCode: 404,
       );
@@ -291,7 +291,7 @@ void main() {
       );
       await pumpEventQueue();
 
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Gagal memperbarui status pengajuan',
         statusCode: 500,
       );
@@ -323,7 +323,7 @@ void main() {
       );
       await pumpEventQueue();
 
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Tidak dapat menghapus pengajuan yang telah disetujui',
         statusCode: 400,
       );

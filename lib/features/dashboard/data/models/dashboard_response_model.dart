@@ -90,6 +90,46 @@ class DashboardData {
         : trimmed[0].toUpperCase();
   }
 
+  DashboardData copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? idNumber,
+    String? employeeNumber,
+    String? timezone,
+    String? photoUrl,
+    CompanyInfo? company,
+    DepartmentInfo? department,
+    PositionInfo? position,
+    EmployeeDeviceInfo? employeeDevice,
+    TodayScheduleInfo? todaySchedule,
+    String? timeServer,
+    List<AnnouncementItem>? latestAnnouncement,
+    AttendanceSummaryInfo? attendanceSummary,
+  }) {
+    return DashboardData(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      idNumber: idNumber ?? this.idNumber,
+      employeeNumber: employeeNumber ?? this.employeeNumber,
+      timezone: timezone ?? this.timezone,
+      photoUrl: photoUrl ?? this.photoUrl,
+      company: company ?? this.company,
+      department: department ?? this.department,
+      position: position ?? this.position,
+      employeeDevice: employeeDevice ?? this.employeeDevice,
+      todaySchedule: todaySchedule ?? this.todaySchedule,
+      timeServer: timeServer ?? this.timeServer,
+      latestAnnouncement: latestAnnouncement ?? this.latestAnnouncement,
+      attendanceSummary: attendanceSummary ?? this.attendanceSummary,
+    );
+  }
+
   factory DashboardData.fromJson(Map<String, dynamic> json) {
     return DashboardData(
       id: json['id'] as String? ?? '',

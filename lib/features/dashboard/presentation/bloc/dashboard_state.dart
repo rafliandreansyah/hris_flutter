@@ -61,3 +61,21 @@ class DashboardError extends DashboardState {
   @override
   List<Object?> get props => [message, statusCode];
 }
+
+/// State ketika perangkat fisik saat ini tidak cocok dengan perangkat terdaftar
+/// atau data perangkat di server belum terdaftar/kosong.
+class DashboardDeviceMismatch extends DashboardState {
+  final String message;
+  final String registeredDeviceId;
+  final String currentDeviceId;
+
+  const DashboardDeviceMismatch({
+    this.message =
+        'Akun Anda terdaftar pada perangkat lain. Demi keamanan akun, Anda telah dikeluarkan secara otomatis.',
+    required this.registeredDeviceId,
+    required this.currentDeviceId,
+  });
+
+  @override
+  List<Object?> get props => [message, registeredDeviceId, currentDeviceId];
+}

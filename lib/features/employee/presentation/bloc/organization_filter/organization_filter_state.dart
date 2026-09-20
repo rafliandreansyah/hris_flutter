@@ -20,8 +20,11 @@ class OrganizationFilterState extends Equatable {
   // In-memory cache per companyId
   final Map<String, List<DepartmentItem>> cachedDepartmentsByCompany;
   final Map<String, List<PositionItem>> cachedPositionsByCompany;
+  final DateTime? lastFetchedCompanies;
 
   final String? errorMessage;
+
+  static const Duration defaultTtl = Duration(minutes: 30);
 
   const OrganizationFilterState({
     this.status = OrganizationFilterStatus.initial,
@@ -32,6 +35,7 @@ class OrganizationFilterState extends Equatable {
     this.selectedDepartmentId,
     this.cachedDepartmentsByCompany = const {},
     this.cachedPositionsByCompany = const {},
+    this.lastFetchedCompanies,
     this.errorMessage,
   });
 
@@ -46,6 +50,7 @@ class OrganizationFilterState extends Equatable {
     bool clearSelectedDepartment = false,
     Map<String, List<DepartmentItem>>? cachedDepartmentsByCompany,
     Map<String, List<PositionItem>>? cachedPositionsByCompany,
+    DateTime? lastFetchedCompanies,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -64,6 +69,8 @@ class OrganizationFilterState extends Equatable {
           cachedDepartmentsByCompany ?? this.cachedDepartmentsByCompany,
       cachedPositionsByCompany:
           cachedPositionsByCompany ?? this.cachedPositionsByCompany,
+      lastFetchedCompanies:
+          lastFetchedCompanies ?? this.lastFetchedCompanies,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
@@ -75,6 +82,12 @@ class OrganizationFilterState extends Equatable {
   bool get isLoadingPositions =>
       status == OrganizationFilterStatus.loadingChildren;
 
+  /// Mengecek apakah cache data perusahaan masih segar sesuai batas TTL
+  bool get isCompaniesCacheValid {
+    if (lastFetchedCompanies == null || companies.isEmpty) return false;
+    return DateTime.now().difference(lastFetchedCompanies!) < defaultTtl;
+  }
+
   @override
   List<Object?> get props => [
         status,
@@ -85,6 +98,7 @@ class OrganizationFilterState extends Equatable {
         selectedDepartmentId,
         cachedDepartmentsByCompany,
         cachedPositionsByCompany,
+        lastFetchedCompanies,
         errorMessage,
       ];
 }

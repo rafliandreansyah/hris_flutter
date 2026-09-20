@@ -40,7 +40,7 @@ class _MockLeaveRepository implements LeaveRepository {
   }) async {
     await Future.delayed(const Duration(milliseconds: 10));
     if (approver && teamForbidden) {
-      throw ApiException(
+      throw const ApiException(
         message: 'Forbidden access to approver leave requests',
         statusCode: 403,
       );

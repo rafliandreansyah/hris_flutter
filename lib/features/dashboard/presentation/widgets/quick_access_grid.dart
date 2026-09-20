@@ -59,7 +59,7 @@ class QuickAccessGrid extends StatelessWidget {
     (
       code: 'mobile_schedule',
       title: 'Jadwal Kerja',
-      icon: LucideIcons.calendar,
+      icon: LucideIcons.calendarDays,
     ),
   ];
 
@@ -174,6 +174,10 @@ class QuickAccessGrid extends StatelessWidget {
     } else if (c == 'mobile_attendance_request_live' ||
         c == 'mobile_attendance_request_schedule') {
       context.push(Routes.ATTENDANCE_REQUESTS);
+    } else if (c == 'mobile_warning_letter') {
+      context.push(Routes.WARNING_LETTER);
+    } else if (c == 'mobile_schedule' || c == 'mobile_employee_schedule') {
+      context.push(Routes.EMPLOYEE_SCHEDULE_SELECT);
     } else {
       ScaffoldMessenger.of(
         context,

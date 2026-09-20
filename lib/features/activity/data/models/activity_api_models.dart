@@ -90,7 +90,7 @@ String? resolveFileUrl(String? path) {
     return trimmed;
   }
   // Hapus /api/v1 jika base url memuatnya untuk file statis / uploads
-  final cleanBase = 'https://apidev.hroasish.com';
+  const cleanBase = 'https://apidev.hroasish.com';
   final normalizedPath = trimmed.startsWith('/') ? trimmed : '/$trimmed';
   return '$cleanBase$normalizedPath';
 }

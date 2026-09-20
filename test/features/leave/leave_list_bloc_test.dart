@@ -75,11 +75,11 @@ class _MockLeaveRepository implements LeaveRepository {
         approver: approver,
       );
     }
-    return LeaveRequestListResponse(
+    return const LeaveRequestListResponse(
       success: true,
       message: 'OK',
-      data: const [],
-      meta: const LeavePaginationMeta(
+      data: [],
+      meta: LeavePaginationMeta(
         page: 1,
         limit: 30,
         total: 0,
@@ -246,7 +246,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(
+            throw const ApiException(
               message: 'Forbidden access to approver leave requests',
               statusCode: 403,
             );
@@ -290,7 +290,7 @@ void main() {
           bool approver = false,
         }) async {
           if (approver) {
-            throw ApiException(message: 'Server error', statusCode: 500);
+            throw const ApiException(message: 'Server error', statusCode: 500);
           }
           return _okResponse();
         },
@@ -435,7 +435,7 @@ void main() {
 
       final bloc = LeaveListBloc(repository: mockRepo);
       bloc.add(const LeaveListSearchChanged('sarah'));
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 350));
 
       expect(bloc.state.searchQuery, 'sarah');
       expect(mockRepo.lastSearch, 'sarah');

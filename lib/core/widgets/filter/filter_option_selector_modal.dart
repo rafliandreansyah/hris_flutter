@@ -87,6 +87,8 @@ Future<void> showFilterOptionSelector(
                               ),
                             ),
                             child: TextField(
+                              onTapOutside: (event) =>
+                                  FocusManager.instance.primaryFocus?.unfocus(),
                               onChanged: (val) {
                                 setModalState(() {
                                   searchQuery = val;

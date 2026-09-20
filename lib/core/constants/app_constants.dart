@@ -20,4 +20,11 @@ abstract class AppConstants {
   static const String headerContentType = 'Content-Type';
   static const String headerAccept = 'Accept';
   static const String jsonContentType = 'application/json';
+
+  // --- Telemetry & Device Tracking Headers ---
+  static const String headerDeviceId = 'x-device-id';
+  static const String headerPlatform = 'x-platform';
+  static const String headerDeviceModel = 'x-device-model';
+  static const String headerOsVersion = 'x-os-version';
+  static const String headerAppVersion = 'x-app-version';
 }

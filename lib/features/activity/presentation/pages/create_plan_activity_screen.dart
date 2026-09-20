@@ -205,6 +205,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                       child: TextField(
                         controller: searchController,
                         onChanged: (_) => setSheetState(() {}),
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         decoration: InputDecoration(
                           hintText: 'Cari nama, jabatan, atau divisi...',
                           hintStyle: TextStyle(
@@ -417,6 +419,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
   }
 
   void _handleSubmit() {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     if (_selectedEmployee == null) {
       _showWarningSnackBar('Silakan pilih Pegawai / Bawahan yang ditugaskan.');
       return;
@@ -734,7 +738,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                                       ],
                                     ),
                                   ),
-                                  Icon(
+                                  const Icon(
                                     LucideIcons.checkCircle2,
                                     size: 18,
                                     color: AppColors.brandTeal,
@@ -868,6 +872,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _locationNameController,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           decoration: InputDecoration(
                             hintText:
                                 'Misal: Kantor Klien PT ABC, Gedung Sudirman',
@@ -894,6 +900,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                         TextFormField(
                           controller: _addressController,
                           maxLines: 2,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           decoration: InputDecoration(
                             hintText:
                                 'Opsional: Dapat dilengkapi bawahan saat aktivitas dimulai',
@@ -930,6 +938,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                         TextFormField(
                           controller: _descriptionController,
                           maxLines: 4,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           decoration: InputDecoration(
                             hintText:
                                 'Tuliskan rincian agenda, sasaran kerja, atau panduan tugas untuk bawahan...',

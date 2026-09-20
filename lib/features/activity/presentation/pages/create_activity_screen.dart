@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/utils/mapbox_geocoding_util.dart';
+import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_photo_picker_card.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
@@ -75,6 +76,9 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     try {
       final isTest = Platform.environment.containsKey('FLUTTER_TEST');
       if (!isTest) {
+        final isGpsOn = await PermissionUtil.ensureLocationServiceEnabled(context);
+        if (!isGpsOn) return;
+
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
@@ -207,6 +211,8 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
   }
 
   Future<void> _handleSubmit() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // Validasi Form
     if (_selectedActivityType == null) {
       _showWarningSnackBar('Silakan pilih Activity Type terlebih dahulu.');
@@ -646,6 +652,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
       child: TextField(
         controller: controller,
         maxLines: maxLines,
+        onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
         style: AppTypography.bodyMedium.copyWith(color: textCol, fontSize: 14),
         decoration: InputDecoration(
           hintText: hintText,

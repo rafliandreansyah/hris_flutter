@@ -385,7 +385,7 @@ class _AttendanceDetailView extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         LucideIcons.calendarClock,
                         size: 15,
                         color: AppColors.brandTeal,
@@ -448,7 +448,7 @@ class _AttendanceDetailView extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         LucideIcons.shieldCheck,
                         size: 15,
                         color: AppColors.brandTeal,

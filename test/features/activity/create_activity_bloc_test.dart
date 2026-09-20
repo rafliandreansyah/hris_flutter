@@ -65,7 +65,7 @@ class _MockCreateActivityRepository implements ActivityRepository {
   @override
   Future<ActivityTypesResponse> getActivityTypes() async {
     if (getTypesShouldFail) {
-      throw ApiException(message: 'Failed to fetch activity types', statusCode: 500);
+      throw const ApiException(message: 'Failed to fetch activity types', statusCode: 500);
     }
     return const ActivityTypesResponse(
       success: true,
@@ -89,7 +89,7 @@ class _MockCreateActivityRepository implements ActivityRepository {
     XFile? file,
   }) async {
     if (createShouldFail) {
-      throw ApiException(message: 'Failed to create activity', statusCode: 400);
+      throw const ApiException(message: 'Failed to create activity', statusCode: 400);
     }
     return CreateActivityResponse(
       success: true,

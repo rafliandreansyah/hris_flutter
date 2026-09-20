@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Kartu Informasi Atasan Langsung (Direct Reporting Manager)
@@ -63,52 +63,15 @@ class ManagerInfoCard extends StatelessWidget {
             ],
           ),
           child: hasManager
-              ? Row(
-                  children: [
-                    AppAvatar(
-                      imageUrl: avatarUrl,
-                      name: name,
-                      initials: initials,
-                      size: 44,
-                      showBorder: true,
-                      borderColor: borderCol,
-                      fontSize: 15,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name!,
-                            style: AppTypography.titleSmall.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${role ?? "Direct Manager"} • ${department ?? ""}',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: labelCol,
-                              fontSize: 12,
-                            ),
-                          ),
-                          if (company != null || employeeId != null)
-                            Text(
-                              [company, employeeId]
-                                  .where((s) => s != null && s.isNotEmpty)
-                                  .join(' • '),
-                              style: AppTypography.labelSmall.copyWith(
-                                color: labelCol.withValues(alpha: 0.8),
-                                fontSize: 11,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+              ? EmployeeInfoRow(
+                  name: name!,
+                  role: role ?? 'Direct Manager',
+                  department: department,
+                  company: company,
+                  employeeId: employeeId,
+                  avatarUrl: avatarUrl,
+                  initials: initials,
+                  avatarSize: 44,
                 )
               : Row(
                   children: [

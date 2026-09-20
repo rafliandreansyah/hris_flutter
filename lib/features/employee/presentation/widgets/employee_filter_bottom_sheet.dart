@@ -367,6 +367,8 @@ class _EmployeeFilterBottomSheetState extends State<EmployeeFilterBottomSheet> {
                                 ),
                               ),
                               child: TextField(
+                                onTapOutside: (event) =>
+                                    FocusManager.instance.primaryFocus?.unfocus(),
                                 onChanged: (val) {
                                   setModalState(() {
                                     searchQuery = val;

@@ -412,7 +412,10 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
 
           // ── Card 3: Assigned Approver (Sembunyi jika approver == null)
           if (hasApprover) ...[
-            OvertimeDetailApproverCard(approver: detail.approver!),
+            OvertimeDetailApproverCard(
+              approver: detail.approver!,
+              approverNotes: detail.approverNotes,
+            ),
             const SizedBox(height: 14),
           ],
 

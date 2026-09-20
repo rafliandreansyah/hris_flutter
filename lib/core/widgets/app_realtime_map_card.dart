@@ -140,7 +140,10 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
   /// Inisialisasi pengambilan posisi GPS dan streaming real-time
   Future<void> _initGpsLocation() async {
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await PermissionUtil.ensureLocationServiceEnabled(
+        context,
+        promptToEnable: true,
+      );
       if (!serviceEnabled) {
         if (mounted) setState(() => _isLocating = false);
         return;

@@ -449,6 +449,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                           ),
                           child: TextField(
                             controller: _searchController,
+                            onTapOutside: (event) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
                             style: AppTypography.bodyMedium.copyWith(
                               color: textCol,
                               fontSize: 14,

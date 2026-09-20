@@ -116,13 +116,13 @@ class AttendanceRequestRemoteDataSourceImpl
         );
       }
 
-      throw ApiException(
+      throw const ApiException(
         message: 'Gagal memuat data pengajuan presensi.',
       );
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       if (statusCode == 403) {
-        throw ApiException(
+        throw const ApiException(
           message: 'Tidak memiliki hak akses approver untuk pengajuan presensi tim.',
           statusCode: 403,
         );
@@ -149,7 +149,7 @@ class AttendanceRequestRemoteDataSourceImpl
         return LiveAttendanceResponse.fromJson(rawData);
       }
 
-      throw ApiException(
+      throw const ApiException(
         message: 'Gagal mengirim presensi live.',
       );
     } on DioException catch (e) {
@@ -175,7 +175,7 @@ class AttendanceRequestRemoteDataSourceImpl
         return ScheduleAttendanceResponse.fromJson(rawData);
       }
 
-      throw ApiException(
+      throw const ApiException(
         message: 'Gagal mengajukan presensi terjadwal.',
       );
     } on DioException catch (e) {
@@ -196,7 +196,7 @@ class AttendanceRequestRemoteDataSourceImpl
         return parsed.data;
       }
 
-      throw ApiException(
+      throw const ApiException(
         message: 'Gagal memuat detail pengajuan presensi.',
       );
     } on DioException catch (e) {

@@ -15,7 +15,7 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<String> updateLanguage(String language) async {
     if (shouldFail) {
-      throw ApiException(message: 'Failed to update language', statusCode: 500);
+      throw const ApiException(message: 'Failed to update language', statusCode: 500);
     }
     currentLang = language;
     return language;

@@ -41,6 +41,7 @@ abstract class ApiEndpoints {
   static const String employeeCoworkers = '/employee/coworkers';
   static const String employeeDefaultWorkLocation = '/employee/default-work-location';
   static const String employeeUpdatePassword = '/employee/update-password';
+  static const String employeeWorkSchedule = '/employee/work-schedule';
 
   // ==========================================
   // --- 🏢 ORGANIZATION FILTER ENDPOINTS ---
@@ -93,6 +94,11 @@ abstract class ApiEndpoints {
   // ==========================================
   static const String warningLetters = '/warning-letters';
   static const String myWarningLetters = '/warning-letters/my';
+  static const String warningLetter = '/warning-letter';
+  static const String warningLetterType = '/warning-letter/type';
+  static String lastWarningLetterByEmployee(String employeeId) =>
+      '/warning-letter/employee/$employeeId/last';
+  static String warningLetterDetail(String id) => '/warning-letter/$id';
 
   // ==========================================
   // --- 📢 ANNOUNCEMENT & AUDIT ENDPOINTS ---

@@ -325,7 +325,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
             if (detail.formattedDateTime.isNotEmpty) ...[
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     LucideIcons.calendar,
                     size: 15,
                     color: AppColors.textSecondary,

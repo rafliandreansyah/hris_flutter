@@ -397,7 +397,7 @@ void main() {
           String? workScheduleId,
           required XFile file,
         }) async {
-          throw ApiException(
+          throw const ApiException(
             message: 'File foto bukti wajib dilampirkan.',
             statusCode: 422,
           );

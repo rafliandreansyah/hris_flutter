@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
@@ -88,6 +89,10 @@ class PermissionUtil {
   /// Handler mock opsional untuk request perizinan saat testing
   @visibleForTesting
   static Future<PermissionStatus> Function(Permission permission)? testPermissionRequestHandler;
+
+  /// Handler mock opsional untuk status layanan GPS (Location Service) saat testing
+  @visibleForTesting
+  static Future<bool> Function()? testLocationServiceHandler;
 
   /// Menandakan apakah berjalan dalam lingkungan unit test / flutter_test
   static bool get _isTestEnvironment {
@@ -379,6 +384,73 @@ class PermissionUtil {
   // ===========================================================================
   // 4. LOKASI & PETA (Location / Maps)
   // ===========================================================================
+
+  /// Memeriksa apakah Layanan Lokasi (GPS switch perangkat) aktif
+  static Future<bool> isLocationServiceEnabled() async {
+    if (testLocationServiceHandler != null) {
+      return await testLocationServiceHandler!();
+    }
+    if (_isTestEnvironment) return true;
+    try {
+      return await Geolocator.isLocationServiceEnabled();
+    } catch (e) {
+      debugPrint('⚠️ [PermissionUtil.isLocationServiceEnabled] $e');
+      return false;
+    }
+  }
+
+  /// Membuka halaman pengaturan lokasi (GPS) pada perangkat
+  static Future<bool> openLocationSettings() async {
+    if (_isTestEnvironment) return true;
+    try {
+      return await Geolocator.openLocationSettings();
+    } catch (e) {
+      debugPrint('⚠️ [PermissionUtil.openLocationSettings] $e');
+      return false;
+    }
+  }
+
+  /// Dialog peringatan elegan saat layanan GPS perangkat dimatikan
+  static Future<bool> showGpsDisabledDialog({
+    required BuildContext context,
+    String title = 'Layanan GPS Nonaktif',
+    String description =
+        'Layanan lokasi (GPS) pada perangkat Anda saat ini dimatikan. Mohon aktifkan GPS untuk melanjutkan verifikasi lokasi presensi dan radius kantor.',
+    String settingsText = 'Buka Pengaturan GPS',
+    String cancelText = 'Nanti Saja',
+  }) async {
+    return await showPermissionDeniedDialog(
+      context: context,
+      type: HrisPermissionType.location,
+      title: title,
+      description: description,
+      settingsText: settingsText,
+      cancelText: cancelText,
+      onOpenSettings: openLocationSettings,
+    );
+  }
+
+  /// Memastikan layanan GPS aktif sebelum aksi presensi / aktivitas lapangan.
+  /// Jika GPS nonaktif dan [promptToEnable] true, memunculkan dialog Stitch M3 via [showGpsDisabledDialog].
+  static Future<bool> ensureLocationServiceEnabled(
+    BuildContext context, {
+    bool promptToEnable = true,
+    String? title,
+    String? description,
+  }) async {
+    final enabled = await isLocationServiceEnabled();
+    if (enabled) return true;
+
+    if (promptToEnable && context.mounted) {
+      await showGpsDisabledDialog(
+        context: context,
+        title: title ?? 'Layanan GPS Nonaktif',
+        description: description ??
+            'Layanan lokasi (GPS) pada perangkat Anda saat ini dimatikan. Mohon aktifkan GPS untuk melanjutkan verifikasi lokasi presensi dan radius kantor.',
+      );
+    }
+    return false;
+  }
 
   /// Periksa apakah izin lokasi sudah diberikan
   static Future<bool> hasLocationPermission() async {
@@ -798,6 +870,7 @@ class PermissionUtil {
     String settingsText = 'Buka Pengaturan',
     String cancelText = 'Nanti Saja',
     bool barrierDismissible = false,
+    Future<bool> Function()? onOpenSettings,
   }) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = isDark
@@ -888,7 +961,7 @@ class PermissionUtil {
           color: AppColors.brandTeal,
           onPressed: () {
             Navigator.of(context).pop(true);
-            openSettings();
+            (onOpenSettings ?? openSettings)();
           },
           customWidget: AppButton(
             key: const ValueKey('permission_denied_settings_button'),
@@ -898,7 +971,7 @@ class PermissionUtil {
             borderRadius: 12,
             onPressed: () {
               Navigator.of(context).pop(true);
-              openSettings();
+              (onOpenSettings ?? openSettings)();
             },
           ),
         ),

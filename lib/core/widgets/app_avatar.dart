@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -117,6 +118,9 @@ class AppAvatar extends StatelessWidget {
     final hasValidUrl = imageUrl != null && imageUrl!.trim().isNotEmpty;
 
     if (hasValidUrl) {
+      final pixelRatio = MediaQuery.maybeOf(context)?.devicePixelRatio ?? 2.0;
+      final memCacheDim = (size * pixelRatio).round();
+
       return Container(
         width: size,
         height: size,
@@ -128,21 +132,21 @@ class AppAvatar extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: effectiveBorderRadius,
-          child: Image.network(
-            imageUrl!.trim(),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl!.trim(),
             fit: BoxFit.cover,
             width: size,
             height: size,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return _buildInitialsContainer(
-                computedInitials,
-                effectiveBg,
-                effectiveFg,
-                effectiveFontSize,
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => _buildInitialsContainer(
+            memCacheWidth: memCacheDim,
+            memCacheHeight: memCacheDim,
+            fadeInDuration: const Duration(milliseconds: 150),
+            placeholder: (context, url) => _buildInitialsContainer(
+              computedInitials,
+              effectiveBg,
+              effectiveFg,
+              effectiveFontSize,
+            ),
+            errorWidget: (context, url, error) => _buildInitialsContainer(
               computedInitials,
               effectiveBg,
               effectiveFg,

@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_detail/activity_detail_bloc.dart';
@@ -734,6 +734,8 @@ class _ActivityDetailView extends StatelessWidget {
                           controller: notesController,
                           maxLines: 4,
                           minLines: 3,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           style: AppTypography.bodyMedium.copyWith(
                             color: textCol,
                           ),
@@ -1033,6 +1035,8 @@ class _ActivityDetailView extends StatelessWidget {
                           controller: addressController,
                           maxLines: 2,
                           minLines: 1,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           style: AppTypography.bodyMedium.copyWith(
                             color: textCol,
                           ),
@@ -1423,56 +1427,21 @@ class _ActivityDetailView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Row 2: Avatar + Name + Role & Department
-          Row(
-            children: [
-              AppAvatar(
-                name: item.userName,
-                initials: item.initials,
-                imageUrl: item.avatarUrl,
-                size: 48,
-                backgroundColor: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-                textColor: textCol,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.userName,
-                      style: AppTypography.titleMedium.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textCol,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      (item.userLevel != null &&
-                              item.userLevel!.trim().isNotEmpty)
-                          ? '${item.userRole} (${item.userLevel})'
-                          : item.userRole,
-                      style: AppTypography.bodySmall.copyWith(
-                        fontSize: 12,
-                        color: subtitleCol,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item.department} • ${item.company}',
-                      style: AppTypography.bodySmall.copyWith(
-                        fontSize: 12,
-                        color: subtitleCol,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          EmployeeInfoRow(
+            name: item.userName,
+            role: (item.userLevel != null &&
+                    item.userLevel!.trim().isNotEmpty)
+                ? '${item.userRole} (${item.userLevel})'
+                : item.userRole,
+            department: item.department,
+            company: item.company,
+            employeeId: (item.employeeNumber != null &&
+                    item.employeeNumber!.trim().isNotEmpty)
+                ? item.employeeNumber!.trim()
+                : '',
+            avatarUrl: item.avatarUrl,
+            initials: item.initials,
+            avatarSize: 44,
           ),
 
           const SizedBox(height: 14),

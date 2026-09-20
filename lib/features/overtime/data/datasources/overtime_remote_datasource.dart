@@ -114,7 +114,7 @@ class OvertimeRemoteDataSourceImpl implements OvertimeRemoteDataSource {
       return OvertimeRequestListResponse.fromJson(rawData, isApprover: approver);
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat data permintaan lembur.',
     );
   }
@@ -134,7 +134,7 @@ class OvertimeRemoteDataSourceImpl implements OvertimeRemoteDataSource {
       return res.data;
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat informasi jadwal lembur.',
     );
   }
@@ -177,7 +177,7 @@ class OvertimeRemoteDataSourceImpl implements OvertimeRemoteDataSource {
       return CreateOvertimeResultModel.fromJson(rawData);
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal mengirim pengajuan lembur.',
     );
   }
@@ -194,7 +194,7 @@ class OvertimeRemoteDataSourceImpl implements OvertimeRemoteDataSource {
       return res.data;
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat detail pengajuan lembur.',
     );
   }

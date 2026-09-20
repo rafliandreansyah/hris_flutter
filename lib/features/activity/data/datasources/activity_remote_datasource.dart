@@ -245,7 +245,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       return ActivityTypesResponse.fromJson(rawData);
     }
 
-    throw ApiException(
+    throw const ApiException(
       message: 'Gagal memuat jenis aktivitas.',
     );
   }

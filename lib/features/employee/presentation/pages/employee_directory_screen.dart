@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +67,6 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  Timer? _debounceTimer;
   String _localSearchQuery = '';
 
   // Interaktivitas Search Input: menyembunyikan saat scroll ke atas (reverse),
@@ -83,7 +81,6 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
     _searchController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
@@ -107,12 +104,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
     setState(() {
       _localSearchQuery = val;
     });
-
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      context.read<EmployeeListBloc>().add(EmployeeListSearchChanged(val));
-    });
+    context.read<EmployeeListBloc>().add(EmployeeListSearchChanged(val));
   }
 
   List<String> _availableCompanies(List<EmployeeDirectoryItem> employees) {
@@ -367,9 +359,10 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                     ),
                     child: TextField(
                       controller: _searchController,
+                      onTapOutside: (event) =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                       onChanged: _onSearchChanged,
                       onSubmitted: (val) {
-                        _debounceTimer?.cancel();
                         setState(() {
                           _localSearchQuery = val;
                         });

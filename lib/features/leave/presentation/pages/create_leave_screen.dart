@@ -390,6 +390,8 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
   }
 
   void _handleSubmit() {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     if (_selectedType == null) {
       _showWarningSnackBar('Silakan pilih jenis cuti/izin terlebih dahulu.');
       return;
@@ -933,6 +935,8 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                           controller: _notesController,
                           maxLines: 4,
                           maxLength: 500,
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           style: AppTypography.bodyMedium,
                           decoration: InputDecoration(
                             hintText:
@@ -998,8 +1002,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
           ),
 
           // ── STICKY BOTTOM BAR: Submit Button ──────────────────────────────
-          bottomSheet: Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+          bottomNavigationBar: Container(
             decoration: BoxDecoration(
               color: cardBg,
               border: Border(top: BorderSide(color: borderCol)),
@@ -1011,12 +1014,18 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                 ),
               ],
             ),
-            child: AppButton(
-              key: const ValueKey('submit_leave_btn'),
-              text: 'Kirim Pengajuan Cuti',
-              leadingIcon: LucideIcons.send,
-              isLoading: state.isSubmitting,
-              onPressed: state.isSubmitting ? null : _handleSubmit,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: AppButton(
+                  key: const ValueKey('submit_leave_btn'),
+                  text: 'Kirim Pengajuan Cuti',
+                  leadingIcon: LucideIcons.send,
+                  isLoading: state.isSubmitting,
+                  onPressed: state.isSubmitting ? null : _handleSubmit,
+                ),
+              ),
             ),
           ),
         );

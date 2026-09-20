@@ -342,7 +342,7 @@ class ActivityItem {
             'https://lh3.googleusercontent.com/aida-public/AB6AXuDxEj6zf8jMFMT2IElkG6Vs3mGF8Rqz-Tsv3DSoEXHyLRKMdpxe3q3JuQnuHZyY7FtJ9KTQSXIubgPPcc1Kl27DRrLMiNyqdZ1GLeWnvAwEqXGSe5Wp9dpbR4I9k1Fdo016b66GHpo3uc4EB4OKUkJbM8XJmr-AkUJyXBTNY_AjLZpW2Mvhti4n0CIjJYIdhMY0lXYFmldLjFOw5X3XgajsvOp7c6n82WZ7M6OAW67ZSWyMH80O3Yx7Ag',
         imageDescription: 'Field safety audit and structural inspection site',
       ),
-      ActivityPhaseItem(
+      const ActivityPhaseItem(
         phaseNumber: 2,
         title: 'Phase 2: Completion & Report',
         time: '15:30, 27 Aug 2026',

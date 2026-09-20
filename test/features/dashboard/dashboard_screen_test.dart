@@ -14,6 +14,10 @@ import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_acces
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_bloc.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_event.dart';
+import 'package:hris_flutter/features/auth/data/models/login_request_model.dart';
+import 'package:hris_flutter/features/auth/data/models/login_response_model.dart';
+import 'package:hris_flutter/features/auth/data/models/user_profile_response_model.dart';
+import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -309,11 +313,11 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      final testData = DashboardData(
+      const testData = DashboardData(
         id: 'emp-101',
         firstName: 'John',
         email: 'john@example.com',
-        latestAnnouncement: const [
+        latestAnnouncement: [
           AnnouncementItem(
             id: 'ann-target-99',
             title: 'Pengumuman Libur Nasional',
@@ -330,7 +334,11 @@ void main() {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (context, state) => DashboardScreen(repository: repo),
+            builder: (context, state) => DashboardScreen(
+              repository: repo,
+              authRepository: MockAuthRepository(),
+              getDeviceId: () async => 'unknown_device_id',
+            ),
           ),
           GoRoute(
             path: Routes.ANNOUNCEMENT_DETAIL,
@@ -349,12 +357,14 @@ void main() {
           routerConfig: testRouter,
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Pengumuman Libur Nasional'), findsOneWidget);
 
       await tester.tap(find.text('Pengumuman Libur Nasional'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(
         find.text('Announcement Detail Screen Destination'),
@@ -452,11 +462,11 @@ void main() {
     testWidgets('Dashboard renders Libur Kerja and calendarOff icon when isDayOff is true', (
       WidgetTester tester,
     ) async {
-      final dayOffData = DashboardData(
+      const dayOffData = DashboardData(
         id: 'emp-101',
         firstName: 'John',
         email: 'john@example.com',
-        todaySchedule: const TodayScheduleInfo(
+        todaySchedule: TodayScheduleInfo(
           id: 'sch-101',
           isDayOff: true,
           shift: null,
@@ -464,14 +474,20 @@ void main() {
       );
 
       final repo = MockSuccessDashboardRepository(data: dayOffData);
+      final authRepo = MockAuthRepository();
 
       await tester.pumpWidget(
         MaterialApp(
-          home: DashboardScreen(repository: repo),
+          home: DashboardScreen(
+            repository: repo,
+            authRepository: authRepo,
+            getDeviceId: () async => 'unknown_device_id',
+          ),
         ),
       );
 
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('Libur Kerja'), findsOneWidget);
       expect(
@@ -486,7 +502,7 @@ void main() {
     testWidgets('Dashboard renders Tidak Ada Jadwal Kerja when todaySchedule is null', (
       WidgetTester tester,
     ) async {
-      final noScheduleData = DashboardData(
+      const noScheduleData = DashboardData(
         id: 'emp-102',
         firstName: 'Jane',
         email: 'jane@example.com',
@@ -494,14 +510,20 @@ void main() {
       );
 
       final repo = MockSuccessDashboardRepository(data: noScheduleData);
+      final authRepo = MockAuthRepository();
 
       await tester.pumpWidget(
         MaterialApp(
-          home: DashboardScreen(repository: repo),
+          home: DashboardScreen(
+            repository: repo,
+            authRepository: authRepo,
+            getDeviceId: () async => 'unknown_device_id',
+          ),
         ),
       );
 
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('Tidak Ada Jadwal Kerja'), findsOneWidget);
       expect(
@@ -512,7 +534,75 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+        'DashboardScreen displays error dialog on DashboardDeviceMismatch', (
+      WidgetTester tester,
+    ) async {
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+        employeeDevice: EmployeeDeviceInfo(
+          id: 'dev-1',
+          deviceId: 'registered_device_abc',
+        ),
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+      final authRepo = MockAuthRepository();
+      final notifBloc = NotificationCountBloc();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(
+            repository: repo,
+            authRepository: authRepo,
+            notificationCountBloc: notifBloc,
+            getDeviceId: () async => 'different_current_phone',
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text('Perangkat Tidak Sesuai'), findsOneWidget);
+      expect(find.text('Kembali ke Login'), findsOneWidget);
+      expect(authRepo.logoutCalled, isTrue);
+    });
   });
+}
+
+class MockAuthRepository implements AuthRepository {
+  bool logoutCalled = false;
+
+  @override
+  Future<UserProfileData> getProfile() async {
+    return const UserProfileData(
+      user: UserModel(id: 'u1', email: 'test@example.com', language: 'id'),
+      dataScope: 'ALL',
+      permissions: ['all'],
+    );
+  }
+
+  @override
+  Future<String> updateLanguage(String lang) async => lang;
+
+  @override
+  Future<LoginResponseData> login(LoginRequestModel request) =>
+      throw UnimplementedError();
+
+  @override
+  Future<String?> getSavedToken() async => 'mock_token';
+
+  @override
+  Future<bool> hasActiveSession() async => true;
+
+  @override
+  Future<void> logout() async {
+    logoutCalled = true;
+  }
 }
 
 class MockSuccessDashboardRepository implements DashboardRepository {
@@ -525,7 +615,14 @@ class MockSuccessDashboardRepository implements DashboardRepository {
   });
 
   @override
-  Future<DashboardData> getDashboardData() async => data;
+  Future<DashboardData> getDashboardData() async => data.employeeDevice != null
+      ? data
+      : data.copyWith(
+          employeeDevice: const EmployeeDeviceInfo(
+            id: 'dev-mock',
+            deviceId: 'unknown_device_id',
+          ),
+        );
 
   @override
   Future<List<MenuItemModel>> getMenus() async => menus;

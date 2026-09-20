@@ -374,15 +374,16 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
         borderRadius: BorderRadius.circular(12),
         splashColor: AppColors.brandTeal.withValues(alpha: 0.1),
         child: DottedBorder(
-          options: RoundedRectDottedBorderOptions(
+          options: const RoundedRectDottedBorderOptions(
             color: AppColors.brandTeal,
             strokeWidth: 1.5,
-            dashPattern: const [6, 4],
-            radius: const Radius.circular(12),
+            dashPattern: [6, 4],
+            radius: Radius.circular(12),
           ),
           childOnTop: true,
           child: Container(
-            height: 120,
+            constraints: const BoxConstraints(minHeight: 100),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
             width: double.infinity,
             decoration: BoxDecoration(
               color: isDark
@@ -392,6 +393,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
                   LucideIcons.camera,

@@ -121,40 +121,41 @@ class EmployeeInfoRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
-              if (resolvedEmployeeId.isNotEmpty)
+              if (resolvedEmployeeId.isNotEmpty || (resolvedCompany?.isNotEmpty ?? false))
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeBg,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            LucideIcons.idCard,
-                            size: 12,
-                            color: subtitleCol,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            resolvedEmployeeId,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
+                    if (resolvedEmployeeId.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeBg,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.idCard,
+                              size: 12,
+                              color: subtitleCol,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              resolvedEmployeeId,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: textCol,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     if (resolvedCompany?.isNotEmpty ?? false)
                       Container(
                         padding: const EdgeInsets.symmetric(

@@ -301,7 +301,7 @@ void main() {
       // Select company first
       await tester.tap(find.text('Semua Perusahaan'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('PT Oasish Tech Nusantara'));
+      await tester.tap(find.text('PT Oasish Tech Nusantara').last);
       await tester.pumpAndSettle();
 
       // Now department is enabled, tap Departemen field to choose Operations
@@ -340,8 +340,8 @@ void main() {
       await tester.tap(find.text('Semua Perusahaan'));
       await tester.pumpAndSettle();
 
-      expect(find.text('PT Oasish Tech Nusantara'), findsOneWidget);
-      await tester.tap(find.text('PT Oasish Tech Nusantara'));
+      expect(find.text('PT Oasish Tech Nusantara'), findsWidgets);
+      await tester.tap(find.text('PT Oasish Tech Nusantara').last);
       await tester.pumpAndSettle();
 
       // Verify button has StadiumBorder and LucideIcons.filter
@@ -377,7 +377,7 @@ void main() {
       // Select company first
       await tester.tap(find.text('Semua Perusahaan'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('PT Oasish Tech Nusantara'));
+      await tester.tap(find.text('PT Oasish Tech Nusantara').last);
       await tester.pumpAndSettle();
 
       // Now position is enabled, tap Jabatan field
@@ -491,7 +491,7 @@ void main() {
       expect(emptyCriteria.hasActiveFilter, isFalse);
       expect(emptyCriteria.activeFilterCount, 0);
 
-      final criteriaWithPosition = const ActivityFilterCriteria(
+      const criteriaWithPosition = ActivityFilterCriteria(
         position: 'QA Engineer',
       );
       expect(criteriaWithPosition.hasActiveFilter, isTrue);

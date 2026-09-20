@@ -129,7 +129,7 @@ void main() {
     });
 
     test('emits [loading, failure] on OvertimeDetailStarted failure', () async {
-      repository.errorToThrow = ApiException(
+      repository.errorToThrow = const ApiException(
         message: 'Pengajuan tidak ditemukan',
         statusCode: 404,
       );

@@ -30,12 +30,14 @@ class DashboardScreen extends StatelessWidget {
   final DashboardRepository? repository;
   final AuthRepository? authRepository;
   final NotificationCountBloc? notificationCountBloc;
+  final Future<String> Function()? getDeviceId;
 
   const DashboardScreen({
     super.key,
     this.repository,
     this.authRepository,
     this.notificationCountBloc,
+    this.getDeviceId,
   });
 
   @override
@@ -46,6 +48,7 @@ class DashboardScreen extends StatelessWidget {
           create: (_) => DashboardBloc(
             dashboardRepository: repository,
             authRepository: authRepository,
+            getDeviceId: getDeviceId,
           )..add(const DashboardFetchRequested()),
         ),
         if (notificationCountBloc != null)
@@ -218,6 +221,16 @@ class _DashboardViewState extends State<_DashboardView> {
           },
         ),
         actions: [
+          // Tombol Jadwal Kerja Diri Sendiri
+          IconButton(
+            key: const ValueKey('dashboard_work_schedule_btn'),
+            tooltip: 'Jadwal Kerja Saya',
+            onPressed: () {
+              context.push(Routes.WORK_SCHEDULE);
+            },
+            icon: Icon(LucideIcons.calendarClock, size: 22, color: textCol),
+          ),
+
           // Notification Button with Unread Badge
           BlocBuilder<NotificationCountBloc, NotificationCountState>(
             builder: (context, countState) {
@@ -310,7 +323,17 @@ class _DashboardViewState extends State<_DashboardView> {
       body: SafeArea(
         child: BlocConsumer<DashboardBloc, DashboardState>(
           listener: (context, state) {
-            if (state is DashboardError) {
+            if (state is DashboardDeviceMismatch) {
+              AppDialogUtil.showError(
+                context,
+                title: 'Perangkat Tidak Sesuai',
+                message: state.message,
+                closeText: 'Kembali ke Login',
+                onClose: () {
+                  context.go(Routes.LOGIN);
+                },
+              );
+            } else if (state is DashboardError) {
               final l10n = AppLocalizations.of(context);
               AppDialogUtil.showError(
                 context,
@@ -337,7 +360,12 @@ class _DashboardViewState extends State<_DashboardView> {
               return const DashboardShimmerLoading();
             }
 
-            // 2. Error State
+            // 2. Device Mismatch State (layar kosong aman saat dialog muncul)
+            if (state is DashboardDeviceMismatch) {
+              return const SizedBox.shrink();
+            }
+
+            // 3. Error State
             if (state is DashboardError) {
               return Center(
                 child: Padding(
@@ -345,7 +373,7 @@ class _DashboardViewState extends State<_DashboardView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         LucideIcons.circleAlert,
                         size: 48,
                         color: AppColors.errorRed,
@@ -488,7 +516,7 @@ class _DashboardViewState extends State<_DashboardView> {
                       const SizedBox(height: 32),
 
                       // 4. Bottom App Version & Brand Footer
-                      Center(child: const AppNameVersionText()),
+                      const Center(child: AppNameVersionText()),
                       const SizedBox(height: 16),
                     ],
                   ),

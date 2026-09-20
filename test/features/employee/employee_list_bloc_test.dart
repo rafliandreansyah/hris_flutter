@@ -79,7 +79,7 @@ class MockEmployeeRepository implements EmployeeRepository {
 void main() {
   group('EmployeeListBloc Unit Tests', () {
     late MockEmployeeRepository mockRepo;
-    final sampleItem1 = const EmployeeDirectoryItem(
+    const sampleItem1 = EmployeeDirectoryItem(
       id: 'emp-1',
       name: 'Alice Johnson',
       role: 'Engineering Lead',
@@ -88,7 +88,7 @@ void main() {
       initials: 'AJ',
       company: 'PT Oasish Group',
     );
-    final sampleItem2 = const EmployeeDirectoryItem(
+    const sampleItem2 = EmployeeDirectoryItem(
       id: 'emp-2',
       name: 'Bob Smith',
       role: 'Product Manager',
@@ -148,7 +148,7 @@ void main() {
       await bloc.stream.firstWhere((s) => s.status == EmployeeListStatus.success);
 
       // Now load more
-      final sampleItem3 = const EmployeeDirectoryItem(
+      const sampleItem3 = EmployeeDirectoryItem(
         id: 'emp-3',
         name: 'Charlie Brown',
         role: 'Designer',

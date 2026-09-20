@@ -80,6 +80,7 @@ void main() {
       expect(detail.userReadStatus?.isAcknowledged, isFalse);
       expect(detail.attachments.length, 2);
       expect(detail.author?.fullName, 'Jessica Pranata');
+      expect(detail.author?.initials, 'JP');
       expect(detail.author?.positionAndDeptLabel, 'Head of People & Culture • Human Resources');
       expect(detail.author?.companyAndEmpNoLabel, 'Oasish Tech • EMP-HR-002');
     });

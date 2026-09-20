@@ -8,6 +8,7 @@ import 'package:hris_flutter/core/network/alice_service.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/network/interceptors/auth_interceptor.dart';
 import 'package:hris_flutter/core/network/interceptors/logging_interceptor.dart';
+import 'package:hris_flutter/core/network/interceptors/retry_interceptor.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
@@ -41,6 +42,7 @@ class ApiClient {
     );
 
     _dio.interceptors.add(_authInterceptor);
+    _dio.interceptors.add(RetryInterceptor(dio: _dio));
 
     // Logging & HTTP Inspector (Alice) hanya aktif saat mode Debug
     if (kDebugMode) {
@@ -69,9 +71,16 @@ class ApiClient {
         await NotificationService.instance.deleteFcmToken();
       } catch (_) {}
 
-      // 4. Tampilkan dialog sesi berakhir dan arahkan ke Login
+      // 4. Tampilkan dialog sesi berakhir dan arahkan ke Login jika belum di halaman Login
       final context = AppRouter.rootNavigatorKey.currentContext;
-      if (context != null && context.mounted) {
+      String? currentPath;
+      try {
+        currentPath =
+            AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+      } catch (_) {}
+      final isAlreadyOnLogin = currentPath == Routes.LOGIN;
+
+      if (!isAlreadyOnLogin && context != null && context.mounted) {
         AppDialogUtil.showError(
           context,
           title: 'Sesi Berakhir',
@@ -82,11 +91,13 @@ class ApiClient {
             AppRouter.router.go(Routes.LOGIN);
           },
         );
-      } else {
+      } else if (!isAlreadyOnLogin) {
         AppRouter.router.go(Routes.LOGIN);
       }
     } catch (_) {
-      AppRouter.router.go(Routes.LOGIN);
+      try {
+        AppRouter.router.go(Routes.LOGIN);
+      } catch (_) {}
     } finally {
       Future.delayed(const Duration(seconds: 3), () {
         _isHandlingUnauthorized = false;

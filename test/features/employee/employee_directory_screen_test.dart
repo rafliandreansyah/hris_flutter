@@ -102,7 +102,7 @@ void main() {
       // Type "budi" into search bar
       await tester.enterText(find.byType(TextField), 'budi');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 350));
 
       // Budi should be found
       expect(find.text('Budi Santoso'), findsOneWidget);
@@ -118,7 +118,7 @@ void main() {
       // Tap clear button
       await tester.tap(find.byIcon(LucideIcons.x));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 350));
 
       // All employees restored
       expect(find.text('Sarah Jenkins'), findsOneWidget);
@@ -139,7 +139,7 @@ void main() {
       // Search by department: "Human Resources"
       await tester.enterText(find.byType(TextField), 'Human Resources');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 350));
 
       expect(find.text('Jessica Pranata'), findsOneWidget);
       expect(find.text('Sarah Jenkins'), findsNothing);
@@ -162,7 +162,7 @@ void main() {
         'KaryawanTidakDitemukanXYZ',
       );
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 350));
 
       expect(find.text('Pegawai tidak ditemukan'), findsOneWidget);
       expect(

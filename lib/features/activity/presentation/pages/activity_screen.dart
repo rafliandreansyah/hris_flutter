@@ -469,6 +469,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                           ),
                           child: TextField(
                             controller: _searchController,
+                            onTapOutside: (event) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
                             style: AppTypography.bodyMedium.copyWith(
                               color: textCol,
                               fontSize: 14,
@@ -1191,6 +1193,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       const SizedBox(height: 6),
                       TextField(
                         controller: titleController,
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: AppTypography.bodyMedium.copyWith(
                           color: textCol,
                         ),
@@ -1241,6 +1245,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       TextField(
                         controller: descController,
                         maxLines: 3,
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: AppTypography.bodyMedium.copyWith(
                           color: textCol,
                         ),
@@ -1286,6 +1292,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       const SizedBox(height: 6),
                       TextField(
                         controller: locationController,
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: AppTypography.bodyMedium.copyWith(
                           color: textCol,
                         ),

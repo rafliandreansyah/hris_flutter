@@ -283,7 +283,7 @@ class _NotificationViewState extends State<_NotificationView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       LucideIcons.alertCircle,
                       size: 48,
                       color: AppColors.errorRed,
@@ -509,7 +509,7 @@ class _FilterChip extends StatelessWidget {
     final unselectedBg = isDark
         ? AppColors.darkSurfaceContainer
         : const Color(0xFFF1F5F9);
-    final selectedText = AppColors.brandTeal;
+    const selectedText = AppColors.brandTeal;
     final unselectedText = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;

@@ -20,7 +20,7 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<UserProfileData> getProfile() async {
     if (shouldFail) {
-      throw ApiException(message: 'Failed to fetch profile', statusCode: 500);
+      throw const ApiException(message: 'Failed to fetch profile', statusCode: 500);
     }
     return UserProfileData(
       user: UserModel(id: 'u1', email: 'test@example.com', language: language),
@@ -42,27 +42,42 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<bool> hasActiveSession() async => true;
 
+  bool logoutCalled = false;
+
   @override
-  Future<void> logout() async {}
+  Future<void> logout() async {
+    logoutCalled = true;
+  }
 }
 
 class MockSuccessDashboardRepository implements DashboardRepository {
+  final EmployeeDeviceInfo? employeeDevice;
+
+  MockSuccessDashboardRepository({
+    this.employeeDevice = const EmployeeDeviceInfo(
+      id: 'dev-1',
+      deviceId: 'test_device_id',
+      deviceName: 'iPhone',
+    ),
+  });
+
   @override
   Future<DashboardData> getDashboardData() async {
-    return const DashboardData(
+    return DashboardData(
       id: 'emp-1',
       firstName: 'Sarah',
       lastName: 'Jenkins',
       email: 'sarah@example.com',
       timeServer: '2026-09-06T08:15:30.000Z',
-      latestAnnouncement: [
+      employeeDevice: employeeDevice,
+      latestAnnouncement: const [
         AnnouncementItem(
           id: 'ann-1',
           title: 'Upcoming Public Holiday',
           createdAt: '2026-09-06T00:00:00.000Z',
         ),
       ],
-      attendanceSummary: AttendanceSummaryInfo(
+      attendanceSummary: const AttendanceSummaryInfo(
         todayAttendance: TodayAttendanceInfo(inTime: '08:30'),
         quotaLeaveBalanceThisYear: QuotaLeaveBalance(
           totalQuota: 14,
@@ -84,12 +99,12 @@ class MockSuccessDashboardRepository implements DashboardRepository {
 class MockFailureDashboardRepository implements DashboardRepository {
   @override
   Future<DashboardData> getDashboardData() async {
-    throw ApiException(message: 'Network connection failed', statusCode: 500);
+    throw const ApiException(message: 'Network connection failed', statusCode: 500);
   }
 
   @override
   Future<List<MenuItemModel>> getMenus() async {
-    throw ApiException(message: 'Network connection failed', statusCode: 500);
+    throw const ApiException(message: 'Network connection failed', statusCode: 500);
   }
 }
 
@@ -105,11 +120,12 @@ void main() {
     });
 
     test(
-      'emits [DashboardLoading, DashboardLoaded] on successful fetch',
+      'emits [DashboardLoading, DashboardLoaded] on successful fetch with matching device',
       () async {
         final bloc = DashboardBloc(
           dashboardRepository: MockSuccessDashboardRepository(),
           authRepository: MockAuthRepository(language: 'en'),
+          getDeviceId: () async => 'test_device_id',
         );
 
         final expectedStates = [
@@ -129,11 +145,105 @@ void main() {
     );
 
     test(
+      'emits [DashboardLoading, DashboardDeviceMismatch] and calls logout when deviceId does not match',
+      () async {
+        final authRepo = MockAuthRepository();
+        final bloc = DashboardBloc(
+          dashboardRepository: MockSuccessDashboardRepository(
+            employeeDevice: const EmployeeDeviceInfo(
+              id: 'dev-1',
+              deviceId: 'registered_device_xyz',
+            ),
+          ),
+          authRepository: authRepo,
+          getDeviceId: () async => 'current_phone_abc',
+        );
+
+        final expectedStates = [
+          const DashboardLoading(),
+          isA<DashboardDeviceMismatch>()
+              .having((s) => s.registeredDeviceId, 'registeredDeviceId', 'registered_device_xyz')
+              .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
+        ];
+
+        expectLater(bloc.stream, emitsInOrder(expectedStates));
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        expect(authRepo.logoutCalled, isTrue);
+        await bloc.close();
+      },
+    );
+
+    test(
+      'emits [DashboardLoading, DashboardDeviceMismatch] and calls logout when employeeDevice is null (unregistered/empty)',
+      () async {
+        final authRepo = MockAuthRepository();
+        final bloc = DashboardBloc(
+          dashboardRepository: MockSuccessDashboardRepository(
+            employeeDevice: null,
+          ),
+          authRepository: authRepo,
+          getDeviceId: () async => 'current_phone_abc',
+        );
+
+        final expectedStates = [
+          const DashboardLoading(),
+          isA<DashboardDeviceMismatch>()
+              .having((s) => s.registeredDeviceId, 'registeredDeviceId', '')
+              .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
+        ];
+
+        expectLater(bloc.stream, emitsInOrder(expectedStates));
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        expect(authRepo.logoutCalled, isTrue);
+        await bloc.close();
+      },
+    );
+
+    test(
+      'emits [DashboardLoading, DashboardDeviceMismatch] and calls logout when employeeDevice.deviceId is empty',
+      () async {
+        final authRepo = MockAuthRepository();
+        final bloc = DashboardBloc(
+          dashboardRepository: MockSuccessDashboardRepository(
+            employeeDevice: const EmployeeDeviceInfo(
+              id: 'dev-1',
+              deviceId: '   ',
+            ),
+          ),
+          authRepository: authRepo,
+          getDeviceId: () async => 'current_phone_abc',
+        );
+
+        final expectedStates = [
+          const DashboardLoading(),
+          isA<DashboardDeviceMismatch>()
+              .having((s) => s.registeredDeviceId, 'registeredDeviceId', '')
+              .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
+        ];
+
+        expectLater(bloc.stream, emitsInOrder(expectedStates));
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        expect(authRepo.logoutCalled, isTrue);
+        await bloc.close();
+      },
+    );
+
+    test(
       'emits [DashboardLoading, DashboardError] on repository failure',
       () async {
         final bloc = DashboardBloc(
           dashboardRepository: MockFailureDashboardRepository(),
           authRepository: MockAuthRepository(),
+          getDeviceId: () async => 'test_device_id',
         );
 
         final expectedStates = [
@@ -159,6 +269,7 @@ void main() {
         final bloc = DashboardBloc(
           dashboardRepository: MockSuccessDashboardRepository(),
           authRepository: MockAuthRepository(),
+          getDeviceId: () async => 'test_device_id',
         );
 
         bloc.add(const DashboardFetchRequested());

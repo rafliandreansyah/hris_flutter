@@ -444,7 +444,10 @@ class _AttendanceRequestDetailViewState
           const SizedBox(height: 16),
 
           // Section 4: Approver Profile Card
-          AttendanceRequestApproverCard(approver: detail.approver),
+          AttendanceRequestApproverCard(
+            approver: detail.approver,
+            approverNotes: detail.approverNote,
+          ),
 
           // Section 5: Photo Proof Card (otomatis tersembunyi jika bukan metode foto)
           if (detail.isPhotoMethod) ...[

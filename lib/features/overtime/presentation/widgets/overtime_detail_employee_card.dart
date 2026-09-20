@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
     show resolveFileUrl;
 import 'package:hris_flutter/features/overtime/data/models/overtime_api_models.dart';
 
-/// Card 2: Requester Employee Profile ("REQUESTER INFORMATION")
-/// Sesuai spesifikasi Stitch M3 "Section 2: Requester Profile Card"
+/// Card 2: Requester Employee Profile ("INFORMASI PENGAJU")
+/// Sesuai spesifikasi Stitch M3 menggunakan EmployeeInfoRow standar global.
 class OvertimeDetailEmployeeCard extends StatelessWidget {
   final OvertimeEmployeeModel employee;
 
@@ -19,52 +20,31 @@ class OvertimeDetailEmployeeCard extends StatelessWidget {
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol =
         isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
-    final posName = employee.position?.name ?? '';
-    final deptName = employee.department?.name ?? '';
-    final roleDeptText = [
-      if (posName.isNotEmpty) posName,
-      if (deptName.isNotEmpty) deptName,
-    ].join(' • ');
-
-    final companyName = employee.company?.name ?? '';
     final empNo = (employee.employeeNumber != null &&
             employee.employeeNumber!.trim().isNotEmpty)
         ? employee.employeeNumber!.trim()
         : (employee.idNumber != null && employee.idNumber!.trim().isNotEmpty)
             ? employee.idNumber!.trim()
-            : '';
-
-    final companyEmpText = [
-      if (companyName.isNotEmpty) companyName,
-      if (empNo.isNotEmpty) empNo,
-    ].join(' • ');
+            : employee.id;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderCol, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'REQUESTER INFORMATION',
+            'INFORMASI PENGAJU',
             style: AppTypography.labelSmall.copyWith(
               color: subtitleCol,
               fontSize: 11,
@@ -72,57 +52,16 @@ class OvertimeDetailEmployeeCard extends StatelessWidget {
               letterSpacing: 0.8,
             ),
           ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppAvatar(
-                name: employee.fullName,
-                initials: employee.initials,
-                imageUrl: resolveFileUrl(employee.photoUrl),
-                size: 50,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      employee.fullName,
-                      style: AppTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: textCol,
-                        fontSize: 16,
-                      ),
-                    ),
-                    if (roleDeptText.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        roleDeptText,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (companyEmpText.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        companyEmpText,
-                        style: AppTypography.labelMedium.copyWith(
-                          color: textCol,
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+          const SizedBox(height: 12),
+          EmployeeInfoRow(
+            name: employee.fullName,
+            role: employee.position?.name ?? '',
+            department: employee.department?.name ?? '',
+            company: employee.company?.name,
+            employeeId: empNo,
+            avatarUrl: resolveFileUrl(employee.photoUrl),
+            initials: employee.initials,
+            avatarSize: 44,
           ),
         ],
       ),

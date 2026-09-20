@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
@@ -25,7 +26,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     on<ActivityListTabChanged>(_onTabChanged);
     on<ActivityListFetchRequested>(_onFetchRequested);
     on<ActivityListLoadMoreRequested>(_onLoadMoreRequested);
-    on<ActivityListSearchChanged>(_onSearchChanged);
+    on<ActivityListSearchChanged>(_onSearchChanged, transformer: debounceRestartable());
     on<ActivityListFilterApplied>(_onFilterApplied);
     on<ActivityListActivityAdded>(_onActivityAdded);
   }
