@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_theme.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
+import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
@@ -24,19 +26,12 @@ Future<void> showAccountSettingsBottomSheet(
   String? avatarUrl,
   AuthRepository? authRepository,
 }) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final surfaceColor = isDark
-      ? AppColors.darkSurfaceContainerLowest
-      : AppColors.surfaceContainerLowest;
-
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    showDragHandle: true,
-    backgroundColor: surfaceColor,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-    ),
+    showDragHandle: false,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
     barrierColor: Colors.black.withValues(alpha: 0.45),
     builder: (context) => AccountSettingsBottomSheet(
       name: name ?? 'Sarah Jenkins',
@@ -76,7 +71,24 @@ class AccountSettingsBottomSheet extends StatelessWidget {
     final isEn = currentLocale.languageCode == 'en';
     final languageBadge = isEn ? 'EN (English)' : 'ID (Bahasa)';
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentThemeMode =
+        context.watch<ThemeBloc?>()?.state.themeMode ?? ThemeMode.system;
+    final String themeBadge;
+    switch (currentThemeMode) {
+      case ThemeMode.light:
+        themeBadge = isEn ? 'Light' : 'Terang';
+        break;
+      case ThemeMode.dark:
+        themeBadge = isEn ? 'Dark' : 'Gelap';
+        break;
+      case ThemeMode.system:
+        themeBadge = isEn ? 'System' : 'Sistem';
+        break;
+    }
+
+    final isDark = currentThemeMode == ThemeMode.dark ||
+        (currentThemeMode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
     final surfaceColor = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -94,26 +106,52 @@ class AccountSettingsBottomSheet extends StatelessWidget {
         ? AppColors.darkSurfaceContainer
         : AppColors.surfaceContainer;
 
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Title
-              Text(
-                l10n?.accountSettings ?? 'Account Settings',
-                  style: AppTypography.titleMedium.copyWith(
-                    color: textCol,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
+    return Theme(
+      data: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
+      child: Builder(
+        builder: (sheetContext) {
+          return Container(
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 1. Drag Handle
+                      Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 4, bottom: 12),
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkOutline
+                                : const Color(0xFFD1D5DB),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+
+                      // 2. Title
+                      Text(
+                        l10n?.accountSettings ?? 'Account Settings',
+                        style: AppTypography.titleMedium.copyWith(
+                          color: textCol,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
 
                 // 3. Profile Overview Card
                 Container(
@@ -265,8 +303,8 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         subtitle: l10n?.changePasswordSubtitle ??
                             'Perbarui kata sandi akun keamanan Anda',
                         onTap: () {
-                          Navigator.of(context).pop();
-                          context.push(Routes.CHANGE_PASSWORD);
+                          Navigator.of(sheetContext).pop();
+                          sheetContext.push(Routes.CHANGE_PASSWORD);
                         },
                       ),
                       Divider(height: 1, thickness: 1, color: borderCol),
@@ -283,14 +321,8 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         badgeBg: const Color(0xFFDCFCE7),
                         badgeFg: const Color(0xFF15803D),
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Pengaturan notifikasi sedang aktif',
-                              ),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
+                          Navigator.of(sheetContext).pop();
+                          sheetContext.push(Routes.NOTIFICATION_SETTINGS);
                         },
                       ),
                       Divider(height: 1, thickness: 1, color: borderCol),
@@ -307,7 +339,24 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         badgeBg: AppColors.brandTeal,
                         badgeFg: Colors.white,
                         onTap: () {
-                          _showLanguageDialog(context);
+                          _showLanguageDialog(sheetContext);
+                        },
+                      ),
+                      Divider(height: 1, thickness: 1, color: borderCol),
+
+                      // Item 4: Tema
+                      _SettingsListTile(
+                        icon: LucideIcons.palette,
+                        iconBg: iconCircleBg,
+                        iconColor: textCol,
+                        title: l10n?.theme ?? 'Tema (Theme)',
+                        subtitle: l10n?.themeSubtitle ??
+                            'Pilih tema tampilan aplikasi',
+                        badgeText: themeBadge,
+                        badgeBg: AppColors.brandTeal,
+                        badgeFg: Colors.white,
+                        onTap: () {
+                          _showThemeDialog(sheetContext);
                         },
                       ),
                     ],
@@ -334,7 +383,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        _showLogoutConfirmationDialog(context);
+                        _showLogoutConfirmationDialog(sheetContext);
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -396,8 +445,12 @@ class AccountSettingsBottomSheet extends StatelessWidget {
             ),
           ),
         ),
-      );
-  }
+      ),
+    );
+  },
+),
+);
+}
 
   void _showLanguageDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -454,6 +507,102 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                       content: Text(
                         l10n?.languageUpdatedSuccess ??
                             'Language updated successfully',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemeDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final currentThemeMode =
+        context.read<ThemeBloc?>()?.state.themeMode ?? ThemeMode.system;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n?.selectTheme ?? 'Pilih Tema'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: currentThemeMode == ThemeMode.system
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.brandTeal,
+                    )
+                  : const SizedBox(width: 24),
+              title: Text(l10n?.themeSystem ?? 'Mengikuti Sistem'),
+              onTap: () {
+                Navigator.of(dialogCtx).pop();
+                if (currentThemeMode != ThemeMode.system) {
+                  context
+                      .read<ThemeBloc?>()
+                      ?.add(const ThemeChanged(ThemeMode.system));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n?.themeUpdatedSuccess ??
+                            'Tema berhasil diperbarui',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: currentThemeMode == ThemeMode.light
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.brandTeal,
+                    )
+                  : const SizedBox(width: 24),
+              title: Text(l10n?.themeLight ?? 'Mode Terang'),
+              onTap: () {
+                Navigator.of(dialogCtx).pop();
+                if (currentThemeMode != ThemeMode.light) {
+                  context
+                      .read<ThemeBloc?>()
+                      ?.add(const ThemeChanged(ThemeMode.light));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n?.themeUpdatedSuccess ??
+                            'Tema berhasil diperbarui',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: currentThemeMode == ThemeMode.dark
+                  ? const Icon(
+                      LucideIcons.check,
+                      color: AppColors.brandTeal,
+                    )
+                  : const SizedBox(width: 24),
+              title: Text(l10n?.themeDark ?? 'Mode Gelap'),
+              onTap: () {
+                Navigator.of(dialogCtx).pop();
+                if (currentThemeMode != ThemeMode.dark) {
+                  context
+                      .read<ThemeBloc?>()
+                      ?.add(const ThemeChanged(ThemeMode.dark));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n?.themeUpdatedSuccess ??
+                            'Tema berhasil diperbarui',
                       ),
                     ),
                   );

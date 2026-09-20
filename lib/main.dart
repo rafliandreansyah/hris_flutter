@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_repository_providers.dart';
 import 'package:hris_flutter/app/config/app_theme.dart';
 import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
+import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/network/alice_service.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/widgets/offline_status_banner.dart';
@@ -37,11 +38,13 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final LocaleBloc? localeBloc;
+  final ThemeBloc? themeBloc;
   final OrganizationFilterBloc? organizationFilterBloc;
 
   const MyApp({
     super.key,
     this.localeBloc,
+    this.themeBloc,
     this.organizationFilterBloc,
   });
 
@@ -55,6 +58,10 @@ class MyApp extends StatelessWidget {
             create: (context) =>
                 (localeBloc ?? LocaleBloc())..add(const LocaleStarted()),
           ),
+          BlocProvider<ThemeBloc>(
+            create: (context) =>
+                (themeBloc ?? ThemeBloc())..add(const ThemeStarted()),
+          ),
           BlocProvider<OrganizationFilterBloc>(
             create: (context) =>
                 organizationFilterBloc ??
@@ -64,19 +71,23 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: BlocBuilder<LocaleBloc, LocaleState>(
-          builder: (context, state) {
-            return MaterialApp.router(
-              title: 'Oasish',
-              locale: state.locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: ThemeMode.system,
-              routerConfig: AppRouter.router,
-              debugShowCheckedModeBanner: false,
-              builder: (context, child) =>
-                  OfflineStatusBanner(child: child ?? const SizedBox.shrink()),
+          builder: (context, localeState) {
+            return BlocBuilder<ThemeBloc, ThemeState>(
+              builder: (context, themeState) {
+                return MaterialApp.router(
+                  title: 'Oasish',
+                  locale: localeState.locale,
+                  localizationsDelegates: AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  theme: AppTheme.lightTheme,
+                  darkTheme: AppTheme.darkTheme,
+                  themeMode: themeState.themeMode,
+                  routerConfig: AppRouter.router,
+                  debugShowCheckedModeBanner: false,
+                  builder: (context, child) =>
+                      OfflineStatusBanner(child: child ?? const SizedBox.shrink()),
+                );
+              },
             );
           },
         ),

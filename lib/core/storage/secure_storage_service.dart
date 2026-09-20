@@ -73,6 +73,19 @@ class SecureStorageService {
     return await _storage.read(key: AppConstants.userLanguageKey);
   }
 
+  /// Menyimpan theme mode terpilih ('system', 'light', 'dark')
+  Future<void> saveThemeMode(String themeMode) async {
+    await _storage.write(
+      key: AppConstants.themeModeKey,
+      value: themeMode,
+    );
+  }
+
+  /// Mengambil theme mode tersimpan
+  Future<String?> getThemeMode() async {
+    return await _storage.read(key: AppConstants.themeModeKey);
+  }
+
   static final Set<String> _memoryPermissions = <String>{};
 
   /// Menyimpan daftar kode izin (permissions) pengguna

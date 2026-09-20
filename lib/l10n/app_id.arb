@@ -67,6 +67,13 @@
   "logoutConfirmationTitle": "Konfirmasi Logout",
   "logoutConfirmationDesc": "Apakah Anda yakin ingin keluar dari sesi akun ini?",
   "languageUpdatedSuccess": "Bahasa berhasil diperbarui",
+  "theme": "Tema",
+  "themeSubtitle": "Pilih tema tampilan aplikasi",
+  "selectTheme": "Pilih Tema",
+  "themeSystem": "Mengikuti Sistem",
+  "themeLight": "Mode Terang",
+  "themeDark": "Mode Gelap",
+  "themeUpdatedSuccess": "Tema berhasil diperbarui",
 
   "attendanceDetailTitle": "Detail Presensi",
   "verificationDetails": "Verifikasi Presensi",

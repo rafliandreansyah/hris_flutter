@@ -28,6 +28,7 @@ abstract class Routes {
   static const String OVERTIME_DETAIL = '/overtime-detail';
   static const String CREATE_OVERTIME = '/create-overtime';
   static const String NOTIFICATIONS = '/notifications';
+  static const String NOTIFICATION_SETTINGS = '/notification-settings';
   static const String ANNOUNCEMENT = '/announcement';
   static const String ANNOUNCEMENT_DETAIL = '/announcement-detail';
   static const String PDF_VIEWER = '/pdf-viewer';

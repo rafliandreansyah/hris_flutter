@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/models/login_request_model.dart';
 import 'package:hris_flutter/features/auth/data/models/login_response_model.dart';
@@ -38,35 +40,116 @@ class MockAuthRepo implements AuthRepository {
 
 class MockStorage implements SecureStorageService {
   String? lang;
+  String? theme;
+
   @override
   Future<void> saveUserLanguage(String l) async => lang = l;
   @override
   Future<String?> getUserLanguage() async => lang;
+
+  @override
+  Future<void> saveThemeMode(String t) async => theme = t;
+  @override
+  Future<String?> getThemeMode() async => theme;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
-  Widget createTestWidget({LocaleBloc? bloc, AuthRepository? authRepository}) {
-    return BlocProvider<LocaleBloc>(
-      create: (_) =>
-          bloc ??
-          LocaleBloc(
-            authRepository: MockAuthRepo(),
-            storageService: MockStorage(),
-          ),
-      child: BlocBuilder<LocaleBloc, LocaleState>(
-        builder: (context, state) {
-          return MaterialApp(
-            locale: state.locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: AccountSettingsBottomSheet(
-                avatarUrl: '',
-                authRepository: authRepository,
+  Widget createTestWidget({
+    LocaleBloc? localeBloc,
+    ThemeBloc? themeBloc,
+    AuthRepository? authRepository,
+    MockStorage? storage,
+  }) {
+    final effectiveStorage = storage ?? MockStorage();
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<LocaleBloc>(
+          create: (_) =>
+              localeBloc ??
+              LocaleBloc(
+                authRepository: MockAuthRepo(),
+                storageService: effectiveStorage,
               ),
-            ),
+        ),
+        BlocProvider<ThemeBloc>(
+          create: (_) =>
+              themeBloc ??
+              ThemeBloc(
+                storageService: effectiveStorage,
+              ),
+        ),
+      ],
+      child: BlocBuilder<LocaleBloc, LocaleState>(
+        builder: (context, localeState) {
+          return BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context, themeState) {
+              return MaterialApp(
+                locale: localeState.locale,
+                themeMode: themeState.themeMode,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Scaffold(
+                  body: AccountSettingsBottomSheet(
+                    avatarUrl: '',
+                    authRepository: authRepository,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget createModalLauncherTestWidget({
+    ThemeBloc? themeBloc,
+    MockStorage? storage,
+  }) {
+    final effectiveStorage = storage ?? MockStorage();
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<LocaleBloc>(
+          create: (_) => LocaleBloc(
+            authRepository: MockAuthRepo(),
+            storageService: effectiveStorage,
+          ),
+        ),
+        BlocProvider<ThemeBloc>(
+          create: (_) =>
+              themeBloc ??
+              ThemeBloc(
+                storageService: effectiveStorage,
+              ),
+        ),
+      ],
+      child: BlocBuilder<LocaleBloc, LocaleState>(
+        builder: (context, localeState) {
+          return BlocBuilder<ThemeBloc, ThemeState>(
+            builder: (context, themeState) {
+              return MaterialApp(
+                locale: localeState.locale,
+                themeMode: themeState.themeMode,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Scaffold(
+                  body: Builder(
+                    builder: (scaffoldCtx) => ElevatedButton(
+                      onPressed: () {
+                        showAccountSettingsBottomSheet(
+                          scaffoldCtx,
+                          avatarUrl: '',
+                        );
+                      },
+                      child: const Text('Open Settings'),
+                    ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -96,6 +179,8 @@ void main() {
     expect(find.text('Aktif'), findsOneWidget);
     expect(find.text('Bahasa'), findsOneWidget);
     expect(find.text('ID (Bahasa)'), findsOneWidget);
+    expect(find.text('Tema'), findsOneWidget);
+    expect(find.text('Sistem'), findsOneWidget);
 
     // Verify Logout card
     expect(find.text('Keluar dari Akun (Logout)'), findsOneWidget);
@@ -158,9 +243,9 @@ void main() {
       (WidgetTester tester) async {
     final authRepo = MockAuthRepo();
     final storage = MockStorage();
-    final bloc = LocaleBloc(authRepository: authRepo, storageService: storage);
+    final localeBloc = LocaleBloc(authRepository: authRepo, storageService: storage);
 
-    await tester.pumpWidget(createTestWidget(bloc: bloc));
+    await tester.pumpWidget(createTestWidget(localeBloc: localeBloc, storage: storage));
     await tester.pumpAndSettle();
 
     // Initially ID
@@ -186,5 +271,136 @@ void main() {
     expect(find.text('EN (English)'), findsOneWidget);
     expect(authRepo.language, 'en');
     expect(storage.lang, 'en');
+  });
+
+  testWidgets('Tapping Tema opens dialog and selects Mode Gelap',
+      (WidgetTester tester) async {
+    final storage = MockStorage();
+    final themeBloc = ThemeBloc(storageService: storage);
+
+    await tester.pumpWidget(createTestWidget(themeBloc: themeBloc, storage: storage));
+    await tester.pumpAndSettle();
+
+    // Initially Sistem
+    expect(find.text('Sistem'), findsOneWidget);
+
+    // Tap Tema list tile
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
+
+    // Verify dialog opened with options
+    expect(find.text('Pilih Tema'), findsOneWidget);
+    expect(find.text('Mengikuti Sistem'), findsOneWidget);
+    expect(find.text('Mode Terang'), findsOneWidget);
+    expect(find.text('Mode Gelap'), findsOneWidget);
+
+    // Tap Mode Gelap
+    await tester.tap(find.text('Mode Gelap'));
+    await tester.pumpAndSettle();
+
+    // Dialog closed
+    expect(find.text('Pilih Tema'), findsNothing);
+
+    // Badge updated to Gelap
+    expect(find.text('Gelap'), findsOneWidget);
+    expect(themeBloc.state.themeMode, ThemeMode.dark);
+    expect(storage.theme, 'dark');
+  });
+
+  testWidgets('Tapping Tema opens dialog and selects Mode Terang',
+      (WidgetTester tester) async {
+    final storage = MockStorage();
+    final themeBloc = ThemeBloc(storageService: storage);
+
+    await tester.pumpWidget(createTestWidget(themeBloc: themeBloc, storage: storage));
+    await tester.pumpAndSettle();
+
+    // Tap Tema list tile
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
+
+    // Tap Mode Terang
+    await tester.tap(find.text('Mode Terang'));
+    await tester.pumpAndSettle();
+
+    // Badge updated to Terang
+    expect(find.text('Terang'), findsOneWidget);
+    expect(themeBloc.state.themeMode, ThemeMode.light);
+    expect(storage.theme, 'light');
+  });
+
+  testWidgets(
+      'showAccountSettingsBottomSheet dynamically updates theme from dark to light without closing',
+      (WidgetTester tester) async {
+    final storage = MockStorage();
+    storage.theme = 'dark';
+    final themeBloc = ThemeBloc(storageService: storage);
+    themeBloc.add(const ThemeChanged(ThemeMode.dark));
+
+    await tester.pumpWidget(createModalLauncherTestWidget(
+      themeBloc: themeBloc,
+      storage: storage,
+    ));
+    await tester.pumpAndSettle();
+
+    // Tap button to open modal bottom sheet
+    await tester.tap(find.text('Open Settings'));
+    await tester.pumpAndSettle();
+
+    // Initially Gelap
+    expect(find.text('Gelap'), findsOneWidget);
+
+    // Verify initial dark surface decoration
+    final darkRootContainerFinder = find.descendant(
+      of: find.byType(AccountSettingsBottomSheet),
+      matching: find.byWidgetPredicate((widget) {
+        if (widget is Container && widget.decoration is BoxDecoration) {
+          final box = widget.decoration as BoxDecoration;
+          return box.color == AppColors.darkSurfaceContainerLowest &&
+              box.borderRadius ==
+                  const BorderRadius.vertical(top: Radius.circular(28));
+        }
+        return false;
+      }),
+    );
+    expect(darkRootContainerFinder, findsOneWidget);
+
+    // Tap Tema -> Tap Mode Terang
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Mode Terang'));
+    await tester.pumpAndSettle();
+
+    // Bottom sheet is STILL open, and theme badge is now Terang!
+    expect(find.text('Terang'), findsOneWidget);
+    expect(themeBloc.state.themeMode, ThemeMode.light);
+
+    // Verify light surface decoration updated dynamically while sheet is still open!
+    final lightRootContainerFinder = find.descendant(
+      of: find.byType(AccountSettingsBottomSheet),
+      matching: find.byWidgetPredicate((widget) {
+        if (widget is Container && widget.decoration is BoxDecoration) {
+          final box = widget.decoration as BoxDecoration;
+          return box.color == AppColors.surfaceContainerLowest &&
+              box.borderRadius ==
+                  const BorderRadius.vertical(top: Radius.circular(28));
+        }
+        return false;
+      }),
+    );
+    expect(lightRootContainerFinder, findsOneWidget);
+
+    // Now tap Tema -> Tap Mode Gelap again
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Mode Gelap'));
+    await tester.pumpAndSettle();
+
+    // Bottom sheet updated dynamically back to Gelap!
+    expect(find.text('Gelap'), findsOneWidget);
+    expect(themeBloc.state.themeMode, ThemeMode.dark);
+    expect(darkRootContainerFinder, findsOneWidget);
   });
 }

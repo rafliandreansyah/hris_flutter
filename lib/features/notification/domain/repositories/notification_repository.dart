@@ -1,4 +1,5 @@
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
+import 'package:hris_flutter/features/notification/data/models/notification_settings_model.dart';
 
 abstract class NotificationRepository {
   /// Mengambil jumlah notifikasi yang belum dibaca dari backend.
@@ -15,4 +16,12 @@ abstract class NotificationRepository {
 
   /// Menandai satu notifikasi spesifik sebagai telah dibaca.
   Future<NotificationMarkReadResponse> markAsRead(String id);
+
+  /// Mengambil preferensi pengaturan notifikasi pegawai.
+  Future<NotificationSettingsResponse> getNotificationSettings();
+
+  /// Memperbarui preferensi pengaturan notifikasi pegawai.
+  Future<NotificationSettingsResponse> updateNotificationSettings(
+    Map<String, dynamic> body,
+  );
 }

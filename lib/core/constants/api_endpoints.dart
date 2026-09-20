@@ -128,5 +128,6 @@ abstract class ApiEndpoints {
   static const String notificationsUnreadCount = '/notifications/unread-count';
   static const String notificationsReadAll = '/notifications/read-all';
   static String notificationRead(String id) => '/notifications/$id/read';
+  static const String employeeNotificationSettings = '/employee/notification-settings';
 }
 

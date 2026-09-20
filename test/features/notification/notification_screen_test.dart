@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
+import 'package:hris_flutter/features/notification/data/models/notification_settings_model.dart';
 import 'package:hris_flutter/features/notification/domain/repositories/notification_repository.dart';
 import 'package:hris_flutter/features/notification/presentation/pages/notification_screen.dart';
 
@@ -80,6 +81,24 @@ class _MockNotificationRepository implements NotificationRepository {
       success: true,
       message: 'OK',
       id: id,
+    );
+  }
+
+  @override
+  Future<NotificationSettingsResponse> getNotificationSettings() async {
+    return const NotificationSettingsResponse(
+      success: true,
+      data: NotificationSettingsModel(),
+    );
+  }
+
+  @override
+  Future<NotificationSettingsResponse> updateNotificationSettings(
+    Map<String, dynamic> body,
+  ) async {
+    return const NotificationSettingsResponse(
+      success: true,
+      data: NotificationSettingsModel(),
     );
   }
 }

@@ -29,6 +29,7 @@ import 'package:hris_flutter/features/leave/presentation/pages/create_leave_scre
 import 'package:hris_flutter/features/leave/presentation/pages/leave_detail_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
 import 'package:hris_flutter/features/notification/presentation/pages/notification_screen.dart';
+import 'package:hris_flutter/features/notification/presentation/pages/notification_settings_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/create_overtime_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_detail_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
@@ -370,6 +371,13 @@ class AppRouter {
         path: Routes.NOTIFICATIONS,
         name: Routes.NOTIFICATIONS,
         builder: (context, state) => const NotificationScreen(),
+      ),
+
+      // 20b. Notification Settings Screen (Stitch M3 Teal Oasis)
+      GoRoute(
+        path: Routes.NOTIFICATION_SETTINGS,
+        name: Routes.NOTIFICATION_SETTINGS,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
 
       // 21. Announcement List Screen (Google Stitch M3 Teal Oasis)

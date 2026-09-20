@@ -70,6 +70,13 @@
   "logoutConfirmationTitle": "Confirm Logout",
   "logoutConfirmationDesc": "Are you sure you want to sign out of this account session?",
   "languageUpdatedSuccess": "Language updated successfully",
+  "theme": "Theme",
+  "themeSubtitle": "Select application display theme",
+  "selectTheme": "Select Theme",
+  "themeSystem": "System Default",
+  "themeLight": "Light Mode",
+  "themeDark": "Dark Mode",
+  "themeUpdatedSuccess": "Theme updated successfully",
 
   "attendanceDetailTitle": "Attendance Detail",
   "verificationDetails": "Attendance Verification",

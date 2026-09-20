@@ -2,6 +2,7 @@ import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
+import 'package:hris_flutter/features/notification/data/models/notification_settings_model.dart';
 
 abstract class NotificationRemoteDataSource {
   /// Mengambil jumlah notifikasi yang belum dibaca dari `GET /notifications/unread-count`.
@@ -18,6 +19,14 @@ abstract class NotificationRemoteDataSource {
 
   /// Menandai satu notifikasi spesifik sebagai sudah dibaca via `PATCH /notifications/{id}/read`.
   Future<NotificationMarkReadResponse> markAsRead(String id);
+
+  /// Mengambil pengaturan notifikasi karyawan via `GET /employee/notification-settings`.
+  Future<NotificationSettingsResponse> getNotificationSettings();
+
+  /// Memperbarui pengaturan notifikasi karyawan via `PUT /employee/notification-settings`.
+  Future<NotificationSettingsResponse> updateNotificationSettings(
+    Map<String, dynamic> body,
+  );
 }
 
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
@@ -114,6 +123,53 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       rethrow;
     } catch (e) {
       throw ApiException(message: 'Gagal menandai notifikasi dibaca: $e');
+    }
+  }
+
+  @override
+  Future<NotificationSettingsResponse> getNotificationSettings() async {
+    try {
+      final response = await _apiClient.get(
+        ApiEndpoints.employeeNotificationSettings,
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return NotificationSettingsResponse.fromJson(data);
+      }
+      throw const ApiException(
+        message: 'Format data pengaturan notifikasi tidak valid.',
+      );
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(message: 'Gagal memuat pengaturan notifikasi: $e');
+    }
+  }
+
+  @override
+  Future<NotificationSettingsResponse> updateNotificationSettings(
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await _apiClient.put(
+        ApiEndpoints.employeeNotificationSettings,
+        data: body,
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return NotificationSettingsResponse.fromJson(data);
+      }
+      throw const ApiException(
+        message: 'Format respon pembaruan pengaturan notifikasi tidak valid.',
+      );
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        message: 'Gagal memperbarui pengaturan notifikasi: $e',
+      );
     }
   }
 }

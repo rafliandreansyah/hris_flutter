@@ -446,6 +446,48 @@ abstract class AppLocalizations {
   /// **'Bahasa berhasil diperbarui'**
   String get languageUpdatedSuccess;
 
+  /// No description provided for @theme.
+  ///
+  /// In id, this message translates to:
+  /// **'Tema'**
+  String get theme;
+
+  /// No description provided for @themeSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih tema tampilan aplikasi'**
+  String get themeSubtitle;
+
+  /// No description provided for @selectTheme.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih Tema'**
+  String get selectTheme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In id, this message translates to:
+  /// **'Mengikuti Sistem'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode Terang'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode Gelap'**
+  String get themeDark;
+
+  /// No description provided for @themeUpdatedSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Tema berhasil diperbarui'**
+  String get themeUpdatedSuccess;
+
   /// No description provided for @attendanceDetailTitle.
   ///
   /// In id, this message translates to:

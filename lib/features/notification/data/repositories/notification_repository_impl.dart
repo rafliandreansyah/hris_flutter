@@ -1,5 +1,6 @@
 import 'package:hris_flutter/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
+import 'package:hris_flutter/features/notification/data/models/notification_settings_model.dart';
 import 'package:hris_flutter/features/notification/domain/repositories/notification_repository.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
@@ -31,5 +32,17 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<NotificationMarkReadResponse> markAsRead(String id) {
     return _remoteDataSource.markAsRead(id);
+  }
+
+  @override
+  Future<NotificationSettingsResponse> getNotificationSettings() {
+    return _remoteDataSource.getNotificationSettings();
+  }
+
+  @override
+  Future<NotificationSettingsResponse> updateNotificationSettings(
+    Map<String, dynamic> body,
+  ) {
+    return _remoteDataSource.updateNotificationSettings(body);
   }
 }

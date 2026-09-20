@@ -189,6 +189,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get languageUpdatedSuccess => 'Bahasa berhasil diperbarui';
 
   @override
+  String get theme => 'Tema';
+
+  @override
+  String get themeSubtitle => 'Pilih tema tampilan aplikasi';
+
+  @override
+  String get selectTheme => 'Pilih Tema';
+
+  @override
+  String get themeSystem => 'Mengikuti Sistem';
+
+  @override
+  String get themeLight => 'Mode Terang';
+
+  @override
+  String get themeDark => 'Mode Gelap';
+
+  @override
+  String get themeUpdatedSuccess => 'Tema berhasil diperbarui';
+
+  @override
   String get attendanceDetailTitle => 'Detail Presensi';
 
   @override
