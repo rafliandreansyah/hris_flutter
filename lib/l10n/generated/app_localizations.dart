@@ -625,6 +625,42 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Lihat Bulan Ini'**
   String get viewCurrentMonth;
+
+  /// No description provided for @tabMyRequests.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengajuan Saya'**
+  String get tabMyRequests;
+
+  /// No description provided for @tabTeamApprovals.
+  ///
+  /// In id, this message translates to:
+  /// **'Persetujuan Tim'**
+  String get tabTeamApprovals;
+
+  /// No description provided for @tabSelf.
+  ///
+  /// In id, this message translates to:
+  /// **'Saya'**
+  String get tabSelf;
+
+  /// No description provided for @tabMyTeam.
+  ///
+  /// In id, this message translates to:
+  /// **'Tim Saya'**
+  String get tabMyTeam;
+
+  /// No description provided for @tabWarningReceived.
+  ///
+  /// In id, this message translates to:
+  /// **'Surat Diterima'**
+  String get tabWarningReceived;
+
+  /// No description provided for @tabWarningIssued.
+  ///
+  /// In id, this message translates to:
+  /// **'Diterbitkan'**
+  String get tabWarningIssued;
 }
 
 class _AppLocalizationsDelegate

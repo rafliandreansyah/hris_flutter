@@ -13,6 +13,7 @@ import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/a
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_card.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_option_bottom_sheet.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Daftar Aktivitas (Activity Reports / Team Activity Feed) sesuai Clean Architecture & BLoC.
@@ -216,6 +217,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<ActivityListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
@@ -392,18 +394,18 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.clipboardList, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.clipboardList, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'My Activities',
+                              l10n?.tabSelf ?? 'Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -417,11 +419,11 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.users, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.users, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Team Activities',
+                              l10n?.tabMyTeam ?? 'Tim Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

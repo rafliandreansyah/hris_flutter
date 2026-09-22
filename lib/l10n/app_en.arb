@@ -118,5 +118,11 @@
   "attendanceDetailNoAccess": "You do not have permission to view this data",
   "noPayrollPeriodTitle": "Payroll Period Not Available",
   "noPayrollPeriodLastMonthDesc": "No payroll period available for last month. You can check the Current Month period.",
-  "viewCurrentMonth": "View Current Month"
+  "viewCurrentMonth": "View Current Month",
+  "tabMyRequests": "My Requests",
+  "tabTeamApprovals": "Team Approvals",
+  "tabSelf": "Me",
+  "tabMyTeam": "My Team",
+  "tabWarningReceived": "Received Letters",
+  "tabWarningIssued": "Issued Letters"
 }

@@ -135,32 +135,32 @@ void main() {
       expect(find.byType(Tab), findsNWidgets(2));
       expect(find.byType(TabBarView), findsOneWidget);
 
-      // Default initial tab is My Activities (Tab 0):
-      // Only Sarah Jenkins is visible in My Activities (isMyActivity: true)
-      expect(find.text('My Activities'), findsOneWidget);
-      expect(find.text('Team Activities'), findsOneWidget);
+      // Default initial tab is Saya (Tab 0):
+      // Only Sarah Jenkins is visible in Saya (isMyActivity: true)
+      expect(find.text('Saya'), findsOneWidget);
+      expect(find.text('Tim Saya'), findsOneWidget);
       expect(find.text('Sarah Jenkins'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsNothing);
       expect(find.text('Jessica Pranata'), findsNothing);
 
-      // FAB is visible on My Activities tab
+      // FAB is visible on Saya tab
       expect(find.byType(FloatingActionButton), findsOneWidget);
       expect(find.text('Tambah Aktivitas'), findsOneWidget);
 
-      // Tap 'Team Activities' tab (Tab 1)
-      await tester.tap(find.text('Team Activities'));
+      // Tap 'Tim Saya' tab (Tab 1)
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
-      // All 3 items are visible in Team Activities
+      // All 3 items are visible in Tim Saya
       expect(find.text('Sarah Jenkins'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsOneWidget);
       expect(find.text('Jessica Pranata'), findsOneWidget);
 
-      // FAB is hidden on Team Activities tab
+      // FAB is hidden on Tim Saya tab
       expect(find.byType(FloatingActionButton), findsNothing);
 
-      // Tap back to 'My Activities' tab (Tab 0)
-      await tester.tap(find.text('My Activities'));
+      // Tap back to 'Saya' tab (Tab 0)
+      await tester.tap(find.text('Saya'));
       await tester.pumpAndSettle();
 
       expect(find.text('Sarah Jenkins'), findsOneWidget);
@@ -205,7 +205,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Team Activities to test full search
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Enter search term 'Budi'
@@ -288,7 +288,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Team Activities tab
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Open filter bottom sheet
@@ -329,7 +329,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Team Activities tab
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Open filter bottom sheet
@@ -364,7 +364,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Team Activities tab
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Open filter bottom sheet
@@ -437,7 +437,7 @@ void main() {
       expect(container.constraints?.maxHeight ?? 0, 0);
 
       // Pindah ke Tab 1 (Team Activities) di mana search bar aktif
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       container = tester.widget<AnimatedContainer>(animatedContainerFinder);
@@ -594,7 +594,7 @@ void main() {
       expect(find.text('Aktivitasku Hari Ini'), findsOneWidget);
 
       // Switch to Tab 1 (Team Activities)
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Tab 1 verified: approver == true was requested
@@ -639,7 +639,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Team Activities
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Verify 403 Forbidden state UI
@@ -698,7 +698,7 @@ void main() {
       );
 
       // Switch to Tab 1
-      await tester.tap(find.text('Team Activities'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       // Tab 1 Empty State

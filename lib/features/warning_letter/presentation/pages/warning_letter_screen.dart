@@ -12,6 +12,7 @@ import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_l
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_state.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/widgets/warning_letter_card.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/widgets/warning_letter_filter_bottom_sheet.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Daftar Surat Peringatan (Warning Letter).
@@ -170,6 +171,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<WarningLetterListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
@@ -348,18 +350,18 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.triangleAlert, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.triangleAlert, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Surat Diterima',
+                              l10n?.tabWarningReceived ?? 'Surat Diterima',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -373,11 +375,11 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.clipboardList, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.clipboardList, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Diterbitkan',
+                              l10n?.tabWarningIssued ?? 'Diterbitkan',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

@@ -161,8 +161,8 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('My Requests'), findsOneWidget);
-      expect(find.text('Team Requests'), findsOneWidget);
+      expect(find.text('Pengajuan Saya'), findsOneWidget);
+      expect(find.text('Persetujuan Tim'), findsOneWidget);
       expect(find.byType(TabBar), findsOneWidget);
     });
 
@@ -238,8 +238,8 @@ void main() {
       await tester.pumpWidget(createTestWidget(teamForbidden: true));
       await tester.pumpAndSettle();
 
-      // Pindah ke tab Team Requests (index 1)
-      await tester.tap(find.text('Team Requests'));
+      // Pindah ke tab Persetujuan Tim (index 1)
+      await tester.tap(find.text('Persetujuan Tim'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
@@ -255,8 +255,8 @@ void main() {
       await tester.pumpWidget(createTestWidget(teamForbidden: true));
       await tester.pumpAndSettle();
 
-      // Pindah ke tab Team Requests (index 1)
-      await tester.tap(find.text('Team Requests'));
+      // Pindah ke tab Persetujuan Tim (index 1)
+      await tester.tap(find.text('Persetujuan Tim'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
@@ -285,7 +285,7 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('My Requests'));
+      await tester.tap(find.text('Pengajuan Saya'));
       await tester.pumpAndSettle();
 
       // My Requests memakai data yang sama dari mock repo (isSelf=false
@@ -371,7 +371,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Leave & Time Off'), findsOneWidget);
-      expect(find.text('Team Requests'), findsOneWidget);
+      expect(find.text('Persetujuan Tim'), findsOneWidget);
     });
   });
 }

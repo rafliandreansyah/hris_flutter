@@ -285,4 +285,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get viewCurrentMonth => 'Lihat Bulan Ini';
+
+  @override
+  String get tabMyRequests => 'Pengajuan Saya';
+
+  @override
+  String get tabTeamApprovals => 'Persetujuan Tim';
+
+  @override
+  String get tabSelf => 'Saya';
+
+  @override
+  String get tabMyTeam => 'Tim Saya';
+
+  @override
+  String get tabWarningReceived => 'Surat Diterima';
+
+  @override
+  String get tabWarningIssued => 'Diterbitkan';
 }

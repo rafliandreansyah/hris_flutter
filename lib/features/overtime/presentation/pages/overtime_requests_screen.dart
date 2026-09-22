@@ -13,6 +13,7 @@ import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/o
 import 'package:hris_flutter/features/overtime/presentation/models/overtime_request_item.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_request_card.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman "Overtime Requests" — slice dari desain Stitch
@@ -204,6 +205,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<OvertimeListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
@@ -380,18 +382,18 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.alarmClock, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.alarmClock, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'My Overtime',
+                              l10n?.tabMyRequests ?? 'Pengajuan Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -405,11 +407,11 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.users, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.users, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Team Overtime',
+                              l10n?.tabTeamApprovals ?? 'Persetujuan Tim',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

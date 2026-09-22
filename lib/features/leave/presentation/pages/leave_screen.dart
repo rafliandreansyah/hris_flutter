@@ -13,6 +13,7 @@ import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_l
 import 'package:hris_flutter/features/leave/presentation/models/leave_request_item.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_request_card.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman "Leave & Time Off" — slice dari desain Stitch
@@ -197,6 +198,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<LeaveListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
@@ -371,18 +373,18 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.calendarClock, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.calendarClock, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'My Requests',
+                              l10n?.tabMyRequests ?? 'Pengajuan Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -396,11 +398,11 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.users, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.users, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Team Requests',
+                              l10n?.tabTeamApprovals ?? 'Persetujuan Tim',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

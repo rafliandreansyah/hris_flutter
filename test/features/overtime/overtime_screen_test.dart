@@ -175,8 +175,8 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('My Overtime'), findsOneWidget);
-      expect(find.text('Team Overtime'), findsOneWidget);
+      expect(find.text('Pengajuan Saya'), findsOneWidget);
+      expect(find.text('Persetujuan Tim'), findsOneWidget);
       expect(find.byType(TabBar), findsOneWidget);
     });
 
@@ -214,8 +214,8 @@ void main() {
       // Tab 0 aktif -> FAB terlihat.
       expect(find.text('Tambah Lembur'), findsOneWidget);
 
-      // Pindah ke tab Team Overtime -> FAB hilang.
-      await tester.tap(find.text('Team Overtime'));
+      // Pindah ke tab Persetujuan Tim -> FAB hilang.
+      await tester.tap(find.text('Persetujuan Tim'));
       await tester.pumpAndSettle();
       expect(find.text('Tambah Lembur'), findsNothing);
     });
@@ -254,8 +254,8 @@ void main() {
       await tester.pumpWidget(createTestWidget(teamForbidden: true));
       await tester.pumpAndSettle();
 
-      // Pindah ke tab Team Overtime (index 1).
-      await tester.tap(find.text('Team Overtime'));
+      // Pindah ke tab Persetujuan Tim (index 1).
+      await tester.tap(find.text('Persetujuan Tim'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
@@ -274,7 +274,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(teamForbidden: true));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Team Overtime'));
+      await tester.tap(find.text('Persetujuan Tim'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
@@ -389,7 +389,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Overtime Requests'), findsOneWidget);
-      expect(find.text('Team Overtime'), findsOneWidget);
+      expect(find.text('Persetujuan Tim'), findsOneWidget);
     });
   });
 }

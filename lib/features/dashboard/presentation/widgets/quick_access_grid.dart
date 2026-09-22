@@ -61,6 +61,11 @@ class QuickAccessGrid extends StatelessWidget {
       title: 'Jadwal Kerja',
       icon: LucideIcons.calendarDays,
     ),
+    (
+      code: 'mobile_reimbursement',
+      title: 'Klaim & Kasbon',
+      icon: LucideIcons.receiptText,
+    ),
   ];
 
   /// Memeriksa apakah menu tertentu ada di dalam daftar menu API `/auth/menus`
@@ -153,6 +158,14 @@ class QuickAccessGrid extends StatelessWidget {
           (mName.contains('jadwal') || mName.contains('schedule'))) {
         return true;
       }
+      if (targetCode == 'mobile_reimbursement' &&
+          (mName.contains('reimburse') ||
+              mName.contains('klaim') ||
+              mName.contains('kasbon') ||
+              mName.contains('expense') ||
+              mName.contains('biaya'))) {
+        return true;
+      }
 
       return false;
     });
@@ -178,6 +191,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.WARNING_LETTER);
     } else if (c == 'mobile_schedule' || c == 'mobile_employee_schedule') {
       context.push(Routes.EMPLOYEE_SCHEDULE_SELECT);
+    } else if (c == 'mobile_reimbursement') {
+      context.push(Routes.EXPENSES);
     } else {
       ScaffoldMessenger.of(
         context,

@@ -43,6 +43,12 @@ import 'package:hris_flutter/features/warning_letter/presentation/pages/warning_
 import 'package:hris_flutter/features/schedule/data/models/work_schedule_response_model.dart';
 import 'package:hris_flutter/features/schedule/presentation/pages/employee_schedule_select_screen.dart';
 import 'package:hris_flutter/features/schedule/presentation/pages/work_schedule_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/cash_advance_detail_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/create_cash_advance_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/create_reimbursement_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_action_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_list_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -499,6 +505,96 @@ class AppRouter {
         path: Routes.EMPLOYEE_SCHEDULE_SELECT,
         name: Routes.EMPLOYEE_SCHEDULE_SELECT,
         builder: (context, state) => const EmployeeScheduleSelectScreen(),
+      ),
+
+      // 29. Expenses Feed (Reimbursement & Kasbon)
+      GoRoute(
+        path: Routes.EXPENSES,
+        name: Routes.EXPENSES,
+        builder: (context, state) => const ExpensesListScreen(),
+      ),
+
+      // 30. Reimbursement Detail Screen
+      GoRoute(
+        path: Routes.REIMBURSEMENT_DETAIL,
+        name: Routes.REIMBURSEMENT_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          if (extra is String) {
+            id = extra;
+          } else if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+          }
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          return ReimbursementDetailScreen(id: id);
+        },
+      ),
+
+      // 31. Create Reimbursement Form Screen
+      GoRoute(
+        path: Routes.CREATE_REIMBURSEMENT,
+        name: Routes.CREATE_REIMBURSEMENT,
+        builder: (context, state) {
+          final extra = state.extra;
+          String? cashAdvanceId;
+          if (extra is String) {
+            cashAdvanceId = extra;
+          } else if (extra is Map<String, dynamic>) {
+            cashAdvanceId = extra['cashAdvanceId']?.toString();
+          }
+          return CreateReimbursementScreen(
+            initialCashAdvanceId: cashAdvanceId,
+          );
+        },
+      ),
+
+      // 32. Cash Advance Detail Screen
+      GoRoute(
+        path: Routes.CASH_ADVANCE_DETAIL,
+        name: Routes.CASH_ADVANCE_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          if (extra is String) {
+            id = extra;
+          } else if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+          }
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          return CashAdvanceDetailScreen(id: id);
+        },
+      ),
+
+      // 33. Create Cash Advance Form Screen
+      GoRoute(
+        path: Routes.CREATE_CASH_ADVANCE,
+        name: Routes.CREATE_CASH_ADVANCE,
+        builder: (context, state) => const CreateCashAdvanceScreen(),
+      ),
+
+      // 34. Disburse Action Screen (Multi-Method Kasir)
+      GoRoute(
+        path: Routes.DISBURSE_ACTION,
+        name: Routes.DISBURSE_ACTION,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is DisburseScreenArgs) {
+            return DisburseActionScreen(args: extra);
+          }
+          return DisburseActionScreen(
+            args: DisburseScreenArgs(
+              claimId: extra?.toString() ?? '',
+              claimNumber: '',
+              amount: 0,
+              employeeName: '',
+            ),
+          );
+        },
       ),
     ],
     redirect: (context, state) {

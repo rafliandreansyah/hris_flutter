@@ -129,5 +129,22 @@ abstract class ApiEndpoints {
   static const String notificationsReadAll = '/notifications/read-all';
   static String notificationRead(String id) => '/notifications/$id/read';
   static const String employeeNotificationSettings = '/employee/notification-settings';
+
+  // ==========================================
+  // --- 💰 EXPENSES, REIMBURSEMENT & KASBON ENDPOINTS ---
+  // ==========================================
+  static const String expensesFeed = '/expenses';
+  static const String reimbursements = '/reimbursements';
+  static const String reimbursementCategories = '/reimbursements/categories';
+  static String reimbursementDetail(String id) => '/reimbursements/$id';
+  static String reimbursementApprove(String id) => '/reimbursements/$id/approve';
+  static String reimbursementDisburse(String id) => '/reimbursements/$id/disburse';
+  static const String financeDisbursements = '/finance/disbursements';
+  static String financeDisbursement(String id) => '/finance/disbursements/$id';
+  static const String cashAdvances = '/cash-advances';
+  static String cashAdvanceDetail(String id) => '/cash-advances/$id';
+  static String cashAdvanceApprove(String id) => '/cash-advances/$id/approve';
+  static String cashAdvanceDisburse(String id) => '/cash-advances/$id/disburse';
+  static String cashAdvanceRefund(String id) => '/cash-advances/$id/refund';
 }
 

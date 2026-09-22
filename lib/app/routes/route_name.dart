@@ -37,4 +37,10 @@ abstract class Routes {
   static const String CREATE_WARNING_LETTER = '/create-warning-letter';
   static const String WORK_SCHEDULE = '/work-schedule';
   static const String EMPLOYEE_SCHEDULE_SELECT = '/employee-schedule-select';
+  static const String EXPENSES = '/expenses';
+  static const String REIMBURSEMENT_DETAIL = '/reimbursement-detail';
+  static const String CREATE_REIMBURSEMENT = '/create-reimbursement';
+  static const String CASH_ADVANCE_DETAIL = '/cash-advance-detail';
+  static const String CREATE_CASH_ADVANCE = '/create-cash-advance';
+  static const String DISBURSE_ACTION = '/disburse-action';
 }

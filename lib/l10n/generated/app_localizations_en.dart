@@ -285,4 +285,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewCurrentMonth => 'View Current Month';
+
+  @override
+  String get tabMyRequests => 'My Requests';
+
+  @override
+  String get tabTeamApprovals => 'Team Approvals';
+
+  @override
+  String get tabSelf => 'Me';
+
+  @override
+  String get tabMyTeam => 'My Team';
+
+  @override
+  String get tabWarningReceived => 'Received Letters';
+
+  @override
+  String get tabWarningIssued => 'Issued Letters';
 }

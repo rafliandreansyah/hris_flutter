@@ -150,7 +150,7 @@ class _AppTextFieldState extends State<AppTextField> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (widget.label != null)
-                _buildLabel(widget.label!, labelCol)
+                Expanded(child: _buildLabel(widget.label!, labelCol))
               else
                 const SizedBox.shrink(),
               if (widget.labelTrailing != null) widget.labelTrailing!,

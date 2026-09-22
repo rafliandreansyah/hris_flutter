@@ -76,6 +76,20 @@
     - **Direct TextField / TextFormField**: Any raw input field across forms, search bars, dialogs, or filter sheets MUST specify `onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus()`.
     - **Form Action Handlers**: All form submit and action handlers (`_handleSubmit`, `_submitForm`, dialog submit buttons) MUST invoke `FocusManager.instance.primaryFocus?.unfocus()` on the very first line before validation and BLoC event dispatching.
     - **Bottom Action Buttons Placement**: Form action buttons must be placed in `Scaffold.bottomNavigationBar` (with `SafeArea(top: false, child: ...)`), keeping buttons anchored at the bottom of the screen instead of jumping above the keyboard while typing, maintaining a clean and spacious viewport.
+16. **Consistent Tab Naming & Localization Standards (Context-Aware Tabs)**:
+    - **Context-Aware Rule**: All 2-tab screens (`TabBar`) across the application must strictly adhere to the standardized Context-Aware tab naming:
+      - **Request & Approval Modules** (`leave`, `overtime`, `attendance_requests`, `reimbursement` / `expenses`):
+        - **Left Tab (Self/Employee)**: `l10n?.tabMyRequests ?? 'Pengajuan Saya'` (Icon: `LucideIcons.calendarClock`, `LucideIcons.alarmClock`, `LucideIcons.mapPin`, or `LucideIcons.receipt`).
+        - **Right Tab (Team/Approver)**: `l10n?.tabTeamApprovals ?? 'Persetujuan Tim'` (Icon: `LucideIcons.users`).
+        - *Never* use "Bawahan", hardcoded English "My Requests / Team Requests", or ad-hoc labels.
+      - **Log & Monitoring Modules** (`attendance_logs`, `activity`):
+        - **Left Tab (Self)**: `l10n?.tabSelf ?? 'Saya'` (Icon: `LucideIcons.user` or `LucideIcons.clipboardList`).
+        - **Right Tab (Team)**: `l10n?.tabMyTeam ?? 'Tim Saya'` (Icon: `LucideIcons.users`).
+      - **Formal Document Modules** (`warning_letter`):
+        - **Left Tab**: `l10n?.tabWarningReceived ?? 'Surat Diterima'` (Icon: `LucideIcons.triangleAlert`).
+        - **Right Tab**: `l10n?.tabWarningIssued ?? 'Diterbitkan'` (Icon: `LucideIcons.clipboardList`).
+    - **Localization Mandate**: Tab titles MUST always be localized using `AppLocalizations` (`l10n?.tab... ?? 'Default Indonesian'`) with graceful fallback to prevent null errors in unit/widget tests.
+    - **Unified Pill-Style TabBar**: Always style `TabBar` using the modern pill container (`height: 48–52`, `padding: 4`, `borderRadius: 14–16`, background `AppColors.darkSurfaceContainer` / `#F1F5F9`, indicator card with soft drop shadow, label in `brandColor` bold, unselected in `subtitleCol`).
 
 
 

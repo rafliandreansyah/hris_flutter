@@ -23,6 +23,8 @@ import 'package:hris_flutter/features/overtime/data/repositories/overtime_reposi
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/warning_letter/data/repositories/warning_letter_repository_impl.dart';
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
+import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursement_repository_impl.dart';
+import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
 
 /// Sentralisasi Dependency Injection (DI) berbasis [RepositoryProvider] bawaan `flutter_bloc`.
 ///
@@ -65,6 +67,9 @@ class AppRepositoryProviders {
         ),
         RepositoryProvider<DashboardRepository>(
           create: (_) => DashboardRepositoryImpl(),
+        ),
+        RepositoryProvider<ReimbursementRepository>(
+          create: (_) => ReimbursementRepositoryImpl(),
         ),
       ];
 }

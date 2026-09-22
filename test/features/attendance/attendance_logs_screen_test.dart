@@ -240,8 +240,8 @@ void main() {
 
       expect(find.byType(TabBar), findsOneWidget);
       expect(find.byType(TabBarView), findsOneWidget);
-      expect(find.text('My Attendance'), findsOneWidget);
-      expect(find.text('Team Attendance'), findsOneWidget);
+      expect(find.text('Saya'), findsOneWidget);
+      expect(find.text('Tim Saya'), findsOneWidget);
     });
 
     testWidgets('does NOT render filter chips row from Stitch design', (
@@ -295,7 +295,7 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Team Attendance'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       expect(find.text('Search team member...'), findsOneWidget);
@@ -357,7 +357,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Team Attendance'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Ada Hak Akses'), findsOneWidget);
@@ -401,7 +401,7 @@ void main() {
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Team Attendance'));
+      await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Sarah Jenkins'));

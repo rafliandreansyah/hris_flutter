@@ -115,5 +115,11 @@
   "attendanceDetailNoAccess": "Anda tidak memiliki hak akses untuk melihat data ini",
   "noPayrollPeriodTitle": "Periode Penggajian Belum Ada",
   "noPayrollPeriodLastMonthDesc": "Belum ada periode penggajian untuk bulan lalu. Anda dapat melihat riwayat pada periode Bulan Ini.",
-  "viewCurrentMonth": "Lihat Bulan Ini"
+  "viewCurrentMonth": "Lihat Bulan Ini",
+  "tabMyRequests": "Pengajuan Saya",
+  "tabTeamApprovals": "Persetujuan Tim",
+  "tabSelf": "Saya",
+  "tabMyTeam": "Tim Saya",
+  "tabWarningReceived": "Surat Diterima",
+  "tabWarningIssued": "Diterbitkan"
 }

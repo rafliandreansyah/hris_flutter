@@ -15,6 +15,7 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_re
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_type_selection_bottom_sheet.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Presensi Luar Kantor / Pengajuan Kehadiran Luar Kantor.
@@ -193,6 +194,7 @@ class _AttendanceRequestsScreenViewState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = context.watch<AttendanceRequestListBloc>().state;
     final filterCriteria = state.filterCriteria;
     final searchQuery = state.searchQuery;
@@ -367,18 +369,18 @@ class _AttendanceRequestsScreenViewState
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.mapPin, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.mapPin, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Pengajuan Saya',
+                              l10n?.tabMyRequests ?? 'Pengajuan Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -392,11 +394,11 @@ class _AttendanceRequestsScreenViewState
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.users, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.users, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Persetujuan Tim',
+                              l10n?.tabTeamApprovals ?? 'Persetujuan Tim',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),

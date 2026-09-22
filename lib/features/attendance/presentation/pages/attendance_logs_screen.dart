@@ -188,6 +188,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark
         ? AppColors.darkBackgroundSubtle
@@ -328,18 +329,18 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                     fontWeight: FontWeight.w500,
                   ),
                   splashBorderRadius: BorderRadius.circular(12),
-                  tabs: const [
+                  tabs: [
                     Tab(
                       height: 44,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.user, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.user, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'My Attendance',
+                              l10n?.tabSelf ?? 'Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -353,11 +354,11 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.users, size: 16),
-                          SizedBox(width: 8),
+                          const Icon(LucideIcons.users, size: 16),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
-                              'Team Attendance',
+                              l10n?.tabMyTeam ?? 'Tim Saya',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
