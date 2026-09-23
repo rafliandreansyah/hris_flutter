@@ -66,6 +66,11 @@ class QuickAccessGrid extends StatelessWidget {
       title: 'Klaim & Kasbon',
       icon: LucideIcons.receiptText,
     ),
+    (
+      code: 'mobile_resignation',
+      title: 'Resign',
+      icon: LucideIcons.doorOpen,
+    ),
   ];
 
   /// Memeriksa apakah menu tertentu ada di dalam daftar menu API `/auth/menus`
@@ -166,6 +171,15 @@ class QuickAccessGrid extends StatelessWidget {
               mName.contains('biaya'))) {
         return true;
       }
+      if (targetCode == 'mobile_resignation' &&
+          (mCode == 'mobile_resignation' ||
+              mCode == 'approval_resignation' ||
+              mCode == 'employee_resignation' ||
+              mName.contains('resign') ||
+              mName.contains('pengunduran') ||
+              mName.contains('offboarding'))) {
+        return true;
+      }
 
       return false;
     });
@@ -193,6 +207,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.EMPLOYEE_SCHEDULE_SELECT);
     } else if (c == 'mobile_reimbursement') {
       context.push(Routes.EXPENSES);
+    } else if (c == 'mobile_resignation') {
+      context.push(Routes.RESIGNATION);
     } else {
       ScaffoldMessenger.of(
         context,

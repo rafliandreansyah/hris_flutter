@@ -49,6 +49,7 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/create_re
 import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_action_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_list_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
+import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -595,6 +596,13 @@ class AppRouter {
             ),
           );
         },
+      ),
+
+      // 35. Resignation Hub & Live Offboarding Tracking Screen
+      GoRoute(
+        path: Routes.RESIGNATION,
+        name: Routes.RESIGNATION,
+        builder: (context, state) => const ResignationScreen(),
       ),
     ],
     redirect: (context, state) {

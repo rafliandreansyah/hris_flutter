@@ -146,5 +146,12 @@ abstract class ApiEndpoints {
   static String cashAdvanceApprove(String id) => '/cash-advances/$id/approve';
   static String cashAdvanceDisburse(String id) => '/cash-advances/$id/disburse';
   static String cashAdvanceRefund(String id) => '/cash-advances/$id/refund';
+
+  // Resignation & Offboarding endpoints
+  static const String resignations = '/resignations';
+  static const String myResignationStatus = '/resignations/my-status';
+  static const String subordinateResignations = '/resignations/subordinates';
+  static String resignationDetail(String id) => '/resignations/$id';
+  static String resignationClearance(String id) => '/resignations/$id/clearance';
 }
 
