@@ -43,6 +43,7 @@ abstract class Routes {
   static const String CASH_ADVANCE_DETAIL = '/cash-advance-detail';
   static const String CREATE_CASH_ADVANCE = '/create-cash-advance';
   static const String DISBURSE_ACTION = '/disburse-action';
+  static const String ASSETS = '/assets';
   static const String RESIGNATION = '/resignation';
   static const String CREATE_RESIGNATION = '/create-resignation';
 }

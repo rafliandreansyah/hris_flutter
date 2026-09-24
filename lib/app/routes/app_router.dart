@@ -49,6 +49,7 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/create_re
 import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_action_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_list_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
+import 'package:hris_flutter/features/asset/presentation/pages/asset_list_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 
@@ -599,14 +600,20 @@ class AppRouter {
         },
       ),
 
-      // 35. Resignation Hub & Live Offboarding Tracking Screen
+      // 35. Fasilitas Saya (Asset List)
+      GoRoute(
+        path: Routes.ASSETS,
+        name: Routes.ASSETS,
+        builder: (context, state) => const AssetListScreen(),
+      ),
+      // 36. Resignation Hub & Live Offboarding Tracking Screen
       GoRoute(
         path: Routes.RESIGNATION,
         name: Routes.RESIGNATION,
         builder: (context, state) => const ResignationScreen(),
       ),
 
-      // 36. Formulir Pengunduran Diri (Create Resignation) Screen
+      // 37. Formulir Pengunduran Diri (Create Resignation) Screen
       GoRoute(
         path: Routes.CREATE_RESIGNATION,
         name: Routes.CREATE_RESIGNATION,

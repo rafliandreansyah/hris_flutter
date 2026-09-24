@@ -67,9 +67,15 @@ class QuickAccessGrid extends StatelessWidget {
       icon: LucideIcons.receiptText,
     ),
     (
+      code: 'mobile_asset',
+      title: 'Fasilitas',
+      icon: LucideIcons.packageCheck,
+    ),
+    (
       code: 'mobile_resignation',
       title: 'Resign',
       icon: LucideIcons.doorOpen,
+
     ),
   ];
 
@@ -171,6 +177,13 @@ class QuickAccessGrid extends StatelessWidget {
               mName.contains('biaya'))) {
         return true;
       }
+      if (targetCode == 'mobile_asset' &&
+          (mName.contains('fasilitas') ||
+              mName.contains('aset') ||
+              mName.contains('asset'))) {
+        return true;
+      }
+      
       if (targetCode == 'mobile_resignation' &&
           (mCode == 'mobile_resignation' ||
               mCode == 'approval_resignation' ||
@@ -207,6 +220,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.EMPLOYEE_SCHEDULE_SELECT);
     } else if (c == 'mobile_reimbursement') {
       context.push(Routes.EXPENSES);
+    } else if (c == 'mobile_asset' || c == 'mobile_assets') {
+      context.push(Routes.ASSETS);
     } else if (c == 'mobile_resignation') {
       context.push(Routes.RESIGNATION);
     } else {

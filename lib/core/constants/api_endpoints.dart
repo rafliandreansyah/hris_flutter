@@ -147,7 +147,22 @@ abstract class ApiEndpoints {
   static String cashAdvanceDisburse(String id) => '/cash-advances/$id/disburse';
   static String cashAdvanceRefund(String id) => '/cash-advances/$id/refund';
 
-  // Resignation & Offboarding endpoints
+  // ==========================================
+  // --- 💻 ASSET & FASILITAS ENDPOINTS ---
+  // ==========================================
+  static const String assets = '/assets';
+  static const String assetCategories = '/assets/categories';
+  static String assetDetail(String id) => '/assets/$id';
+  static String assetHandover(String id) => '/assets/$id/handover';
+  static String assetTransfer(String id) => '/assets/$id/transfer';
+  static String assetApprove(String assignmentId) =>
+      '/assets/assignments/$assignmentId/approve';
+  static String assetReject(String assignmentId) =>
+      '/assets/assignments/$assignmentId/reject';
+  
+  // ==========================================
+  // --- 💻 RESIGNATION ---
+  // ==========================================
   static const String resignations = '/resignations';
   static const String myResignationStatus = '/resignations/my-status';
   static const String resignationInitialForm = '/resignations/initial-form';
