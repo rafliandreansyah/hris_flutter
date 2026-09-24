@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
@@ -129,13 +130,14 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     }
   }
 
-  void _handleCreateResignation() {
+  void _handleCreateResignation() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Formulir Pengajuan Resign segera hadir.'),
-      ),
-    );
+    final result = await context.push(Routes.CREATE_RESIGNATION);
+    if (result == true && mounted) {
+      context.read<ResignationListBloc>().add(
+            const ResignationListMyStatusRequested(isRefresh: true),
+          );
+    }
   }
 
   void _handleViewDetail() {

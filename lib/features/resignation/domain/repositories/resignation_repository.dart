@@ -1,4 +1,6 @@
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
+import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
+import 'package:hris_flutter/features/resignation/data/models/submit_resignation_request_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 
 abstract class ResignationRepository {
@@ -19,4 +21,8 @@ abstract class ResignationRepository {
   Future<void> cancelMyResignation();
 
   Future<ResignationDetailModel> getResignationDetail(String id);
+
+  Future<ResignationInitialFormModel> getInitialFormData();
+
+  Future<void> submitResignation(SubmitResignationRequestModel request);
 }

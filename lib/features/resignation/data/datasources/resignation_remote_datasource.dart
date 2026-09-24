@@ -4,6 +4,9 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 
+import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
+import 'package:hris_flutter/features/resignation/data/models/submit_resignation_request_model.dart';
+
 abstract class ResignationRemoteDataSource {
   Future<MyResignationStatusModel> getMyResignationStatus();
 
@@ -22,6 +25,10 @@ abstract class ResignationRemoteDataSource {
   Future<void> cancelMyResignation();
 
   Future<ResignationDetailModel> getResignationDetail(String id);
+
+  Future<ResignationInitialFormModel> getInitialFormData();
+
+  Future<void> submitResignation(SubmitResignationRequestModel request);
 }
 
 class ResignationRemoteDataSourceImpl implements ResignationRemoteDataSource {
@@ -122,5 +129,36 @@ class ResignationRemoteDataSourceImpl implements ResignationRemoteDataSource {
     throw const ApiException(
       message: 'Gagal memuat detail pengajuan pengunduran diri.',
     );
+  }
+
+  @override
+  Future<ResignationInitialFormModel> getInitialFormData() async {
+    final response = await _apiClient.get(ApiEndpoints.resignationInitialForm);
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic>) {
+      final data = rawData['data'];
+      if (data is Map<String, dynamic>) {
+        return ResignationInitialFormModel.fromJson(data);
+      }
+    }
+    throw const ApiException(
+      message: 'Gagal memuat data formulir pengunduran diri.',
+    );
+  }
+
+  @override
+  Future<void> submitResignation(SubmitResignationRequestModel request) async {
+    final formData = await request.toFormData();
+    final response = await _apiClient.post(
+      ApiEndpoints.resignations,
+      data: formData,
+    );
+    final rawData = response.data;
+    if (rawData is Map<String, dynamic> && rawData['success'] == false) {
+      throw ApiException(
+        message: rawData['message']?.toString() ??
+            'Gagal mengirimkan pengajuan pengunduran diri.',
+      );
+    }
   }
 }

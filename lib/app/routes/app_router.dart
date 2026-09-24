@@ -49,6 +49,7 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/create_re
 import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_action_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_list_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
+import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 
 class AppRouter {
@@ -603,6 +604,13 @@ class AppRouter {
         path: Routes.RESIGNATION,
         name: Routes.RESIGNATION,
         builder: (context, state) => const ResignationScreen(),
+      ),
+
+      // 36. Formulir Pengunduran Diri (Create Resignation) Screen
+      GoRoute(
+        path: Routes.CREATE_RESIGNATION,
+        name: Routes.CREATE_RESIGNATION,
+        builder: (context, state) => const CreateResignationScreen(),
       ),
     ],
     redirect: (context, state) {

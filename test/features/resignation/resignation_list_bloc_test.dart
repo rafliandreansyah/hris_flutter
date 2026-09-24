@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
+import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
+import 'package:hris_flutter/features/resignation/data/models/submit_resignation_request_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 import 'package:hris_flutter/features/resignation/domain/repositories/resignation_repository.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_bloc.dart';
@@ -73,6 +75,26 @@ class _MockResignationRepository implements ResignationRepository {
       companyId: 'comp-1',
       employeeId: 'emp-1',
     );
+  }
+
+  @override
+  Future<ResignationInitialFormModel> getInitialFormData() async {
+    if (shouldThrowError) {
+      throw ApiException(message: errorMessage);
+    }
+    return const ResignationInitialFormModel(
+      companyPolicy: ResignationCompanyPolicyModel(defaultNoticePeriodDays: 30),
+      employee: ResignationFormEmployeeModel(id: 'emp-1', name: 'John'),
+      minSuggestedDate: '2026-10-31',
+      colleagues: [],
+    );
+  }
+
+  @override
+  Future<void> submitResignation(SubmitResignationRequestModel request) async {
+    if (shouldThrowError) {
+      throw ApiException(message: errorMessage);
+    }
   }
 }
 

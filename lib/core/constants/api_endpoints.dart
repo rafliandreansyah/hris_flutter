@@ -150,6 +150,7 @@ abstract class ApiEndpoints {
   // Resignation & Offboarding endpoints
   static const String resignations = '/resignations';
   static const String myResignationStatus = '/resignations/my-status';
+  static const String resignationInitialForm = '/resignations/initial-form';
   static const String subordinateResignations = '/resignations/subordinates';
   static String resignationDetail(String id) => '/resignations/$id';
   static String resignationClearance(String id) => '/resignations/$id/clearance';
