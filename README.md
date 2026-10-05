@@ -10,6 +10,7 @@ Dokumentasi lengkap project telah dipindahkan ke direktori [`docs/`](docs/):
 
 * **[Developer Onboarding Guide](docs/ONBOARDING.md)**: Setup environment lokal, menjalankan app, koneksi ke backend.
 * **[Architecture & Code Standards](docs/ARCHITECTURE.md)**: Struktur folder *Feature-First Clean Architecture*, alur pembuatan fitur baru, dan panduan coding.
+* **[Hak Akses, Menu & Permission](docs/AUTHORIZATION_AND_PERMISSIONS.md)**: Panduan integrasi otorisasi 2-lapisan, visibilitas menu Bento Grid, dan pengecekan permission aksi.
 
 ---
 

@@ -90,7 +90,9 @@
         - **Right Tab**: `l10n?.tabWarningIssued ?? 'Diterbitkan'` (Icon: `LucideIcons.clipboardList`).
     - **Localization Mandate**: Tab titles MUST always be localized using `AppLocalizations` (`l10n?.tab... ?? 'Default Indonesian'`) with graceful fallback to prevent null errors in unit/widget tests.
     - **Unified Pill-Style TabBar**: Always style `TabBar` using the modern pill container (`height: 48–52`, `padding: 4`, `borderRadius: 14–16`, background `AppColors.darkSurfaceContainer` / `#F1F5F9`, indicator card with soft drop shadow, label in `brandColor` bold, unselected in `subtitleCol`).
-
-
-
-
+17. **Menu Visibility & Functional Permission Standards (`GET /auth/menus` & `SecureStorageService`)**:
+    - **Dual-Layer Access Control**: Always separate **Menu Visibility** (screens available in Dashboard Bento Grid) and **Functional Permissions** (actions, approval buttons, edit capabilities).
+    - **Menu Visibility (`GET /auth/menus`)**: Dashboard Bento Grid (`QuickAccessGrid`) MUST dynamically filter items via `isMenuAvailable(item.code, item.title, state.menus)`. If a menu is disabled by company policy or individual revoke in the backend, it will not appear in the API and must be hidden cleanly without breaking the grid layout.
+    - **Functional Permissions (`SecureStorageService.hasPermission`)**: For actions requiring specific authority (e.g. `approval.leave.action`, `activity.manage`, `warning_letter.create`), always query `SecureStorageService.instance.hasPermissionInMemory(permissionCode)` or `hasPermission(...)`.
+    - **Context-Aware Approval Workflows**: On 2-tab approval screens, only enable approval/reject action dialogs if the user has the corresponding `approval.*.action` permission.
+    - **403 Forbidden Feedback**: If a mutation returns 403 Forbidden, display the backend's localized error message via `AppDialogUtil.showError(context, message: e.message)`.
