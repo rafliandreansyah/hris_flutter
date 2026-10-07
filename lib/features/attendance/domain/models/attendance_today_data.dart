@@ -68,6 +68,7 @@ class WorkLocationItem extends Equatable {
 
 /// Entity data absensi hari ini yang digunakan pada halaman Attendance & Check-In.
 class AttendanceTodayData extends Equatable {
+  final String? attendanceId;
   final String? inTime;
   final String? outTime;
   final String? breakOutTime;
@@ -98,6 +99,7 @@ class AttendanceTodayData extends Equatable {
   final bool hasSchedule;
 
   const AttendanceTodayData({
+    this.attendanceId,
     this.inTime,
     this.outTime,
     this.breakOutTime,
@@ -150,6 +152,7 @@ class AttendanceTodayData extends Equatable {
       attendanceMethod.toLowerCase().contains('selfie');
 
   AttendanceTodayData copyWith({
+    String? attendanceId,
     String? inTime,
     String? outTime,
     String? breakOutTime,
@@ -180,6 +183,7 @@ class AttendanceTodayData extends Equatable {
     bool? hasSchedule,
   }) {
     return AttendanceTodayData(
+      attendanceId: attendanceId ?? this.attendanceId,
       inTime: inTime ?? this.inTime,
       outTime: outTime ?? this.outTime,
       breakOutTime: breakOutTime ?? this.breakOutTime,
@@ -213,6 +217,7 @@ class AttendanceTodayData extends Equatable {
 
   @override
   List<Object?> get props => [
+        attendanceId,
         inTime,
         outTime,
         breakOutTime,

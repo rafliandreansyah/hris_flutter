@@ -8,6 +8,11 @@
 	<string>Aplikasi memerlukan izin lokasi untuk pencatatan aktivitas dan presensi kehadiran.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Aplikasi memerlukan izin lokasi untuk verifikasi radius kantor dan pelacakan aktivitas lapangan.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Aplikasi memerlukan akses kamera untuk mengambil foto profil, bukti kegiatan lapangan, dan verifikasi absensi.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
@@ -133,6 +134,9 @@ class ActivityDetailBloc
         file: event.file,
       );
 
+      // De-eskalasi otomatis kembali ke jam kerja presensi
+      LocationTrackingService.instance.fallbackToAttendanceTracking();
+
       // Muat ulang data terbaru setelah aksi berhasil
       ActivityItem updatedItem = state.activity.copyWith(
         status: ActivityStatus.completed,
@@ -180,6 +184,9 @@ class ActivityDetailBloc
         file: event.file,
       );
 
+      // De-eskalasi otomatis kembali ke jam kerja presensi
+      LocationTrackingService.instance.fallbackToAttendanceTracking();
+
       // Muat ulang data terbaru setelah aksi pembatalan berhasil
       ActivityItem updatedItem = state.activity.copyWith(
         status: ActivityStatus.canceled,
@@ -226,6 +233,12 @@ class ActivityDetailBloc
         longitude: event.longitude,
         locationAddress: event.locationAddress,
         file: event.file,
+      );
+
+      // Eskalasi ke pelacakan dinas lapangan (Prioritas 1: 1-3 menit)
+      LocationTrackingService.instance.elevateToActivityTracking(
+        activityId: event.id,
+        activityTitle: state.activity.title,
       );
 
       ActivityItem updatedItem = state.activity.copyWith(

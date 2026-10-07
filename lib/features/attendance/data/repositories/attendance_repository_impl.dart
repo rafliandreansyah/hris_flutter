@@ -201,6 +201,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     final attendanceMethod = rawAttendanceMethod ?? '';
 
     _cachedData = AttendanceTodayData(
+      attendanceId: todayAtt?['id']?.toString() ?? todayAtt?['attendanceId']?.toString(),
       inTime: inTimeStr,
       outTime: outTimeStr,
       breakOutTime: breakOut,

@@ -52,6 +52,9 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/reimburse
 import 'package:hris_flutter/features/asset/presentation/pages/asset_list_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
+import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_bloc.dart';
+import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_event.dart';
+import 'package:hris_flutter/features/tracking/presentation/pages/live_tracking_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -618,6 +621,16 @@ class AppRouter {
         path: Routes.CREATE_RESIGNATION,
         name: Routes.CREATE_RESIGNATION,
         builder: (context, state) => const CreateResignationScreen(),
+      ),
+
+      // 38. Live Tracking Dispatcher Screen
+      GoRoute(
+        path: Routes.LIVE_TRACKING,
+        name: Routes.LIVE_TRACKING,
+        builder: (context, state) => BlocProvider<LiveTrackingBloc>(
+          create: (_) => LiveTrackingBloc()..add(const LiveTrackingStarted()),
+          child: const LiveTrackingScreen(),
+        ),
       ),
     ],
     redirect: (context, state) {

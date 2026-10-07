@@ -277,6 +277,7 @@ Accept: application/json
       "altitude": 24.0,
       "batteryLevel": 85,
       "isMock": false,
+      "isGpsOff": false,
       "recordedAt": "2026-10-07T08:15:00.000Z"
     },
     {
@@ -288,6 +289,7 @@ Accept: application/json
       "altitude": 25.5,
       "batteryLevel": 84,
       "isMock": false,
+      "isGpsOff": false,
       "recordedAt": "2026-10-07T08:18:00.000Z"
     }
   ]
@@ -308,6 +310,7 @@ Accept: application/json
 | `locations[].altitude` | `double?` | Opsional | Ketinggian permukaan laut (meter). |
 | `locations[].batteryLevel` | `int?` | Opsional | Sisa daya baterai perangkat saat titik dicatat (0–100). |
 | `locations[].isMock` | `bool` | Opsional | Default `false`. Wajib diisi `true` jika terdeteksi Fake GPS / mock provider. |
+| `locations[].isGpsOff` | `bool` | Opsional | Default `false`. Diisi `true` jika karyawan mematikan sensor GPS/Location Services perangkat saat sesi aktif berjalan. |
 | `locations[].recordedAt` | `String` | Ya | Format ISO-8601 UTC timestamp saat titik dicatat oleh sensor perangkat. |
 
 #### Response Sukses (`201 Created`)
@@ -419,7 +422,8 @@ Accept: application/json
       "totalTracked": 12,
       "attendanceCount": 8,
       "activityCount": 4,
-      "onlineCount": 10
+      "onlineCount": 10,
+      "gpsOffCount": 1
     },
     "employees": [
       {
@@ -441,6 +445,7 @@ Accept: application/json
         "updatedAt": "2026-10-07T08:15:10.000Z",
         "isOnline": true,
         "minutesSinceLastPing": 2,
+        "isGpsOff": false,
         "session": {
           "type": "activity",
           "id": "act-uuid",
@@ -611,6 +616,7 @@ class TrackingLocationPoint {
   final double? altitude;
   final int? batteryLevel;
   final bool isMock;
+  final bool isGpsOff;
   final DateTime recordedAt;
 
   TrackingLocationPoint({
@@ -622,6 +628,7 @@ class TrackingLocationPoint {
     this.altitude,
     this.batteryLevel,
     this.isMock = false,
+    this.isGpsOff = false,
     required this.recordedAt,
   });
 
@@ -634,6 +641,7 @@ class TrackingLocationPoint {
     if (altitude != null) 'altitude': altitude,
     if (batteryLevel != null) 'batteryLevel': batteryLevel,
     'isMock': isMock,
+    'isGpsOff': isGpsOff,
     'recordedAt': recordedAt.toUtc().toIso8601String(),
   };
 }

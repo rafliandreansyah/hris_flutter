@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
@@ -172,6 +173,15 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           isGpsAcquired: isGpsAcquired,
         ),
       );
+
+      // Pulihkan pelacakan jika karyawan sedang dalam jam kerja aktif
+      if (data.isClockedIn && !data.isClockedOut && data.attendanceId != null) {
+        if (LocationTrackingService.instance.state == TrackingState.idle) {
+          LocationTrackingService.instance.startAttendanceTracking(
+            attendanceId: data.attendanceId!,
+          );
+        }
+      }
     } on ApiException catch (e) {
       emit(AttendanceFailure(e.message, statusCode: e.statusCode));
     } catch (e) {
@@ -503,6 +513,13 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           locationName: officeName,
         );
 
+        final attId = updatedData.attendanceId;
+        if (attId != null && attId.isNotEmpty) {
+          LocationTrackingService.instance.startAttendanceTracking(
+            attendanceId: attId,
+          );
+        }
+
         emit(
           _buildLoadedWithActiveLocation(
             current: current.copyWith(
@@ -566,6 +583,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           workLocationId: event.workLocationId,
           photoFile: event.photoFile,
         );
+
+        // Hentikan pelacakan saat Clock-Out berhasil
+        LocationTrackingService.instance.stopAllTracking();
 
         final activeLoc = current.data.selectedWorkLocation ?? updatedData.selectedWorkLocation;
         final officeName = (activeLoc != null && activeLoc.name.isNotEmpty)

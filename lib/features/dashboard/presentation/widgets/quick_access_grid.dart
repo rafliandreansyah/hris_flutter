@@ -75,7 +75,11 @@ class QuickAccessGrid extends StatelessWidget {
       code: 'mobile_resignation',
       title: 'Resign',
       icon: LucideIcons.doorOpen,
-
+    ),
+    (
+      code: 'mobile_live_tracking',
+      title: 'Live Tracking',
+      icon: LucideIcons.radar,
     ),
   ];
 
@@ -194,6 +198,15 @@ class QuickAccessGrid extends StatelessWidget {
         return true;
       }
 
+      if (targetCode == 'mobile_live_tracking' &&
+          (mCode == 'mobile_live_tracking' ||
+              mCode == 'report_live_tracking' ||
+              mCode == 'live_tracking' ||
+              mName.contains('tracking') ||
+              mName.contains('pelacakan'))) {
+        return true;
+      }
+
       return false;
     });
   }
@@ -224,6 +237,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.ASSETS);
     } else if (c == 'mobile_resignation') {
       context.push(Routes.RESIGNATION);
+    } else if (c == 'mobile_live_tracking') {
+      context.push(Routes.LIVE_TRACKING);
     } else {
       ScaffoldMessenger.of(
         context,

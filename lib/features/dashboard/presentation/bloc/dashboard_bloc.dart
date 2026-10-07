@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/utils/device_info_util.dart';
 import 'package:hris_flutter/features/auth/data/models/user_profile_response_model.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
@@ -111,6 +112,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           userProfile: userProfile,
         ),
       );
+
+      // Sinkronisasi status pelacakan latar belakang dengan sesi aktif di server
+      unawaited(LocationTrackingService.instance.syncWithServerConfig());
     } on ApiException catch (e) {
       emit(DashboardError(message: e.message, statusCode: e.statusCode));
     } catch (e) {

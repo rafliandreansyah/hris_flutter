@@ -2,6 +2,9 @@
     <!-- Lokasi untuk GPS Presensi & Aktivitas Lapangan -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- Kamera untuk Selfie Absensi, Foto Profil & Bukti Lapangan -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -63,6 +66,12 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAxluVQ5yX2bwyqDMxXRP066Q5xgxk83vQ"/>
+
+        <!-- Foreground Service Geolocator untuk Pelacakan Lokasi Latar Belakang -->
+        <service
+            android:name="com.baseflow.geolocator.GeolocatorLocationService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
