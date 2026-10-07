@@ -88,6 +88,12 @@ class SecureStorageService {
 
   static final Set<String> _memoryPermissions = <String>{};
 
+  /// Mengatur cache izin di memori secara langsung (berguna untuk pengujian atau inisialisasi cepat)
+  void setPermissionsInMemory(List<String> permissions) {
+    _memoryPermissions.clear();
+    _memoryPermissions.addAll(permissions);
+  }
+
   /// Menyimpan daftar kode izin (permissions) pengguna
   Future<void> saveUserPermissions(List<String> permissions) async {
     _memoryPermissions.clear();

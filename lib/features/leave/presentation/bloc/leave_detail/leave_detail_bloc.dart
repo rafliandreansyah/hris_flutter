@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/leave/data/repositories/leave_repository_impl.dart';
 import 'package:hris_flutter/features/leave/domain/repositories/leave_repository.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_detail/leave_detail_event.dart';
@@ -7,9 +9,13 @@ import 'package:hris_flutter/features/leave/presentation/bloc/leave_detail/leave
 
 class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
   final LeaveRepository _repository;
+  final SecureStorageService _storageService;
 
-  LeaveDetailBloc({LeaveRepository? repository})
-      : _repository = repository ?? LeaveRepositoryImpl(),
+  LeaveDetailBloc({
+    LeaveRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? LeaveRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const LeaveDetailState()) {
     on<LeaveDetailStarted>(_onStarted);
     on<LeaveDetailRefreshRequested>(_onRefreshRequested);
@@ -21,10 +27,13 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
     LeaveDetailStarted event,
     Emitter<LeaveDetailState> emit,
   ) async {
+    final canApprove = _storageService.hasPermissionInMemory(AppPermissions.approvalLeaveAction);
+
     emit(state.copyWith(
       status: LeaveDetailStatus.loading,
       id: event.id,
       isApprover: event.isApprover,
+      canApproveAction: canApprove,
       errorMessage: null,
       statusCode: null,
     ));

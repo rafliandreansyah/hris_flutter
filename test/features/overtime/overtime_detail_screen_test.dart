@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_det
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_detail_overview_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class _FakeOvertimeRepository implements OvertimeRepository {
   final OvertimeDetailData detail;
@@ -103,12 +105,16 @@ void main() {
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.physicalSize = const Size(800, 1800);
       binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+      SecureStorageService.instance.setPermissionsInMemory([
+        AppPermissions.approvalOvertimeAction,
+      ]);
     });
 
     tearDown(() {
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.resetPhysicalSize();
       binding.platformDispatcher.views.first.resetDevicePixelRatio();
+      SecureStorageService.instance.setPermissionsInMemory([]);
     });
 
     testWidgets(
@@ -284,6 +290,30 @@ void main() {
 
         expect(find.byType(OvertimeDetailEvidenceCard), findsOneWidget);
         expect(find.text('Tidak ada foto bukti dilampirkan.'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Hides Reject and Approve Overtime buttons when isApprover: true but missing approval.overtime.action permission',
+      (tester) async {
+        SecureStorageService.instance.setPermissionsInMemory([]);
+        final repo = _FakeOvertimeRepository(baseDetail);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: OvertimeDetailScreen(
+              id: 'ot-abc-1234',
+              isApprover: true,
+              repository: repo,
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(find.text('Reject'), findsNothing);
+        expect(find.text('Approve Overtime'), findsNothing);
       },
     );
   });

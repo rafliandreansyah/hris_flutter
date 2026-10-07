@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
@@ -246,7 +248,9 @@ class SubordinateResignationCard extends StatelessWidget {
           // Action Buttons
           Row(
             children: [
-              if (isPending) ...[
+              if (isPending &&
+                  SecureStorageService.instance.hasPermissionInMemory(
+                      AppPermissions.approvalResignationManager)) ...[
                 Expanded(
                   child: AppButton(
                     text: 'Review 1-on-1',

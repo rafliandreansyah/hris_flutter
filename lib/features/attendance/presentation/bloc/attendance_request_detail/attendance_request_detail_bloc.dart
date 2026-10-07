@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_request_repository_impl.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_detail/attendance_request_detail_event.dart';
@@ -8,9 +10,13 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_re
 class AttendanceRequestDetailBloc
     extends Bloc<AttendanceRequestDetailEvent, AttendanceRequestDetailState> {
   final AttendanceRequestRepository _repository;
+  final SecureStorageService _storageService;
 
-  AttendanceRequestDetailBloc({AttendanceRequestRepository? repository})
-      : _repository = repository ?? AttendanceRequestRepositoryImpl(),
+  AttendanceRequestDetailBloc({
+    AttendanceRequestRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? AttendanceRequestRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const AttendanceRequestDetailState()) {
     on<AttendanceRequestDetailStarted>(_onStarted);
     on<AttendanceRequestDetailRefreshRequested>(_onRefreshRequested);
@@ -22,10 +28,13 @@ class AttendanceRequestDetailBloc
     AttendanceRequestDetailStarted event,
     Emitter<AttendanceRequestDetailState> emit,
   ) async {
+    final canApprove = _storageService.hasPermissionInMemory(AppPermissions.approvalAttendanceAction);
+
     emit(state.copyWith(
       status: AttendanceRequestDetailStatus.loading,
       id: event.id,
       isApprover: event.isApprover,
+      canApproveAction: canApprove,
       errorMessage: null,
       statusCode: null,
     ));

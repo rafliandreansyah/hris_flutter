@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/warning_letter/data/repositories/warning_letter_repository_impl.dart';
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
@@ -10,11 +12,15 @@ import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_l
 class WarningLetterListBloc
     extends Bloc<WarningLetterListEvent, WarningLetterListState> {
   final WarningLetterRepository _repository;
+  final SecureStorageService _storageService;
 
   static const int defaultPageSize = 10;
 
-  WarningLetterListBloc({WarningLetterRepository? repository})
-      : _repository = repository ?? WarningLetterRepositoryImpl(),
+  WarningLetterListBloc({
+    WarningLetterRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? WarningLetterRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const WarningLetterListState()) {
     on<WarningLetterListStarted>(_onStarted);
     on<WarningLetterListTabChanged>(_onTabChanged);
@@ -22,16 +28,27 @@ class WarningLetterListBloc
     on<WarningLetterListFilterApplied>(_onFilterApplied);
     on<WarningLetterListFetchRequested>(_onFetchRequested);
     on<WarningLetterListLoadMoreRequested>(_onLoadMoreRequested);
+    on<WarningLetterListPermissionLoaded>(_onPermissionLoaded);
+  }
+
+  void _onPermissionLoaded(
+    WarningLetterListPermissionLoaded event,
+    Emitter<WarningLetterListState> emit,
+  ) {
+    emit(state.copyWith(hasCreatePermission: event.hasCreatePermission));
   }
 
   Future<void> _onStarted(
     WarningLetterListStarted event,
     Emitter<WarningLetterListState> emit,
   ) async {
+    final canCreate = _storageService.hasPermissionInMemory(AppPermissions.warningLetterCreate);
+
     emit(state.copyWith(
       isMyLoading: true,
       isTeamLoading: true,
       isTeamForbidden: false,
+      hasCreatePermission: canCreate,
       clearMyError: true,
       clearTeamError: true,
       isLetterTypesLoading: true,

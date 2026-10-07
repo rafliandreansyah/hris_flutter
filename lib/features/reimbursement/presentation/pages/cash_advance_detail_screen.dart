@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
@@ -193,8 +195,10 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
 
             final status = detail.status.toLowerCase();
 
-            // 1. Status Requested: Tombol Approval
-            if (status == 'requested') {
+            // 1. Status Requested: Tombol Approval jika memiliki wewenang
+            final hasApprovePermission = SecureStorageService.instance
+                .hasPermissionInMemory(AppPermissions.approvalReimbursementManager);
+            if (status == 'requested' && hasApprovePermission) {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
@@ -192,8 +194,13 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
 
         // Tampilkan bottom bar aksi HANYA jika:
         // 1. User membuka dalam konteks approver (state.isApprover == true)
-        // 2. Pengajuan masih berstatus pending/requested
+        // 2. User memiliki wewenang persetujuan cuti (approval.leave.action)
+        // 3. Pengajuan masih berstatus pending/requested
+        final hasApprovalPermission = SecureStorageService.instance
+                .hasPermissionInMemory(AppPermissions.approvalLeaveAction) ||
+            state.canApproveAction;
         final canApproveReject = state.isApprover &&
+            hasApprovalPermission &&
             detail != null &&
             detail.isPending;
 

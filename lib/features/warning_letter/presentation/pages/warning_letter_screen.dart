@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_bloc.dart';
@@ -270,8 +272,11 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
           // Progress: 0.0 di tab 0, 1.0 di tab 1
           final progress = animVal.clamp(0.0, 1.0);
 
-          // Jika Tab 1 mengalami error 403 Forbidden atau progress kecil, sembunyikan FAB
-          if (state.isTeamForbidden || progress <= 0.05) {
+          // Sembunyikan FAB jika tidak punya permission, Tab 1 mengalami error 403, atau progress kecil
+          final canCreate = SecureStorageService.instance
+                  .hasPermissionInMemory(AppPermissions.warningLetterCreate) ||
+              state.hasCreatePermission;
+          if (!canCreate || state.isTeamForbidden || progress <= 0.05) {
             return const SizedBox.shrink();
           }
 

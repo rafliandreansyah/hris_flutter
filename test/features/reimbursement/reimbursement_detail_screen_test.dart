@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/reimbursement_detail_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
@@ -51,8 +53,16 @@ void main() {
     binding.platformDispatcher.views.first.physicalSize = const Size(1080, 2400);
     binding.platformDispatcher.views.first.devicePixelRatio = 2.0;
 
+    SecureStorageService.instance.setPermissionsInMemory([
+      AppPermissions.approvalReimbursementManager,
+    ]);
+
     repository = MockReimbursementRepository();
     repository.mockReimbursementDetail = sampleDetail;
+  });
+
+  tearDown(() {
+    SecureStorageService.instance.setPermissionsInMemory([]);
   });
 
   Widget buildTestWidget({String id = 'clm-001'}) {
@@ -98,6 +108,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Cairkan Dana'), findsOneWidget);
+    });
+
+    testWidgets('hides Setujui and Tolak buttons when user lacks approval permission', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
   });
 }

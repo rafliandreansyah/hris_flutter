@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
@@ -194,8 +196,13 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
 
         // Tampilkan bottom bar aksi HANYA jika:
         // 1. User membuka sebagai approver (state.isApprover == true)
-        // 2. Status masih requested (belum approved/rejected)
+        // 2. User memiliki wewenang persetujuan lembur (approval.overtime.action)
+        // 3. Status masih requested (belum approved/rejected)
+        final hasApprovalPermission = SecureStorageService.instance
+                .hasPermissionInMemory(AppPermissions.approvalOvertimeAction) ||
+            state.canApproveAction;
         final canApproveReject = state.isApprover &&
+            hasApprovalPermission &&
             detail != null &&
             detail.isRequested;
 

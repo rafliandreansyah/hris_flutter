@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/cash_advance_detail_model.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/cash_advance_detail_screen.dart';
@@ -34,8 +36,16 @@ void main() {
     binding.platformDispatcher.views.first.physicalSize = const Size(1080, 2400);
     binding.platformDispatcher.views.first.devicePixelRatio = 2.0;
 
+    SecureStorageService.instance.setPermissionsInMemory([
+      AppPermissions.approvalReimbursementManager,
+    ]);
+
     repository = MockReimbursementRepository();
     repository.mockCashAdvanceDetail = sampleDetail;
+  });
+
+  tearDown(() {
+    SecureStorageService.instance.setPermissionsInMemory([]);
   });
 
   Widget buildTestWidget({String id = 'adv-001'}) {
@@ -81,6 +91,31 @@ void main() {
 
       expect(find.text('Setujui'), findsOneWidget);
       expect(find.text('Tolak'), findsOneWidget);
+    });
+
+    testWidgets('hides Setujui and Tolak buttons when user lacks approval permission', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+
+      repository.mockCashAdvanceDetail = const CashAdvanceDetailModel(
+        id: 'adv-002',
+        advanceNumber: 'ADV-2026-0002',
+        title: 'Kasbon Baru',
+        purpose: 'Operasional',
+        requestedAmount: 1000000.0,
+        status: 'requested',
+        createdAt: '2026-09-22T08:00:00.000Z',
+        employee: ExpenseEmployeeModel(
+          id: 'emp-2',
+          firstName: 'Budi',
+          email: 'budi@example.com',
+        ),
+      );
+
+      await tester.pumpWidget(buildTestWidget(id: 'adv-002'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Setujui'), findsNothing);
+      expect(find.text('Tolak'), findsNothing);
     });
   });
 }

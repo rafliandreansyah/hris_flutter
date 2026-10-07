@@ -16,6 +16,7 @@ class OvertimeDetailState extends Equatable {
   final OvertimeDetailStatus status;
   final String id;
   final bool isApprover;
+  final bool canApproveAction;
   final OvertimeDetailData? detail;
   final String? actionMessage;
   final String? errorMessage;
@@ -25,6 +26,7 @@ class OvertimeDetailState extends Equatable {
     this.status = OvertimeDetailStatus.initial,
     this.id = '',
     this.isApprover = false,
+    this.canApproveAction = false,
     this.detail,
     this.actionMessage,
     this.errorMessage,
@@ -35,6 +37,7 @@ class OvertimeDetailState extends Equatable {
     OvertimeDetailStatus? status,
     String? id,
     bool? isApprover,
+    bool? canApproveAction,
     OvertimeDetailData? detail,
     String? actionMessage,
     String? errorMessage,
@@ -44,6 +47,7 @@ class OvertimeDetailState extends Equatable {
       status: status ?? this.status,
       id: id ?? this.id,
       isApprover: isApprover ?? this.isApprover,
+      canApproveAction: canApproveAction ?? this.canApproveAction,
       detail: detail ?? this.detail,
       actionMessage: actionMessage,
       errorMessage: errorMessage,
@@ -56,6 +60,7 @@ class OvertimeDetailState extends Equatable {
         status,
         id,
         isApprover,
+        canApproveAction,
         detail,
         actionMessage,
         errorMessage,

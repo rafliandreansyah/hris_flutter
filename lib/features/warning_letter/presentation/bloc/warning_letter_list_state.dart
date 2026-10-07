@@ -29,6 +29,7 @@ class WarningLetterListState extends Equatable {
   final WarningLetterFilterCriteria filterCriteria;
   final List<WarningLetterTypeModel> letterTypes;
   final bool isLetterTypesLoading;
+  final bool hasCreatePermission;
 
   const WarningLetterListState({
     this.myLetters = const [],
@@ -51,6 +52,7 @@ class WarningLetterListState extends Equatable {
     this.filterCriteria = const WarningLetterFilterCriteria(),
     this.letterTypes = const [],
     this.isLetterTypesLoading = false,
+    this.hasCreatePermission = false,
   });
 
   bool get hasMyNextPage => myCurrentPage < myTotalPages;
@@ -79,6 +81,7 @@ class WarningLetterListState extends Equatable {
     WarningLetterFilterCriteria? filterCriteria,
     List<WarningLetterTypeModel>? letterTypes,
     bool? isLetterTypesLoading,
+    bool? hasCreatePermission,
   }) {
     return WarningLetterListState(
       myLetters: myLetters ?? this.myLetters,
@@ -101,6 +104,7 @@ class WarningLetterListState extends Equatable {
       filterCriteria: filterCriteria ?? this.filterCriteria,
       letterTypes: letterTypes ?? this.letterTypes,
       isLetterTypesLoading: isLetterTypesLoading ?? this.isLetterTypesLoading,
+      hasCreatePermission: hasCreatePermission ?? this.hasCreatePermission,
     );
   }
 
@@ -126,5 +130,6 @@ class WarningLetterListState extends Equatable {
         filterCriteria,
         letterTypes,
         isLetterTypesLoading,
+        hasCreatePermission,
       ];
 }

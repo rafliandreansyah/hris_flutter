@@ -66,3 +66,13 @@ class WarningLetterListLoadMoreRequested extends WarningLetterListEvent {
   @override
   List<Object?> get props => [isTeam];
 }
+
+/// Event saat permission pembuatan SP selesai dimuat.
+class WarningLetterListPermissionLoaded extends WarningLetterListEvent {
+  final bool hasCreatePermission;
+
+  const WarningLetterListPermissionLoaded(this.hasCreatePermission);
+
+  @override
+  List<Object?> get props => [hasCreatePermission];
+}

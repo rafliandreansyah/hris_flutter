@@ -9,6 +9,8 @@ import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_
 import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_type_model.dart';
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/pages/warning_letter_screen.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class _MockWarningLetterRepo implements WarningLetterRepository {
@@ -131,6 +133,16 @@ void main() {
   }
 
   group('WarningLetterScreen Widget Tests', () {
+    setUp(() {
+      SecureStorageService.instance.setPermissionsInMemory([
+        AppPermissions.warningLetterCreate,
+      ]);
+    });
+
+    tearDown(() {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+    });
+
     testWidgets(
         'renders Tab 0 (Surat Diterima) with items, no FAB and no search bar',
         (tester) async {
@@ -217,6 +229,23 @@ void main() {
       expect(find.text('Status Surat Peringatan'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
       expect(find.text('Batal'), findsOneWidget);
+    });
+
+    testWidgets('Tab 1 hides FAB when user lacks warning_letter.create permission',
+        (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+
+      await tester.pumpWidget(createWidgetUnderTest(simulateForbiddenOnTeam: false));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Tap Tab 1: "Diterbitkan"
+      await tester.tap(find.text('Diterbitkan'));
+      await tester.pumpAndSettle();
+
+      // FAB must be hidden!
+      expect(find.byKey(const ValueKey('add_warning_letter_fab')), findsNothing);
+      expect(find.text('Buat Surat Peringatan'), findsNothing);
     });
   });
 }

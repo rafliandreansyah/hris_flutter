@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_create_models.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_api_models.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
@@ -91,6 +93,16 @@ void main() {
       ),
       filePath: null,
     );
+
+    setUp(() {
+      SecureStorageService.instance.setPermissionsInMemory([
+        AppPermissions.approvalLeaveAction,
+      ]);
+    });
+
+    tearDown(() {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+    });
 
     testWidgets(
       'Displays Overview, Employee, and Approver when approver is present',
@@ -237,6 +249,30 @@ void main() {
 
         expect(find.byType(LeaveDetailDocumentCard), findsNothing);
         expect(find.text('SUPPORTING DOCUMENT'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'Hides Reject and Approve buttons when isApprover: true but missing approval.leave.action permission',
+      (tester) async {
+        SecureStorageService.instance.setPermissionsInMemory([]);
+        final repo = _FakeLeaveRepository(baseDetail);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: LeaveDetailScreen(
+              id: 'leave-abc-123',
+              isApprover: true,
+              repository: repo,
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(find.text('Reject'), findsNothing);
+        expect(find.text('Approve'), findsNothing);
       },
     );
   });

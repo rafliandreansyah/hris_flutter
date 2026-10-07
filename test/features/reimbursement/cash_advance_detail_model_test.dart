@@ -46,6 +46,7 @@ void main() {
     });
 
     test('CashAdvanceDetailModel calculates progress and remaining amounts correctly', () {
+      final futureDeadline = DateTime.now().add(const Duration(days: 30));
       final json = {
         'id': 'adv-1',
         'advanceNumber': 'ADV-2026-0001',
@@ -56,7 +57,7 @@ void main() {
         'status': 'disbursed',
         'disbursementMethod': 'manual_transfer',
         'disbursedAt': '2026-09-15T08:00:00.000Z',
-        'settlementDeadline': '2026-09-30T23:59:59.000Z',
+        'settlementDeadline': futureDeadline.toIso8601String(),
         'createdAt': '2026-09-14T08:00:00.000Z',
         'employee': {
           'id': 'emp-1',
@@ -94,7 +95,7 @@ void main() {
       // Progress = (1,500,000 + 250,000) / 2,000,000 = 1,750,000 / 2,000,000 = 0.875
       expect(detail.settlementProgress, 0.875);
       expect(detail.deadlineDateTime, isNotNull);
-      expect(detail.deadlineDateTime!.year, 2026);
+      expect(detail.deadlineDateTime!.year, futureDeadline.year);
       expect(detail.isOverdue, isFalse);
     });
 

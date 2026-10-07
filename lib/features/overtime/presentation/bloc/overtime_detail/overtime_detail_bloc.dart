@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/overtime/data/repositories/overtime_repository_impl.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_detail/overtime_detail_event.dart';
@@ -7,9 +9,13 @@ import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_detail
 
 class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> {
   final OvertimeRepository _repository;
+  final SecureStorageService _storageService;
 
-  OvertimeDetailBloc({OvertimeRepository? repository})
-      : _repository = repository ?? OvertimeRepositoryImpl(),
+  OvertimeDetailBloc({
+    OvertimeRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? OvertimeRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const OvertimeDetailState()) {
     on<OvertimeDetailStarted>(_onStarted);
     on<OvertimeDetailRefreshRequested>(_onRefreshRequested);
@@ -21,10 +27,13 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
     OvertimeDetailStarted event,
     Emitter<OvertimeDetailState> emit,
   ) async {
+    final canApprove = _storageService.hasPermissionInMemory(AppPermissions.approvalOvertimeAction);
+
     emit(state.copyWith(
       status: OvertimeDetailStatus.loading,
       id: event.id,
       isApprover: event.isApprover,
+      canApproveAction: canApprove,
       errorMessage: null,
       statusCode: null,
     ));

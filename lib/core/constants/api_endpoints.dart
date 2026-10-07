@@ -169,5 +169,13 @@ abstract class ApiEndpoints {
   static const String subordinateResignations = '/resignations/subordinates';
   static String resignationDetail(String id) => '/resignations/$id';
   static String resignationClearance(String id) => '/resignations/$id/clearance';
+
+  // ==========================================
+  // --- 📍 LOCATION TRACKING ENDPOINTS ---
+  // ==========================================
+  static const String trackingConfig = '/tracking/config';
+  static const String trackingBatch = '/tracking/batch';
+  static const String trackingLogs = '/tracking/logs';
+  static const String trackingLive = '/tracking/live';
 }
 
