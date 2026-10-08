@@ -87,6 +87,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_gen_runner:
   build_runner: ^2.15.1
+  patrol: ^4.10.0
 
 dependency_overrides:
   material_ui: 1.2.0
@@ -141,3 +142,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+patrol:
+  app_name: "Oasish HRIS"
+  android:
+    package_name: "com.example.hris_flutter"
+  ios:
+    bundle_id: "com.example.hris_flutter"
