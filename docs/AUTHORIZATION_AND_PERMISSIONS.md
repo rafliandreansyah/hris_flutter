@@ -148,3 +148,48 @@ Jika pengguna entah bagaimana memicu pemanggilan API mutasi tanpa izin, backend 
    );
    ```
 4. **Dilarang** melakukan *hardcode* pesan error statis, karena backend mengonfigurasi bahasa respons sesuai profil karyawan.
+
+---
+
+## 7. Strategi & Blueprint Pengujian Hak Akses & Autentikasi (Unit s/d E2E)
+
+Untuk memastikan mekanisme *Two-Layer Access Control* dan autentikasi berjalan tanpa celah keamanan (*zero regression*), modul ini harus diuji pada seluruh tingkatan piramida pengujian:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│       PIRAMIDA PENGUJIAN HAK AKSES & OTORISASI (FULL PYRAMID)          │
+├───────────────────┬────────────────────────────────────────────────────┤
+│ 1. Unit Test      │ • Ekstraksi payload JWT (employeeId / id / sub)    │
+│    (Model & Repo) │ • Penyimpanan permission & bahasa ke SecureStorage │
+│                   │ • Cache in-memory: SecureStorageService.hasPerm... │
+├───────────────────┼────────────────────────────────────────────────────┤
+│ 2. BLoC Test      │ • Verifikasi emisi canApprove: true/false          │
+│                   │ • Penanganan error 403 Forbidden -> Failure state  │
+├───────────────────┼────────────────────────────────────────────────────┤
+│ 3. Widget UI Test │ • QuickAccessGrid hanya merender menu berizin      │
+│                   │ • Tombol aksi / FAB disembunyikan jika tanpa izin │
+│                   │ • Popup AppDialogUtil.showError saat aksi ditolak  │
+├───────────────────┼────────────────────────────────────────────────────┤
+│ 4. E2E Test       │ • Login Bawahan (user@gmail.com): cek menu terbatas│
+│    (Patrol E2E)   │ • Login Atasan (admin@gmail.com): akses penuh tim  │
+└───────────────────┴────────────────────────────────────────────────────┘
+```
+
+### A. Layer 1: Unit Test (JWT & In-Memory Storage)
+- **JWT Payload Decoding**: Menguji `AuthRepositoryImpl._extractEmployeeIdFromJwt` dengan berbagai format JWT valid (base64 URL-safe, padding 2, padding 3) dan JWT malformed tanpa crash.
+- **Permission Storage**: Menguji `SecureStorageService.instance.saveUserPermissions(list)` dan verifikasi method sinkron `hasPermissionInMemory('code')` serta asinkron `hasPermission('code')`.
+
+### B. Layer 2: BLoC Test (Permission Gating & 403 Error Handling)
+- **Permission Flagging**: Menguji BLoC modul (misal `LeaveDetailBloc`, `WarningLetterBloc`) yang membaca permission dari storage dan meng-emit state `canApprove: true` atau `canApprove: false`.
+- **403 Forbidden Propagation**: Menguji ketika aksi mutasi mengembalikan `ApiException(statusCode: 403, message: 'Forbidden...')`, BLoC memancarkan failure state dengan pesan error asli dari API.
+
+### C. Layer 3: Widget UI Test (Conditional Rendering & Feedback)
+- **Bento Grid Menu Gating**: Menyuplai daftar `menus` parsial pada `QuickAccessGrid` dan memverifikasi hanya icon yang berizin yang muncul di viewport.
+- **FAB & Action Button Protection**: Memverifikasi bahwa tombol mutasi (misal "Terbitkan SP", tombol "Setujui", tombol "Tolak") tidak dirender ke widget tree jika permission pengguna tidak ada.
+- **Dialog Feedback**: Memverifikasi pemanggilan `AppDialogUtil.showError` menampilkan title "Akses Ditolak" dan pesan error dari backend.
+
+### D. Layer 4: End-to-End (E2E) Patrol Instrumentation Test
+- **Pengujian 2 Peran Nyata**:
+  1. Login menggunakan akun Bawahan (`user@gmail.com`): Memastikan menu manajerial (Persetujuan Tim, Terbitkan SP) tidak dapat diakses.
+  2. Logout dan Login menggunakan akun Atasan (`admin@gmail.com`): Memastikan tab Persetujuan Tim muncul dan tombol persetujuan aktif.
+

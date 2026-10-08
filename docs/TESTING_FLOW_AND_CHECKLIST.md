@@ -47,7 +47,80 @@ Framework `integration_test` bawaan Flutter hanya dapat mengontrol elemen di dal
 
 ---
 
-## 2. Kredensial & Peran Pengujian (Test Accounts)
+## 2. Arsitektur Piramida Pengujian & Analisis Cakupan Project (Unit s/d E2E)
+
+Untuk menjamin keandalan sistem HRIS berstandar industri dengan beban transaksi tinggi (presensi GPS, mutasi approval, upload bukti), pengujian dibagi menjadi **6 tingkatan piramida pengujian terstruktur**:
+
+```mermaid
+graph TD
+    L6[Layer 6: End-to-End E2E Patrol Instrumentation<br/>Hardware OS: Kamera, GPS, Notifikasi, Skenario Nyata 2 Peran]
+    L5[Layer 5: Widget & UI Interaction Tests<br/>Form Validation, Red Asterisk, Shimmer, ProDialog, Keyboard Unfocus]
+    L4[Layer 4: BLoC State Management Tests<br/>Event-to-State, Transformers, Error Propagation ApiException]
+    L3[Layer 3: Repository & Business Logic Tests<br/>JWT Payload Decoding, Token Sync, In-Memory Permission Cache]
+    L2[Layer 2: Datasource & RPC Tests<br/>Local Secure Storage, Remote ApiClient Endpoints, HTTP Status]
+    L1[Layer 1: Data Model & Serialization Tests<br/>fromJson, toJson, Fallback Defaults, Business Calculations]
+
+    L6 --> L5
+    L5 --> L4
+    L4 --> L3
+    L3 --> L2
+    L2 --> L1
+```
+
+### Rincian 6 Lapisan Pengujian:
+
+1. **Layer 1: Data Model & Serialization Tests** (`test/**/models/`):
+   - Validasi integritas deserialisasi `fromJson` dan serialisasi `toJson`.
+   - Pengujian *fallback defaults* untuk field nullable/kosong.
+   - Perhitungan bisnis dalam model (kalkulasi durasi lembur, selisih hari cuti, formula payroll).
+2. **Layer 2: Datasource & API RPC Tests** (`test/**/datasources/`):
+   - *Local Datasource*: Penyimpanan enkripsi iOS Keychain & Android EncryptedSharedPreferences via `SecureStorageService`.
+   - *Remote Datasource*: Pemanggilan HTTP endpoint via `ApiClient` (parameter query, body JSON, header authorization, dan deserialisasi `ApiResponse<T>`).
+3. **Layer 3: Repository & Business Logic Tests** (`test/**/repositories/`):
+   - Penguraian token JWT (ekstraksi `employeeId`/`sub` dengan berbagai format base64 padding).
+   - Sinkronisasi token ke memori `ApiClient.setAuthToken`.
+   - Caching izin fungsional (`saveUserPermissions`) dan preferensi bahasa (`saveUserLanguage`).
+   - Pemetaan error dari response gagal menjadi `ApiException(message, statusCode)`.
+4. **Layer 4: BLoC State Management Tests** (`test/**/bloc/`):
+   - Alur transisi state: `Initial -> Loading -> Success / Failure`.
+   - Event transformer (debounce pencarian pegawai, droppable tombol submit).
+   - Penanganan error API: ekstraksi pesan error asli tanpa teks statis (*zero hardcoded errors*).
+5. **Layer 5: Component & Widget UI Tests** (`test/**/presentation/` atau `test/**/widgets/` & `screens/`):
+   - Validasi input form: field kosong, format regex email, minimal karakter, tanggal terbalik, dan tanda bintang merah (`*`).
+   - Kepatuhan widget global: `AppButton(isLoading: true)`, `AppTextField(onTapOutside: ...)`, `EmployeeInfoRow`.
+   - Loading placeholder: `Shimmer` card skeleton, `CircularProgressIndicator(strokeWidth: 2.5)`.
+   - Dialog & pop-up: verifikasi dialog `AppDialogUtil.showError` / `showSuccess` berbasis `pro_dialog`.
+   - Hak akses dinamis: icon Bento Grid tersembunyi jika tidak diizinkan di `menus`, FAB mutasi tersembunyi jika tanpa permission.
+6. **Layer 6: End-to-End (E2E) Patrol Instrumentation Tests** (`integration_test/`):
+   - Interaksi perangkat keras asli (Kamera selfie, GPS geofencing, Galeri, notifikasi Android 13+).
+   - Simulasi alur lengkap 2 peran: Bawahan mengajukan -> Logout -> Atasan mereview & aksi (Approve/Reject) -> Bawahan cek hasil status.
+
+---
+
+### Matriks Analisis Cakupan Pengujian 16 Modul Aplikasi HRIS
+
+| Modul & Fitur | Layer 1: Models | Layer 2: Datasource | Layer 3: Repo | Layer 4: BLoC | Layer 5: Widget UI | Layer 6: E2E Patrol |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1. Autentikasi & Sesi** (`/splash`, `/login`, `/reset`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`AUTH-01` s/d `07`) |
+| **2. Dashboard Bento Grid** (`/dashboard`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`DASH-01` s/d `05`) |
+| **3. Presensi Masuk & Pulang** (`/attendance`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`ATTN-01` s/d `07`) |
+| **4. Log Presensi** (`/attendance-logs`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`LOG-01` s/d `05`) |
+| **5. Absen Luar Kantor** (`/attendance-requests`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`OUT-01` s/d `05`) |
+| **6. Aktivitas Kerja** (`/activity`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`ACT-01` s/d `05`) |
+| **7. Cuti & Izin** (`/leave`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`LEV-01` s/d `06`) |
+| **8. Lembur** (`/overtime`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`OVT-01` s/d `05`) |
+| **9. Klaim & Kasbon** (`/expenses`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`EXP-01` s/d `05`) |
+| **10. Direktori Pegawai** (`/employee-directory`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`EMP-01` s/d `05`) |
+| **11. Surat Peringatan (SP)** (`/warning-letter`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`SP-01` s/d `04`) |
+| **12. Jadwal Kerja** (`/work-schedule`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`SCH-01` s/d `03`) |
+| **13. Fasilitas & Aset** (`/assets`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`AST-01` s/d `02`) |
+| **14. Resign & Offboarding** (`/resignation`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`RES-01` s/d `03`) |
+| **15. Live Tracking** (`/live-tracking`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`TRK-01` s/d `03`) |
+| **16. Notifikasi & Pengaturan** (`/notifications`) | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib (`NOT-01` s/d `04`) |
+
+---
+
+## 3. Kredensial & Peran Pengujian (Test Accounts)
 
 Pengujian E2E pada modul-modul pengajuan menggunakan sistem **2 Peran (Bawahan & Atasan)** untuk menguji siklus lengkap dari pembuatan form, verifikasi, hingga persetujuan/penolakan:
 
@@ -58,7 +131,7 @@ Pengujian E2E pada modul-modul pengajuan menggunakan sistem **2 Peran (Bawahan &
 
 ---
 
-## 3. Peta Alur Kerja 2 Peran (End-to-End Approval Lifecycle)
+## 4. Peta Alur Kerja 2 Peran (End-to-End Approval Lifecycle)
 
 Berikut adalah diagram alur interaksi pengajuan berpasangan antara akun Bawahan dan akun Atasan:
 
@@ -125,7 +198,7 @@ sequenceDiagram
 
 ---
 
-## 4. Alur & Checklist Pengujian Berdasarkan Modul
+## 5. Alur & Checklist Pengujian Berdasarkan Modul
 
 ---
 
@@ -133,6 +206,13 @@ sequenceDiagram
 * **Route Path**: `/splash`, `/login`, `/reset`, `/change-password`
 * **Peran**: Seluruh Pengguna
 * **Izin Native**: Tidak ada (Murni Email & Password)
+* **Tingkatan Pengujian Piramida Modul 1**:
+  - **Layer 1 (Model Unit Test)**: `LoginRequestModel` (`toJson`, `fromJson`, `withDeviceInfo`), `LoginResponseData`, `UserProfileData`.
+  - **Layer 2 (Datasource Test)**: `AuthLocalDataSource` (enkripsi token & employee ID), `AuthRemoteDataSource` (`POST /api/v1/auth`, `GET /api/v1/auth/profile`, `PUT /api/v1/auth/language`).
+  - **Layer 3 (Repository Test)**: `AuthRepositoryImpl` (ekstraksi JWT `employeeId`/`sub`, sinkronisasi `ApiClient.setAuthToken`, sinkronisasi permission & bahasa ke storage, pembersihan FCM saat logout).
+  - **Layer 4 (BLoC Test)**: `AuthBloc` (`AuthCheckSessionRequested`, `AuthLoginSubmitted`, `AuthLogoutRequested`) dan penanganan error `ApiException`.
+  - **Layer 5 (Widget UI Test)**: `LoginScreen` (validasi email/password, toggle obscure password `AUTH-05`, dialog `pro_dialog` `AUTH-04`, tombol loading, navigasi forgot password `AUTH-06`, double-tap exit), `ResetPasswordScreen`, `SplashScreenPage` (routing sesi aktif).
+  - **Layer 6 (E2E Patrol Test)**: `integration_test/auth_e2e_test.dart` (otomasi alur aplikasi nyata, penanganan native dialog, login akun bawahan `AUTH-01`, login akun atasan `AUTH-02`, invalid login dialog, dan logout).
 * **Alur Pengguna**:
   1. Pengguna membuka aplikasi -> Layar Splash mengecek sesi token di `flutter_secure_storage`.
   2. Jika token tidak ditemukan atau telah kedaluwarsa -> Navigasi otomatis ke `/login`.
@@ -142,15 +222,15 @@ sequenceDiagram
   6. Jika token invalid/expired di kemudian hari, interceptor API menangani HTTP 401 dan melakukan auto-logout ke login screen.
 
 #### Checklist Uji Coba:
-| ID | Skenario Uji | Tipe | Langkah Pengujian | Hasil yang Diharapkan |
-| :--- | :--- | :--- | :--- | :--- |
-| `AUTH-01` | Login Akun Bawahan | Positif | Input `user@gmail.com`, password `amaterasu`, klik "Masuk". | Berhasil masuk ke Dashboard dengan profil bawahan. |
-| `AUTH-02` | Login Akun Atasan | Positif | Input `admin@gmail.com`, password `amaterasu`, klik "Masuk". | Berhasil masuk ke Dashboard dengan hak akses atasan/approver. |
-| `AUTH-03` | Validasi Email Kosong | Negatif | Kosongkan field email, isi password, klik "Masuk". | Tombol disabled atau muncul pesan validasi email wajib diisi. |
-| `AUTH-04` | Kredensial Salah | Negatif | Input email valid, password salah `salah123`, klik "Masuk". | Muncul pop-up error `AppDialogUtil.showError` dengan pesan dari API. |
-| `AUTH-05` | Toggle Password Visibility | Positif | Masukkan karakter password, klik ikon mata. | Karakter berganti antara sensor titik-titik (*obscure*) dan teks polos. |
-| `AUTH-06` | Lupa Kata Sandi Navigasi | Positif | Klik teks "Lupa Kata Sandi?". | Berpindah ke rute `/reset`. |
-| `AUTH-07` | Auto Logout HTTP 401 | Edge Case | Simulasi pemanggilan API saat token expired di server. | Interceptor membersihkan storage dan mengarahkan kembali ke `/login`. |
+| ID | Skenario Uji | Tipe | Level Pengujian | Langkah Pengujian | Hasil yang Diharapkan |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `AUTH-01` | Login Akun Bawahan | Positif | Widget & E2E Patrol | Input `user@gmail.com`, password `amaterasu`, klik "Masuk". | Berhasil masuk ke Dashboard dengan profil bawahan. |
+| `AUTH-02` | Login Akun Atasan | Positif | Widget & E2E Patrol | Input `admin@gmail.com`, password `amaterasu`, klik "Masuk". | Berhasil masuk ke Dashboard dengan hak akses atasan/approver. |
+| `AUTH-03` | Validasi Email Kosong & Invalid | Negatif | Widget & E2E Patrol | Kosongkan field email / format tanpa `@`, klik "Masuk". | Muncul pesan validasi "Email tidak boleh kosong" atau "Format email tidak valid". |
+| `AUTH-04` | Kredensial Salah & API Error | Negatif | BLoC, Widget & E2E | Input email valid, password salah `salah123`, klik "Masuk". | Muncul pop-up error `AppDialogUtil.showError` dengan pesan dari API. |
+| `AUTH-05` | Toggle Password Visibility | Positif | Widget & E2E Patrol | Masukkan karakter password, klik ikon mata. | Karakter berganti antara sensor titik-titik (*obscure*) dan teks polos. |
+| `AUTH-06` | Lupa Kata Sandi Navigasi | Positif | Widget & E2E Patrol | Klik teks "Lupa Kata Sandi?". | Berpindah ke rute `/reset`. |
+| `AUTH-07` | Auto Logout HTTP 401 & Session Clear | Edge Case | Repo, Interceptor & E2E | Simulasi pemanggilan API saat token expired di server. | Interceptor membersihkan storage dan mengarahkan kembali ke `/login`. |
 
 ---
 
@@ -509,7 +589,7 @@ sequenceDiagram
 
 ---
 
-## 5. Ringkasan & Petunjuk Eksekusi Otomasi
+## 6. Ringkasan & Petunjuk Eksekusi Otomasi
 
 Dengan mengimplementasikan **Patrol** dan mengikuti panduan di atas:
 1. Seluruh kasus native perizinan (Kamera, Lokasi GPS, Galeri) dapat diotomasi tanpa intervensi fisik.
