@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
@@ -40,9 +41,9 @@ class ResignationScreen extends StatelessWidget {
       );
     }
     return BlocProvider<ResignationListBloc>(
-      create: (context) => ResignationListBloc(
-        repository: resignationRepository,
-      )..add(const ResignationListStarted()),
+      create: (context) =>
+          ResignationListBloc(repository: resignationRepository)
+            ..add(const ResignationListStarted()),
       child: const _ResignationScreenView(),
     );
   }
@@ -60,6 +61,7 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _teamScrollController = ScrollController();
+  bool _isSearchVisible = true;
 
   @override
   void initState() {
@@ -81,10 +83,12 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
 
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
-      setState(() {});
+      setState(() {
+        _isSearchVisible = true;
+      });
       context.read<ResignationListBloc>().add(
-            ResignationListTabChanged(_tabController.index),
-          );
+        ResignationListTabChanged(_tabController.index),
+      );
     }
   }
 
@@ -93,8 +97,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
         _teamScrollController.position.pixels >=
             _teamScrollController.position.maxScrollExtent - 200) {
       context.read<ResignationListBloc>().add(
-            const ResignationListSubordinatesLoadMore(),
-          );
+        const ResignationListSubordinatesLoadMore(),
+      );
     }
   }
 
@@ -126,8 +130,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
 
     if (confirmed == true && mounted) {
       context.read<ResignationListBloc>().add(
-            const ResignationListCancelRequested(),
-          );
+        const ResignationListCancelRequested(),
+      );
     }
   }
 
@@ -136,8 +140,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     final result = await context.push(Routes.CREATE_RESIGNATION);
     if (result == true && mounted) {
       context.read<ResignationListBloc>().add(
-            const ResignationListMyStatusRequested(isRefresh: true),
-          );
+        const ResignationListMyStatusRequested(isRefresh: true),
+      );
     }
   }
 
@@ -153,18 +157,14 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
   void _handleExitInterview() {
     FocusManager.instance.primaryFocus?.unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Kuesioner Exit Interview segera hadir.'),
-      ),
+      const SnackBar(content: Text('Kuesioner Exit Interview segera hadir.')),
     );
   }
 
   void _handleReviewSubordinate(String id) {
     FocusManager.instance.primaryFocus?.unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Review 1-on-1 Atasan segera hadir.'),
-      ),
+      const SnackBar(content: Text('Review 1-on-1 Atasan segera hadir.')),
     );
   }
 
@@ -173,8 +173,9 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgCol =
-        isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
+    final bgCol = isDark
+        ? AppColors.darkBackground
+        : AppColors.backgroundSubtle;
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -182,18 +183,15 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
-    final brandColor =
-        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
+    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return BlocConsumer<ResignationListBloc, ResignationListState>(
       listener: (context, state) {
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-          AppDialogUtil.showError(
-            context,
-            message: state.errorMessage!,
-          );
+          AppDialogUtil.showError(context, message: state.errorMessage!);
         }
         if (state.cancelSuccess) {
           AppDialogUtil.showSuccess(
@@ -204,12 +202,12 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
         }
       },
       builder: (context, state) {
-        final isTeamTab = _tabController.index == 1;
         final hasActiveFilter = state.filterData.hasActiveFilter;
 
         // Floating Action Button Rule:
         // FAB HANYA ada di tab kiri ketika hasActiveResignation false.
-        final showFab = _tabController.index == 0 &&
+        final showFab =
+            _tabController.index == 0 &&
             (state.myStatus != null && !state.hasActiveResignation);
 
         return Scaffold(
@@ -282,40 +280,7 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
               const SizedBox(width: 4),
             ],
           ),
-          floatingActionButton: AnimatedBuilder(
-            animation: _tabController.animation ?? _tabController,
-            builder: (context, child) {
-              if (!showFab) return const SizedBox.shrink();
-              final animVal = _tabController.animation?.value ??
-                  _tabController.index.toDouble();
-              final progress = (1.0 - animVal).clamp(0.0, 1.0);
-              if (progress <= 0.05) {
-                return const SizedBox.shrink();
-              }
-              return Transform.scale(
-                scale: progress,
-                alignment: Alignment.bottomRight,
-                child: Opacity(opacity: progress, child: child),
-              );
-            },
-            child: FloatingActionButton.extended(
-              key: const ValueKey('create_resignation_fab'),
-              onPressed: _handleCreateResignation,
-              backgroundColor: brandColor,
-              foregroundColor:
-                  isDark ? const Color(0xFF003732) : Colors.white,
-              elevation: 3,
-              shape: const StadiumBorder(),
-              icon: const Icon(LucideIcons.plus, size: 20),
-              label: Text(
-                'Ajukan Resign',
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? const Color(0xFF003732) : Colors.white,
-                ),
-              ),
-            ),
-          ),
+
           body: SafeArea(
             child: Column(
               children: [
@@ -333,6 +298,11 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
                     ),
                     child: TabBar(
                       controller: _tabController,
+                      onTap: (index) {
+                        setState(() {
+                          _isSearchVisible = true;
+                        });
+                      },
                       labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                       indicatorSize: TabBarIndicatorSize.tab,
                       dividerColor: Colors.transparent,
@@ -425,67 +395,98 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
                   ),
                 ),
 
-                // 2. Dynamic Collapsible Search Bar
-                // Muncul hanya di Tab Kanan (Persetujuan Tim) dan Collapse/Hilang di Tab Kiri (Pengajuan Saya)
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  height: isTeamTab ? 58 : 0,
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(color: bgCol),
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: isTeamTab ? 1.0 : 0.0,
-                    child: IgnorePointer(
-                      ignoring: !isTeamTab,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: AppSearchBar(
-                          controller: _searchController,
-                          hintText: 'Cari nama bawahan, NIK, atau posisi...',
-                          onChanged: (val) {
-                            context.read<ResignationListBloc>().add(
-                                  ResignationListSearchChanged(val),
-                                );
-                          },
-                          onClear: () {
-                            context.read<ResignationListBloc>().add(
-                                  const ResignationListSearchChanged(''),
-                                );
-                          },
+                // 2. Dynamic Collapsible Search Bar on Scroll (hanya aktif pada tab Team / index 1)
+                Builder(
+                  builder: (context) {
+                    final isTeamTab = _tabController.index == 1;
+                    final showSearchBar = isTeamTab && _isSearchVisible;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      height: showSearchBar ? 58 : 0,
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(color: bgCol),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: showSearchBar ? 1.0 : 0.0,
+                        child: IgnorePointer(
+                          ignoring: !showSearchBar,
+                          child: AppSearchBar(
+                            controller: _searchController,
+                            hintText: 'Cari nama bawahan, NIK, atau posisi...',
+                            onChanged: (val) {
+                              context.read<ResignationListBloc>().add(
+                                ResignationListSearchChanged(val),
+                              );
+                            },
+                            onClear: () {
+                              context.read<ResignationListBloc>().add(
+                                const ResignationListSearchChanged(''),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
 
                 // 3. TabBarView
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Tab 0: Pengajuan Saya (Karyawan Mandiri - ESS)
-                      _buildMyResignationTab(
-                        context: context,
-                        state: state,
-                        isDark: isDark,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        brandCol: brandColor,
-                      ),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (_tabController.index == 1 &&
+                          notification is ScrollUpdateNotification &&
+                          notification.metrics.axis == Axis.vertical) {
+                        final delta = notification.scrollDelta ?? 0;
 
-                      // Tab 1: Persetujuan Tim (Atasan Langsung - MSS)
-                      _buildTeamApprovalsTab(
-                        context: context,
-                        state: state,
-                        isDark: isDark,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        surfaceCol: surfaceCol,
-                        borderCol: borderCol,
-                        brandCol: brandColor,
-                      ),
-                    ],
+                        // Jika berada di dekat batas atas, selalu tampilkan search bar
+                        if (notification.metrics.pixels <= 10) {
+                          if (!_isSearchVisible) {
+                            setState(() => _isSearchVisible = true);
+                          }
+                        }
+                        // Saat scroll ke atas -> sembunyikan search bar
+                        else if (delta > 3) {
+                          if (_isSearchVisible) {
+                            setState(() => _isSearchVisible = false);
+                          }
+                        }
+                        // Saat scroll ke bawah -> tampilkan search bar
+                        else if (delta < -3) {
+                          if (!_isSearchVisible) {
+                            setState(() => _isSearchVisible = true);
+                          }
+                        }
+                      }
+                      return false;
+                    },
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Tab 0: Pengajuan Saya (Karyawan Mandiri - ESS)
+                        _buildMyResignationTab(
+                          context: context,
+                          state: state,
+                          isDark: isDark,
+                          textCol: textCol,
+                          subtitleCol: subtitleCol,
+                          brandCol: brandColor,
+                        ),
+
+                        // Tab 1: Persetujuan Tim (Atasan Langsung - MSS)
+                        _buildTeamApprovalsTab(
+                          context: context,
+                          state: state,
+                          isDark: isDark,
+                          textCol: textCol,
+                          subtitleCol: subtitleCol,
+                          surfaceCol: surfaceCol,
+                          borderCol: borderCol,
+                          brandCol: brandColor,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -514,8 +515,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
       return RefreshIndicator(
         onRefresh: () async {
           context.read<ResignationListBloc>().add(
-                const ResignationListMyStatusRequested(isRefresh: true),
-              );
+            const ResignationListMyStatusRequested(isRefresh: true),
+          );
           await Future.delayed(const Duration(milliseconds: 300));
         },
         child: ListView(
@@ -534,8 +535,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
       return RefreshIndicator(
         onRefresh: () async {
           context.read<ResignationListBloc>().add(
-                const ResignationListMyStatusRequested(isRefresh: true),
-              );
+            const ResignationListMyStatusRequested(isRefresh: true),
+          );
           await Future.delayed(const Duration(milliseconds: 300));
         },
         child: ListView(
@@ -552,8 +553,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ResignationListBloc>().add(
-              const ResignationListMyStatusRequested(isRefresh: true),
-            );
+          const ResignationListMyStatusRequested(isRefresh: true),
+        );
         await Future.delayed(const Duration(milliseconds: 300));
       },
       child: ListView(
@@ -624,10 +625,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ResignationListBloc>().add(
-              const ResignationListSubordinatesRequested(
-                isRefresh: true,
-              ),
-            );
+          const ResignationListSubordinatesRequested(isRefresh: true),
+        );
         await Future.delayed(const Duration(milliseconds: 300));
       },
       child: _buildSubordinatesList(
@@ -658,48 +657,25 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     }
 
     if (state.subordinates.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkSurfaceContainer
-                      : const Color(0xFFF1F5F9),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  LucideIcons.users,
-                  size: 28,
-                  color: subtitleCol,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'Tidak Ada Pengajuan Bawahan',
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: textCol,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Belum ada anggota tim yang mengajukan permohonan resign.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodySmall.copyWith(
-                  color: subtitleCol,
-                  fontSize: 12.5,
-                ),
-              ),
-            ],
-          ),
-        ),
+      final isFiltered =
+          state.filterData.hasActiveFilter ||
+          _searchController.text.trim().isNotEmpty;
+      return AppEmptyState(
+        icon: LucideIcons.userMinus,
+        title: isFiltered
+            ? 'Tidak Ada Pengajuan Ditemukan'
+            : 'Tidak Ada Pengajuan Tim',
+        message: isFiltered
+            ? 'Tidak ada permohonan resign bawahan yang cocok dengan kriteria filter atau pencarian Anda.'
+            : 'Belum ada anggota tim yang mengajukan permohonan resign.',
+        onResetFilter: isFiltered
+            ? () {
+                _searchController.clear();
+                context.read<ResignationListBloc>().add(
+                  const ResignationListFilterReset(),
+                );
+              }
+            : null,
       );
     }
 

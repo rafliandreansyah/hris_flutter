@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repository.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_bloc.dart';
@@ -50,9 +51,9 @@ class OvertimeRequestsScreen extends StatelessWidget {
       );
     }
     return BlocProvider<OvertimeListBloc>(
-      create: (context) => OvertimeListBloc(
-        repository: overtimeRepository,
-      )..add(const OvertimeListStarted()),
+      create: (context) =>
+          OvertimeListBloc(repository: overtimeRepository)
+            ..add(const OvertimeListStarted()),
       child: const _OvertimeScreenView(),
     );
   }
@@ -176,8 +177,8 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     final result = await context.pushNamed<bool>(Routes.CREATE_OVERTIME);
     if (result == true && mounted) {
       context.read<OvertimeListBloc>().add(
-            const OvertimeListFetchRequested(isRefresh: true, isTeam: false),
-          );
+        const OvertimeListFetchRequested(isRefresh: true, isTeam: false),
+      );
     }
   }
 
@@ -188,18 +189,12 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
   }) async {
     final result = await context.pushNamed<bool>(
       Routes.OVERTIME_DETAIL,
-      extra: {
-        'id': item.id,
-        'isApprover': isApprover,
-      },
+      extra: {'id': item.id, 'isApprover': isApprover},
     );
     if (result == true && mounted) {
       context.read<OvertimeListBloc>().add(
-            OvertimeListFetchRequested(
-              isRefresh: true,
-              isTeam: isApprover,
-            ),
-          );
+        OvertimeListFetchRequested(isRefresh: true, isTeam: isApprover),
+      );
     }
   }
 
@@ -589,7 +584,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     // 2. Empty state
     if (requests.isEmpty) {
       return _buildEmptyState(
-        icon: LucideIcons.calendarX,
+        icon: LucideIcons.alarmClockOff,
         title: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
             ? 'Tidak Ada Lembur Ditemukan'
             : 'Belum Ada Permintaan Lembur',
@@ -598,9 +593,6 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             : 'Anda belum memiliki permintaan lembur. Ajukan lembur pertama Anda lewat tombol di bawah.',
         hasActiveFilter:
             filterCriteria.hasActiveFilter || searchQuery.isNotEmpty,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        brandColor: brandColor,
       );
     }
 
@@ -624,8 +616,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(brandColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
                   ),
                 ),
               ),
@@ -633,7 +624,8 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
           }
           return OvertimeRequestCard(
             request: requests[i],
-            onViewDetails: () => _navigateToDetail(requests[i], isApprover: false),
+            onViewDetails: () =>
+                _navigateToDetail(requests[i], isApprover: false),
           );
         },
       ),
@@ -677,7 +669,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     // 3. Empty state
     if (requests.isEmpty) {
       return _buildEmptyState(
-        icon: LucideIcons.users,
+        icon: LucideIcons.usersRound,
         title: filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
             ? 'Tidak Ada Lembur Ditemukan'
             : 'Belum Ada Lembur Tim',
@@ -686,9 +678,6 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             : 'Saat ini belum ada permintaan lembur yang dikirimkan oleh rekan tim Anda.',
         hasActiveFilter:
             filterCriteria.hasActiveFilter || searchQuery.isNotEmpty,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        brandColor: brandColor,
       );
     }
 
@@ -712,8 +701,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(brandColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
                   ),
                 ),
               ),
@@ -721,7 +709,8 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
           }
           return OvertimeRequestCard(
             request: requests[i],
-            onViewDetails: () => _navigateToDetail(requests[i], isApprover: true),
+            onViewDetails: () =>
+                _navigateToDetail(requests[i], isApprover: true),
           );
         },
       ),
@@ -734,97 +723,30 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     required String title,
     required String message,
     required bool hasActiveFilter,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color brandColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: brandColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: brandColor, size: 32),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: AppTypography.titleMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  message,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 13,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (hasActiveFilter) ...[
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      context.read<OvertimeListBloc>().add(
-                        const OvertimeListSearchChanged(''),
-                      );
-                      context.read<OvertimeListBloc>().add(
-                        const OvertimeListFilterReset(),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: brandColor,
-                      side: BorderSide(color: brandColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      alignment: Alignment.center,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.rotateCcw,
-                          size: 14,
-                          color: brandColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Reset Filter & Pencarian',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: brandColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+      child: AppEmptyState(
+        icon: icon,
+        title: title,
+        subtitle: message,
+        hasActiveFilter: hasActiveFilter,
+        resetFilterText: 'Reset Filter & Pencarian',
+        onResetFilter: hasActiveFilter
+            ? () {
+                _searchController.clear();
+                context.read<OvertimeListBloc>().add(
+                  const OvertimeListSearchChanged(''),
+                );
+                context.read<OvertimeListBloc>().add(
+                  const OvertimeListFilterReset(),
+                );
+              }
+            : null,
       ),
     );
   }

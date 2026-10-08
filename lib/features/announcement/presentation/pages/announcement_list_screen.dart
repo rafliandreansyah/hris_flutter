@@ -8,6 +8,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/features/announcement/domain/repositories/announcement_repository.dart';
 import 'package:hris_flutter/features/announcement/presentation/bloc/announcement_list_bloc.dart';
 import 'package:hris_flutter/features/announcement/presentation/bloc/announcement_list_event.dart';
@@ -444,6 +445,8 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
 
     // 3. Empty State
     if (state.announcements.isEmpty) {
+      final isFiltered = state.hasActiveFilter ||
+          (state.searchQuery != null && state.searchQuery!.isNotEmpty);
       return RefreshIndicator(
         color: AppColors.brandTeal,
         onRefresh: () async {
@@ -451,71 +454,22 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
                 const AnnouncementListRefreshed(),
               );
         },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-          children: [
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurfaceContainer
-                          : const Color(0xFFE2E8F0),
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      LucideIcons.newspaper,
-                      size: 30,
-                      color: isDark
-                          ? AppColors.darkOnSurfaceVariant
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Belum Ada Pengumuman',
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.hasActiveFilter ||
-                            (state.searchQuery != null &&
-                                state.searchQuery!.isNotEmpty)
-                        ? 'Tidak ada pengumuman yang sesuai dengan kriteria filter atau pencarian Anda.'
-                        : 'Belum ada pengumuman resmi terbaru saat ini.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (state.hasActiveFilter) ...[
-                    const SizedBox(height: 16),
-                    AppButton(
-                      text: 'Reset Filter',
-                      variant: AppButtonVariant.outlined,
-                      width: 140,
-                      height: 40,
-                      leadingIcon: LucideIcons.rotateCcw,
-                      onPressed: () {
-                        context.read<AnnouncementListBloc>().add(
-                              const AnnouncementFilterReset(),
-                            );
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
+        child: AppEmptyState(
+          icon: LucideIcons.megaphone,
+          title: isFiltered
+              ? 'Tidak Ada Pengumuman Ditemukan'
+              : 'Belum Ada Pengumuman',
+          message: isFiltered
+              ? 'Tidak ada pengumuman yang sesuai dengan kriteria filter atau pencarian Anda.'
+              : 'Belum ada pengumuman resmi terbaru saat ini.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<AnnouncementListBloc>().add(
+                        const AnnouncementFilterReset(),
+                      );
+                }
+              : null,
         ),
       );
     }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
@@ -650,14 +651,36 @@ class _ExpensesListViewState extends State<_ExpensesListView>
     }
 
     if (state.myExpenses.isEmpty) {
-      return _buildEmptyState(
-        title: 'Belum Ada Pengajuan',
-        description:
-            'Anda belum memiliki pengajuan klaim reimbursement atau kasbon.',
-        actionLabel: 'Buat Pengajuan',
-        onAction: _showCreateActionSheet,
-        isDark: isDark,
-        brandColor: brandColor,
+      final isFiltered = state.filterCriteria.hasActiveFilter ||
+          state.currentTypeFilter != 'all' ||
+          _searchController.text.trim().isNotEmpty;
+      return RefreshIndicator(
+        onRefresh: () async {
+          context.read<ExpensesListBloc>().add(
+            const ExpensesListFetchRequested(isRefresh: true, isTeam: false),
+          );
+        },
+        color: brandColor,
+        child: AppEmptyState(
+          icon: LucideIcons.receipt,
+          title: isFiltered
+              ? 'Tidak Ada Pengajuan Ditemukan'
+              : 'Belum Ada Pengajuan',
+          message: isFiltered
+              ? 'Tidak ada pengajuan yang sesuai dengan kriteria filter yang dipilih.'
+              : 'Anda belum memiliki pengajuan klaim reimbursement atau kasbon.',
+          actionLabel: isFiltered ? null : 'Buat Pengajuan',
+          actionIcon: isFiltered ? null : LucideIcons.plus,
+          onAction: isFiltered ? null : _showCreateActionSheet,
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<ExpensesListBloc>().add(
+                    const ExpensesListFilterReset(),
+                  );
+                }
+              : null,
+        ),
       );
     }
 
@@ -713,12 +736,33 @@ class _ExpensesListViewState extends State<_ExpensesListView>
     }
 
     if (state.teamExpenses.isEmpty) {
-      return _buildEmptyState(
-        title: 'Belum Ada Pengajuan Tim',
-        description:
-            'Tidak ada pengajuan reimbursement atau kasbon dari bawahan yang perlu diproses.',
-        isDark: isDark,
-        brandColor: brandColor,
+      final isFiltered = state.filterCriteria.hasActiveFilter ||
+          state.currentTypeFilter != 'all' ||
+          _searchController.text.trim().isNotEmpty;
+      return RefreshIndicator(
+        onRefresh: () async {
+          context.read<ExpensesListBloc>().add(
+            const ExpensesListFetchRequested(isRefresh: true, isTeam: true),
+          );
+        },
+        color: brandColor,
+        child: AppEmptyState(
+          icon: LucideIcons.usersRound,
+          title: isFiltered
+              ? 'Tidak Ada Pengajuan Ditemukan'
+              : 'Belum Ada Pengajuan Tim',
+          message: isFiltered
+              ? 'Tidak ada pengajuan yang cocok dengan kriteria filter atau pencarian Anda.'
+              : 'Tidak ada pengajuan reimbursement atau kasbon dari bawahan yang perlu diproses.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<ExpensesListBloc>().add(
+                    const ExpensesListFilterReset(),
+                  );
+                }
+              : null,
+        ),
       );
     }
 
@@ -761,58 +805,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
     );
   }
 
-  Widget _buildEmptyState({
-    required String title,
-    required String description,
-    String? actionLabel,
-    VoidCallback? onAction,
-    required bool isDark,
-    required Color brandColor,
-  }) {
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: brandColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(LucideIcons.receiptText, size: 48, color: brandColor),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTypography.titleMedium.copyWith(
-                fontWeight: FontWeight.w700,
-                color: textCol,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              description,
-              textAlign: TextAlign.center,
-              style: AppTypography.bodySmall.copyWith(
-                color: subtitleCol,
-                fontSize: 13,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildForbiddenState(bool isDark) {
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;

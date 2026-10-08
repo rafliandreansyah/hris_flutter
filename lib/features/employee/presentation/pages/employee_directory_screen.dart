@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
@@ -562,91 +563,34 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                         )
                       // Employee Cards List or Empty State
                       else if (filteredList.isEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 48,
-                            ),
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? AppColors.darkSurfaceContainer
-                                          : AppColors.surfaceContainer,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      LucideIcons.users,
-                                      size: 32,
-                                      color: subtitleCol,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    _localSearchQuery.isNotEmpty ||
-                                            state.filterCriteria.hasActiveFilter
-                                        ? 'Pegawai tidak ditemukan'
-                                        : 'Belum Ada Data Pegawai',
-                                    style: AppTypography.titleMedium.copyWith(
-                                      color: textCol,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    state.filterCriteria.hasActiveFilter &&
-                                            _localSearchQuery.isNotEmpty
-                                        ? 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery" dan filter yang aktif.'
-                                        : state.filterCriteria.hasActiveFilter
-                                            ? 'Tidak ada pegawai yang cocok dengan kriteria filter yang dipilih.'
-                                            : 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery".',
-                                    style: AppTypography.bodySmall.copyWith(
-                                      color: subtitleCol,
-                                      fontSize: 13,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  if (_localSearchQuery.isNotEmpty ||
-                                      state.filterCriteria.hasActiveFilter) ...[
-                                    const SizedBox(height: 18),
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _onSearchChanged('');
-                                        context.read<EmployeeListBloc>().add(
-                                              const EmployeeListFilterApplied(
-                                                EmployeeFilterCriteria(),
-                                              ),
-                                            );
-                                      },
-                                      icon: const Icon(LucideIcons.rotateCcw,
-                                          size: 15),
-                                      label: const Text('Reset Pencarian'),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: brandColor,
-                                        side: BorderSide(
-                                          color:
-                                              brandColor.withValues(alpha: 0.5),
-                                        ),
-                                        shape: const StadiumBorder(),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: AppEmptyState(
+                            wrapInScrollView: false,
+                            icon: LucideIcons.usersRound,
+                            title: _localSearchQuery.isNotEmpty ||
+                                    state.filterCriteria.hasActiveFilter
+                                ? 'Pegawai tidak ditemukan'
+                                : 'Belum Ada Data Pegawai',
+                            message: state.filterCriteria.hasActiveFilter &&
+                                    _localSearchQuery.isNotEmpty
+                                ? 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery" dan filter yang aktif.'
+                                : state.filterCriteria.hasActiveFilter
+                                    ? 'Tidak ada pegawai yang cocok dengan kriteria filter yang dipilih.'
+                                    : 'Tidak ada pegawai yang cocok dengan kata kunci "$_localSearchQuery".',
+                            resetFilterText: 'Reset Pencarian',
+                            onResetFilter: _localSearchQuery.isNotEmpty ||
+                                    state.filterCriteria.hasActiveFilter
+                                ? () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                    context.read<EmployeeListBloc>().add(
+                                          const EmployeeListFilterApplied(
+                                            EmployeeFilterCriteria(),
+                                          ),
+                                        );
+                                  }
+                                : null,
                           ),
                         )
                       else

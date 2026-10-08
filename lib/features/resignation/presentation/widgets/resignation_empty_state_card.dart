@@ -7,10 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class ResignationEmptyStateCard extends StatelessWidget {
   final VoidCallback? onCreatePressed;
 
-  const ResignationEmptyStateCard({
-    super.key,
-    this.onCreatePressed,
-  });
+  const ResignationEmptyStateCard({super.key, this.onCreatePressed});
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +52,7 @@ class ResignationEmptyStateCard extends StatelessWidget {
                     : const Color(0xFFCCFBF1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                LucideIcons.fileCheck2,
-                size: 34,
-                color: brandCol,
-              ),
+              child: Icon(LucideIcons.fileCheck2, size: 34, color: brandCol),
             ),
             const SizedBox(height: 18),
             Text(
@@ -94,11 +87,7 @@ class ResignationEmptyStateCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    LucideIcons.info,
-                    size: 18,
-                    color: brandCol,
-                  ),
+                  Icon(LucideIcons.info, size: 18, color: brandCol),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -129,7 +118,7 @@ class ResignationEmptyStateCard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             AppButton(
-              text: '+ Ajukan Pengunduran Diri',
+              text: 'Ajukan Pengunduran Diri',
               leadingIcon: LucideIcons.plus,
               variant: AppButtonVariant.primary,
               height: 48,

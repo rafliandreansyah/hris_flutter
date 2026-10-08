@@ -24,7 +24,7 @@ class WorkScheduleBloc extends Bloc<WorkScheduleEvent, WorkScheduleState> {
     emit(state.copyWith(
       status: WorkScheduleStatus.loading,
       employeeId: empId,
-      errorMessage: null,
+      clearStatusDetails: true,
     ));
 
     try {
@@ -32,16 +32,19 @@ class WorkScheduleBloc extends Bloc<WorkScheduleEvent, WorkScheduleState> {
       emit(state.copyWith(
         status: WorkScheduleStatus.success,
         data: response.data,
+        clearStatusDetails: true,
       ));
     } on ApiException catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
         errorMessage: e.message,
+        statusCode: e.statusCode,
       ));
     } catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
         errorMessage: e.toString(),
+        clearStatusDetails: true,
       ));
     }
   }
@@ -64,16 +67,19 @@ class WorkScheduleBloc extends Bloc<WorkScheduleEvent, WorkScheduleState> {
       emit(state.copyWith(
         status: WorkScheduleStatus.success,
         data: response.data,
+        clearStatusDetails: true,
       ));
     } on ApiException catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
         errorMessage: e.message,
+        statusCode: e.statusCode,
       ));
     } catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
         errorMessage: e.toString(),
+        clearStatusDetails: true,
       ));
     }
   }

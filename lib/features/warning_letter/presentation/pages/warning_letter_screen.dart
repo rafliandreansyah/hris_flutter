@@ -7,7 +7,9 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
+import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_filter_criteria.dart';
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_bloc.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_event.dart';
@@ -576,15 +578,33 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
     }
 
     if (state.myLetters.isEmpty) {
-      return _buildEmptyState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        brandColor: brandColor,
-        title: 'Belum Ada Surat Peringatan',
-        subtitle:
-            'Anda tidak memiliki riwayat surat peringatan atau sanksi indisipliner.',
+      final isFiltered = state.filterCriteria.hasActiveFilter ||
+          state.searchQuery.isNotEmpty;
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: brandColor,
+        child: AppEmptyState(
+          icon: LucideIcons.fileWarning,
+          title: isFiltered
+              ? 'Tidak Ada Surat Peringatan Ditemukan'
+              : 'Belum Ada Surat Peringatan',
+          message: isFiltered
+              ? 'Tidak ditemukan surat peringatan yang sesuai dengan filter atau kata kunci pencarian.'
+              : 'Anda tidak memiliki riwayat surat peringatan atau sanksi indisipliner.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<WarningLetterListBloc>().add(
+                        const WarningLetterListSearchChanged(''),
+                      );
+                  context.read<WarningLetterListBloc>().add(
+                        const WarningLetterListFilterApplied(
+                          WarningLetterFilterCriteria(),
+                        ),
+                      );
+                }
+              : null,
+        ),
       );
     }
 
@@ -672,16 +692,33 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
     }
 
     if (state.teamLetters.isEmpty) {
-      return _buildEmptyState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        brandColor: brandColor,
-        title: 'Tidak Ada Surat Peringatan Diterbitkan',
-        subtitle: state.searchQuery.isNotEmpty
-            ? 'Tidak ditemukan surat peringatan dengan kata kunci "${state.searchQuery}".'
-            : 'Saat ini belum ada surat peringatan yang diterbitkan untuk pegawai lain.',
+      final isFiltered = state.filterCriteria.hasActiveFilter ||
+          state.searchQuery.isNotEmpty;
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: brandColor,
+        child: AppEmptyState(
+          icon: LucideIcons.fileWarning,
+          title: isFiltered
+              ? 'Tidak Ada Surat Peringatan Ditemukan'
+              : 'Tidak Ada Surat Peringatan Diterbitkan',
+          message: isFiltered
+              ? 'Tidak ditemukan surat peringatan dengan kata kunci atau filter yang dipilih.'
+              : 'Saat ini belum ada surat peringatan yang diterbitkan untuk pegawai lain.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<WarningLetterListBloc>().add(
+                        const WarningLetterListSearchChanged(''),
+                      );
+                  context.read<WarningLetterListBloc>().add(
+                        const WarningLetterListFilterApplied(
+                          WarningLetterFilterCriteria(),
+                        ),
+                      );
+                }
+              : null,
+        ),
       );
     }
 
@@ -944,56 +981,5 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
     );
   }
 
-  // ── Empty State ─────────────────────────────────────────────────────
-  Widget _buildEmptyState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color brandColor,
-    required String title,
-    required String subtitle,
-  }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: brandColor.withValues(alpha: isDark ? 0.2 : 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.fileCheck2,
-                size: 34,
-                color: brandColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: AppTypography.titleMedium.copyWith(
-                color: textCol,
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: AppTypography.bodySmall.copyWith(
-                color: subtitleCol,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }

@@ -9,11 +9,15 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class SelectedScheduleCard extends StatelessWidget {
   final DateTime selectedDate;
   final WorkScheduleItem? schedule;
+  final WorkScheduleItem? nextClosestSchedule;
+  final ValueChanged<DateTime>? onSelectDate;
 
   const SelectedScheduleCard({
     super.key,
     required this.selectedDate,
     this.schedule,
+    this.nextClosestSchedule,
+    this.onSelectDate,
   });
 
   bool get _isToday {
@@ -63,9 +67,13 @@ class SelectedScheduleCard extends StatelessWidget {
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
+    final accentTeal =
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     // 1. Kondisi Tidak Ada Jadwal Tercatat
     if (schedule == null) {
+      final nextDt = nextClosestSchedule?.parsedDate;
+
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -92,9 +100,7 @@ class SelectedScheduleCard extends StatelessWidget {
                   child: Icon(
                     LucideIcons.calendarOff,
                     size: 20,
-                    color: isDark
-                        ? AppColors.inversePrimary
-                        : AppColors.brandTeal,
+                    color: accentTeal,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -108,6 +114,55 @@ class SelectedScheduleCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (nextDt != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                onTap: onSelectDate != null ? () => onSelectDate!(nextDt) : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm + 4,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkPrimaryContainer.withValues(alpha: 0.4)
+                        : AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                      color: accentTeal.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        LucideIcons.sparkles,
+                        size: 15,
+                        color: accentTeal,
+                      ),
+                      const SizedBox(width: AppSpacing.xs + 2),
+                      Expanded(
+                        child: Text(
+                          'Jadwal berikutnya: ${_formatDate(nextDt)}',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: accentTeal,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        LucideIcons.chevronRight,
+                        size: 15,
+                        color: accentTeal,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       );

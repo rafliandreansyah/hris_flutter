@@ -146,6 +146,34 @@ void main() {
       expect(states[0].status, WorkScheduleStatus.loading);
       expect(states[1].status, WorkScheduleStatus.failure);
       expect(states[1].errorMessage, 'Jadwal tidak ditemukan');
+      expect(states[1].statusCode, 404);
+      expect(states[1].isNotFound, isTrue);
+      expect(states[1].hasNoSchedules, isTrue);
+
+      await bloc.close();
+    });
+
+    test('hasNoSchedules returns true when success but workSchedules is empty', () async {
+      mockRepository.mockResponse = const WorkScheduleResponse(
+        success: true,
+        message: 'Empty schedule',
+        data: WorkScheduleData(
+          id: 'sched-empty',
+          workSchedules: [],
+        ),
+      );
+
+      final bloc = WorkScheduleBloc(repository: mockRepository);
+      final states = <WorkScheduleState>[];
+      bloc.stream.listen(states.add);
+
+      bloc.add(const WorkScheduleFetchRequested(employeeId: 'emp-no-sched'));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(states.length, 2);
+      expect(states[1].status, WorkScheduleStatus.success);
+      expect(states[1].hasNoSchedules, isTrue);
+      expect(states[1].isNotFound, isFalse);
 
       await bloc.close();
     });

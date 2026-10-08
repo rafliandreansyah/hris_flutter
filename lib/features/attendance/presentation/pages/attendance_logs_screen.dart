@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
@@ -570,64 +571,29 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     }
 
     if (state.logs.isEmpty) {
+      final isFiltered = state.filterCriteria.hasActiveFilter;
       return RefreshIndicator(
         onRefresh: _handleMyRefresh,
         color: brandColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-              vertical: 48,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: brandColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+        child: AppEmptyState(
+          icon: LucideIcons.history,
+          title: isFiltered
+              ? 'Tidak Ada Log Ditemukan'
+              : (state.lastMonth
+                  ? 'Belum Ada Riwayat Bulan Lalu'
+                  : 'Belum Ada Riwayat Absensi'),
+          message: isFiltered
+              ? 'Tidak ada log absensi yang sesuai dengan kriteria filter yang dipilih.'
+              : (state.lastMonth
+                  ? 'Tidak ada riwayat clock-in & clock-out pada periode bulan lalu.'
+                  : 'Riwayat clock-in & clock-out Anda akan tampil di sini.'),
+          onResetFilter: isFiltered
+              ? () => context.read<AttendanceLogsBloc>().add(
+                    const AttendanceLogsFilterApplied(
+                      AttendanceLogFilterCriteria(),
                     ),
-                    child: Icon(
-                      LucideIcons.calendarX,
-                      color: brandColor,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.filterCriteria.hasActiveFilter
-                        ? 'Tidak Ada Log Ditemukan'
-                        : (state.lastMonth
-                            ? 'Belum Ada Riwayat Bulan Lalu'
-                            : 'Belum Ada Riwayat Absensi'),
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    state.filterCriteria.hasActiveFilter
-                        ? 'Tidak ada log absensi yang sesuai dengan kriteria filter yang dipilih.'
-                        : (state.lastMonth
-                            ? 'Tidak ada riwayat clock-in & clock-out pada periode bulan lalu.'
-                            : 'Riwayat clock-in & clock-out Anda akan tampil di sini.'),
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
+                  )
+              : null,
         ),
       );
     }
@@ -795,56 +761,25 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
               }
 
               if (state.employees.isEmpty) {
+                final isFiltered = state.filterCriteria.hasActiveFilter ||
+                    _teamSearchController.text.trim().isNotEmpty;
                 return RefreshIndicator(
                   onRefresh: _handleTeamRefresh,
                   color: brandColor,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 48,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                color: brandColor.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                LucideIcons.users,
-                                color: brandColor,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Tidak Ada Anggota Tim Ditemukan',
-                              style: AppTypography.titleMedium.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Coba ubah kata kunci pencarian atau kriteria filter Anda.',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: subtitleCol,
-                                fontSize: 13,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  child: AppEmptyState(
+                    icon: LucideIcons.usersRound,
+                    title: 'Tidak Ada Anggota Tim Ditemukan',
+                    message: 'Coba ubah kata kunci pencarian atau kriteria filter Anda.',
+                    onResetFilter: isFiltered
+                        ? () {
+                            _teamSearchController.clear();
+                            context.read<EmployeeListBloc>().add(
+                                  const EmployeeListFilterApplied(
+                                    EmployeeFilterCriteria(),
+                                  ),
+                                );
+                          }
+                        : null,
                   ),
                 );
               }

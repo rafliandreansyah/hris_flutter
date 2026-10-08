@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
@@ -26,11 +27,7 @@ class AttendanceRequestsScreen extends StatelessWidget {
   final AttendanceRequestRepository? repository;
   final AttendanceRequestListBloc? bloc;
 
-  const AttendanceRequestsScreen({
-    super.key,
-    this.repository,
-    this.bloc,
-  });
+  const AttendanceRequestsScreen({super.key, this.repository, this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +81,8 @@ class _AttendanceRequestsScreenViewState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AttendanceRequestListBloc>().add(
-            const AttendanceRequestListTabChanged(_initialTabIndex),
-          );
+        const AttendanceRequestListTabChanged(_initialTabIndex),
+      );
     });
   }
 
@@ -108,8 +105,8 @@ class _AttendanceRequestsScreenViewState
         _isSearchVisible = true;
       });
       context.read<AttendanceRequestListBloc>().add(
-            AttendanceRequestListTabChanged(_tabController.index),
-          );
+        AttendanceRequestListTabChanged(_tabController.index),
+      );
     }
   }
 
@@ -119,8 +116,8 @@ class _AttendanceRequestsScreenViewState
         _myScrollController.position.pixels >=
             _myScrollController.position.maxScrollExtent - 250) {
       context.read<AttendanceRequestListBloc>().add(
-            const AttendanceRequestListLoadMoreRequested(isTeam: false),
-          );
+        const AttendanceRequestListLoadMoreRequested(isTeam: false),
+      );
     }
   }
 
@@ -129,8 +126,8 @@ class _AttendanceRequestsScreenViewState
         _teamScrollController.position.pixels >=
             _teamScrollController.position.maxScrollExtent - 250) {
       context.read<AttendanceRequestListBloc>().add(
-            const AttendanceRequestListLoadMoreRequested(isTeam: true),
-          );
+        const AttendanceRequestListLoadMoreRequested(isTeam: true),
+      );
     }
   }
 
@@ -140,16 +137,16 @@ class _AttendanceRequestsScreenViewState
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
       context.read<AttendanceRequestListBloc>().add(
-            AttendanceRequestListSearchChanged(val),
-          );
+        AttendanceRequestListSearchChanged(val),
+      );
     });
   }
 
   Future<void> _handleRefresh() async {
     final isTeam = _tabController.index == 1;
     context.read<AttendanceRequestListBloc>().add(
-          AttendanceRequestListFetchRequested(isRefresh: true, isTeam: isTeam),
-        );
+      AttendanceRequestListFetchRequested(isRefresh: true, isTeam: isTeam),
+    );
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
@@ -165,28 +162,29 @@ class _AttendanceRequestsScreenViewState
   }
 
   Future<void> _openAttendanceTypeSelection() async {
-    final selectedMethod =
-        await showAttendanceTypeSelectionBottomSheet(context);
+    final selectedMethod = await showAttendanceTypeSelectionBottomSheet(
+      context,
+    );
     if (selectedMethod != null && mounted) {
       if (selectedMethod == AttendanceOutsideMethod.live) {
         final refresh = await context.push<bool>(Routes.LIVE_ATTENDANCE);
         if (refresh == true && mounted) {
           context.read<AttendanceRequestListBloc>().add(
-                const AttendanceRequestListFetchRequested(
-                  isRefresh: true,
-                  isTeam: false,
-                ),
-              );
+            const AttendanceRequestListFetchRequested(
+              isRefresh: true,
+              isTeam: false,
+            ),
+          );
         }
       } else if (selectedMethod == AttendanceOutsideMethod.schedule) {
         final refresh = await context.push<bool>(Routes.SCHEDULE_ATTENDANCE);
         if (refresh == true && mounted) {
           context.read<AttendanceRequestListBloc>().add(
-                const AttendanceRequestListFetchRequested(
-                  isRefresh: true,
-                  isTeam: false,
-                ),
-              );
+            const AttendanceRequestListFetchRequested(
+              isRefresh: true,
+              isTeam: false,
+            ),
+          );
         }
       }
     }
@@ -206,12 +204,15 @@ class _AttendanceRequestsScreenViewState
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
-    final brandColor =
-        isDark ? AppColors.inversePrimary : const Color(0xFF0D9488);
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : const Color(0xFF64748B);
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : const Color(0xFFE2E8F0);
+    final brandColor = isDark
+        ? AppColors.inversePrimary
+        : const Color(0xFF0D9488);
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -289,7 +290,8 @@ class _AttendanceRequestsScreenViewState
         animation: _tabController.animation ?? _tabController,
         builder: (context, child) {
           final animVal =
-              _tabController.animation?.value ?? _tabController.index.toDouble();
+              _tabController.animation?.value ??
+              _tabController.index.toDouble();
           final progress = (1.0 - animVal).clamp(0.0, 1.0);
           if (progress <= 0.05) {
             return const SizedBox.shrink();
@@ -575,8 +577,7 @@ class _AttendanceRequestsScreenViewState
         subtitleCol: subtitleCol,
         brandColor: brandColor,
         title: 'Belum Ada Pengajuan Presensi',
-        subtitle:
-            'Anda belum memiliki riwayat pengajuan presensi luar kantor.',
+        subtitle: 'Anda belum memiliki riwayat pengajuan presensi luar kantor.',
         isTeam: false,
       );
     }
@@ -609,18 +610,15 @@ class _AttendanceRequestsScreenViewState
             onTap: () async {
               final updated = await context.push<bool>(
                 Routes.ATTENDANCE_REQUEST_DETAIL,
-                extra: {
-                  'id': item.id,
-                  'isApprover': false,
-                },
+                extra: {'id': item.id, 'isApprover': false},
               );
               if (updated == true && context.mounted) {
                 context.read<AttendanceRequestListBloc>().add(
-                      const AttendanceRequestListFetchRequested(
-                        isRefresh: true,
-                        isTeam: false,
-                      ),
-                    );
+                  const AttendanceRequestListFetchRequested(
+                    isRefresh: true,
+                    isTeam: false,
+                  ),
+                );
               }
             },
           );
@@ -677,7 +675,8 @@ class _AttendanceRequestsScreenViewState
         controller: _teamScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        itemCount: state.teamRequests.length + (state.isTeamLoadingMore ? 1 : 0),
+        itemCount:
+            state.teamRequests.length + (state.isTeamLoadingMore ? 1 : 0),
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           if (index >= state.teamRequests.length) {
@@ -698,18 +697,15 @@ class _AttendanceRequestsScreenViewState
             onTap: () async {
               final updated = await context.push<bool>(
                 Routes.ATTENDANCE_REQUEST_DETAIL,
-                extra: {
-                  'id': item.id,
-                  'isApprover': true,
-                },
+                extra: {'id': item.id, 'isApprover': true},
               );
               if (updated == true && context.mounted) {
                 context.read<AttendanceRequestListBloc>().add(
-                      const AttendanceRequestListFetchRequested(
-                        isRefresh: true,
-                        isTeam: true,
-                      ),
-                    );
+                  const AttendanceRequestListFetchRequested(
+                    isRefresh: true,
+                    isTeam: true,
+                  ),
+                );
               }
             },
           );
@@ -730,11 +726,11 @@ class _AttendanceRequestsScreenViewState
     return RefreshIndicator(
       onRefresh: () async {
         context.read<AttendanceRequestListBloc>().add(
-              const AttendanceRequestListFetchRequested(
-                isRefresh: true,
-                isTeam: true,
-              ),
-            );
+          const AttendanceRequestListFetchRequested(
+            isRefresh: true,
+            isTeam: true,
+          ),
+        );
         await Future.delayed(const Duration(milliseconds: 300));
       },
       color: brandColor,
@@ -803,11 +799,11 @@ class _AttendanceRequestsScreenViewState
                       OutlinedButton(
                         onPressed: () {
                           context.read<AttendanceRequestListBloc>().add(
-                                const AttendanceRequestListFetchRequested(
-                                  isRefresh: true,
-                                  isTeam: true,
-                                ),
-                              );
+                            const AttendanceRequestListFetchRequested(
+                              isRefresh: true,
+                              isTeam: true,
+                            ),
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: textCol,
@@ -846,8 +842,9 @@ class _AttendanceRequestsScreenViewState
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandColor,
-                          foregroundColor:
-                              isDark ? const Color(0xFF003732) : Colors.white,
+                          foregroundColor: isDark
+                              ? const Color(0xFF003732)
+                              : Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -860,8 +857,9 @@ class _AttendanceRequestsScreenViewState
                         child: Text(
                           'Ke Pengajuan Saya',
                           style: AppTypography.bodySmall.copyWith(
-                            color:
-                                isDark ? const Color(0xFF003732) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF003732)
+                                : Colors.white,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -891,84 +889,29 @@ class _AttendanceRequestsScreenViewState
     final state = context.watch<AttendanceRequestListBloc>().state;
     final hasActiveFilter = state.filterCriteria.hasActiveFilter;
     final hasSearch = state.searchQuery.isNotEmpty;
+    final isFiltered = hasActiveFilter || hasSearch;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 64),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: brandColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    LucideIcons.calendarCheck2,
-                    color: brandColor,
-                    size: 34,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  title,
-                  style: AppTypography.titleMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 13,
-                    height: 1.45,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (hasActiveFilter || hasSearch) ...[
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      context.read<AttendanceRequestListBloc>().add(
-                            const AttendanceRequestListFilterReset(),
-                          );
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.rotateCcw,
-                          size: 14,
-                          color: brandColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Reset Filter & Pencarian',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: brandColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+      child: AppEmptyState(
+        icon: isTeam ? LucideIcons.usersRound : LucideIcons.mapPinOff,
+        title: isFiltered ? 'Tidak Ada Pengajuan Ditemukan' : title,
+        subtitle: isFiltered
+            ? (isTeam
+                  ? 'Tidak ada pengajuan presensi tim yang cocok dengan kriteria filter atau pencarian.'
+                  : 'Tidak ada pengajuan presensi Anda yang cocok dengan kriteria filter atau pencarian.')
+            : subtitle,
+        hasActiveFilter: isFiltered,
+        resetFilterText: 'Reset Filter & Pencarian',
+        onResetFilter: isFiltered
+            ? () {
+                _searchController.clear();
+                context.read<AttendanceRequestListBloc>().add(
+                  const AttendanceRequestListFilterReset(),
+                );
+              }
+            : null,
       ),
     );
   }

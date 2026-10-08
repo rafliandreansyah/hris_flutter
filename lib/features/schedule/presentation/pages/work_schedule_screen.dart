@@ -14,6 +14,7 @@ import 'package:hris_flutter/features/schedule/presentation/bloc/work_schedule/w
 import 'package:hris_flutter/features/schedule/presentation/widgets/employee_work_schedule_header_card.dart';
 import 'package:hris_flutter/features/schedule/presentation/widgets/selected_schedule_card.dart';
 import 'package:hris_flutter/features/schedule/presentation/widgets/upcoming_schedule_card.dart';
+import 'package:hris_flutter/features/schedule/presentation/widgets/work_schedule_empty_state.dart';
 import 'package:hris_flutter/features/schedule/presentation/widgets/work_schedule_shimmer.dart';
 import 'package:hris_flutter/features/schedule/presentation/widgets/work_schedule_timeline.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -122,7 +123,8 @@ class _WorkScheduleView extends StatelessWidget {
         listener: (context, state) {
           if (state.status == WorkScheduleStatus.failure &&
               state.errorMessage != null &&
-              state.data != null) {
+              state.data != null &&
+              !state.isNotFound) {
             AppDialogUtil.showError(
               context,
               message: state.errorMessage!,
@@ -133,6 +135,8 @@ class _WorkScheduleView extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          final displayEmployee = state.data?.employee ?? employeePreview;
+
           // 1. Loading Shimmer
           if (state.status == WorkScheduleStatus.loading &&
               state.data == null) {
@@ -141,7 +145,43 @@ class _WorkScheduleView extends StatelessWidget {
             );
           }
 
-          // 2. Full-page Error State
+          // 2. Empty State / 404 Not Found (Jadwal Kerja Belum Ada)
+          if (state.hasNoSchedules) {
+            return RefreshIndicator(
+              color: AppColors.brandTeal,
+              onRefresh: () async {
+                context
+                    .read<WorkScheduleBloc>()
+                    .add(const WorkScheduleRefreshRequested());
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.marginMobile),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Tetap tampilkan kartu profil pegawai jika ada data preview
+                    if (_isViewingOtherEmployee && displayEmployee != null) ...[
+                      EmployeeWorkScheduleHeaderCard(employee: displayEmployee),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    WorkScheduleEmptyState(
+                      isViewingOtherEmployee: _isViewingOtherEmployee,
+                      onBack: () => context.pop(),
+                      onSelectOtherEmployee: () => context.pop(),
+                      onRefresh: () {
+                        context
+                            .read<WorkScheduleBloc>()
+                            .add(const WorkScheduleRefreshRequested());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // 3. Technical Error State (Hanya untuk error server/koneksi non-404)
           if (state.status == WorkScheduleStatus.failure &&
               state.data == null) {
             return Center(
@@ -180,17 +220,33 @@ class _WorkScheduleView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    AppButton(
-                      text: 'Coba Lagi',
-                      leadingIcon: LucideIcons.rotateCcw,
-                      variant: AppButtonVariant.primary,
-                      onPressed: () {
-                        context.read<WorkScheduleBloc>().add(
-                              WorkScheduleFetchRequested(
-                                employeeId: employeeId,
-                              ),
-                            );
-                      },
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 260),
+                      child: Column(
+                        children: [
+                          AppButton(
+                            text: 'Coba Lagi',
+                            leadingIcon: LucideIcons.rotateCcw,
+                            variant: AppButtonVariant.primary,
+                            height: 48,
+                            onPressed: () {
+                              context.read<WorkScheduleBloc>().add(
+                                    WorkScheduleFetchRequested(
+                                      employeeId: employeeId,
+                                    ),
+                                  );
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          AppButton(
+                            text: 'Kembali',
+                            leadingIcon: LucideIcons.arrowLeft,
+                            variant: AppButtonVariant.outlined,
+                            height: 48,
+                            onPressed: () => context.pop(),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -198,8 +254,7 @@ class _WorkScheduleView extends StatelessWidget {
             );
           }
 
-          // 3. Normal / Success State
-          final displayEmployee = state.data?.employee ?? employeePreview;
+          // 4. Normal / Success State dengan Data Jadwal
           final upcomingList = state.upcomingSchedules;
 
           return RefreshIndicator(
@@ -236,6 +291,12 @@ class _WorkScheduleView extends StatelessWidget {
                   SelectedScheduleCard(
                     selectedDate: state.selectedDate,
                     schedule: state.selectedSchedule,
+                    nextClosestSchedule: state.nextClosestSchedule,
+                    onSelectDate: (date) {
+                      context
+                          .read<WorkScheduleBloc>()
+                          .add(WorkScheduleDateSelected(date));
+                    },
                   ),
                   const SizedBox(height: AppSpacing.xl),
 

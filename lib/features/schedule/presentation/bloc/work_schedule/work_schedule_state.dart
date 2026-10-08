@@ -9,6 +9,7 @@ class WorkScheduleState extends Equatable {
   final DateTime selectedDate;
   final String? employeeId;
   final String? errorMessage;
+  final int? statusCode;
 
   WorkScheduleState({
     this.status = WorkScheduleStatus.initial,
@@ -16,6 +17,7 @@ class WorkScheduleState extends Equatable {
     DateTime? selectedDate,
     this.employeeId,
     this.errorMessage,
+    this.statusCode,
   }) : selectedDate = selectedDate != null
             ? DateTime(
                 selectedDate.year,
@@ -30,6 +32,19 @@ class WorkScheduleState extends Equatable {
 
   bool get isViewingOtherEmployee =>
       employeeId != null && employeeId!.trim().isNotEmpty;
+
+  /// Menandakan resource tidak ditemukan (404 Not Found)
+  bool get isNotFound => statusCode == 404;
+
+  /// Menandakan bahwa pegawai belum memiliki jadwal sama sekali
+  /// (baik karena 404 dari server, data null, atau daftar jadwal kosong)
+  bool get hasNoSchedules {
+    if (status == WorkScheduleStatus.failure && isNotFound) return true;
+    if (status == WorkScheduleStatus.success) {
+      return data == null || data!.workSchedules.isEmpty;
+    }
+    return false;
+  }
 
   /// Jadwal yang cocok tepat dengan tanggal terpilih
   WorkScheduleItem? get selectedSchedule {
@@ -70,19 +85,31 @@ class WorkScheduleState extends Equatable {
     return upcoming;
   }
 
+  /// Jadwal aktif terdekat berikutnya untuk navigasi cerdas
+  WorkScheduleItem? get nextClosestSchedule {
+    final upcoming = upcomingSchedules;
+    if (upcoming.isNotEmpty) {
+      return upcoming.first;
+    }
+    return null;
+  }
+
   WorkScheduleState copyWith({
     WorkScheduleStatus? status,
     WorkScheduleData? data,
     DateTime? selectedDate,
     String? employeeId,
     String? errorMessage,
+    int? statusCode,
+    bool clearStatusDetails = false,
   }) {
     return WorkScheduleState(
       status: status ?? this.status,
       data: data ?? this.data,
       selectedDate: selectedDate ?? this.selectedDate,
       employeeId: employeeId ?? this.employeeId,
-      errorMessage: errorMessage,
+      errorMessage: clearStatusDetails ? null : (errorMessage ?? this.errorMessage),
+      statusCode: clearStatusDetails ? null : (statusCode ?? this.statusCode),
     );
   }
 
@@ -93,5 +120,6 @@ class WorkScheduleState extends Equatable {
         selectedDate,
         employeeId,
         errorMessage,
+        statusCode,
       ];
 }

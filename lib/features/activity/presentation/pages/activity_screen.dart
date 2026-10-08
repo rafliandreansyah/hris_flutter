@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
@@ -598,106 +599,32 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
     }
 
     if (filteredList.isEmpty) {
+      final isFiltered =
+          filterCriteria.hasActiveFilter || searchQuery.isNotEmpty;
       return RefreshIndicator(
         onRefresh: _handleRefresh,
         color: brandColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: brandColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+        child: AppEmptyState(
+          icon: LucideIcons.clipboardList,
+          title: isFiltered
+              ? 'Tidak Ada Aktivitas Ditemukan'
+              : 'Belum Ada Aktivitas Saya',
+          message: isFiltered
+              ? 'Tidak ada aktivitas Anda yang sesuai dengan kata kunci pencarian atau filter yang dipilih.'
+              : 'Catat progres atau laporan pekerjaan harian Anda menggunakan tombol di bawah.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<ActivityListBloc>().add(
+                    const ActivityListSearchChanged(''),
+                  );
+                  context.read<ActivityListBloc>().add(
+                    const ActivityListFilterApplied(
+                      ActivityFilterCriteria(),
                     ),
-                    child: Icon(
-                      LucideIcons.clipboardX,
-                      color: brandColor,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-                        ? 'Tidak Ada Aktivitas Ditemukan'
-                        : 'Belum Ada Aktivitas Saya',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-                        ? 'Tidak ada aktivitas Anda yang sesuai dengan kata kunci pencarian atau filter yang dipilih.'
-                        : 'Catat progres atau laporan pekerjaan harian Anda menggunakan tombol di bawah.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  if (filterCriteria.hasActiveFilter || searchQuery.isNotEmpty)
-                    OutlinedButton(
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<ActivityListBloc>().add(
-                          const ActivityListSearchChanged(''),
-                        );
-                        context.read<ActivityListBloc>().add(
-                          const ActivityListFilterApplied(
-                            ActivityFilterCriteria(),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: brandColor,
-                        side: BorderSide(color: brandColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        alignment: Alignment.center,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.rotateCcw,
-                            size: 14,
-                            color: brandColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Reset Pencarian & Filter',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: brandColor,
-                              fontWeight: FontWeight.w600,
-                              height: 1.0,
-                              leadingDistribution: TextLeadingDistribution.even,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+                  );
+                }
+              : null,
         ),
       );
     }
@@ -784,104 +711,32 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
 
     // 3. Status Kosong (Empty State)
     if (filteredList.isEmpty) {
+      final isFiltered =
+          filterCriteria.hasActiveFilter || searchQuery.isNotEmpty;
       return RefreshIndicator(
         onRefresh: _handleRefresh,
         color: brandColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: brandColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+        child: AppEmptyState(
+          icon: LucideIcons.usersRound,
+          title: isFiltered
+              ? 'Tidak Ada Aktivitas Ditemukan'
+              : 'Belum Ada Aktivitas Pegawai Lain',
+          message: isFiltered
+              ? 'Tidak ada aktivitas pegawai lain yang cocok dengan kata kunci atau kriteria filter.'
+              : 'Saat ini belum ada log aktivitas yang dikirimkan oleh rekan kerja Anda.',
+          onResetFilter: isFiltered
+              ? () {
+                  _searchController.clear();
+                  context.read<ActivityListBloc>().add(
+                    const ActivityListSearchChanged(''),
+                  );
+                  context.read<ActivityListBloc>().add(
+                    const ActivityListFilterApplied(
+                      ActivityFilterCriteria(),
                     ),
-                    child: Icon(LucideIcons.users, color: brandColor, size: 32),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-                        ? 'Tidak Ada Aktivitas Ditemukan'
-                        : 'Belum Ada Aktivitas Pegawai Lain',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    filterCriteria.hasActiveFilter || searchQuery.isNotEmpty
-                        ? 'Tidak ada aktivitas pegawai lain yang cocok dengan kata kunci atau kriteria filter.'
-                        : 'Saat ini belum ada log aktivitas yang dikirimkan oleh rekan kerja Anda.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (filterCriteria.hasActiveFilter ||
-                      searchQuery.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<ActivityListBloc>().add(
-                          const ActivityListSearchChanged(''),
-                        );
-                        context.read<ActivityListBloc>().add(
-                          const ActivityListFilterApplied(
-                            ActivityFilterCriteria(),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: brandColor,
-                        side: BorderSide(color: brandColor),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        alignment: Alignment.center,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.rotateCcw,
-                            size: 14,
-                            color: brandColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Reset Pencarian & Filter',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: brandColor,
-                              fontWeight: FontWeight.w600,
-                              height: 1.0,
-                              leadingDistribution: TextLeadingDistribution.even,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
+                  );
+                }
+              : null,
         ),
       );
     }

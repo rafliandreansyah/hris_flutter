@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
 import 'package:hris_flutter/features/notification/domain/repositories/notification_repository.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_list/notification_list_bloc.dart';
@@ -379,55 +380,26 @@ class _NotificationViewState extends State<_NotificationView> {
                                 const NotificationListRefreshed(),
                               );
                         },
-                        child: ListView(
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.45,
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 36,
-                                        backgroundColor: isDark
-                                            ? AppColors.darkSurfaceContainer
-                                            : const Color(0xFFF1F5F9),
-                                        child: Icon(
-                                          LucideIcons.bellOff,
-                                          size: 36,
-                                          color: labelCol,
+                        child: AppEmptyState(
+                          icon: LucideIcons.bellOff,
+                          title: loadedState.activeFilter ==
+                                  NotificationFilterType.unread
+                              ? 'Tidak Ada Notifikasi Baru'
+                              : 'Belum Ada Notifikasi',
+                          message: loadedState.activeFilter ==
+                                  NotificationFilterType.unread
+                              ? 'Semua notifikasi telah Anda baca.'
+                              : 'Pemberitahuan aktivitas dan pengumuman akan muncul di sini.',
+                          onResetFilter: loadedState.activeFilter !=
+                                  NotificationFilterType.all
+                              ? () {
+                                  context.read<NotificationListBloc>().add(
+                                        const NotificationListFilterChanged(
+                                          NotificationFilterType.all,
                                         ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        loadedState.activeFilter ==
-                                                NotificationFilterType.unread
-                                            ? 'Tidak Ada Notifikasi Baru'
-                                            : 'Belum Ada Notifikasi',
-                                        style: AppTypography.titleMedium.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: textCol,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        loadedState.activeFilter ==
-                                                NotificationFilterType.unread
-                                            ? 'Semua notifikasi telah Anda baca.'
-                                            : 'Pemberitahuan aktivitas dan pengumuman akan muncul di sini.',
-                                        textAlign: TextAlign.center,
-                                        style: AppTypography.bodySmall.copyWith(
-                                          color: labelCol,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                                      );
+                                }
+                              : null,
                         ),
                       )
                     : RefreshIndicator(

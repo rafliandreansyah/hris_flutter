@@ -5,6 +5,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
@@ -457,60 +458,22 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
 
     // Empty State
     if (sortedAssets.isEmpty) {
-      return ListView(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        children: [
-          const SizedBox(height: 60),
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.brandTeal.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                LucideIcons.packageOpen,
-                size: 32,
-                color: AppColors.brandTeal,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'Tidak Ada Fasilitas',
-            textAlign: TextAlign.center,
-            style: AppTypography.titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textCol,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            state.filter.hasActiveFilter
-                ? 'Tidak ada aset yang cocok dengan filter atau kata kunci pencarian.'
-                : 'Belum ada fasilitas kerja yang ditugaskan kepada Anda.',
-            textAlign: TextAlign.center,
-            style: AppTypography.bodySmall.copyWith(
-              color: subtitleCol,
-            ),
-          ),
-          if (state.filter.hasActiveFilter) ...[
-            const SizedBox(height: AppSpacing.md),
-            Center(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _searchController.clear();
-                  context
-                      .read<AssetListBloc>()
-                      .add(const AssetListFilterReset());
-                },
-                icon: const Icon(LucideIcons.rotateCcw, size: 14),
-                label: const Text('Reset Filter'),
-              ),
-            ),
-          ],
-        ],
+      final isFiltered =
+          state.filter.hasActiveFilter || _searchController.text.trim().isNotEmpty;
+      return AppEmptyState(
+        icon: LucideIcons.packageOpen,
+        title: isFiltered ? 'Tidak Ada Fasilitas Ditemukan' : 'Tidak Ada Fasilitas',
+        message: isFiltered
+            ? 'Tidak ada aset yang cocok dengan filter atau kata kunci pencarian.'
+            : 'Belum ada fasilitas kerja yang ditugaskan kepada Anda.',
+        onResetFilter: isFiltered
+            ? () {
+                _searchController.clear();
+                context
+                    .read<AssetListBloc>()
+                    .add(const AssetListFilterReset());
+              }
+            : null,
       );
     }
 
