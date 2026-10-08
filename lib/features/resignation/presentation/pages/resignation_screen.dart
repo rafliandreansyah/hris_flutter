@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/resignation/domain/repositories/resignation_repository.dart';
@@ -439,72 +440,19 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
                       ignoring: !isTeamTab,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: surfaceCol,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: borderCol, width: 1),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.2 : 0.02,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            onTapOutside: (event) =>
-                                FocusManager.instance.primaryFocus?.unfocus(),
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: textCol,
-                              fontSize: 14,
-                            ),
-                            onChanged: (val) {
-                              context.read<ResignationListBloc>().add(
-                                    ResignationListSearchChanged(val),
-                                  );
-                            },
-                            decoration: InputDecoration(
-                              hintText:
-                                  'Cari nama bawahan, NIK, atau posisi...',
-                              hintStyle: AppTypography.bodyMedium.copyWith(
-                                color: subtitleCol,
-                                fontSize: 13.5,
-                              ),
-                              prefixIcon: Icon(
-                                LucideIcons.search,
-                                size: 18,
-                                color: subtitleCol,
-                              ),
-                              suffixIcon: state.searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(
-                                        LucideIcons.x,
-                                        size: 16,
-                                        color: subtitleCol,
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        context
-                                            .read<ResignationListBloc>()
-                                            .add(
-                                              const ResignationListSearchChanged(
-                                                '',
-                                              ),
-                                            );
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
+                        child: AppSearchBar(
+                          controller: _searchController,
+                          hintText: 'Cari nama bawahan, NIK, atau posisi...',
+                          onChanged: (val) {
+                            context.read<ResignationListBloc>().add(
+                                  ResignationListSearchChanged(val),
+                                );
+                          },
+                          onClear: () {
+                            context.read<ResignationListBloc>().add(
+                                  const ResignationListSearchChanged(''),
+                                );
+                          },
                         ),
                       ),
                     ),
@@ -673,120 +621,24 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     required Color borderCol,
     required Color brandCol,
   }) {
-    return Column(
-      children: [
-        // Filter Chips Row: Menunggu (pending), Riwayat (history), Semua (all)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          child: Row(
-            children: [
-              _buildFilterChip(
-                label: 'Menunggu',
-                statusKey: 'pending',
-                currentStatus: state.subordinatesStatusFilter,
-                brandCol: brandCol,
-                surfaceCol: surfaceCol,
-                borderCol: borderCol,
-                textCol: textCol,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                label: 'Riwayat',
-                statusKey: 'history',
-                currentStatus: state.subordinatesStatusFilter,
-                brandCol: brandCol,
-                surfaceCol: surfaceCol,
-                borderCol: borderCol,
-                textCol: textCol,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                label: 'Semua',
-                statusKey: 'all',
-                currentStatus: state.subordinatesStatusFilter,
-                brandCol: brandCol,
-                surfaceCol: surfaceCol,
-                borderCol: borderCol,
-                textCol: textCol,
-                isDark: isDark,
-              ),
-            ],
-          ),
-        ),
-
-        // List Content
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              context.read<ResignationListBloc>().add(
-                    const ResignationListSubordinatesRequested(
-                      isRefresh: true,
-                    ),
-                  );
-              await Future.delayed(const Duration(milliseconds: 300));
-            },
-            child: _buildSubordinatesList(
-              context: context,
-              state: state,
-              isDark: isDark,
-              textCol: textCol,
-              subtitleCol: subtitleCol,
-              surfaceCol: surfaceCol,
-              borderCol: borderCol,
-              brandCol: brandCol,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterChip({
-    required String label,
-    required String statusKey,
-    required String currentStatus,
-    required Color brandCol,
-    required Color surfaceCol,
-    required Color borderCol,
-    required Color textCol,
-    required bool isDark,
-  }) {
-    final isSelected = currentStatus == statusKey;
-
-    return InkWell(
-      onTap: () {
+    return RefreshIndicator(
+      onRefresh: () async {
         context.read<ResignationListBloc>().add(
-              ResignationListSubordinatesRequested(
-                statusFilter: statusKey,
+              const ResignationListSubordinatesRequested(
+                isRefresh: true,
               ),
             );
+        await Future.delayed(const Duration(milliseconds: 300));
       },
-      borderRadius: BorderRadius.circular(100),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? const Color(0xFF134E4A) : const Color(0xFFCCFBF1))
-              : surfaceCol,
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(
-            color: isSelected ? brandCol : borderCol,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected
-                ? (isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E))
-                : textCol,
-          ),
-        ),
+      child: _buildSubordinatesList(
+        context: context,
+        state: state,
+        isDark: isDark,
+        textCol: textCol,
+        subtitleCol: subtitleCol,
+        surfaceCol: surfaceCol,
+        borderCol: borderCol,
+        brandCol: brandCol,
       ),
     );
   }

@@ -488,6 +488,13 @@ void main() {
     expect(find.text('Batal'), findsOneWidget);
     expect(find.text('Keluar'), findsOneWidget);
 
+    // Verify cannot be dismissed by tapping outside (barrier)
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('Konfirmasi Logout'), findsOneWidget);
+
     // Tap Keluar
     await tester.tap(find.text('Keluar'));
     await tester.pump();
@@ -496,4 +503,113 @@ void main() {
     expect(logoutResult, isTrue);
     expect(find.text('Konfirmasi Logout'), findsNothing);
   });
+
+  testWidgets(
+    'showError with barrierDismissible: false cannot be dismissed by tapping outside',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    AppDialogUtil.showError(
+                      context,
+                      title: 'Error Penting',
+                      message: 'Dialog ini tidak dapat ditutup dari luar.',
+                      barrierDismissible: false,
+                      canPop: false,
+                    );
+                  },
+                  child: const Text('Show Error'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Error'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Error Penting'), findsOneWidget);
+
+      // Tap outside
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Dialog must remain open
+      expect(find.text('Error Penting'), findsOneWidget);
+
+      // Tap Tutup to close
+      await tester.tap(find.text('Tutup'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Error Penting'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'showForcedLogoutDialog renders, cannot be dismissed outside, and executes onLogin',
+    (tester) async {
+      bool loginCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    AppDialogUtil.showForcedLogoutDialog(
+                      context,
+                      title: 'Sesi Berakhir',
+                      message: 'Silakan masuk kembali untuk melanjutkan.',
+                      buttonText: 'Login Kembali',
+                      onLogin: () {
+                        loginCalled = true;
+                      },
+                    );
+                  },
+                  child: const Text('Show Forced Logout'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show Forced Logout'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Sesi Berakhir'), findsOneWidget);
+      expect(
+        find.text('Silakan masuk kembali untuk melanjutkan.'),
+        findsOneWidget,
+      );
+      expect(find.text('Login Kembali'), findsOneWidget);
+
+      // Tap outside barrier
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Must still be visible
+      expect(find.text('Sesi Berakhir'), findsOneWidget);
+      expect(loginCalled, isFalse);
+
+      // Tap Login Kembali button
+      await tester.tap(find.text('Login Kembali'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(loginCalled, isTrue);
+      expect(find.text('Sesi Berakhir'), findsNothing);
+    },
+  );
 }

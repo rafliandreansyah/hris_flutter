@@ -5,6 +5,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
@@ -39,7 +40,6 @@ class _EmployeeScheduleSelectViewState
     extends State<_EmployeeScheduleSelectView> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  String _searchQuery = '';
 
   @override
   void initState() {
@@ -69,9 +69,6 @@ class _EmployeeScheduleSelectViewState
   }
 
   void _onSearchChanged(String query) {
-    setState(() {
-      _searchQuery = query;
-    });
     context.read<EmployeeListBloc>().add(EmployeeListSearchChanged(query));
   }
 
@@ -103,19 +100,16 @@ class _EmployeeScheduleSelectViewState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol =
         isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
-    final surfaceCol = isDark ? AppColors.darkSurface : Colors.white;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol =
         isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
     return Scaffold(
       backgroundColor: bgCol,
       appBar: AppBar(
-        backgroundColor: surfaceCol,
+        backgroundColor: bgCol.withValues(alpha: 0.95),
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 1.5,
         shadowColor: Colors.black.withValues(alpha: 0.05),
         leading: IconButton(
           icon: Icon(
@@ -147,56 +141,12 @@ class _EmployeeScheduleSelectViewState
       ),
       body: Column(
         children: [
-          // Search Box Container
-          Container(
-            color: surfaceCol,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurfaceContainer
-                    : AppColors.backgroundSubtle,
-                borderRadius: BorderRadius.circular(AppRadius.input),
-                border: Border.all(color: borderCol, width: 1),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onTapOutside: (_) =>
-                    FocusManager.instance.primaryFocus?.unfocus(),
-                onChanged: _onSearchChanged,
-                style: AppTypography.bodyMedium.copyWith(color: textCol),
-                decoration: InputDecoration(
-                  hintText: 'Cari nama, jabatan, atau departemen...',
-                  hintStyle: AppTypography.bodySmall.copyWith(
-                    color: subtitleCol,
-                  ),
-                  prefixIcon: Icon(
-                    LucideIcons.search,
-                    size: 18,
-                    color: subtitleCol,
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            LucideIcons.x,
-                            size: 16,
-                            color: subtitleCol,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ),
+          const SizedBox(height: 12),
+          AppSearchBar(
+            controller: _searchController,
+            hintText: 'Cari nama, jabatan, atau departemen...',
+            onChanged: _onSearchChanged,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           ),
 
           // Employee List Content

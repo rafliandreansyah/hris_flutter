@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,7 +45,8 @@ class LocationTrackingService {
   }
 
   @visibleForTesting
-  static bool enableNativeStream = true;
+  static bool enableNativeStream =
+      !kIsWeb && !Platform.environment.containsKey('FLUTTER_TEST');
 
   LocationTrackingService._internal({
     LocationService? locationService,
@@ -95,7 +97,7 @@ class LocationTrackingService {
 
   Position? _lastRecordedPosition;
   DateTime? _lastRecordedTime;
-  bool _isFlushing = false;
+  Future<void>? _activeFlushFuture;
 
   /// Memulai pemantauan presensi harian setelah Clock-In berhasil
   void startAttendanceTracking({
@@ -164,6 +166,43 @@ class LocationTrackingService {
     _startLocationUpdates();
     _startGpsStatusListener();
     _startPeriodicFlush();
+
+    // Segera ambil dan kirim koordinat awal tanpa menunggu interval stream pasif
+    unawaited(_recordInitialPosition());
+  }
+
+  /// Mengambil dan merekam titik lokasi awal secara instan begitu sesi presensi/aktivitas dimulai
+  Future<void> _recordInitialPosition({bool bypassNativeCheck = false}) async {
+    if ((!enableNativeStream && !bypassNativeCheck) ||
+        !_isServicesBindingInitialized) {
+      return;
+    }
+
+    try {
+      final currentReferenceId = _state == TrackingState.onActivity
+          ? _activeActivityId
+          : _activeAttendanceId;
+
+      if (currentReferenceId == null || currentReferenceId.isEmpty) {
+        return;
+      }
+
+      final isActivity = _state == TrackingState.onActivity;
+      final position = await _locationService.getCurrentPosition(
+            accuracy:
+                isActivity ? LocationAccuracy.high : LocationAccuracy.medium,
+            timeLimit: const Duration(seconds: 10),
+          ) ??
+          _lastRecordedPosition ??
+          await _locationService.getLastKnownPosition();
+
+      if (position != null && _state != TrackingState.idle) {
+        await _onPositionReceived(position, force: true);
+      }
+    } catch (e) {
+      debugPrint(
+          'ℹ️ [LocationTrackingService._recordInitialPosition] Gagal mengambil koordinat awal: $e');
+    }
   }
 
   void _cancelSubscriptions() {
@@ -241,19 +280,21 @@ class LocationTrackingService {
   }
 
   /// Handler setiap kali sensor GPS mendeteksi titik koordinat baru
-  Future<void> _onPositionReceived(Position position) async {
+  Future<void> _onPositionReceived(Position position, {bool force = false}) async {
     if (_state == TrackingState.idle) return;
 
-    // Evaluasi sensor throttling saat karyawan diam di meja kerja
-    final throttled = _locationService.shouldThrottle(
-      current: position,
-      previous: _lastRecordedPosition,
-      previousTime: _lastRecordedTime,
-    );
+    // Evaluasi sensor throttling saat karyawan diam di meja kerja (dilewati jika force: true)
+    if (!force) {
+      final throttled = _locationService.shouldThrottle(
+        current: position,
+        previous: _lastRecordedPosition,
+        previousTime: _lastRecordedTime,
+      );
 
-    if (throttled) {
-      debugPrint('ℹ️ [LocationTrackingService] Titik di-throttle (karyawan diam).');
-      return;
+      if (throttled) {
+        debugPrint('ℹ️ [LocationTrackingService] Titik di-throttle (karyawan diam).');
+        return;
+      }
     }
 
     final currentSourceType =
@@ -298,7 +339,7 @@ class LocationTrackingService {
     unawaited(flushPendingQueue());
   }
 
-  /// Listener jika pengguna mematikan switch GPS (Location Services) di ponsel
+  /// Listener jika pengguna mematikan atau menyalakan switch GPS (Location Services) di ponsel
   void _startGpsStatusListener() {
     _serviceStatusSubscription?.cancel();
     _serviceStatusSubscription = null;
@@ -310,67 +351,120 @@ class LocationTrackingService {
     try {
       _serviceStatusSubscription =
           Geolocator.getServiceStatusStream().listen((ServiceStatus status) async {
-        if (_state == TrackingState.idle) return;
-
-        if (status == ServiceStatus.disabled) {
-          debugPrint('⚠️ [LocationTrackingService] Sensor GPS dimatikan oleh pengguna!');
-
-          final currentSourceType =
-              _state == TrackingState.onActivity ? 'activity' : 'attendance';
-          final currentReferenceId = _state == TrackingState.onActivity
-              ? _activeActivityId
-              : _activeAttendanceId;
-
-          if (currentReferenceId == null) return;
-
-          final lastPos = _lastRecordedPosition ??
-              await _locationService.getLastKnownPosition();
-          final battery = await _locationService.getBatteryLevel();
-
-          final point = TrackingLocationPoint(
-            id: 'gps_off_${DateTime.now().millisecondsSinceEpoch}',
-            latitude: lastPos?.latitude ?? 0.0,
-            longitude: lastPos?.longitude ?? 0.0,
-            accuracy: lastPos?.accuracy,
-            speed: 0.0,
-            heading: lastPos?.heading,
-            altitude: lastPos?.altitude,
-            batteryLevel: battery,
-            isMock: false,
-            isGpsOff: true,
-            recordedAt: DateTime.now(),
-          );
-
-          await _localStorage.enqueuePoint(
-            point: point,
-            sourceType: currentSourceType,
-            referenceId: currentReferenceId,
-          );
-
-          unawaited(flushPendingQueue());
-        }
+        await handleGpsStatusChange(status);
       });
     } catch (e) {
       debugPrint('⚠️ [LocationTrackingService.getServiceStatusStream] $e');
     }
   }
 
+  /// Memproses perubahan status GPS (disabled / enabled)
+  @visibleForTesting
+  Future<void> handleGpsStatusChange(ServiceStatus status) async {
+    if (_state == TrackingState.idle) return;
+
+    final currentSourceType =
+        _state == TrackingState.onActivity ? 'activity' : 'attendance';
+    final currentReferenceId = _state == TrackingState.onActivity
+        ? _activeActivityId
+        : _activeAttendanceId;
+
+    if (currentReferenceId == null || currentReferenceId.isEmpty) return;
+
+    if (status == ServiceStatus.disabled) {
+      debugPrint('⚠️ [LocationTrackingService] Sensor GPS dimatikan oleh pengguna!');
+
+      final lastPos = _lastRecordedPosition ??
+          await _locationService.getLastKnownPosition();
+      final battery = await _locationService.getBatteryLevel();
+
+      final point = TrackingLocationPoint(
+        id: 'gps_off_${DateTime.now().millisecondsSinceEpoch}',
+        latitude: lastPos?.latitude ?? 0.0,
+        longitude: lastPos?.longitude ?? 0.0,
+        accuracy: lastPos?.accuracy,
+        speed: 0.0,
+        heading: lastPos?.heading,
+        altitude: lastPos?.altitude,
+        batteryLevel: battery,
+        isMock: false,
+        isGpsOff: true,
+        recordedAt: DateTime.now(),
+      );
+
+      await _localStorage.enqueuePoint(
+        point: point,
+        sourceType: currentSourceType,
+        referenceId: currentReferenceId,
+      );
+
+      unawaited(flushPendingQueue());
+    } else if (status == ServiceStatus.enabled) {
+      debugPrint('✅ [LocationTrackingService] Sensor GPS dinyalakan kembali oleh pengguna!');
+
+      // 1. Re-initialize stream lokasi agar aktif kembali setelah sebelumnya terputus
+      _startLocationUpdates();
+
+      // 2. Ambil lokasi terbaru segera setelah GPS aktif
+      final currentPos = await _locationService.getCurrentPosition(
+            timeLimit: const Duration(seconds: 10),
+          ) ??
+          _lastRecordedPosition ??
+          await _locationService.getLastKnownPosition();
+      final battery = await _locationService.getBatteryLevel();
+
+      final point = TrackingLocationPoint(
+        id: 'gps_on_${DateTime.now().millisecondsSinceEpoch}',
+        latitude: currentPos?.latitude ?? _lastRecordedPosition?.latitude ?? 0.0,
+        longitude: currentPos?.longitude ?? _lastRecordedPosition?.longitude ?? 0.0,
+        accuracy: currentPos?.accuracy ?? _lastRecordedPosition?.accuracy,
+        speed: currentPos?.speed ?? 0.0,
+        heading: currentPos?.heading,
+        altitude: currentPos?.altitude,
+        batteryLevel: battery,
+        isMock: currentPos != null ? _locationService.isMockLocation(currentPos) : false,
+        isGpsOff: false,
+        recordedAt: DateTime.now(),
+      );
+
+      if (currentPos != null) {
+        _lastRecordedPosition = currentPos;
+        _lastRecordedTime = DateTime.now();
+      }
+
+      await _localStorage.enqueuePoint(
+        point: point,
+        sourceType: currentSourceType,
+        referenceId: currentReferenceId,
+      );
+
+      unawaited(flushPendingQueue());
+    }
+  }
+
   void _startPeriodicFlush() {
     _flushTimer?.cancel();
+    _flushTimer = null;
+    if (!enableNativeStream) return;
     _flushTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       flushPendingQueue();
     });
   }
 
   /// Mengunggah kumpulan titik dari antrean lokal ke API POST /tracking/batch
-  Future<void> flushPendingQueue() async {
-    if (_isFlushing) return;
-    _isFlushing = true;
+  Future<void> flushPendingQueue() {
+    if (_activeFlushFuture != null) {
+      return _activeFlushFuture!;
+    }
+    final future = _performFlush();
+    _activeFlushFuture = future;
+    return future;
+  }
 
+  Future<void> _performFlush() async {
     try {
       final batches = await _localStorage.getBatchesForUpload(limit: 50);
       if (batches.isEmpty) {
-        _isFlushing = false;
         return;
       }
 
@@ -398,7 +492,7 @@ class LocationTrackingService {
         }
       }
     } finally {
-      _isFlushing = false;
+      _activeFlushFuture = null;
     }
   }
 
@@ -463,4 +557,14 @@ class LocationTrackingService {
     _activeActivityId = activityId;
     _activeActivityTitle = activityTitle;
   }
+
+  /// Helper pengujian untuk memicu pengambilan koordinat awal
+  @visibleForTesting
+  Future<void> recordInitialPositionForTest() =>
+      _recordInitialPosition(bypassNativeCheck: true);
+
+  /// Helper pengujian untuk menyuntikkan titik koordinat
+  @visibleForTesting
+  Future<void> onPositionReceivedForTest(Position position, {bool force = false}) =>
+      _onPositionReceived(position, force: force);
 }

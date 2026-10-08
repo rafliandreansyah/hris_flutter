@@ -156,6 +156,10 @@ class _DashboardViewState extends State<_DashboardView> {
         ? AppColors.darkOutlineMuted
         : AppColors.outlineMuted;
 
+    final surfaceCol = isDark
+        ? AppColors.darkSurfaceContainer
+        : AppColors.surfaceContainerLowest;
+
     return Scaffold(
       backgroundColor: bgCol,
       appBar: AppBar(
@@ -221,70 +225,151 @@ class _DashboardViewState extends State<_DashboardView> {
           },
         ),
         actions: [
-          // Tombol Jadwal Kerja Diri Sendiri
-          IconButton(
-            key: const ValueKey('dashboard_work_schedule_btn'),
-            tooltip: 'Jadwal Kerja Saya',
-            onPressed: () {
-              context.push(Routes.WORK_SCHEDULE);
-            },
-            icon: Icon(LucideIcons.calendarClock, size: 22, color: textCol),
+          // Tombol Jadwal Kerja Diri Sendiri (Squircle Glassmorphic Container)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: surfaceCol,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: borderCol.withValues(alpha: isDark ? 0.6 : 0.8),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: isDark ? 0.2 : 0.03,
+                    ),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1.5),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                key: const ValueKey('dashboard_work_schedule_btn'),
+                tooltip: 'Jadwal Kerja Saya',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  context.push(Routes.WORK_SCHEDULE);
+                },
+                icon: Icon(
+                  LucideIcons.calendarClock,
+                  size: 20,
+                  color: textCol,
+                ),
+              ),
+            ),
           ),
 
           // Notification Button with Unread Badge
-          BlocBuilder<NotificationCountBloc, NotificationCountState>(
-            builder: (context, countState) {
-              final unreadCount = countState.count;
-              return Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    key: const ValueKey('dashboard_notification_btn'),
-                    onPressed: () async {
-                      await context.push(Routes.NOTIFICATIONS);
-                      if (context.mounted) {
-                        context.read<NotificationCountBloc>().add(
-                          const NotificationCountFetchRequested(),
-                        );
-                      }
-                    },
-                    icon: Icon(LucideIcons.bell, size: 22, color: textCol),
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: BlocBuilder<NotificationCountBloc, NotificationCountState>(
+              builder: (context, countState) {
+                final unreadCount = countState.count;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: surfaceCol,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: borderCol.withValues(
+                            alpha: isDark ? 0.6 : 0.8,
+                          ),
+                          width: 1,
                         ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.2 : 0.03,
+                            ),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1.5),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        key: const ValueKey('dashboard_notification_btn'),
+                        tooltip: 'Notifikasi',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () async {
+                          await context.push(Routes.NOTIFICATIONS);
+                          if (context.mounted) {
+                            context.read<NotificationCountBloc>().add(
+                                  const NotificationCountFetchRequested(),
+                                );
+                          }
+                        },
+                        icon: Icon(
+                          LucideIcons.bell,
+                          size: 20,
+                          color: textCol,
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.errorRed,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: bgCol, width: 1.5),
-                        ),
-                        child: Center(
-                          child: Text(
-                            unreadCount > 99 ? '99+' : unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              height: 1,
+                      ),
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: -3,
+                        right: -3,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 1.5,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBackground
+                                  : Colors.white,
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFDC2626).withValues(
+                                  alpha: 0.35,
+                                ),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1.5),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                height: 1,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
 
           // User Profile Avatar (Tapping navigates to Employee Detail)
@@ -304,12 +389,12 @@ class _DashboardViewState extends State<_DashboardView> {
                   context.push(Routes.EMPLOYEE_DETAIL);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 16, left: 4),
+                  padding: const EdgeInsets.only(right: 16, left: 2),
                   child: AppAvatar(
                     imageUrl: photoUrl,
                     name: name ?? 'User',
                     initials: initials,
-                    size: 36,
+                    size: 38,
                     showBorder: true,
                     borderColor: AppColors.brandTeal,
                     borderWidth: 1.5,
@@ -324,12 +409,12 @@ class _DashboardViewState extends State<_DashboardView> {
         child: BlocConsumer<DashboardBloc, DashboardState>(
           listener: (context, state) {
             if (state is DashboardDeviceMismatch) {
-              AppDialogUtil.showError(
+              AppDialogUtil.showForcedLogoutDialog(
                 context,
                 title: 'Perangkat Tidak Sesuai',
                 message: state.message,
-                closeText: 'Kembali ke Login',
-                onClose: () {
+                buttonText: 'Kembali ke Login',
+                onLogin: () {
                   context.go(Routes.LOGIN);
                 },
               );

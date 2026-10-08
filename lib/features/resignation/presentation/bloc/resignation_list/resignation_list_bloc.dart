@@ -69,8 +69,21 @@ class ResignationListBloc
     ResignationListSubordinatesRequested event,
     Emitter<ResignationListState> emit,
   ) async {
-    final statusFilter =
-        event.statusFilter ?? state.subordinatesStatusFilter;
+    String statusFilter;
+    if (event.statusFilter != null) {
+      statusFilter = event.statusFilter!;
+    } else {
+      final fStatus = state.filterData.status.toLowerCase().trim();
+      if (fStatus == 'requested' || fStatus == 'pending') {
+        statusFilter = 'pending';
+      } else if (fStatus == 'approved' || fStatus == 'rejected') {
+        statusFilter = 'history';
+      } else if (fStatus.isEmpty || fStatus == 'all' || fStatus == 'semua') {
+        statusFilter = 'all';
+      } else {
+        statusFilter = fStatus;
+      }
+    }
 
     emit(state.copyWith(
       isSubordinatesLoading: true,

@@ -102,6 +102,7 @@ class AppDialogUtil {
     IconData? icon,
     bool isLoading = false,
     String? semanticLabel,
+    bool canPop = true,
   }) {
     final effectiveColor =
         color ?? (isPrimary ? AppColors.errorRed : AppColors.brandTeal);
@@ -190,6 +191,13 @@ class AppDialogUtil {
       ),
     );
 
+    final wrappedCustomWidget = canPop
+        ? customWidget
+        : PopScope(
+            canPop: false,
+            child: customWidget,
+          );
+
     return DialogButton(
       text: text,
       onPressed: onPressed,
@@ -199,7 +207,7 @@ class AppDialogUtil {
       icon: icon,
       isLoading: isLoading,
       semanticLabel: semanticLabel,
-      customWidget: customWidget,
+      customWidget: wrappedCustomWidget,
     );
   }
 
@@ -214,6 +222,8 @@ class AppDialogUtil {
     VoidCallback? onClose,
     Axis? buttonsAxis,
     ProDialogTheme? theme,
+    bool barrierDismissible = true,
+    bool canPop = true,
   }) {
     final effectiveButtonsAxis = buttonsAxis ??
         (onRetry != null &&
@@ -229,6 +239,8 @@ class AppDialogUtil {
       title: title,
       description: message,
       buttonsAxis: effectiveButtonsAxis,
+      barrierDismissible: barrierDismissible,
+      showCloseButton: false,
       theme: theme,
       buttons: [
         if (onRetry != null)
@@ -236,6 +248,7 @@ class AppDialogUtil {
             text: retryText,
             isPrimary: true,
             color: AppColors.errorRed,
+            canPop: canPop,
             onPressed: () {
               Navigator.of(context).pop();
               onRetry();
@@ -248,6 +261,7 @@ class AppDialogUtil {
           style: onRetry != null
               ? DialogButtonStyle.outlined
               : DialogButtonStyle.filled,
+          canPop: canPop,
           onPressed: () {
             Navigator.of(context).pop();
             onClose?.call();
@@ -265,18 +279,23 @@ class AppDialogUtil {
     String buttonText = 'OK',
     VoidCallback? onOk,
     ProDialogTheme? theme,
+    bool barrierDismissible = true,
+    bool canPop = true,
   }) {
     return showProDialog<T>(
       context,
       type: DialogType.success,
       title: title,
       description: message,
+      barrierDismissible: barrierDismissible,
+      showCloseButton: false,
       theme: theme,
       buttons: [
         _createSafeDialogButton(
           text: buttonText,
           isPrimary: true,
           color: AppColors.brandTeal,
+          canPop: canPop,
           onPressed: () {
             Navigator.of(context).pop();
             onOk?.call();
@@ -297,6 +316,8 @@ class AppDialogUtil {
     VoidCallback? onCancel,
     Axis? buttonsAxis,
     ProDialogTheme? theme,
+    bool barrierDismissible = true,
+    bool canPop = true,
   }) {
     final effectiveAxis = buttonsAxis ??
         ((confirmText.length > 12 ||
@@ -311,6 +332,8 @@ class AppDialogUtil {
       title: title,
       description: message,
       buttonsAxis: effectiveAxis,
+      barrierDismissible: barrierDismissible,
+      showCloseButton: false,
       theme: theme,
       buttons: [
         if (onConfirm != null || T == bool)
@@ -318,6 +341,7 @@ class AppDialogUtil {
             text: confirmText,
             isPrimary: true,
             color: AppColors.warning,
+            canPop: canPop,
             onPressed: () {
               if (T == bool) {
                 Navigator.of(context).pop(true as T);
@@ -331,6 +355,7 @@ class AppDialogUtil {
           text: cancelText,
           style: DialogButtonStyle.outlined,
           color: AppColors.warning,
+          canPop: canPop,
           onPressed: () {
             if (T == bool) {
               Navigator.of(context).pop(false as T);
@@ -366,6 +391,7 @@ class AppDialogUtil {
     Axis? buttonsAxis,
     ProDialogTheme? theme,
     bool barrierDismissible = true,
+    bool canPop = true,
   }) async {
     final effectiveColor = confirmButtonColor ??
         (isDestructive ? AppColors.errorRed : AppColors.brandTeal);
@@ -433,6 +459,7 @@ class AppDialogUtil {
           textColor: isDark ? AppColors.darkOnSurface : AppColors.onSurface,
           borderColor:
               isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted,
+          canPop: canPop,
           onPressed: () {
             Navigator.of(context).pop(false);
             onCancel?.call();
@@ -443,6 +470,7 @@ class AppDialogUtil {
           isPrimary: true,
           color: effectiveColor,
           icon: confirmIcon,
+          canPop: canPop,
           onPressed: () {
             Navigator.of(context).pop(true);
             onConfirm?.call();
@@ -455,6 +483,10 @@ class AppDialogUtil {
   }
 
   /// Menampilkan dialog konfirmasi Logout terstandarisasi menggunakan package `pro_dialog`.
+  ///
+  /// Secara default, dialog ini dikunci ([barrierDismissible: false] dan [canPop: false])
+  /// agar pengguna tidak dapat menutup dialog secara tidak sengaja melalui ketukan di luar
+  /// ataupun tombol/gestur back, melainkan harus secara sadar menekan tombol "Batal" atau "Keluar".
   static Future<bool> showLogoutDialog(
     BuildContext context, {
     String? title,
@@ -464,6 +496,8 @@ class AppDialogUtil {
     VoidCallback? onConfirm,
     VoidCallback? onCancel,
     ProDialogTheme? theme,
+    bool barrierDismissible = false,
+    bool canPop = false,
   }) {
     return showConfirmation(
       context,
@@ -478,6 +512,34 @@ class AppDialogUtil {
       isDestructive: true,
       onConfirm: onConfirm,
       onCancel: onCancel,
+      theme: theme,
+      barrierDismissible: barrierDismissible,
+      canPop: canPop,
+    );
+  }
+
+  /// Menampilkan dialog forced logout / sesi berakhir yang tidak dapat ditutup
+  /// melalui ketukan di luar dialog maupun gestur back ([barrierDismissible: false] & [canPop: false]).
+  ///
+  /// Digunakan ketika sesi login berakhir (HTTP 401) atau terjadi ketidakcocokan perangkat fisik (Device Mismatch).
+  /// Memaksa pengguna untuk menekan tombol aksi (misal "Login Kembali" / "Kembali ke Login")
+  /// guna mengarahkan alur aplikasi secara bersih ke halaman Login tanpa meninggalkan invalid state.
+  static Future<void> showForcedLogoutDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    String buttonText = 'Login Kembali',
+    required VoidCallback onLogin,
+    ProDialogTheme? theme,
+  }) {
+    return showError<void>(
+      context,
+      title: title,
+      message: message,
+      closeText: buttonText,
+      barrierDismissible: false,
+      canPop: false,
+      onClose: onLogin,
       theme: theme,
     );
   }

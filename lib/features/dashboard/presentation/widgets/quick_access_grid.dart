@@ -59,7 +59,7 @@ class QuickAccessGrid extends StatelessWidget {
     (
       code: 'mobile_schedule',
       title: 'Jadwal Kerja',
-      icon: LucideIcons.calendarDays,
+      icon: LucideIcons.calendarClock,
     ),
     (
       code: 'mobile_reimbursement',
@@ -68,7 +68,7 @@ class QuickAccessGrid extends StatelessWidget {
     ),
     (
       code: 'mobile_asset',
-      title: 'Fasilitas',
+      title: 'Asset',
       icon: LucideIcons.packageCheck,
     ),
     (

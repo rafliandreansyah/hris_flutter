@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/create_activity/create_activity_event.dart';
@@ -55,6 +56,13 @@ class CreateActivityBloc
         file: event.file,
       );
       final activityItem = response.toActivityItem(isMyActivity: true);
+
+      // Eskalasi ke pelacakan dinas lapangan secara instan begitu aktivitas berhasil dibuat
+      LocationTrackingService.instance.elevateToActivityTracking(
+        activityId: activityItem.id,
+        activityTitle: activityItem.title,
+      );
+
       emit(state.copyWith(
         status: CreateActivityStatus.success,
         createdActivity: activityItem,

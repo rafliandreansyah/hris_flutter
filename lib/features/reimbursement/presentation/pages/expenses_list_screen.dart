@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
@@ -544,61 +545,16 @@ class _ExpensesListViewState extends State<_ExpensesListView>
     bool isDark,
     Color brandColor,
   ) {
-    final borderCol = isDark
-        ? AppColors.darkOutlineMuted
-        : AppColors.outlineMuted;
-    final bgCol = isDark
-        ? AppColors.darkSurfaceContainer
-        : AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final hintCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkSurfaceContainerLowest
-            : AppColors.surfaceContainerLowest,
-        border: Border(bottom: BorderSide(color: borderCol, width: 1)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         children: [
           // Search Input
-          Container(
-            height: 42,
-            decoration: BoxDecoration(
-              color: bgCol,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderCol),
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              onTapOutside: (_) =>
-                  FocusManager.instance.primaryFocus?.unfocus(),
-              style: TextStyle(color: textCol, fontSize: 13.5),
-              decoration: InputDecoration(
-                hintText: 'Cari nomor klaim, keperluan, atau staf...',
-                hintStyle: TextStyle(color: hintCol, fontSize: 13),
-                prefixIcon: Icon(LucideIcons.search, size: 18, color: hintCol),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(LucideIcons.x, size: 16, color: hintCol),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 11,
-                ),
-              ),
-            ),
+          AppSearchBar(
+            controller: _searchController,
+            hintText: 'Cari nomor klaim, keperluan, atau staf...',
+            onChanged: _onSearchChanged,
+            margin: EdgeInsets.zero,
           ),
           const SizedBox(height: 10),
 

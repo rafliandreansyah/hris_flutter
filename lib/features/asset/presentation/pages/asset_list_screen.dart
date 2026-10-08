@@ -5,6 +5,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
 import 'package:hris_flutter/features/asset/domain/repositories/asset_repository.dart';
@@ -123,8 +124,6 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol =
         isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
     final primaryCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return BlocConsumer<AssetListBloc, AssetListState>(
@@ -150,8 +149,10 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
         return Scaffold(
           backgroundColor: bgCol,
           appBar: AppBar(
-            backgroundColor: surfaceCol,
+            backgroundColor: bgCol.withValues(alpha: 0.95),
             elevation: 0,
+            scrolledUnderElevation: 1.5,
+            shadowColor: Colors.black.withValues(alpha: 0.05),
             leading: IconButton(
               icon: Icon(
                 LucideIcons.arrowLeft,
@@ -165,7 +166,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Fasilitas Saya',
+                  'Asset Saya',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: textCol,
@@ -211,126 +212,64 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
               ),
               const SizedBox(width: AppSpacing.xs),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Container(
-                color: borderCol,
-                height: 1,
-              ),
-            ),
           ),
           body: Column(
             children: [
-              // 1. Search Bar & Active Filter Chips
-              Container(
-                color: surfaceCol,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  AppSpacing.sm,
-                ),
-                child: Column(
-                  children: [
-                    // Search Bar
-                    Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkBackgroundSubtle
-                            : AppColors.backgroundSubtle,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: borderCol),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (val) {
-                          context
-                              .read<AssetListBloc>()
-                              .add(AssetListSearchChanged(val));
-                        },
-                        onTapOutside: (_) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        style: AppTypography.bodyMedium.copyWith(color: textCol),
-                        decoration: InputDecoration(
-                          hintText: 'Cari nama aset, kode, atau kategori...',
-                          hintStyle: AppTypography.bodyMedium.copyWith(
-                            color: subtitleCol.withValues(alpha: 0.7),
-                            fontSize: 13,
-                          ),
-                          prefixIcon: Icon(
-                            LucideIcons.search,
-                            size: 18,
-                            color: primaryCol,
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(
-                                    LucideIcons.circleX,
-                                    size: 16,
-                                  ),
-                                  color: subtitleCol,
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    context
-                                        .read<AssetListBloc>()
-                                        .add(const AssetListSearchChanged(''));
-                                  },
-                                )
-                              : null,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Active Filter Chip Row (Horizontal Scroll)
-                    if (state.filter.status != 'all' ||
-                        state.filter.categoryId != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      SizedBox(
-                        height: 32,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            if (state.filter.status != 'all')
-                              _buildActiveFilterChip(
-                                label:
-                                    'Status: ${_getStatusDisplay(state.filter.status)}',
-                                onRemove: () {
-                                  context.read<AssetListBloc>().add(
-                                        AssetListFilterApplied(
-                                          state.filter.copyWith(status: 'all'),
-                                        ),
-                                      );
-                                },
-                              ),
-                            if (state.filter.categoryId != null) ...[
-                              const SizedBox(width: 6),
-                              _buildActiveFilterChip(
-                                label:
-                                    'Kategori: ${state.filter.categoryName ?? "Kategori"}',
-                                onRemove: () {
-                                  context.read<AssetListBloc>().add(
-                                        AssetListFilterApplied(
-                                          state.filter.copyWith(
-                                            clearCategory: true,
-                                          ),
-                                        ),
-                                      );
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+              const SizedBox(height: 12),
+              AppSearchBar(
+                controller: _searchController,
+                hintText: 'Cari nama aset, kode, atau kategori...',
+                onChanged: (val) {
+                  context
+                      .read<AssetListBloc>()
+                      .add(AssetListSearchChanged(val));
+                },
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               ),
+
+              // Active Filter Chip Row (Horizontal Scroll)
+              if (state.filter.status != 'all' ||
+                  state.filter.categoryId != null) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SizedBox(
+                    height: 32,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        if (state.filter.status != 'all')
+                          _buildActiveFilterChip(
+                            label:
+                                'Status: ${_getStatusDisplay(state.filter.status)}',
+                            onRemove: () {
+                              context.read<AssetListBloc>().add(
+                                    AssetListFilterApplied(
+                                      state.filter.copyWith(status: 'all'),
+                                    ),
+                                  );
+                            },
+                          ),
+                        if (state.filter.categoryId != null) ...[
+                          const SizedBox(width: 6),
+                          _buildActiveFilterChip(
+                            label:
+                                'Kategori: ${state.filter.categoryName ?? "Kategori"}',
+                            onRemove: () {
+                              context.read<AssetListBloc>().add(
+                                    AssetListFilterApplied(
+                                      state.filter.copyWith(
+                                        clearCategory: true,
+                                      ),
+                                    ),
+                                  );
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
 
               // 2. Summary & Result Count Row
               Padding(

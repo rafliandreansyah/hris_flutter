@@ -81,13 +81,13 @@ class ApiClient {
       final isAlreadyOnLogin = currentPath == Routes.LOGIN;
 
       if (!isAlreadyOnLogin && context != null && context.mounted) {
-        AppDialogUtil.showError(
+        AppDialogUtil.showForcedLogoutDialog(
           context,
           title: 'Sesi Berakhir',
           message:
               'Sesi login Anda telah berakhir atau tidak valid (401). Silakan masuk kembali.',
-          closeText: 'Login Kembali',
-          onClose: () {
+          buttonText: 'Login Kembali',
+          onLogin: () {
             AppRouter.router.go(Routes.LOGIN);
           },
         );

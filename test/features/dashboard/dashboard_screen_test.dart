@@ -570,6 +570,13 @@ void main() {
       expect(find.text('Perangkat Tidak Sesuai'), findsOneWidget);
       expect(find.text('Kembali ke Login'), findsOneWidget);
       expect(authRepo.logoutCalled, isTrue);
+
+      // Verify cannot be dismissed by tapping outside
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.text('Perangkat Tidak Sesuai'), findsOneWidget);
     });
   });
 }

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/services/location/location_local_storage.dart';
+import 'package:hris_flutter/core/services/location/location_service.dart';
 import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/features/tracking/data/datasources/tracking_remote_datasource.dart';
 import 'package:hris_flutter/features/tracking/data/models/live_tracking_model.dart';
@@ -8,6 +10,57 @@ import 'package:hris_flutter/features/tracking/data/models/tracking_batch_payloa
 import 'package:hris_flutter/features/tracking/data/models/tracking_config_model.dart';
 import 'package:hris_flutter/features/tracking/data/models/tracking_log_model.dart';
 import 'package:hris_flutter/features/tracking/domain/repositories/tracking_repository.dart';
+
+class FakeLocationService extends LocationService {
+  Position? mockPosition;
+  int? mockBattery = 85;
+
+  @override
+  Future<Position?> getCurrentPosition({
+    LocationAccuracy accuracy = LocationAccuracy.medium,
+    Duration timeLimit = const Duration(seconds: 15),
+  }) async {
+    return mockPosition;
+  }
+
+  @override
+  Future<Position?> getLastKnownPosition() async {
+    return mockPosition;
+  }
+
+  @override
+  Future<int?> getBatteryLevel() async {
+    return mockBattery;
+  }
+
+  @override
+  bool shouldThrottle({
+    required Position current,
+    Position? previous,
+    DateTime? previousTime,
+  }) {
+    return false;
+  }
+}
+
+Position createTestPosition({
+  double latitude = -6.2,
+  double longitude = 106.8,
+  double accuracy = 5.0,
+}) {
+  return Position(
+    latitude: latitude,
+    longitude: longitude,
+    timestamp: DateTime.utc(2026, 10, 8, 12, 0, 0),
+    accuracy: accuracy,
+    altitude: 10.0,
+    altitudeAccuracy: 1.0,
+    heading: 0.0,
+    headingAccuracy: 1.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+  );
+}
 
 class MockTrackingRepository implements TrackingRepository {
   final List<TrackingBatchPayload> uploadedBatches = [];
@@ -65,6 +118,7 @@ void main() {
   late File tempFile;
   late LocationLocalStorage localStorage;
   late MockTrackingRepository mockRepo;
+  late FakeLocationService fakeLocationService;
   late LocationTrackingService trackingService;
 
   setUp(() {
@@ -75,7 +129,9 @@ void main() {
     localStorage.customStoragePath = tempFile.path;
 
     mockRepo = MockTrackingRepository();
+    fakeLocationService = FakeLocationService();
     trackingService = LocationTrackingService.withDependencies(
+      locationService: fakeLocationService,
       localStorage: localStorage,
       trackingRepository: mockRepo,
     );
@@ -250,6 +306,116 @@ void main() {
       expect(await localStorage.getQueueCount(), equals(0));
       // Attendance session terminated
       expect(trackingService.state, equals(TrackingState.idle));
+    });
+  });
+
+  group('LocationTrackingService GPS Status Change Tests', () {
+    test('handleGpsStatusChange(ServiceStatus.disabled) records point with isGpsOff: true and flushes', () async {
+      trackingService.setSessionForTest(
+        state: TrackingState.onActivity,
+        activityId: 'act-gps-test',
+        attendanceId: 'att-gps-test',
+      );
+
+      await trackingService.handleGpsStatusChange(ServiceStatus.disabled);
+      await trackingService.flushPendingQueue();
+
+      expect(mockRepo.uploadedBatches.length, equals(1));
+      final uploaded = mockRepo.uploadedBatches.first;
+      expect(uploaded.sourceType, equals('activity'));
+      expect(uploaded.referenceId, equals('act-gps-test'));
+      expect(uploaded.locations.length, equals(1));
+
+      final point = uploaded.locations.first;
+      expect(point.isGpsOff, isTrue);
+      expect(point.id.startsWith('gps_off_'), isTrue);
+    });
+
+    test('handleGpsStatusChange(ServiceStatus.enabled) captures current position with isGpsOff: false and flushes', () async {
+      trackingService.setSessionForTest(
+        state: TrackingState.onActivity,
+        activityId: 'act-gps-test',
+        attendanceId: 'att-gps-test',
+      );
+
+      fakeLocationService.mockPosition = createTestPosition(
+        latitude: -6.1754,
+        longitude: 106.8272,
+      );
+
+      await trackingService.handleGpsStatusChange(ServiceStatus.enabled);
+      await trackingService.flushPendingQueue();
+
+      expect(mockRepo.uploadedBatches.length, equals(1));
+      final uploaded = mockRepo.uploadedBatches.first;
+      expect(uploaded.sourceType, equals('activity'));
+      expect(uploaded.referenceId, equals('act-gps-test'));
+      expect(uploaded.locations.length, equals(1));
+
+      final point = uploaded.locations.first;
+      expect(point.isGpsOff, isFalse);
+      expect(point.id.startsWith('gps_on_'), isTrue);
+      expect(point.latitude, equals(-6.1754));
+      expect(point.longitude, equals(106.8272));
+    });
+
+    test('handleGpsStatusChange is ignored when state is idle', () async {
+      expect(trackingService.state, equals(TrackingState.idle));
+
+      await trackingService.handleGpsStatusChange(ServiceStatus.disabled);
+      await trackingService.handleGpsStatusChange(ServiceStatus.enabled);
+      await trackingService.flushPendingQueue();
+
+      expect(mockRepo.uploadedBatches, isEmpty);
+      expect(await localStorage.getQueueCount(), equals(0));
+    });
+  });
+
+  group('LocationTrackingService Initial Position Tests', () {
+    test('recordInitialPosition immediately records and uploads first position', () async {
+      trackingService.setSessionForTest(
+        state: TrackingState.onActivity,
+        activityId: 'act-init-1',
+        attendanceId: 'att-init-1',
+      );
+
+      fakeLocationService.mockPosition = createTestPosition(
+        latitude: -6.2222,
+        longitude: 106.8888,
+      );
+
+      await trackingService.recordInitialPositionForTest();
+      await trackingService.flushPendingQueue();
+
+      expect(mockRepo.uploadedBatches.length, equals(1));
+      final uploaded = mockRepo.uploadedBatches.first;
+      expect(uploaded.sourceType, equals('activity'));
+      expect(uploaded.referenceId, equals('act-init-1'));
+      expect(uploaded.locations.length, equals(1));
+
+      final point = uploaded.locations.first;
+      expect(point.isGpsOff, isFalse);
+      expect(point.latitude, equals(-6.2222));
+      expect(point.longitude, equals(106.8888));
+    });
+
+    test('onPositionReceived with force: true records position regardless of throttling', () async {
+      trackingService.setSessionForTest(
+        state: TrackingState.inAttendance,
+        attendanceId: 'att-force-test',
+      );
+
+      final pos = createTestPosition(latitude: -6.3333, longitude: 106.7777);
+      await trackingService.onPositionReceivedForTest(pos, force: true);
+      await trackingService.flushPendingQueue();
+
+      expect(mockRepo.uploadedBatches.length, equals(1));
+      final uploaded = mockRepo.uploadedBatches.first;
+      expect(uploaded.sourceType, equals('attendance'));
+      expect(uploaded.referenceId, equals('att-force-test'));
+      expect(uploaded.locations.length, equals(1));
+      expect(uploaded.locations.first.latitude, equals(-6.3333));
+      expect(uploaded.locations.first.longitude, equals(106.7777));
     });
   });
 }

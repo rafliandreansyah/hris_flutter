@@ -83,9 +83,9 @@ class _WorkScheduleView extends StatelessWidget {
     return Scaffold(
       backgroundColor: bgCol,
       appBar: AppBar(
-        backgroundColor: surfaceColor,
+        backgroundColor: bgCol.withValues(alpha: 0.95),
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 1.5,
         shadowColor: Colors.black.withValues(alpha: 0.05),
         leading: IconButton(
           icon: Icon(
