@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
-/// Pengecualian khusus untuk kegagalan autentikasi biometrik.
+/// Pengecualian khusus untuk kegagalan autentikasi biometrik atau keamanan perangkat.
 class BiometricException implements Exception {
   final String message;
   final String? code;
@@ -13,7 +13,7 @@ class BiometricException implements Exception {
   String toString() => message;
 }
 
-/// Service terpusat untuk mengelola autentikasi biometrik (Sidik Jari / Face ID).
+/// Service terpusat untuk mengelola autentikasi biometrik dan keamanan perangkat.
 class BiometricService {
   static BiometricService _instance = BiometricService._internal();
   static BiometricService get instance => _instance;
@@ -22,7 +22,8 @@ class BiometricService {
 
   /// Hook pengujian unit test untuk menyimulasikan hasil autentikasi
   @visibleForTesting
-  static Future<bool> Function({String localizedReason})? testAuthenticateHandler;
+  static Future<bool> Function({String localizedReason, bool biometricOnly})?
+      testAuthenticateHandler;
 
   @visibleForTesting
   static Future<bool> Function()? testCanAuthenticateHandler;
@@ -72,47 +73,56 @@ class BiometricService {
     }
   }
 
-  /// Melakukan pemindaian biometrik lokal pada perangkat pengguna.
+  /// Melakukan pemindaian biometrik / keamanan lokal pada perangkat pengguna.
   /// Mengembalikan `true` jika verifikasi berhasil, `false` jika dibatalkan oleh pengguna.
   /// Melempar `BiometricException` jika perangkat tidak mendukung atau terjadi kesalahan platform.
   Future<bool> authenticate({
-    String localizedReason = 'Pindai sidik jari atau wajah Anda untuk konfirmasi presensi',
+    String localizedReason =
+        'Pindai sidik jari atau wajah Anda untuk konfirmasi presensi',
+    bool biometricOnly = true,
   }) async {
     if (testAuthenticateHandler != null) {
-      return await testAuthenticateHandler!(localizedReason: localizedReason);
+      return await testAuthenticateHandler!(
+        localizedReason: localizedReason,
+        biometricOnly: biometricOnly,
+      );
     }
 
     try {
       final isSupported = await canAuthenticate();
       if (!isSupported) {
         throw const BiometricException(
-          'Perangkat tidak mendukung biometrik atau belum ada sidik jari/wajah yang didaftarkan.',
-          code: 'NOT_AVAILABLE',
+          'Perangkat tidak mendukung atau belum ada kunci keamanan (PIN/Pola/Biometrik) yang didaftarkan.',
+          code: 'NOT_ENROLLED',
         );
       }
 
       final authenticated = await _auth.authenticate(
         localizedReason: localizedReason,
-        biometricOnly: true,
+        biometricOnly: biometricOnly,
         persistAcrossBackgrounding: true,
       );
 
       return authenticated;
     } on PlatformException catch (e) {
-      debugPrint('⚠️ [BiometricService.authenticate PlatformException] code: ${e.code}, msg: ${e.message}');
-      if (e.code == 'NotAvailable' || e.code == 'PasscodeNotSet') {
+      debugPrint(
+          '⚠️ [BiometricService.authenticate PlatformException] code: ${e.code}, msg: ${e.message}');
+      if (e.code == 'NotAvailable' ||
+          e.code == 'PasscodeNotSet' ||
+          e.code == 'notEnrolled' ||
+          e.code == 'noBiometricsEnrolled') {
         throw const BiometricException(
-          'Biometrik belum diaktifkan pada perangkat Anda. Silakan atur di Pengaturan perangkat.',
+          'Kunci keamanan belum diaktifkan pada perangkat Anda. Silakan atur kunci layar atau biometrik di Pengaturan perangkat.',
           code: 'NOT_ENROLLED',
         );
       } else if (e.code == 'LockedOut' || e.code == 'PermanentlyLockedOut') {
         throw const BiometricException(
-          'Sensor biometrik terkunci karena terlalu banyak percobaan gagal. Silakan coba beberapa saat lagi.',
+          'Autentikasi perangkat terkunci karena terlalu banyak percobaan gagal. Silakan coba beberapa saat lagi.',
           code: 'LOCKED_OUT',
         );
       }
       throw BiometricException(
-        e.message ?? 'Verifikasi biometrik gagal.',
+        e.message ?? 'Verifikasi keamanan perangkat gagal.',
         code: e.code,
       );
     } catch (e) {

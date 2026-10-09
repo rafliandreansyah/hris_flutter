@@ -291,5 +291,56 @@ void main() {
         await bloc.close();
       },
     );
+
+    test(
+      'does not emit DashboardLoading during pull-to-refresh (isRefresh: true) when already loaded',
+      () async {
+        final bloc = DashboardBloc(
+          dashboardRepository: MockSuccessDashboardRepository(),
+          authRepository: MockAuthRepository(),
+          getDeviceId: () async => 'test_device_id',
+        );
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(bloc.state, isA<DashboardLoaded>());
+
+        final expectedStates = [
+          isA<DashboardLoaded>(),
+        ];
+
+        expectLater(bloc.stream, emitsInOrder(expectedStates));
+
+        bloc.add(const DashboardFetchRequested(isRefresh: true));
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        expect(bloc.state, isA<DashboardLoaded>());
+        await bloc.close();
+      },
+    );
+
+    test(
+      'loads dashboard data successfully even if getProfile fails',
+      () async {
+        final bloc = DashboardBloc(
+          dashboardRepository: MockSuccessDashboardRepository(),
+          authRepository: MockAuthRepository(shouldFail: true),
+          getDeviceId: () async => 'test_device_id',
+        );
+
+        final expectedStates = [
+          const DashboardLoading(),
+          isA<DashboardLoaded>()
+              .having((s) => s.dashboardData.firstName, 'firstName', 'Sarah')
+              .having((s) => s.userProfile, 'userProfile', isNull),
+        ];
+
+        expectLater(bloc.stream, emitsInOrder(expectedStates));
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+        await bloc.close();
+      },
+    );
   });
 }

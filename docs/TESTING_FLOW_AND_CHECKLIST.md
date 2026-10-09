@@ -238,6 +238,13 @@ sequenceDiagram
 * **Route Path**: `/dashboard`
 * **Peran**: Seluruh Pengguna (Tampilan item menu dinamis sesuai izin dari `GET /auth/menus`)
 * **Izin Native**: Pengecekan status lokasi & notifikasi.
+* **Tingkatan Pengujian Piramida Modul 2**:
+  - **Layer 1 (Model Unit Test)**: `DashboardResponseModel` (`fromJson`, `toJson`, nested models `employeeDevice`, `todaySchedule`, `attendanceSummary`), `DashboardData` (`photoUrl`, `fullName`, `initials`, `isDayOff`), `MenuResponseModel`, `MenuItemModel`.
+  - **Layer 2 (Datasource Test)**: `DashboardRemoteDataSource` (`getEmployeeDashboard` via `GET /api/v1/employee/dashboard`, `getAuthMenus` via `GET /api/v1/auth/menus`, pemetaan `ApiResponse`, penanganan error `ApiException`).
+  - **Layer 3 (Repository Test)**: `DashboardRepositoryImpl` (pengambilan data dashboard, penyimpanan otomatis `employeeId` ke `SecureStorageService`, fallback error message saat API gagal, dan pembacaan daftar menu).
+  - **Layer 4 (BLoC Test)**: `DashboardBloc` (`DashboardFetchRequested` initial & `isRefresh: true`, validasi `DashboardDeviceMismatch` saat deviceId berbeda/null/kosong, auto-logout mismatch, `DashboardError` saat API gagal, dan `DashboardTimerTicked` per detik).
+  - **Layer 5 (Widget UI Test)**: `DashboardScreen` (shimmer loading placeholder `DASH-01`, filter menu dinamis `DASH-02`, dialog error API & retry, notifikasi unread badge, hari libur vs tanpa jadwal, forced logout dialog mismatch), `AttendanceHeroCard` (realtime clock, timezone badge, quick clock in/out), `QuickAccessGrid` (navigasi modul `DASH-03`), `LeaveBalancePreviewCard` (kuota cuti aktif vs nihil), `UpdatesFeedCard` (feed pengumuman dan navigasi detail).
+  - **Layer 6 (E2E Patrol Test)**: `integration_test/dashboard_e2e_test.dart` (otomasi alur aplikasi nyata di device: pemuatan dashboard, interaksi Bento Grid, pull to refresh `DASH-04`, jam realtime `DASH-05`, dan navigasi header).
 * **Alur Pengguna**:
   1. Menampilkan header profil pengguna, sapaan dinamis waktu, dan tombol bell notifikasi.
   2. Menampilkan **Hero Card Presensi**: jam server realtime, status presensi hari ini (Belum Masuk, Sudah Masuk, Sudah Pulang), dan tombol aksi cepat presensi.
@@ -245,13 +252,20 @@ sequenceDiagram
   4. Menampilkan kartu pratinjau **Saldo Cuti** dan linimasa pengumuman terbaru (*Updates Feed*).
 
 #### Checklist Uji Coba:
-| ID | Skenario Uji | Tipe | Langkah Pengujian | Hasil yang Diharapkan |
-| :--- | :--- | :--- | :--- | :--- |
-| `DASH-01` | Shimmer Loading Awal | Positif | Buka Dashboard saat data pertama kali dimuat. | Tampil shimmer placeholder tanpa layout shift. |
-| `DASH-02` | Filter Menu Dinamis | Positif | Verifikasi daftar ikon menu Bento Grid. | Menu yang tidak ada di `GET /auth/menus` disembunyikan otomatis. |
-| `DASH-03` | Navigasi Item Menu | Positif | Klik salah satu ikon menu (misal: "Aktivitas" atau "Izin & Cuti"). | Berpindah ke rute halaman yang sesuai secara instan. |
-| `DASH-04` | Pull to Refresh | Positif | Tarik layar dari atas ke bawah (*swipe down*). | Indikator refresh muncul dan data dashboard diperbarui dari API. |
-| `DASH-05` | Jam Server Berjalan Realtime | Positif | Amati detik dan menit pada kartu presensi. | Waktu bertambah secara presisi setiap detik. |
+| ID | Skenario Uji | Tipe | Level Pengujian | Status | Langkah Pengujian | Hasil yang Diharapkan |
+| :--- | :--- | :--- | :--- | :---: | :--- | :--- |
+| `DASH-01` | Shimmer Loading Awal | Positif | Widget & E2E Patrol | `[x] Teruji` | Buka Dashboard saat data pertama kali dimuat. | Tampil shimmer placeholder tanpa layout shift. |
+| `DASH-02` | Filter Menu Dinamis Bento Grid | Positif | Widget & E2E Patrol | `[x] Teruji` | Verifikasi daftar ikon menu Bento Grid terhadap respon `GET /auth/menus`. | Menu yang tidak ada di `GET /auth/menus` disembunyikan otomatis. |
+| `DASH-03` | Navigasi Item Menu Bento Grid | Positif | Widget & E2E Patrol | `[x] Teruji` | Klik salah satu ikon menu (misal: "Pegawai", "Presensi", "Aktivitas"). | Berpindah ke rute halaman tujuan yang sesuai secara instan dan dapat kembali ke Dashboard. |
+| `DASH-04` | Pull to Refresh Gesture | Positif | Widget & E2E Patrol | `[x] Teruji` | Tarik layar dari atas ke bawah (*swipe down*). | Indikator refresh muncul, data dashboard dan notifikasi diperbarui tanpa layout flicker. |
+| `DASH-05` | Jam Server Berjalan Realtime | Positif | BLoC, Widget & E2E Patrol | `[x] Teruji` | Amati detik dan menit pada kartu presensi. | Waktu bertambah secara presisi setiap detik mengikuti waktu server tanpa time drift. |
+| `DASH-06` | Remote Datasource RPC & Deserialization | Positif & Negatif | Datasource Unit Test | `[x] Teruji` | Panggil `getEmployeeDashboard` dan `getAuthMenus` via `DashboardRemoteDataSourceImpl`. | Model ter-parse dengan benar dan melempar `ApiException` jika HTTP error. |
+| `DASH-07` | Repository Data Sync & Employee ID Storage | Positif & Negatif | Repository Unit Test | `[x] Teruji` | Panggil `getDashboardData` dan `getMenus` via `DashboardRepositoryImpl`. | Mengembalikan data dashboard, menyimpan `employeeId` ke secure storage, dan melempar `ApiException` saat respon gagal. |
+| `DASH-08` | Device Binding Mismatch & Security Logout | Keamanan / Negatif | BLoC & Widget | `[x] Teruji` | Akun diakses dari perangkat dengan deviceId berbeda dengan profil atau kosong. | Emit `DashboardDeviceMismatch`, auto-logout, dan tampil dialog non-dismissible. |
+| `DASH-09` | Error State & Dialog Retry Feedback | Negatif | BLoC & Widget | `[x] Teruji` | Simulasi kegagalan koneksi API backend saat membuka dashboard. | Tampil in-screen error state dan dialog `AppDialogUtil.showError` dengan tombol coba lagi. |
+| `DASH-10` | Notifikasi Bell Badge & Navigasi | Positif | Widget & E2E Patrol | `[x] Teruji` | Klik ikon lonceng notifikasi di app bar dashboard. | Navigasi ke `/notifications` dan badge jumlah unread ter-update. |
+| `DASH-11` | Saldo Cuti & Feed Pengumuman | Positif | Widget | `[x] Teruji` | Verifikasi kartu pratinjau saldo cuti dan daftar pengumuman terbaru. | Menampilkan kuota cuti atau info belum ada kuota, serta pengumuman yang dapat di-tap menuju detail. |
+| `DASH-12` | Header Quick Navigation (Jadwal & Profil) | Positif | Widget & E2E Patrol | `[x] Teruji` | Klik tombol jadwal kerja di header atau avatar profil pengguna. | Berpindah ke rute `/work-schedule` atau `/employee-detail` dan dapat kembali ke Dashboard. |
 
 ---
 

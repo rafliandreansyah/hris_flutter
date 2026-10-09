@@ -1,3 +1,7 @@
+import 'package:hris_flutter/features/payroll/data/models/payroll_employee_model.dart';
+import 'package:hris_flutter/features/payroll/presentation/pages/payroll_detail_screen.dart';
+import 'package:hris_flutter/features/payroll/presentation/pages/payroll_employee_slips_screen.dart';
+import 'package:hris_flutter/features/payroll/presentation/pages/payroll_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
@@ -621,6 +625,34 @@ class AppRouter {
         path: Routes.CREATE_RESIGNATION,
         name: Routes.CREATE_RESIGNATION,
         builder: (context, state) => const CreateResignationScreen(),
+      ),
+
+
+      // 39. Layar Slip Gaji & Riwayat Penggajian (Payroll)
+      GoRoute(
+        path: Routes.PAYROLL,
+        name: Routes.PAYROLL,
+        builder: (context, state) => const PayrollScreen(),
+      ),
+
+      // 40. Layar Slip Gaji Pegawai Terpilih
+      GoRoute(
+        path: Routes.PAYROLL_EMPLOYEE_SLIPS,
+        name: Routes.PAYROLL_EMPLOYEE_SLIPS,
+        builder: (context, state) {
+          final employee = state.extra as PayrollEmployeeItemModel;
+          return PayrollEmployeeSlipsScreen(employee: employee);
+        },
+      ),
+
+      // 41. Layar Rincian Digital Slip Gaji
+      GoRoute(
+        path: Routes.PAYROLL_DETAIL,
+        name: Routes.PAYROLL_DETAIL,
+        builder: (context, state) {
+          final id = (state.extra as String?) ?? '';
+          return PayrollDetailScreen(id: id);
+        },
       ),
 
       // 38. Live Tracking Dispatcher Screen

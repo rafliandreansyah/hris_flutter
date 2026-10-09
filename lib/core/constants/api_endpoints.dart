@@ -177,5 +177,16 @@ abstract class ApiEndpoints {
   static const String trackingBatch = '/tracking/batch';
   static const String trackingLogs = '/tracking/logs';
   static const String trackingLive = '/tracking/live';
+
+  // ==========================================
+  // --- 💵 PAYROLL & SLIP GAJI ENDPOINTS ---
+  // ==========================================
+  static const String payrolls = '/payrolls';
+  static const String myPayslips = '/payrolls/me/slips';
+  static const String payrollPeriods = '/payrolls/periods';
+  static const String payrollEmployees = '/payrolls/employees';
+  static String payrollDetail(String id) => '/payrolls/$id';
+  static String payrollDownload(String id) => '/payrolls/$id/download';
 }
+
 

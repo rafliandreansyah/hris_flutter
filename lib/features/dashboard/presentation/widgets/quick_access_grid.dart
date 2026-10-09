@@ -239,6 +239,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.RESIGNATION);
     } else if (c == 'mobile_live_tracking') {
       context.push(Routes.LIVE_TRACKING);
+    } else if (c == 'mobile_payroll') {
+      context.push(Routes.PAYROLL);
     } else {
       ScaffoldMessenger.of(
         context,

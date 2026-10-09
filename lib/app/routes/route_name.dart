@@ -47,4 +47,7 @@ abstract class Routes {
   static const String RESIGNATION = '/resignation';
   static const String CREATE_RESIGNATION = '/create-resignation';
   static const String LIVE_TRACKING = '/live-tracking';
+  static const String PAYROLL = '/payroll';
+  static const String PAYROLL_EMPLOYEE_SLIPS = '/payroll/employee-slips';
+  static const String PAYROLL_DETAIL = '/payroll-detail';
 }

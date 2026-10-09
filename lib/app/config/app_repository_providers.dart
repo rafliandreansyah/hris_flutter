@@ -25,6 +25,8 @@ import 'package:hris_flutter/features/warning_letter/data/repositories/warning_l
 import 'package:hris_flutter/features/warning_letter/domain/repositories/warning_letter_repository.dart';
 import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursement_repository_impl.dart';
 import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
+import 'package:hris_flutter/features/payroll/data/repositories/payroll_repository_impl.dart';
+import 'package:hris_flutter/features/payroll/domain/repositories/payroll_repository.dart';
 
 /// Sentralisasi Dependency Injection (DI) berbasis [RepositoryProvider] bawaan `flutter_bloc`.
 ///
@@ -70,6 +72,9 @@ class AppRepositoryProviders {
         ),
         RepositoryProvider<ReimbursementRepository>(
           create: (_) => ReimbursementRepositoryImpl(),
+        ),
+        RepositoryProvider<PayrollRepository>(
+          create: (_) => PayrollRepositoryImpl(),
         ),
       ];
 }

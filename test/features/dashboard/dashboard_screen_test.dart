@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/features/dashboard/data/models/dashboard_response_model.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -12,6 +13,8 @@ import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_s
 import 'package:hris_flutter/features/dashboard/presentation/widgets/leave_balance_preview_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
+import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
+import 'package:hris_flutter/features/notification/domain/repositories/notification_repository.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_bloc.dart';
 import 'package:hris_flutter/features/notification/presentation/bloc/notification_count/notification_count_event.dart';
 import 'package:hris_flutter/features/auth/data/models/login_request_model.dart';
@@ -439,8 +442,9 @@ void main() {
     testWidgets('Dashboard renders notification bell with unread count badge', (
       WidgetTester tester,
     ) async {
-      final notifBloc = NotificationCountBloc()
-        ..add(const NotificationCountUpdated(7));
+      final notifBloc = NotificationCountBloc(
+        repository: MockNotificationRepository(),
+      )..add(const NotificationCountUpdated(7));
 
       await tester.pumpWidget(
         MaterialApp(
@@ -551,7 +555,9 @@ void main() {
 
       final repo = MockSuccessDashboardRepository(data: testData);
       final authRepo = MockAuthRepository();
-      final notifBloc = NotificationCountBloc();
+      final notifBloc = NotificationCountBloc(
+        repository: MockNotificationRepository(),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
@@ -577,6 +583,265 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
 
       expect(find.text('Perangkat Tidak Sesuai'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Pull to refresh gesture triggers dashboard reload and updates data', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+      final notifBloc = NotificationCountBloc(
+        repository: MockNotificationRepository(),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(
+            repository: repo,
+            authRepository: MockAuthRepository(),
+            notificationCountBloc: notifBloc,
+            getDeviceId: () async => 'unknown_device_id',
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(RefreshIndicator), findsOneWidget);
+      final initialCalls = repo.getDashboardDataCalls;
+
+      tester.state<RefreshIndicatorState>(find.byType(RefreshIndicator)).show();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(repo.getDashboardDataCalls, greaterThan(initialCalls));
+    });
+
+    testWidgets(
+        'AttendanceHeroCard increments realtime clock display as time passes', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+        timeServer: '2026-09-06T08:15:26.000Z',
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DashboardScreen(
+            repository: repo,
+            authRepository: MockAuthRepository(),
+            getDeviceId: () async => 'unknown_device_id',
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(AttendanceHeroCard), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(AttendanceHeroCard), findsOneWidget);
+    });
+
+    testWidgets(
+        'Tapping Quick Clock In button in AttendanceHeroCard navigates to Attendance screen', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+
+      final testRouter = GoRouter(
+        initialLocation: '/dashboard',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(
+              repository: repo,
+              authRepository: MockAuthRepository(),
+              getDeviceId: () async => 'unknown_device_id',
+            ),
+          ),
+          GoRoute(
+            path: Routes.ATTENDANCE,
+            builder: (context, state) => const Scaffold(
+              body: Text('Attendance Screen Destination'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: testRouter,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Quick Clock In'), findsOneWidget);
+
+      await tester.tap(find.text('Quick Clock In'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Attendance Screen Destination'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Tapping Work Schedule button in header navigates to Work Schedule screen', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+
+      final testRouter = GoRouter(
+        initialLocation: '/dashboard',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(
+              repository: repo,
+              authRepository: MockAuthRepository(),
+              getDeviceId: () async => 'unknown_device_id',
+            ),
+          ),
+          GoRoute(
+            path: Routes.WORK_SCHEDULE,
+            builder: (context, state) => const Scaffold(
+              body: Text('Work Schedule Screen Destination'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: testRouter,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.byKey(const ValueKey('dashboard_work_schedule_btn')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('dashboard_work_schedule_btn')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Work Schedule Screen Destination'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Tapping User Avatar in header navigates to Employee Detail screen', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+      );
+
+      final repo = MockSuccessDashboardRepository(data: testData);
+
+      final testRouter = GoRouter(
+        initialLocation: '/dashboard',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(
+              repository: repo,
+              authRepository: MockAuthRepository(),
+              getDeviceId: () async => 'unknown_device_id',
+            ),
+          ),
+          GoRoute(
+            path: Routes.EMPLOYEE_DETAIL,
+            builder: (context, state) => const Scaffold(
+              body: Text('Employee Detail Screen Destination'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: testRouter,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(AppAvatar), findsOneWidget);
+      await tester.tap(find.byType(AppAvatar));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Employee Detail Screen Destination'), findsOneWidget);
     });
   });
 }
@@ -615,6 +880,7 @@ class MockAuthRepository implements AuthRepository {
 class MockSuccessDashboardRepository implements DashboardRepository {
   final DashboardData data;
   final List<MenuItemModel> menus;
+  int getDashboardDataCalls = 0;
 
   MockSuccessDashboardRepository({
     required this.data,
@@ -622,14 +888,17 @@ class MockSuccessDashboardRepository implements DashboardRepository {
   });
 
   @override
-  Future<DashboardData> getDashboardData() async => data.employeeDevice != null
-      ? data
-      : data.copyWith(
-          employeeDevice: const EmployeeDeviceInfo(
-            id: 'dev-mock',
-            deviceId: 'unknown_device_id',
-          ),
-        );
+  Future<DashboardData> getDashboardData() async {
+    getDashboardDataCalls++;
+    return data.employeeDevice != null
+        ? data
+        : data.copyWith(
+            employeeDevice: const EmployeeDeviceInfo(
+              id: 'dev-mock',
+              deviceId: 'unknown_device_id',
+            ),
+          );
+  }
 
   @override
   Future<List<MenuItemModel>> getMenus() async => menus;
@@ -653,4 +922,18 @@ class MockFailureDashboardRepository implements DashboardRepository {
   Future<List<MenuItemModel>> getMenus() async {
     throw ApiException(message: message, statusCode: statusCode);
   }
+}
+
+class MockNotificationRepository implements NotificationRepository {
+  @override
+  Future<NotificationUnreadCountResponse> getUnreadCount() async {
+    return const NotificationUnreadCountResponse(
+      success: true,
+      message: 'OK',
+      unreadCount: 0,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
