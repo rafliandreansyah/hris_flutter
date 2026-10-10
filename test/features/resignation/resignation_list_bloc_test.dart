@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
@@ -294,6 +296,32 @@ void main() {
         ]),
       );
       expect(repository.cancelCalled, true);
+    });
+
+    test('ResignationListStarted sets canViewSubordinates true when user has approval permission', () async {
+      SecureStorageService.instance.setPermissionsInMemory([
+        AppPermissions.approvalResignationManager,
+      ]);
+      final customBloc = ResignationListBloc(repository: repository);
+      customBloc.add(const ResignationListStarted());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(customBloc.state.canViewSubordinates, isTrue);
+      customBloc.close();
+      SecureStorageService.instance.setPermissionsInMemory([]);
+    });
+
+    test('ResignationListStarted sets canViewSubordinates false when user lacks subordinate permission', () async {
+      SecureStorageService.instance.setPermissionsInMemory([
+        AppPermissions.resignationCreate,
+      ]);
+      final customBloc = ResignationListBloc(repository: repository);
+      customBloc.add(const ResignationListStarted());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(customBloc.state.canViewSubordinates, isFalse);
+      customBloc.close();
+      SecureStorageService.instance.setPermissionsInMemory([]);
     });
   });
 }

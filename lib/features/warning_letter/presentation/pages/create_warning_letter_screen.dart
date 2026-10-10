@@ -531,9 +531,14 @@ class _CreateWarningLetterScreenViewState
             builder: (context, state) {
               return Form(
                 key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
-                  children: [
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: ListView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+                    children: [
                     // ── 1. Card Pemilihan Pegawai ───────────────────────
                     _buildEmployeeCard(
                       state: state,
@@ -854,7 +859,8 @@ class _CreateWarningLetterScreenViewState
                     ),
                   ],
                 ),
-              );
+              ),
+            );
             },
           ),
         ),

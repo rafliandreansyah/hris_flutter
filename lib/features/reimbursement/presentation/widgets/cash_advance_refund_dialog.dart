@@ -59,6 +59,7 @@ class _CashAdvanceRefundDialogState extends State<CashAdvanceRefundDialog> {
   }
 
   void _submit() {
+    FocusManager.instance.primaryFocus?.unfocus();
     final rawText = _amountController.text
         .replaceAll(RegExp(r'[^0-9]'), '');
     final parsedAmount = double.tryParse(rawText);

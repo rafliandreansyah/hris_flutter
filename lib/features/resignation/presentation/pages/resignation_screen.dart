@@ -204,12 +204,6 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
       builder: (context, state) {
         final hasActiveFilter = state.filterData.hasActiveFilter;
 
-        // Floating Action Button Rule:
-        // FAB HANYA ada di tab kiri ketika hasActiveResignation false.
-        final showFab =
-            _tabController.index == 0 &&
-            (state.myStatus != null && !state.hasActiveResignation);
-
         return Scaffold(
           backgroundColor: bgCol,
           appBar: AppBar(
@@ -245,38 +239,39 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
               ],
             ),
             actions: [
-              IconButton(
-                onPressed: _openFilterBottomSheet,
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Icon(
-                      LucideIcons.slidersHorizontal,
-                      color: hasActiveFilter ? brandColor : subtitleCol,
-                      size: 20,
-                    ),
-                    if (hasActiveFilter)
-                      Positioned(
-                        top: -2,
-                        right: -2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: brandColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.darkSurfaceContainerLowest
-                                  : AppColors.surface,
-                              width: 1.5,
+              if (state.canViewSubordinates)
+                IconButton(
+                  onPressed: _openFilterBottomSheet,
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        LucideIcons.slidersHorizontal,
+                        color: hasActiveFilter ? brandColor : subtitleCol,
+                        size: 20,
+                      ),
+                      if (hasActiveFilter)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: brandColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.darkSurfaceContainerLowest
+                                    : AppColors.surface,
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(width: 4),
             ],
           ),
@@ -285,19 +280,20 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
             child: Column(
               children: [
                 // 1. Pill TabBar Container (Context-Aware Rule 16)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                  child: Container(
-                    height: 52,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkSurfaceContainer
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
+                if (state.canViewSubordinates)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                    child: Container(
+                      height: 52,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurfaceContainer
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
                       onTap: (index) {
                         setState(() {
                           _isSearchVisible = true;
@@ -433,39 +429,63 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
 
                 // 3. TabBarView
                 Expanded(
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: (notification) {
-                      if (_tabController.index == 1 &&
-                          notification is ScrollUpdateNotification &&
-                          notification.metrics.axis == Axis.vertical) {
-                        final delta = notification.scrollDelta ?? 0;
+                  child: state.canViewSubordinates
+                      ? NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (_tabController.index == 1 &&
+                                notification is ScrollUpdateNotification &&
+                                notification.metrics.axis == Axis.vertical) {
+                              final delta = notification.scrollDelta ?? 0;
 
-                        // Jika berada di dekat batas atas, selalu tampilkan search bar
-                        if (notification.metrics.pixels <= 10) {
-                          if (!_isSearchVisible) {
-                            setState(() => _isSearchVisible = true);
-                          }
-                        }
-                        // Saat scroll ke atas -> sembunyikan search bar
-                        else if (delta > 3) {
-                          if (_isSearchVisible) {
-                            setState(() => _isSearchVisible = false);
-                          }
-                        }
-                        // Saat scroll ke bawah -> tampilkan search bar
-                        else if (delta < -3) {
-                          if (!_isSearchVisible) {
-                            setState(() => _isSearchVisible = true);
-                          }
-                        }
-                      }
-                      return false;
-                    },
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        // Tab 0: Pengajuan Saya (Karyawan Mandiri - ESS)
-                        _buildMyResignationTab(
+                              // Jika berada di dekat batas atas, selalu tampilkan search bar
+                              if (notification.metrics.pixels <= 10) {
+                                if (!_isSearchVisible) {
+                                  setState(() => _isSearchVisible = true);
+                                }
+                              }
+                              // Saat scroll ke atas -> sembunyikan search bar
+                              else if (delta > 3) {
+                                if (_isSearchVisible) {
+                                  setState(() => _isSearchVisible = false);
+                                }
+                              }
+                              // Saat scroll ke bawah -> tampilkan search bar
+                              else if (delta < -3) {
+                                if (!_isSearchVisible) {
+                                  setState(() => _isSearchVisible = true);
+                                }
+                              }
+                            }
+                            return false;
+                          },
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              // Tab 0: Pengajuan Saya (Karyawan Mandiri - ESS)
+                              _buildMyResignationTab(
+                                context: context,
+                                state: state,
+                                isDark: isDark,
+                                textCol: textCol,
+                                subtitleCol: subtitleCol,
+                                brandCol: brandColor,
+                              ),
+
+                              // Tab 1: Persetujuan Tim (Atasan Langsung - MSS)
+                              _buildTeamApprovalsTab(
+                                context: context,
+                                state: state,
+                                isDark: isDark,
+                                textCol: textCol,
+                                subtitleCol: subtitleCol,
+                                surfaceCol: surfaceCol,
+                                borderCol: borderCol,
+                                brandCol: brandColor,
+                              ),
+                            ],
+                          ),
+                        )
+                      : _buildMyResignationTab(
                           context: context,
                           state: state,
                           isDark: isDark,
@@ -473,21 +493,6 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
                           subtitleCol: subtitleCol,
                           brandCol: brandColor,
                         ),
-
-                        // Tab 1: Persetujuan Tim (Atasan Langsung - MSS)
-                        _buildTeamApprovalsTab(
-                          context: context,
-                          state: state,
-                          isDark: isDark,
-                          textCol: textCol,
-                          subtitleCol: subtitleCol,
-                          surfaceCol: surfaceCol,
-                          borderCol: borderCol,
-                          brandCol: brandColor,
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),

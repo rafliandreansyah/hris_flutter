@@ -270,7 +270,7 @@ void main() {
     });
 
     testWidgets('ScheduleAttendanceScreen submit berhasil memunculkan dialog sukses tepat satu kali', (tester) async {
-      BiometricService.testAuthenticateHandler = ({String localizedReason = ''}) async => true;
+      BiometricService.testAuthenticateHandler = ({bool biometricOnly = true, String localizedReason = ''}) async => true;
       final repo = _FakeAttendanceRequestRepo();
       final bloc = ScheduleAttendanceBloc(
         repository: repo,

@@ -587,9 +587,14 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
         body: SafeArea(
           child: Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 1. Info Banner Status Plan
@@ -1011,6 +1016,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

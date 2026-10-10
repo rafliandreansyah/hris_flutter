@@ -108,6 +108,7 @@ class CashAdvanceDetailModel {
   final String createdAt;
   final ExpenseEmployeeModel employee;
   final ExpenseEmployeeModel? createdBy;
+  final ExpenseEmployeeModel? approver;
   final List<CashAdvanceRefundModel> refunds;
   final CashAdvanceSettlementReportModel? settlementReport;
 
@@ -127,6 +128,7 @@ class CashAdvanceDetailModel {
     required this.createdAt,
     required this.employee,
     this.createdBy,
+    this.approver,
     this.refunds = const [],
     this.settlementReport,
   });
@@ -158,11 +160,48 @@ class CashAdvanceDetailModel {
   String? get approverNotes => disbursementNotes;
 
   factory CashAdvanceDetailModel.fromJson(Map<String, dynamic> json) {
+    final rootCompany = ExpenseEmployeeModel.extractName(json['company']) ??
+        ExpenseEmployeeModel.extractName(json['companyName']) ??
+        ExpenseEmployeeModel.extractName(json['company_name']);
+
     final rawRefunds = json['refunds'] as List<dynamic>? ?? [];
     final refunds = rawRefunds
         .whereType<Map<String, dynamic>>()
         .map(CashAdvanceRefundModel.fromJson)
         .toList();
+
+    var employee = ExpenseEmployeeModel.fromJson(
+      json['employee'] is Map<String, dynamic>
+          ? json['employee'] as Map<String, dynamic>
+          : <String, dynamic>{},
+    );
+    if ((employee.company == null || employee.company!.isEmpty) &&
+        rootCompany != null) {
+      employee = employee.copyWith(company: rootCompany);
+    }
+
+    var approver = json['approver'] is Map<String, dynamic>
+        ? ExpenseEmployeeModel.fromJson(
+            json['approver'] as Map<String, dynamic>)
+        : json['approvedBy'] is Map<String, dynamic>
+            ? ExpenseEmployeeModel.fromJson(
+                json['approvedBy'] as Map<String, dynamic>)
+            : null;
+    if (approver != null &&
+        (approver.company == null || approver.company!.isEmpty) &&
+        rootCompany != null) {
+      approver = approver.copyWith(company: rootCompany);
+    }
+
+    var createdBy = json['createdBy'] is Map<String, dynamic>
+        ? ExpenseEmployeeModel.fromJson(
+            json['createdBy'] as Map<String, dynamic>)
+        : null;
+    if (createdBy != null &&
+        (createdBy.company == null || createdBy.company!.isEmpty) &&
+        rootCompany != null) {
+      createdBy = createdBy.copyWith(company: rootCompany);
+    }
 
     return CashAdvanceDetailModel(
       id: json['id']?.toString() ?? '',
@@ -178,14 +217,9 @@ class CashAdvanceDetailModel {
       disbursementNotes: json['disbursementNotes']?.toString(),
       settlementDeadline: json['settlementDeadline']?.toString(),
       createdAt: json['createdAt']?.toString() ?? '',
-      employee: ExpenseEmployeeModel.fromJson(
-        json['employee'] is Map<String, dynamic>
-            ? json['employee'] as Map<String, dynamic>
-            : <String, dynamic>{},
-      ),
-      createdBy: json['createdBy'] is Map<String, dynamic>
-          ? ExpenseEmployeeModel.fromJson(json['createdBy'] as Map<String, dynamic>)
-          : null,
+      employee: employee,
+      createdBy: createdBy,
+      approver: approver,
       refunds: refunds,
       settlementReport: json['settlementReport'] is Map<String, dynamic>
           ? CashAdvanceSettlementReportModel.fromJson(

@@ -30,7 +30,7 @@ class OvertimeDetailEmployeeCard extends StatelessWidget {
         ? employee.employeeNumber!.trim()
         : (employee.idNumber != null && employee.idNumber!.trim().isNotEmpty)
             ? employee.idNumber!.trim()
-            : employee.id;
+            : null;
 
     return Container(
       width: double.infinity,

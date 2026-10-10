@@ -66,8 +66,7 @@ class AttendanceRequestApproverCard extends StatelessWidget {
               role: app.position?.name ?? '',
               department: app.department?.name ?? '',
               company: app.company?.name,
-              employeeId: app.employeeNumber ??
-                  (app.id.length > 8 ? app.id.substring(0, 8) : app.id),
+              employeeId: app.employeeNumber,
               avatarUrl: app.photoUrl,
               initials: app.initials,
               avatarSize: 44,

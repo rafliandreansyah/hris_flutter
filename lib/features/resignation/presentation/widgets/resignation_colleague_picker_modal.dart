@@ -87,6 +87,8 @@ Future<ResignationColleagueModel?> showResignationColleaguePickerModal(
                           vertical: 8,
                         ),
                         child: TextField(
+                          onTapOutside: (event) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           decoration: InputDecoration(
                             hintText: 'Cari nama, jabatan, atau divisi...',
                             hintStyle: AppTypography.bodySmall.copyWith(

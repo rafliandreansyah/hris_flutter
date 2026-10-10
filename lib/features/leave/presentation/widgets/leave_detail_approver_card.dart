@@ -62,7 +62,7 @@ class LeaveDetailApproverCard extends StatelessWidget {
             department: approver.department?.name ?? '',
             company: approver.company?.name,
             employeeId:
-                approver.employeeNumber ?? approver.idNumber ?? approver.id,
+                approver.employeeNumber ?? approver.idNumber,
             avatarUrl: approver.resolvedAvatarUrl,
             initials: approver.initials,
             avatarSize: 44,

@@ -524,12 +524,17 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
               ),
             ],
           ),
-          body: SafeArea(
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                children: [
+          body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SafeArea(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                  children: [
                   // ── Banner Blokir Check-Out (Jika Post-Shift & Belum Out) ──
                   if (state.isCheckOutRequiredBlocked)
                     _buildBlockedCheckOutBanner(context, isDark),
@@ -926,6 +931,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
               ),
             ),
           ),
+        ),
 
           // ── STICKY BOTTOM BAR: Submit Button ──────────────────────────────
           bottomNavigationBar: Container(

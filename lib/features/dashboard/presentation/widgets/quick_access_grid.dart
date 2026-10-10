@@ -230,7 +230,7 @@ class QuickAccessGrid extends StatelessWidget {
     } else if (c == 'mobile_warning_letter') {
       context.push(Routes.WARNING_LETTER);
     } else if (c == 'mobile_schedule' || c == 'mobile_employee_schedule') {
-      context.push(Routes.EMPLOYEE_SCHEDULE_SELECT);
+      context.push(Routes.WORK_SCHEDULE);
     } else if (c == 'mobile_reimbursement') {
       context.push(Routes.EXPENSES);
     } else if (c == 'mobile_asset' || c == 'mobile_assets') {

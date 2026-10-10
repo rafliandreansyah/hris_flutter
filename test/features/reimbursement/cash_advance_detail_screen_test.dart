@@ -23,11 +23,13 @@ void main() {
     settlementDeadline: '2026-10-15T00:00:00.000Z',
     employee: ExpenseEmployeeModel(
       id: 'emp-1',
+      employeeNumber: 'EMP-ADV-001',
       firstName: 'Sarah',
       lastName: 'Connor',
       email: 'sarah@example.com',
       jobPosition: 'Procurement Specialist',
       department: 'Operations',
+      company: 'PT Muratech Mandiri',
     ),
   );
 
@@ -58,16 +60,65 @@ void main() {
   }
 
   group('CashAdvanceDetailScreen Widget Tests', () {
-    testWidgets('renders detail info, employee card, and settlement action buttons', (tester) async {
+    testWidgets('renders detail info, employee card with employeeNumber and company, and settlement action buttons', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
       expect(find.text('Kasbon Pembelian Alat'), findsWidgets);
       expect(find.text('ADV-2026-0001'), findsOneWidget);
+      expect(find.text('INFORMASI PENGAJU'), findsOneWidget);
       expect(find.text('Sarah Connor'), findsWidgets);
+      expect(find.text('EMP-ADV-001'), findsOneWidget);
+      expect(find.text('PT Muratech Mandiri'), findsWidgets);
+      expect(find.text('emp-1'), findsNothing);
       expect(find.text('Status Penyelesaian Kasbon'), findsOneWidget);
       expect(find.text('Selesaikan Nota'), findsOneWidget);
       expect(find.text('Kembalikan Sisa'), findsOneWidget);
+      expect(find.text('PEJABAT PENYETUJU'), findsNothing);
+    });
+
+    testWidgets('renders PEJABAT PENYETUJU card with employeeNumber and company when approver or notes are present', (tester) async {
+      repository.mockCashAdvanceDetail = const CashAdvanceDetailModel(
+        id: 'adv-004',
+        advanceNumber: 'ADV-2026-0004',
+        title: 'Kasbon Disetujui',
+        purpose: 'Kebutuhan urgent',
+        requestedAmount: 1500000.0,
+        approvedAmount: 1500000.0,
+        status: 'approved',
+        createdAt: '2026-09-22T08:00:00.000Z',
+        disbursementNotes: 'Disetujui untuk operasional mendesak',
+        employee: ExpenseEmployeeModel(
+          id: 'emp-1',
+          employeeNumber: 'EMP-ADV-001',
+          firstName: 'Sarah',
+          lastName: 'Connor',
+          email: 'sarah@example.com',
+          jobPosition: 'Procurement Specialist',
+          company: 'PT Muratech Mandiri',
+        ),
+        approver: ExpenseEmployeeModel(
+          id: 'emp-lead',
+          employeeNumber: 'LEAD-2024-009',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          jobPosition: 'Division Head',
+          department: 'Operations',
+          company: 'PT Muratech Mandiri',
+        ),
+      );
+
+      await tester.pumpWidget(buildTestWidget(id: 'adv-004'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('INFORMASI PENGAJU'), findsOneWidget);
+      expect(find.text('Sarah Connor'), findsWidgets);
+      expect(find.text('PEJABAT PENYETUJU'), findsOneWidget);
+      expect(find.text('John Doe'), findsWidgets);
+      expect(find.text('LEAD-2024-009'), findsOneWidget);
+      expect(find.text('emp-lead'), findsNothing);
+      expect(find.text('Disetujui untuk operasional mendesak'), findsOneWidget);
     });
 
     testWidgets('renders Setujui and Tolak buttons when status is requested', (tester) async {

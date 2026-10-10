@@ -395,9 +395,13 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
         // 2. Main Scrollable Form Content
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            child: Form(
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+              child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,6 +565,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             ),
           ),
         ),
+      ),
 
         // 3. Bottom Sticky Action Button
         bottomNavigationBar: Container(

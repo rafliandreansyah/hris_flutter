@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hris_flutter/features/payroll/data/models/payroll_detail_model.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_employee_model.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_period_model.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_slip_model.dart';

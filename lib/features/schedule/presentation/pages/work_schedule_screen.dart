@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/schedule/data/models/work_schedule_response_model.dart';
@@ -80,6 +83,8 @@ class _WorkScheduleView extends StatelessWidget {
 
     final screenTitle =
         _isViewingOtherEmployee ? 'Jadwal Kerja Pegawai' : 'Jadwal Kerja Saya';
+    final canViewOtherEmployees = SecureStorageService.instance
+        .hasPermissionInMemory(AppPermissions.workScheduleView);
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -104,6 +109,16 @@ class _WorkScheduleView extends StatelessWidget {
           ),
         ),
         actions: [
+          if (canViewOtherEmployees && !_isViewingOtherEmployee)
+            IconButton(
+              tooltip: 'Jadwal Pegawai Lain',
+              icon: Icon(
+                LucideIcons.users,
+                size: 20,
+                color: textCol,
+              ),
+              onPressed: () => context.push(Routes.EMPLOYEE_SCHEDULE_SELECT),
+            ),
           IconButton(
             tooltip: 'Segarkan Jadwal',
             icon: Icon(

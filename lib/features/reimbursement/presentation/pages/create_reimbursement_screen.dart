@@ -292,6 +292,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
   }
 
   void _submit() {
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _titleError = null;
       _itemsError = null;
@@ -491,12 +492,16 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Jenis Pengajuan Klaim (Stitch Section 1)
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Jenis Pengajuan Klaim (Stitch Section 1)
                 _buildClaimTypeSection(
                   state,
                   isDark,
@@ -559,8 +564,9 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                 const SizedBox(height: 24),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }
@@ -1424,6 +1430,8 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                       height: 46,
                       child: TextField(
                         controller: item.merchantController,
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: AppTypography.bodyMedium.copyWith(
                           color: textCol,
                           fontWeight: FontWeight.w600,

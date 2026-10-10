@@ -176,5 +176,38 @@ void main() {
       expect(detail.attachments.length, 1);
       expect(detail.approverNotes, 'Acc');
     });
+
+    test('ReimbursementDetailModel propagates root company to employee and approver', () {
+      final json = {
+        'id': 'clm-101',
+        'claimNumber': 'CLM-2026-0100',
+        'title': 'Klaim Operasional',
+        'totalRequestedAmount': 200000.0,
+        'status': 'approved',
+        'company': {'name': 'PT Muratech Mandiri'},
+        'createdAt': '2026-09-20T10:00:00.000Z',
+        'employee': {
+          'id': 'emp-1',
+          'employeeNumber': 'EMP-001',
+          'firstName': 'Budi',
+          'email': 'budi@example.com',
+        },
+        'approver': {
+          'id': 'app-1',
+          'employeeNumber': 'EMP-002',
+          'firstName': 'Alex',
+          'email': 'alex@example.com',
+        },
+      };
+
+      final detail = ReimbursementDetailModel.fromJson(json);
+
+      expect(detail.employee.employeeNumber, 'EMP-001');
+      expect(detail.employee.displayEmployeeNumber, 'EMP-001');
+      expect(detail.employee.company, 'PT Muratech Mandiri');
+      expect(detail.approver?.employeeNumber, 'EMP-002');
+      expect(detail.approver?.displayEmployeeNumber, 'EMP-002');
+      expect(detail.approver?.company, 'PT Muratech Mandiri');
+    });
   });
 }

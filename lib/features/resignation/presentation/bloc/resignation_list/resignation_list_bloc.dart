@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/resignation/data/repositories/resignation_repository_impl.dart';
@@ -34,8 +36,21 @@ class ResignationListBloc
     ResignationListStarted event,
     Emitter<ResignationListState> emit,
   ) {
+    final canViewSubs = SecureStorageService.instance.hasPermissionInMemory(
+          AppPermissions.approvalResignationManager,
+        ) ||
+        SecureStorageService.instance.hasPermissionInMemory(
+          AppPermissions.resignationView,
+        ) ||
+        SecureStorageService.instance.hasPermissionInMemory(
+          AppPermissions.approvalResignationHr,
+        );
+
+    emit(state.copyWith(canViewSubordinates: canViewSubs));
     add(const ResignationListMyStatusRequested());
-    add(const ResignationListSubordinatesRequested());
+    if (canViewSubs) {
+      add(const ResignationListSubordinatesRequested());
+    }
   }
 
   void _onTabChanged(

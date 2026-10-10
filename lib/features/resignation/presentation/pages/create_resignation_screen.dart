@@ -684,11 +684,16 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
           ),
           body: isLoadingInitial
               ? _buildShimmerLoading()
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+              : GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -1349,6 +1354,7 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                     ],
                   ),
                 ),
+              ),
           bottomNavigationBar: SafeArea(
             top: false,
             child: Container(

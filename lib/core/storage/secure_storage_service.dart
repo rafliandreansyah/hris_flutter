@@ -136,6 +136,11 @@ class SecureStorageService {
     return _memoryPermissions.contains(permissionCode);
   }
 
+  /// Memeriksa apakah pengguna memiliki salah satu dari izin yang ditentukan
+  bool hasAnyPermissionInMemory(Iterable<String> permissionCodes) {
+    return permissionCodes.any((code) => _memoryPermissions.contains(code));
+  }
+
   /// Memeriksa apakah user memiliki access token tersimpan
   Future<bool> hasToken() async {
     final token = await getAccessToken();

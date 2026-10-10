@@ -148,6 +148,43 @@ void main() {
     });
 
     testWidgets(
+        'Tapping Jadwal Kerja in QuickAccessGrid navigates directly to personal Work Schedule', (
+      WidgetTester tester,
+    ) async {
+      final testRouter = GoRouter(
+        initialLocation: '/test',
+        routes: [
+          GoRoute(
+            path: '/test',
+            builder: (context, state) => const Scaffold(
+              body: SingleChildScrollView(
+                child: QuickAccessGrid(menus: null),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: Routes.WORK_SCHEDULE,
+            builder: (context, state) => const Scaffold(
+              body: Text('Personal Work Schedule Destination'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: testRouter,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Jadwal Kerja'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Personal Work Schedule Destination'), findsOneWidget);
+    });
+
+    testWidgets(
         'LeaveBalancePreviewCard shows info message when hasQuota is false or 0', (
       WidgetTester tester,
     ) async {

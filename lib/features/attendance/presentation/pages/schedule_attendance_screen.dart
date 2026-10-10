@@ -360,6 +360,8 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
   Future<void> _handleSubmission(
     ScheduleAttendanceState state,
   ) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     // 1. Validasi Alasan
     if (_reasonController.text.trim().isEmpty) {
       AppDialogUtil.showWarning(
@@ -526,9 +528,13 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               child: Container(color: borderCol, height: 1),
             ),
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.all(16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Switcher Tipe Presensi (In / Out / InOut) ───────────
@@ -594,6 +600,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               ],
             ),
           ),
+        ),
           bottomNavigationBar: _buildBottomActionBar(
             context: context,
             state: state,

@@ -161,6 +161,7 @@ class ReimbursementDetailModel {
   final String createdAt;
   final ExpenseEmployeeModel employee;
   final ExpenseEmployeeModel? createdBy;
+  final ExpenseEmployeeModel? approver;
   final Map<String, dynamic>? cashAdvance;
   final List<ReimbursementLineItemModel> items;
   final List<ReimbursementApprovalHistoryModel> approvalHistories;
@@ -187,6 +188,7 @@ class ReimbursementDetailModel {
     required this.createdAt,
     required this.employee,
     this.createdBy,
+    this.approver,
     this.cashAdvance,
     this.items = const [],
     this.approvalHistories = const [],
@@ -199,6 +201,21 @@ class ReimbursementDetailModel {
   double? get approvedAmount => totalApprovedAmount;
   String? get paymentMethod => disbursementMethod;
   DateTime? get submittedAt => DateTime.tryParse(createdAt);
+
+  ExpenseEmployeeModel? get resolvedApprover {
+    if (approver != null) return approver;
+    for (final h in approvalHistories.reversed) {
+      if (h.action.toLowerCase() == 'approved' ||
+          h.action.toLowerCase() == 'rejected') {
+        return h.approver;
+      }
+    }
+    if (approvalHistories.isNotEmpty) {
+      return approvalHistories.last.approver;
+    }
+    return null;
+  }
+
   String? get approverNotes {
     for (final h in approvalHistories) {
       if (h.notes != null && h.notes!.isNotEmpty) {
@@ -211,6 +228,10 @@ class ReimbursementDetailModel {
       items.expand((it) => it.attachments).toList();
 
   factory ReimbursementDetailModel.fromJson(Map<String, dynamic> json) {
+    final rootCompany = ExpenseEmployeeModel.extractName(json['company']) ??
+        ExpenseEmployeeModel.extractName(json['companyName']) ??
+        ExpenseEmployeeModel.extractName(json['company_name']);
+
     final rawItems = json['items'] as List<dynamic>? ?? [];
     final items = rawItems
         .whereType<Map<String, dynamic>>()
@@ -220,8 +241,56 @@ class ReimbursementDetailModel {
     final rawHistory = json['approvalHistories'] as List<dynamic>? ?? [];
     final approvalHistories = rawHistory
         .whereType<Map<String, dynamic>>()
-        .map(ReimbursementApprovalHistoryModel.fromJson)
+        .map((hJson) {
+          final history = ReimbursementApprovalHistoryModel.fromJson(hJson);
+          if (rootCompany != null &&
+              (history.approver.company == null ||
+                  history.approver.company!.isEmpty)) {
+            return ReimbursementApprovalHistoryModel(
+              id: history.id,
+              stepRole: history.stepRole,
+              action: history.action,
+              notes: history.notes,
+              createdAt: history.createdAt,
+              approver: history.approver.copyWith(company: rootCompany),
+            );
+          }
+          return history;
+        })
         .toList();
+
+    var employee = ExpenseEmployeeModel.fromJson(
+      json['employee'] is Map<String, dynamic>
+          ? json['employee'] as Map<String, dynamic>
+          : <String, dynamic>{},
+    );
+    if ((employee.company == null || employee.company!.isEmpty) &&
+        rootCompany != null) {
+      employee = employee.copyWith(company: rootCompany);
+    }
+
+    var approver = json['approver'] is Map<String, dynamic>
+        ? ExpenseEmployeeModel.fromJson(
+            json['approver'] as Map<String, dynamic>)
+        : json['approvedBy'] is Map<String, dynamic>
+            ? ExpenseEmployeeModel.fromJson(
+                json['approvedBy'] as Map<String, dynamic>)
+            : null;
+    if (approver != null &&
+        (approver.company == null || approver.company!.isEmpty) &&
+        rootCompany != null) {
+      approver = approver.copyWith(company: rootCompany);
+    }
+
+    var createdBy = json['createdBy'] is Map<String, dynamic>
+        ? ExpenseEmployeeModel.fromJson(
+            json['createdBy'] as Map<String, dynamic>)
+        : null;
+    if (createdBy != null &&
+        (createdBy.company == null || createdBy.company!.isEmpty) &&
+        rootCompany != null) {
+      createdBy = createdBy.copyWith(company: rootCompany);
+    }
 
     return ReimbursementDetailModel(
       id: json['id']?.toString() ?? '',
@@ -245,14 +314,9 @@ class ReimbursementDetailModel {
       paymentReference: json['paymentReference']?.toString(),
       rejectionReason: json['rejectionReason']?.toString(),
       createdAt: json['createdAt']?.toString() ?? '',
-      employee: ExpenseEmployeeModel.fromJson(
-        json['employee'] is Map<String, dynamic>
-            ? json['employee'] as Map<String, dynamic>
-            : <String, dynamic>{},
-      ),
-      createdBy: json['createdBy'] is Map<String, dynamic>
-          ? ExpenseEmployeeModel.fromJson(json['createdBy'] as Map<String, dynamic>)
-          : null,
+      employee: employee,
+      createdBy: createdBy,
+      approver: approver,
       cashAdvance: json['cashAdvance'] is Map<String, dynamic>
           ? json['cashAdvance'] as Map<String, dynamic>
           : null,

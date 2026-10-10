@@ -6,12 +6,8 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
-import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
-import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
-    show resolveFileUrl;
 import 'package:hris_flutter/features/reimbursement/data/models/cash_advance_detail_model.dart';
-import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/cash_advance_detail/cash_advance_detail_bloc.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/cash_advance_detail/cash_advance_detail_event.dart';
@@ -19,6 +15,8 @@ import 'package:hris_flutter/features/reimbursement/presentation/bloc/cash_advan
 import 'package:hris_flutter/features/reimbursement/presentation/models/expense_item_view_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_action_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/cash_advance_refund_dialog.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense_detail_approver_card.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense_detail_employee_card.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/reimbursement_action_dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -241,8 +239,12 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
               );
             }
 
-            // 2. Status Approved: Tombol Pencairan Dana
-            if (status == 'approved') {
+            // 2. Status Approved: Tombol Pencairan Dana jika memiliki wewenang finance/kasir atau manager
+            final hasFinancePermission = SecureStorageService.instance
+                    .hasPermissionInMemory(AppPermissions.approvalReimbursementFinance) ||
+                SecureStorageService.instance
+                    .hasPermissionInMemory(AppPermissions.approvalReimbursementManager);
+            if (status == 'approved' && hasFinancePermission) {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -399,17 +401,23 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                     const SizedBox(height: 14),
 
                     // 2. Info Pemohon
-                    _buildEmployeeCard(
+                    ExpenseDetailEmployeeCard(
                       employee: detail.employee,
-                      isDark: isDark,
-                      cardBg: cardBg,
-                      borderCol: borderCol,
-                      textCol: textCol,
-                      subtitleCol: subtitleCol,
                     ),
                     const SizedBox(height: 14),
 
-                    // 3. Status Penyelesaian & Sisa Kasbon
+                    // 3. Pejabat Penyetuju (Sembunyi jika approver == null dan tidak ada catatan)
+                    if (detail.approver != null ||
+                        (detail.approverNotes != null &&
+                            detail.approverNotes!.isNotEmpty)) ...[
+                      ExpenseDetailApproverCard(
+                        approver: detail.approver,
+                        approverNotes: detail.approverNotes,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
+                    // 4. Status Penyelesaian & Sisa Kasbon
                     if (detail.status.toLowerCase() == 'disbursed' ||
                         detail.status.toLowerCase() == 'settled') ...[
                       _buildSettlementProgressCard(
@@ -424,7 +432,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                       const SizedBox(height: 14),
                     ],
 
-                    // 4. Riwayat Pengembalian Dana Kasbon (Refunds)
+                    // 5. Riwayat Pengembalian Dana Kasbon (Refunds)
                     if (detail.refunds.isNotEmpty) ...[
                       _buildRefundsCard(
                         refunds: detail.refunds,
@@ -434,49 +442,6 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                         textCol: textCol,
                         subtitleCol: subtitleCol,
                         brandColor: brandColor,
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // 5. Catatan Approver jika ada
-                    if (detail.approverNotes != null &&
-                        detail.approverNotes!.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: borderCol),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(LucideIcons.messageSquare,
-                                    size: 18, color: AppColors.brandTeal),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Catatan Approver',
-                                  style: AppTypography.titleSmall.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: textCol,
-                                    fontSize: 14.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              detail.approverNotes!,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: textCol,
-                                fontSize: 13,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                       const SizedBox(height: 14),
                     ],
@@ -681,57 +646,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
     );
   }
 
-  Widget _buildEmployeeCard({
-    required ExpenseEmployeeModel employee,
-    required bool isDark,
-    required Color cardBg,
-    required Color borderCol,
-    required Color textCol,
-    required Color subtitleCol,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderCol),
-      ),
-      child: Row(
-        children: [
-          AppAvatar(
-            imageUrl: resolveFileUrl(employee.photoUrl),
-            name: employee.fullName,
-            size: 46,
-            showBorder: true,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  employee.fullName,
-                  style: AppTypography.titleSmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: textCol,
-                    fontSize: 14.5,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${employee.position ?? '-'} • ${employee.department ?? '-'}',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildSettlementProgressCard({
     required CashAdvanceDetailModel detail,

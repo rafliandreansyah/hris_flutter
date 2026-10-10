@@ -118,5 +118,39 @@ void main() {
       expect(detail.remainingAmount, 1000000.0);
       expect(detail.isOverdue, isTrue);
     });
+
+    test('CashAdvanceDetailModel propagates root company and parses employeeNumber', () {
+      final json = {
+        'id': 'adv-101',
+        'advanceNumber': 'ADV-2026-0101',
+        'title': 'Kasbon Logistik',
+        'purpose': 'Beli sparepart',
+        'requestedAmount': 500000.0,
+        'status': 'requested',
+        'company': {'name': 'PT Muratech Mandiri'},
+        'createdAt': '2026-09-22T00:00:00.000Z',
+        'employee': {
+          'id': 'emp-1',
+          'employeeNumber': 'EMP-001',
+          'firstName': 'Sarah',
+          'email': 'sarah@example.com',
+        },
+        'approver': {
+          'id': 'app-1',
+          'employeeNumber': 'EMP-MGR',
+          'firstName': 'John',
+          'email': 'john@example.com',
+        },
+      };
+
+      final detail = CashAdvanceDetailModel.fromJson(json);
+
+      expect(detail.employee.employeeNumber, 'EMP-001');
+      expect(detail.employee.displayEmployeeNumber, 'EMP-001');
+      expect(detail.employee.company, 'PT Muratech Mandiri');
+      expect(detail.approver?.employeeNumber, 'EMP-MGR');
+      expect(detail.approver?.displayEmployeeNumber, 'EMP-MGR');
+      expect(detail.approver?.company, 'PT Muratech Mandiri');
+    });
   });
 }

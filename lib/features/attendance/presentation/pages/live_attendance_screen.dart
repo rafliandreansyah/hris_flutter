@@ -210,6 +210,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     BuildContext context,
     LiveAttendanceState state,
   ) async {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (!state.hasValidCoordinates) {
       AppDialogUtil.showWarning(
         context,
@@ -370,9 +371,13 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               ),
             ),
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.all(16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Card 1: Waktu Server & Pilihan Presensi ────────────
@@ -416,6 +421,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               ],
             ),
           ),
+        ),
           bottomNavigationBar: _buildBottomActionBar(
             context: context,
             state: state,

@@ -100,3 +100,19 @@
     - **Single Source of Truth**: All search inputs across the application (Schedule, Expenses/Reimbursement, Asset, Resignation, Employee Directory, etc.) MUST use the global widget **`AppSearchBar`** (`lib/core/widgets/app_search_bar.dart`) rather than manually styling ad-hoc `TextField` inside colored container wrappers.
     - **Zero Solid Container Clutter**: Never wrap search fields in solid surface/white rectangular containers with hard bottom borders that clash with Scaffold backgrounds. Search bars must sit directly on the screen's background (`background` / `backgroundSubtle`), featuring their own clean `surfaceContainerLowest` card with subtle drop shadow and border radius (12).
     - **Consistent Suffix Interaction**: Automatically render an interactive clear (`x`) button when query text is present, and ensure automatic keyboard unfocus on outside taps via `onTapOutside`.
+19. **Standard Requester & Approver Cards for Request Detail Screens (`INFORMASI PENGAJU` & `PEJABAT PENYETUJU`)**:
+    - **Single Architectural Standard**: Across all request detail screens (`leave`, `overtime`, `attendance_requests`, `reimbursement`, `cash_advance`, etc.), both the Requester Profile ("INFORMASI PENGAJU") and Assigned Approver ("PEJABAT PENYETUJU") cards MUST strictly follow the unified Stitch M3 component structure:
+      - **Requester Card (`INFORMASI PENGAJU`)**:
+        - Container: `width: double.infinity`, `padding: const EdgeInsets.all(AppSpacing.md)`, `borderRadius: BorderRadius.circular(16)`, `border: Border.all(color: borderCol, width: 1)`, background `cardBg`.
+        - Section Title: `Text('INFORMASI PENGAJU', style: AppTypography.labelSmall.copyWith(color: subtitleCol, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8))`.
+        - Spacing: `const SizedBox(height: 12)`.
+        - Body: Global widget **`EmployeeInfoRow`** (`avatarSize: 44`, name, role/position, department, company, employeeId/nip, resolved avatar url, initials).
+      - **Approver Card (`PEJABAT PENYETUJU`)**:
+        - Container: Identical token decoration (`padding: AppSpacing.md`, `borderRadius: 16`, `border: borderCol`, `color: cardBg`).
+        - Section Title: `Text('PEJABAT PENYETUJU', style: AppTypography.labelSmall.copyWith(color: subtitleCol, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8))`.
+        - Spacing: `const SizedBox(height: 12)`.
+        - Body: Global widget **`EmployeeInfoRow`** representing the assigned approver (or subtle placeholder text if approver has not been assigned).
+        - Notes / Reason Callout Box: When notes/rejection reason is present, display a nested container with `padding: 12`, `borderRadius: 10`, `border: Border(left: BorderSide(color: isRejected ? AppColors.errorRed : brandColor, width: 3))`, icon `LucideIcons.messageSquare` (or `alertTriangle` if rejected), and italic note text in `AppTypography.bodySmall`.
+        - Visibility: If status is still pending and no approver has been assigned/approved yet and no notes exist, auto-hide the approver card.
+    - **Zero Ad-hoc Profiling**: Never build manual or ad-hoc `Row` / `AppAvatar` profile containers in request detail screens. Always implement or reuse the dedicated standard cards (`LeaveDetailEmployeeCard` / `LeaveDetailApproverCard`, `OvertimeDetailEmployeeCard` / `OvertimeDetailApproverCard`, `AttendanceRequestEmployeeCard` / `AttendanceRequestApproverCard`, `ExpenseDetailEmployeeCard` / `ExpenseDetailApproverCard`).
+

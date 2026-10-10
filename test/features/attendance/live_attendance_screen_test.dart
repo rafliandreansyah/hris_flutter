@@ -289,7 +289,7 @@ void main() {
       ));
 
       // Mock biometric authenticate agar mengembalikan true
-      BiometricService.testAuthenticateHandler = ({String localizedReason = ''}) async => true;
+      BiometricService.testAuthenticateHandler = ({bool biometricOnly = true, String localizedReason = ''}) async => true;
 
       await tester.pumpWidget(
         _wrapWidget(LiveAttendanceScreen(bloc: bloc)),

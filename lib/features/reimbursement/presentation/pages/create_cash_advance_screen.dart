@@ -95,6 +95,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
   }
 
   void _submit() {
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _titleError = null;
       _purposeError = null;
@@ -274,41 +275,46 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Banner Ketentuan Kasbon (Stitch Top Banner)
-                _buildPolicyBanner(isDark, brandColor),
-                const SizedBox(height: 16),
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Banner Ketentuan Kasbon (Stitch Top Banner)
+                  _buildPolicyBanner(isDark, brandColor),
+                  const SizedBox(height: 16),
 
-                // 2. Card 1: Informasi Pengajuan & Nominal (Stitch Card 1)
-                _buildNominalAndTitleCard(state, isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
-                const SizedBox(height: 16),
+                  // 2. Card 1: Informasi Pengajuan & Nominal (Stitch Card 1)
+                  _buildNominalAndTitleCard(state, isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
+                  const SizedBox(height: 16),
 
-                // 3. Card 2: Batas Waktu Pelaporan SPJ (Stitch Card 2 - Selaras API settlementDeadline)
-                _buildSettlementDeadlineCard(isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
-                const SizedBox(height: 16),
+                  // 3. Card 2: Batas Waktu Pelaporan SPJ (Stitch Card 2 - Selaras API settlementDeadline)
+                  _buildSettlementDeadlineCard(isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
+                  const SizedBox(height: 16),
 
-                // 4. Card 3: Rincian Estimasi Biaya / Keperluan (Stitch Card 3 - purpose)
-                _buildPurposeCard(isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
-                const SizedBox(height: 16),
+                  // 4. Card 3: Rincian Estimasi Biaya / Keperluan (Stitch Card 3 - purpose)
+                  _buildPurposeCard(isDark, brandColor, textCol, subtitleCol, borderCol, cardBg),
+                  const SizedBox(height: 16),
 
-                // 5. Card 4: Rekening Payroll Penerima (Stitch Card 4 - BeneficiaryAccountCard)
-                BeneficiaryAccountCard(
-                  bankName: state.employeeDetail?.bankName,
-                  bankNumber: state.employeeDetail?.bankNumber,
-                  bankAccount: state.employeeDetail?.bankAccount,
-                  employeePosition: state.employeeDetail?.position?.name,
-                  isLoading: state.isEmployeeLoading,
-                ),
-                const SizedBox(height: 16),
+                  // 5. Card 4: Rekening Payroll Penerima (Stitch Card 4 - BeneficiaryAccountCard)
+                  BeneficiaryAccountCard(
+                    bankName: state.employeeDetail?.bankName,
+                    bankNumber: state.employeeDetail?.bankNumber,
+                    bankAccount: state.employeeDetail?.bankAccount,
+                    employeePosition: state.employeeDetail?.position?.name,
+                    isLoading: state.isEmployeeLoading,
+                  ),
+                  const SizedBox(height: 16),
 
-                // 6. Card 5: Legalitas & SPJ Agreement Checkbox (Stitch Card 5)
-                _buildAgreementCard(isDark, brandColor, textCol, borderCol, cardBg),
-                const SizedBox(height: 24),
-              ],
+                  // 6. Card 5: Legalitas & SPJ Agreement Checkbox (Stitch Card 5)
+                  _buildAgreementCard(isDark, brandColor, textCol, borderCol, cardBg),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           );
         },
@@ -495,8 +501,11 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
+                        key: const Key('cash_advance_amount_field'),
                         controller: _amountController,
                         keyboardType: TextInputType.number,
+                        onTapOutside: (event) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: AppTypography.headlineLargeMobile.copyWith(
                           fontWeight: FontWeight.w900,
                           color: brandColor,
@@ -797,8 +806,11 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('cash_advance_purpose_field'),
             controller: _purposeController,
             maxLines: 4,
+            onTapOutside: (event) =>
+                FocusManager.instance.primaryFocus?.unfocus(),
             style: AppTypography.bodyMedium.copyWith(color: textCol, fontSize: 13.5),
             decoration: InputDecoration(
               hintText: 'Tuliskan estimasi peruntukan biaya secara ringkas...\nContoh:\n1. Tiket Kereta PP (Rp 600.000)\n2. Penginapan 1 Malam (Rp 500.000)',

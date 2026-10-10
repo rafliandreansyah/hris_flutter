@@ -5,6 +5,7 @@ import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/reimbursement_detail_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
+import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense_detail_approver_card.dart';
 
 import 'mock_reimbursement_repository.dart';
 
@@ -26,11 +27,13 @@ void main() {
     createdAt: '2026-09-22T08:00:00.000Z',
     employee: ExpenseEmployeeModel(
       id: 'emp-1',
+      employeeNumber: 'EMP-2024-001',
       firstName: 'Budi',
       lastName: 'Santoso',
       email: 'budi@example.com',
       jobPosition: 'Product Lead',
       department: 'Technology',
+      company: 'PT Muratech Mandiri',
     ),
     items: [
       ReimbursementLineItemModel(
@@ -75,16 +78,90 @@ void main() {
   }
 
   group('ReimbursementDetailScreen Widget Tests', () {
-    testWidgets('renders detail info, employee card and line items', (tester) async {
+    testWidgets('renders detail info, employee card with employeeNumber and company', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
       expect(find.text('Klaim Tiket Pesawat'), findsWidgets);
       expect(find.text('CLM-2026-0001'), findsOneWidget);
+      expect(find.text('INFORMASI PENGAJU'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsWidgets);
+      expect(find.text('EMP-2024-001'), findsOneWidget);
+      expect(find.text('PT Muratech Mandiri'), findsWidgets);
+      expect(find.text('emp-1'), findsNothing);
       expect(find.text('Garuda Indonesia • 20/09/2026'), findsOneWidget);
       expect(find.text('Setujui'), findsOneWidget);
       expect(find.text('Tolak'), findsOneWidget);
+      // Sembunyi jika approver == null dan tidak ada catatan
+      expect(find.text('PEJABAT PENYETUJU'), findsNothing);
+    });
+
+    testWidgets('renders PEJABAT PENYETUJU card with employeeNumber and company when approver is present with notes', (tester) async {
+      repository.mockReimbursementDetail = const ReimbursementDetailModel(
+        id: 'clm-003',
+        claimNumber: 'CLM-2026-0003',
+        title: 'Klaim Disetujui Manager',
+        totalRequestedAmount: 750000.0,
+        totalApprovedAmount: 750000.0,
+        status: 'approved',
+        type: 'out_of_pocket',
+        createdAt: '2026-09-22T08:00:00.000Z',
+        employee: ExpenseEmployeeModel(
+          id: 'emp-1',
+          employeeNumber: 'EMP-2024-001',
+          firstName: 'Budi',
+          lastName: 'Santoso',
+          email: 'budi@example.com',
+          jobPosition: 'Product Lead',
+          company: 'PT Muratech Mandiri',
+        ),
+        approver: ExpenseEmployeeModel(
+          id: 'emp-mgr',
+          employeeNumber: 'MGR-2024-002',
+          firstName: 'Siti',
+          lastName: 'Rahma',
+          email: 'siti@example.com',
+          jobPosition: 'Finance Manager',
+          department: 'Finance',
+          company: 'PT Muratech Mandiri',
+        ),
+        approvalHistories: [
+          ReimbursementApprovalHistoryModel(
+            id: 'h-1',
+            stepRole: 'Manager',
+            action: 'approved',
+            notes: 'Disetujui sesuai plafon bulanan',
+            createdAt: '2026-09-22T09:00:00.000Z',
+            approver: ExpenseEmployeeModel(
+              id: 'emp-mgr',
+              employeeNumber: 'MGR-2024-002',
+              firstName: 'Siti',
+              lastName: 'Rahma',
+              email: 'siti@example.com',
+              jobPosition: 'Finance Manager',
+              department: 'Finance',
+              company: 'PT Muratech Mandiri',
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(buildTestWidget(id: 'clm-003'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('INFORMASI PENGAJU'), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsWidgets);
+      expect(find.text('PEJABAT PENYETUJU'), findsOneWidget);
+      expect(find.text('Siti Rahma'), findsWidgets);
+      expect(find.text('MGR-2024-002'), findsOneWidget);
+      expect(find.text('emp-mgr'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(ExpenseDetailApproverCard),
+          matching: find.text('Disetujui sesuai plafon bulanan'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders Cairkan Dana button when claim is approved', (tester) async {

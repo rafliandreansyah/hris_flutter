@@ -79,6 +79,7 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
   }
 
   void _submit(String method) {
+    FocusManager.instance.primaryFocus?.unfocus();
     context.read<DisburseActionBloc>().add(
           DisburseSubmitted(
             claimId: widget.args.claimId,
@@ -175,9 +176,13 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.all(16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Ringkasan Pengajuan
@@ -302,8 +307,9 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
                 const SizedBox(height: 24),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

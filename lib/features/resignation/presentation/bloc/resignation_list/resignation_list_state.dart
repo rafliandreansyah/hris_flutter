@@ -19,6 +19,7 @@ class ResignationListState extends Equatable {
   final bool isCancelling;
   final bool cancelSuccess;
   final String? errorMessage;
+  final bool canViewSubordinates;
 
   const ResignationListState({
     this.currentTabIndex = 0,
@@ -36,6 +37,7 @@ class ResignationListState extends Equatable {
     this.isCancelling = false,
     this.cancelSuccess = false,
     this.errorMessage,
+    this.canViewSubordinates = false,
   });
 
   bool get hasActiveResignation => myStatus?.hasActiveResignation ?? false;
@@ -62,6 +64,7 @@ class ResignationListState extends Equatable {
     bool? cancelSuccess,
     String? errorMessage,
     bool clearErrorMessage = false,
+    bool? canViewSubordinates,
   }) {
     return ResignationListState(
       currentTabIndex: currentTabIndex ?? this.currentTabIndex,
@@ -84,6 +87,7 @@ class ResignationListState extends Equatable {
       cancelSuccess: cancelSuccess ?? this.cancelSuccess,
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      canViewSubordinates: canViewSubordinates ?? this.canViewSubordinates,
     );
   }
 
@@ -104,5 +108,6 @@ class ResignationListState extends Equatable {
         isCancelling,
         cancelSuccess,
         errorMessage,
+        canViewSubordinates,
       ];
 }

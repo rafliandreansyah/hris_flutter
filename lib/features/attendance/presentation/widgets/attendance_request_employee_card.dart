@@ -23,8 +23,7 @@ class AttendanceRequestEmployeeCard extends StatelessWidget {
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
-    final empNumber = employee.employeeNumber ??
-        (employee.id.length > 8 ? employee.id.substring(0, 8) : employee.id);
+    final empNumber = employee.employeeNumber;
 
     return Container(
       width: double.infinity,

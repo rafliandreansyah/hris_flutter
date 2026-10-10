@@ -32,6 +32,7 @@ void main() {
       final json = {
         'id': 'emp-101',
         'employeeId': 'NIP-001',
+        'employeeNumber': 'EMP-2026-001',
         'firstName': 'Budi',
         'lastName': 'Santoso',
         'email': 'budi@example.com',
@@ -45,6 +46,8 @@ void main() {
 
       expect(emp.id, 'emp-101');
       expect(emp.employeeId, 'NIP-001');
+      expect(emp.employeeNumber, 'EMP-2026-001');
+      expect(emp.displayEmployeeNumber, 'EMP-2026-001');
       expect(emp.firstName, 'Budi');
       expect(emp.lastName, 'Santoso');
       expect(emp.fullName, 'Budi Santoso');
@@ -52,6 +55,37 @@ void main() {
       expect(emp.department, 'Technology');
       expect(emp.company, 'PT Muratech');
       expect(emp.resolvedPhotoUrl, contains('uploads/budi.jpg'));
+    });
+
+    test('ExpenseEmployeeModel extracts names from Map objects and avoids DB id in displayEmployeeNumber', () {
+      final json = {
+        'id': 'uuid-db-999',
+        'employeeNumber': 'EMP-888',
+        'firstName': 'Rina',
+        'email': 'rina@example.com',
+        'position': {'name': 'QA Engineer'},
+        'department': {'name': 'Engineering'},
+        'company': {'name': 'PT Muratech Mandiri'},
+      };
+
+      final emp = ExpenseEmployeeModel.fromJson(json);
+      expect(emp.position, 'QA Engineer');
+      expect(emp.department, 'Engineering');
+      expect(emp.company, 'PT Muratech Mandiri');
+      expect(emp.employeeNumber, 'EMP-888');
+      expect(emp.displayEmployeeNumber, 'EMP-888');
+    });
+
+    test('ExpenseEmployeeModel displayEmployeeNumber returns null when no employee number and never returns id', () {
+      final json = {
+        'id': 'uuid-db-12345',
+        'firstName': 'John',
+        'email': 'john@example.com',
+      };
+
+      final emp = ExpenseEmployeeModel.fromJson(json);
+      expect(emp.employeeNumber, isNull);
+      expect(emp.displayEmployeeNumber, isNull);
     });
 
     test('ExpenseEmployeeModel handles single name correctly', () {

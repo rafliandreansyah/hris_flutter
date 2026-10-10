@@ -54,7 +54,7 @@ class LeaveDetailEmployeeCard extends StatelessWidget {
             department: employee.department?.name ?? '',
             company: employee.company?.name,
             employeeId:
-                employee.employeeNumber ?? employee.idNumber ?? employee.id,
+                employee.employeeNumber ?? employee.idNumber,
             avatarUrl: employee.resolvedAvatarUrl,
             initials: employee.initials,
             avatarSize: 44,

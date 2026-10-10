@@ -38,7 +38,7 @@ class OvertimeDetailApproverCard extends StatelessWidget {
         ? approver.employeeNumber!.trim()
         : (approver.idNumber != null && approver.idNumber!.trim().isNotEmpty)
             ? approver.idNumber!.trim()
-            : approver.id;
+            : null;
 
     final hasNotes = approverNotes != null && approverNotes!.trim().isNotEmpty;
 

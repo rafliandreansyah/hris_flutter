@@ -493,12 +493,17 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
               ],
             ),
           ),
-          body: SafeArea(
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                children: [
+          body: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: SafeArea(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                  children: [
                   // ── SECTION 1: Jenis Cuti / Izin ──────────────────────────
                   Container(
                     decoration: BoxDecoration(
@@ -1000,6 +1005,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
               ),
             ),
           ),
+        ),
 
           // ── STICKY BOTTOM BAR: Submit Button ──────────────────────────────
           bottomNavigationBar: Container(
