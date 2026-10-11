@@ -139,17 +139,22 @@ class AttendanceTodayData extends Equatable {
   /// Apakah user memiliki metode presensi yang ditentukan dari server.
   bool get hasAttendanceMethod => attendanceMethod.trim().isNotEmpty;
 
-  /// Apakah metode presensi menggunakan autentikasi biometrik.
-  bool get isBiometricMethod =>
-      attendanceMethod.toLowerCase().contains('biometric') ||
-      attendanceMethod.toLowerCase().contains('finger');
+  /// Apakah metode presensi menggunakan liveness AI / face anti-spoofing.
+  bool get isLivenessMethod =>
+      attendanceMethod.toLowerCase().contains('liveness');
 
-  /// Apakah metode presensi menggunakan foto selfie / kamera.
+  /// Apakah metode presensi menggunakan autentikasi biometrik lokal (fingerprint/passkey).
+  bool get isBiometricMethod =>
+      !isLivenessMethod &&
+      (attendanceMethod.toLowerCase().contains('biometric') ||
+          attendanceMethod.toLowerCase().contains('finger'));
+
+  /// Apakah metode presensi menggunakan foto selfie / kamera biasa.
   bool get isPhotoMethod =>
-      attendanceMethod.toLowerCase().contains('photo') ||
-      attendanceMethod.toLowerCase().contains('foto') ||
-      attendanceMethod.toLowerCase().contains('face') ||
-      attendanceMethod.toLowerCase().contains('selfie');
+      !isLivenessMethod &&
+      (attendanceMethod.toLowerCase().contains('photo') ||
+          attendanceMethod.toLowerCase().contains('foto') ||
+          attendanceMethod.toLowerCase().contains('selfie'));
 
   AttendanceTodayData copyWith({
     String? attendanceId,

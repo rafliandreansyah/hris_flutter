@@ -48,6 +48,8 @@ class AttendanceActionButtons extends StatelessWidget {
   bool get _isBiometric =>
       attendanceMethod.toLowerCase().contains('biometric') ||
       attendanceMethod.toLowerCase().contains('finger');
+  bool get _isLiveness =>
+      attendanceMethod.toLowerCase().contains('liveness');
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,7 @@ class AttendanceActionButtons extends StatelessWidget {
 
     final isAttendanceCompleted = isClockedIn && isClockedOut;
     final isBiometric = _isBiometric;
+    final isLiveness = _isLiveness;
     final hasMethod = _hasAttendanceMethod;
 
     final String primaryButtonText;
@@ -81,20 +84,28 @@ class AttendanceActionButtons extends StatelessWidget {
       primaryButtonIcon = LucideIcons.shieldAlert;
       primaryAction = null;
     } else if (!isClockedIn) {
-      primaryButtonText = isBiometric
-          ? 'Clock In via Biometrik'
-          : 'Clock In Now';
-      primaryButtonIcon = isBiometric
-          ? LucideIcons.fingerprint
-          : LucideIcons.camera;
+      primaryButtonText = isLiveness
+          ? 'Clock In via Liveness AI'
+          : isBiometric
+              ? 'Clock In via Biometrik'
+              : 'Clock In Now';
+      primaryButtonIcon = isLiveness
+          ? LucideIcons.scanFace
+          : isBiometric
+              ? LucideIcons.fingerprint
+              : LucideIcons.camera;
       primaryAction = isLoading ? null : defaultClockAction;
     } else if (!isClockedOut) {
-      primaryButtonText = isBiometric
-          ? 'Clock Out via Biometrik'
-          : 'Clock Out Now';
-      primaryButtonIcon = isBiometric
-          ? LucideIcons.fingerprint
-          : LucideIcons.camera;
+      primaryButtonText = isLiveness
+          ? 'Clock Out via Liveness AI'
+          : isBiometric
+              ? 'Clock Out via Biometrik'
+              : 'Clock Out Now';
+      primaryButtonIcon = isLiveness
+          ? LucideIcons.scanFace
+          : isBiometric
+              ? LucideIcons.fingerprint
+              : LucideIcons.camera;
       primaryAction = isLoading ? null : defaultClockAction;
     } else {
       primaryButtonText = 'Attendance Completed';
@@ -135,15 +146,21 @@ class AttendanceActionButtons extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    isBiometric ? LucideIcons.fingerprint : LucideIcons.camera,
+                    isLiveness
+                        ? LucideIcons.scanFace
+                        : isBiometric
+                            ? LucideIcons.fingerprint
+                            : LucideIcons.camera,
                     size: 14,
                     color: AppColors.brandTeal,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isBiometric
-                        ? 'Metode Presensi: Biometrik'
-                        : 'Metode Presensi: Foto Selfie',
+                    isLiveness
+                        ? 'Metode Presensi: Liveness AI'
+                        : isBiometric
+                            ? 'Metode Presensi: Biometrik'
+                            : 'Metode Presensi: Foto Selfie',
                     style: AppTypography.labelSmall.copyWith(
                       fontWeight: FontWeight.w600,
                       color: isDark

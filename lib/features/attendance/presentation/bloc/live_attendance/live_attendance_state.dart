@@ -40,8 +40,12 @@ class LiveAttendanceState extends Equatable {
       attendanceMethod.toLowerCase().contains('biometric') ||
       attendanceMethod.toLowerCase().contains('finger');
 
-  /// True jika metode presensi menggunakan foto selfie
-  bool get isPhotoMethod => !isBiometricMethod;
+  /// True jika metode presensi menggunakan Liveness AI anti-spoofing
+  bool get isLivenessMethod =>
+      attendanceMethod.toLowerCase().contains('liveness');
+
+  /// True jika metode presensi menggunakan foto selfie manual
+  bool get isPhotoMethod => !isBiometricMethod && !isLivenessMethod;
 
   /// True jika koordinat valid telah didapatkan dari sensor GPS
   bool get hasValidCoordinates =>

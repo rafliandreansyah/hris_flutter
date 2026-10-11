@@ -21,6 +21,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_state.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -260,6 +261,42 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
         );
         return;
       }
+    }
+
+    // Mode Liveness AI: Ambil foto verifikasi wajah saat tombol submit ditekan
+    if (state.isLivenessMethod) {
+      final camResult = await PermissionUtil.requestCameraPermission(
+        context: context,
+        showRationale: true,
+      );
+      if (!camResult.isGranted) return;
+      if (!context.mounted) return;
+
+      final File? capturedFile = await Navigator.of(context).push<File>(
+        MaterialPageRoute(
+          builder: (_) => const LivenessCameraScreen(
+            title: 'Verifikasi Wajah Liveness AI',
+          ),
+        ),
+      );
+
+      if (capturedFile == null) return;
+      if (!context.mounted) return;
+
+      setState(() => _isCompressing = true);
+      final compressRes = await ImageCompressUtil.compressFile(
+        capturedFile,
+        maxSizeBytes: 500 * 1024,
+      );
+      if (!context.mounted) return;
+      setState(() {
+        _isCompressing = false;
+        _compressResult = compressRes;
+      });
+
+      context.read<LiveAttendanceBloc>().add(
+        LiveAttendancePhotoChanged(XFile(compressRes.file.path)),
+      );
     }
 
     if (!context.mounted) return;
@@ -748,9 +785,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
 
           const SizedBox(height: 20),
 
-          // Section 2: Verifikasi Kehadiran (Mode Foto vs Mode Biometrik)
-          if (state.isPhotoMethod)
-            _buildPhotoSection(
+          // Section 2: Verifikasi Kehadiran (Mode Liveness AI vs Mode Biometrik vs Mode Foto)
+          if (state.isLivenessMethod)
+            _buildLivenessSection(
               context: context,
               state: state,
               isDark: isDark,
@@ -758,9 +795,18 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               textCol: textCol,
               subtitleCol: subtitleCol,
             )
-          else
+          else if (state.isBiometricMethod)
             _buildBiometricSection(
               context: context,
+              isDark: isDark,
+              borderCol: borderCol,
+              textCol: textCol,
+              subtitleCol: subtitleCol,
+            )
+          else
+            _buildPhotoSection(
+              context: context,
+              state: state,
               isDark: isDark,
               borderCol: borderCol,
               textCol: textCol,
@@ -1151,6 +1197,185 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  /// Tampilan Verifikasi Liveness AI (Otomatis aktif saat submit)
+  Widget _buildLivenessSection({
+    required BuildContext context,
+    required LiveAttendanceState state,
+    required bool isDark,
+    required Color borderCol,
+    required Color textCol,
+    required Color subtitleCol,
+  }) {
+    final photo = state.photo;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Verifikasi Wajah Liveness AI',
+                style: AppTypography.labelMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: textCol,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.brandTeal.withValues(alpha: 0.2)
+                    : const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.brandTeal.withValues(alpha: 0.4)
+                      : const Color(0xFFA7F3D0),
+                ),
+              ),
+              child: Text(
+                'Metode: Liveness AI',
+                style: AppTypography.labelSmall.copyWith(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.brandTeal : const Color(0xFF047857),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (photo == null)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.brandTeal.withValues(alpha: 0.12)
+                  : const Color(0xFFF0FDFA),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.brandTeal.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.brandTeal.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.scanFace,
+                    size: 28,
+                    color: AppColors.brandTeal,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Deteksi Wajah Nyata & Anti-Spoofing',
+                        style: AppTypography.labelMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: textCol,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Kamera Liveness AI akan aktif otomatis saat Anda menekan tombol "Ajukan Presensi". Posisikan wajah Anda pada bingkai oval.',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: subtitleCol,
+                          fontSize: 11.5,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          // Pratinjau Foto Liveness yang sudah diambil
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.darkSurfaceContainerLow
+                  : AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: borderCol, width: 1),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(photo.path),
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.shieldCheck,
+                            size: 15,
+                            color: Color(0xFF059669),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Wajah Terverifikasi Liveness',
+                            style: AppTypography.labelMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: textCol,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Foto siap dikirim bersama pengajuan presensi.',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: subtitleCol,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.errorRed),
+                  onPressed: _clearPhoto,
+                  tooltip: 'Hapus & Ambil Ulang',
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

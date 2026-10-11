@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,6 +20,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_action_buttons.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_employee_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_geofence_map_card.dart';
@@ -437,8 +439,57 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
     final String effectiveAddress = data.officeDetail;
     final String targetType = !data.isClockedIn ? 'in' : 'out';
 
-    // 6. Eksekusi berdasarkan metode dari server (photo vs biometric)
-    if (data.isBiometricMethod) {
+    // 6. Eksekusi berdasarkan metode dari server (liveness vs biometric vs photo)
+    if (data.isLivenessMethod) {
+      final permissionsGranted =
+          await PermissionUtil.requestAttendancePermissions(context: context);
+      if (!permissionsGranted) return;
+      if (!context.mounted) return;
+
+      try {
+        final File? capturedFile = await Navigator.of(context).push<File?>(
+          MaterialPageRoute(
+            builder: (_) => const LivenessCameraScreen(),
+          ),
+        );
+
+        if (capturedFile == null) return;
+        if (!context.mounted) return;
+
+        final photoFile = XFile(capturedFile.path);
+
+        if (targetType == 'in') {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockInSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'liveness',
+              workLocationId: selectedLocation.id,
+              photoFile: photoFile,
+            ),
+          );
+        } else {
+          context.read<AttendanceBloc>().add(
+            AttendanceClockOutSubmitted(
+              latitude: effectiveLat,
+              longitude: effectiveLng,
+              address: effectiveAddress,
+              attendanceMethod: 'liveness',
+              workLocationId: selectedLocation.id,
+              photoFile: photoFile,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!context.mounted) return;
+        AppDialogUtil.showError(
+          context,
+          title: 'Liveness AI Gagal',
+          message: 'Terjadi kesalahan saat memproses presensi liveness: $e',
+        );
+      }
+    } else if (data.isBiometricMethod) {
       final locGranted =
           await PermissionUtil.requestLocationPermission(context: context);
       if (!locGranted.isGranted) return;

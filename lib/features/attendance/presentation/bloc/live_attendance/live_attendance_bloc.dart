@@ -141,9 +141,11 @@ class LiveAttendanceBloc
       return;
     }
 
-    if (state.isPhotoMethod && state.photo == null) {
+    if ((state.isPhotoMethod || state.isLivenessMethod) && state.photo == null) {
       emit(state.copyWith(
-        errorMessage: () => 'Foto bukti kehadiran / selfie wajib diambil.',
+        errorMessage: () => state.isLivenessMethod
+            ? 'Foto bukti kehadiran / verifikasi wajah wajib diambil.'
+            : 'Foto bukti kehadiran / selfie wajib diambil.',
       ));
       return;
     }
@@ -165,7 +167,7 @@ class LiveAttendanceBloc
         latitude: state.latitude!,
         longitude: state.longitude!,
         attendanceType: state.attendanceType,
-        file: state.isPhotoMethod ? state.photo : null,
+        file: (state.isPhotoMethod || state.isLivenessMethod) ? state.photo : null,
         address: safeAddress,
         reason: state.reason.trim(),
       );

@@ -357,9 +357,14 @@ class _AttendanceDetailView extends StatelessWidget {
   }) {
     final shiftName = detail.shift?.name ?? 'Regular Shift';
     final shiftTime = detail.shift?.timeRange ?? '-';
-    final method = detail.attendanceMethod.isNotEmpty
-        ? detail.attendanceMethod
-        : 'Biometric Check-In';
+    final String method;
+    if (detail.attendanceMethod.toLowerCase() == 'liveness') {
+      method = 'Liveness AI';
+    } else if (detail.attendanceMethod.isNotEmpty) {
+      method = detail.attendanceMethod;
+    } else {
+      method = 'Biometric Check-In';
+    }
 
     return IntrinsicHeight(
       child: Row(

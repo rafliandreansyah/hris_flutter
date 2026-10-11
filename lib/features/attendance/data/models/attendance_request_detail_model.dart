@@ -43,6 +43,12 @@ class AttendanceRequestDetailData extends Equatable {
   final String? addressOut;
   final DateTime? createdAt;
   final String timezone;
+  final double? livenessScore;
+  final double? similarityScore;
+  final bool? isLive;
+  final bool? isMatch;
+  final String? attackType;
+  final int? aiVerificationTimeMs;
 
   const AttendanceRequestDetailData({
     required this.id,
@@ -66,6 +72,12 @@ class AttendanceRequestDetailData extends Equatable {
     this.addressOut,
     this.createdAt,
     this.timezone = 'WIB',
+    this.livenessScore,
+    this.similarityScore,
+    this.isLive,
+    this.isMatch,
+    this.attackType,
+    this.aiVerificationTimeMs,
   });
 
   factory AttendanceRequestDetailData.fromJson(Map<String, dynamic> json) {
@@ -130,6 +142,14 @@ class AttendanceRequestDetailData extends Equatable {
       addressOut: json['addressOut']?.toString(),
       createdAt: parseDate(json['createdAt']),
       timezone: json['timezone']?.toString() ?? 'WIB',
+      livenessScore: parseDouble(json['livenessScore']),
+      similarityScore: parseDouble(json['similarityScore']),
+      isLive: json['isLive'] as bool?,
+      isMatch: json['isMatch'] as bool?,
+      attackType: json['attackType']?.toString(),
+      aiVerificationTimeMs: json['aiVerificationTimeMs'] is num
+          ? (json['aiVerificationTimeMs'] as num).toInt()
+          : int.tryParse(json['aiVerificationTimeMs']?.toString() ?? ''),
     );
   }
 
@@ -203,6 +223,12 @@ class AttendanceRequestDetailData extends Equatable {
         'addressOut': addressOut,
         'createdAt': createdAt?.toIso8601String(),
         'timezone': timezone,
+        'livenessScore': livenessScore,
+        'similarityScore': similarityScore,
+        'isLive': isLive,
+        'isMatch': isMatch,
+        'attackType': attackType,
+        'aiVerificationTimeMs': aiVerificationTimeMs,
       };
 
   AttendanceRequestDetailData copyWith({
@@ -231,6 +257,12 @@ class AttendanceRequestDetailData extends Equatable {
     String? addressOut,
     DateTime? createdAt,
     String? timezone,
+    double? livenessScore,
+    double? similarityScore,
+    bool? isLive,
+    bool? isMatch,
+    String? attackType,
+    int? aiVerificationTimeMs,
   }) {
     return AttendanceRequestDetailData(
       id: id ?? this.id,
@@ -255,6 +287,13 @@ class AttendanceRequestDetailData extends Equatable {
       addressOut: addressOut ?? this.addressOut,
       createdAt: createdAt ?? this.createdAt,
       timezone: timezone ?? this.timezone,
+      livenessScore: livenessScore ?? this.livenessScore,
+      similarityScore: similarityScore ?? this.similarityScore,
+      isLive: isLive ?? this.isLive,
+      isMatch: isMatch ?? this.isMatch,
+      attackType: attackType ?? this.attackType,
+      aiVerificationTimeMs:
+          aiVerificationTimeMs ?? this.aiVerificationTimeMs,
     );
   }
 
@@ -287,8 +326,20 @@ class AttendanceRequestDetailData extends Equatable {
   // --- METHOD & TYPE HELPERS ---
   // ==========================================
 
-  /// Apakah metode presensi berupa foto
+  /// Apakah metode presensi berupa foto manual
   bool get isPhotoMethod => method.trim().toLowerCase() == 'photo';
+
+  /// Apakah metode presensi berupa liveness AI
+  bool get isLivenessMethod {
+    final m = method.trim().toLowerCase();
+    return m == 'liveness' || m == 'biometric';
+  }
+
+  /// Apakah pengajuan memiliki bukti foto
+  bool get hasPhotoProof =>
+      (isPhotoMethod || isLivenessMethod) &&
+      ((filePath != null && filePath!.trim().isNotEmpty) ||
+          (filePathOut != null && filePathOut!.trim().isNotEmpty));
 
   /// Apakah presensi masuk
   bool get isIn {
@@ -395,6 +446,12 @@ class AttendanceRequestDetailData extends Equatable {
         addressOut,
         createdAt,
         timezone,
+        livenessScore,
+        similarityScore,
+        isLive,
+        isMatch,
+        attackType,
+        aiVerificationTimeMs,
       ];
 }
 

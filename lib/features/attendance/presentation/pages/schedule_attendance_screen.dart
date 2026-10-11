@@ -20,6 +20,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/schedule_attendance/schedule_attendance_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/schedule_attendance/schedule_attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/schedule_attendance/schedule_attendance_state.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/schedule_location_picker_modal.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -431,6 +432,41 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
           message: e.message,
         );
         return;
+      }
+    }
+
+    // 5. Verifikasi Liveness AI jika mode liveness
+    if (state.isLivenessMethod) {
+      final camResult = await PermissionUtil.requestCameraPermission(
+        context: context,
+        showRationale: true,
+      );
+      if (!camResult.isGranted) return;
+      if (!mounted) return;
+
+      final File? capturedFile = await Navigator.of(context).push<File>(
+        MaterialPageRoute(
+          builder: (_) => const LivenessCameraScreen(
+            title: 'Verifikasi Liveness Presensi Terjadwal',
+          ),
+        ),
+      );
+
+      if (capturedFile == null) return;
+      if (!mounted) return;
+
+      final compressRes = await ImageCompressUtil.compressFile(
+        capturedFile,
+        maxSizeBytes: 500 * 1024,
+      );
+      if (!mounted) return;
+
+      final xFile = XFile(compressRes.file.path);
+      if (state.hasIn) {
+        context.read<ScheduleAttendanceBloc>().add(ScheduleAttendanceInPhotoChanged(xFile));
+      }
+      if (state.hasOut) {
+        context.read<ScheduleAttendanceBloc>().add(ScheduleAttendanceOutPhotoChanged(xFile));
       }
     }
 
@@ -1421,9 +1457,11 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  state.isPhotoMethod
-                      ? 'Metode: Photo Verification'
-                      : 'Metode: Biometric Verification',
+                  state.isLivenessMethod
+                      ? 'Metode: Liveness AI'
+                      : state.isPhotoMethod
+                          ? 'Metode: Photo Verification'
+                          : 'Metode: Biometric Verification',
                   style: AppTypography.labelSmall.copyWith(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w600,
@@ -1435,7 +1473,63 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
           ),
           const SizedBox(height: 14),
 
-          if (state.isPhotoMethod) ...[
+          if (state.isLivenessMethod) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.brandTeal.withValues(alpha: 0.12)
+                    : const Color(0xFFF0FDFA),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.brandTeal.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandTeal.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.scanFace,
+                      size: 28,
+                      color: AppColors.brandTeal,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Deteksi Wajah Nyata & Anti-Spoofing',
+                          style: AppTypography.titleSmall.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: textCol,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Kamera Liveness AI akan aktif secara otomatis saat Anda menekan tombol "Ajukan Presensi Terjadwal". Posisikan wajah Anda pada bingkai oval.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: subtitleCol,
+                            fontSize: 11.5,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (state.isPhotoMethod) ...[
             // Foto Masuk (jika hasIn)
             if (state.hasIn)
               _buildPhotoCard(

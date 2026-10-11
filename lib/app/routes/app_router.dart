@@ -19,6 +19,7 @@ import 'package:hris_flutter/features/attendance/presentation/pages/attendance_r
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_requests_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/employee_attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/live_attendance_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/schedule_attendance_screen.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
@@ -186,6 +187,12 @@ class AppRouter {
         path: Routes.ATTENDANCE,
         name: Routes.ATTENDANCE,
         builder: (context, state) => const AttendanceScreen(),
+      ),
+
+      GoRoute(
+        path: Routes.LIVENESS_CAMERA,
+        name: Routes.LIVENESS_CAMERA,
+        builder: (context, state) => const LivenessCameraScreen(),
       ),
 
       GoRoute(

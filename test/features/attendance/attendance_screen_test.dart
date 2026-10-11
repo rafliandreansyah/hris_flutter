@@ -280,6 +280,53 @@ void main() {
       expect(find.text('Clock In via Biometrik'), findsOneWidget);
     });
 
+    testWidgets('attendanceMethod liveness renders Liveness AI button label and badge automatically', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final repo = TestAttendanceRepository(
+        initialData: AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 8, 45, 20),
+          attendanceMethod: 'liveness',
+          availableWorkLocations: const [
+            WorkLocationItem(
+              id: 'default-office',
+              name: 'Jakarta HQ Office',
+              address: 'HQ Office — Main Lobby',
+              radius: 50.0,
+              latitude: -6.2253,
+              longitude: 106.8097,
+              isDefault: true,
+            ),
+          ],
+          selectedWorkLocation: const WorkLocationItem(
+            id: 'default-office',
+            name: 'Jakarta HQ Office',
+            address: 'HQ Office — Main Lobby',
+            radius: 50.0,
+            latitude: -6.2253,
+            longitude: 106.8097,
+            isDefault: true,
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        createTestApp(
+          AttendanceScreen(repository: repo, autoStartClock: false),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Metode Presensi: Liveness AI'), findsOneWidget);
+      expect(find.text('Clock In via Liveness AI'), findsOneWidget);
+    });
+
     testWidgets('empty attendanceMethod displays dialog explaining user cannot perform attendance', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;

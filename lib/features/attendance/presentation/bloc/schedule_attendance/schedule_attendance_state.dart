@@ -70,8 +70,13 @@ class ScheduleAttendanceState extends Equatable {
     this.errorCode,
   });
 
-  bool get isPhotoMethod => attendanceMethod == 'photo';
-  bool get isBiometricMethod => attendanceMethod == 'biometric';
+  bool get isPhotoMethod =>
+      attendanceMethod == 'photo' && !isBiometricMethod && !isLivenessMethod;
+  bool get isBiometricMethod =>
+      attendanceMethod == 'biometric' ||
+      attendanceMethod.toLowerCase().contains('finger');
+  bool get isLivenessMethod =>
+      attendanceMethod.toLowerCase().contains('liveness');
 
   bool get hasIn => attendanceType == 'in' || attendanceType == 'inout';
   bool get hasOut => attendanceType == 'out' || attendanceType == 'inout';

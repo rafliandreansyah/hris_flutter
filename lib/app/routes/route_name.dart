@@ -50,4 +50,5 @@ abstract class Routes {
   static const String PAYROLL = '/payroll';
   static const String PAYROLL_EMPLOYEE_SLIPS = '/payroll/employee-slips';
   static const String PAYROLL_DETAIL = '/payroll-detail';
+  static const String LIVENESS_CAMERA = '/liveness-camera';
 }

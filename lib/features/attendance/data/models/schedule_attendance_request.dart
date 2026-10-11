@@ -82,7 +82,7 @@ class ScheduleAttendanceRequest {
       if (addressIn != null && addressIn!.trim().isNotEmpty) {
         map['addressIn'] = addressIn!.trim();
       }
-      if (fileIn != null && attendanceMethod == 'photo') {
+      if (fileIn != null && (attendanceMethod == 'photo' || attendanceMethod == 'liveness')) {
         final fileName = fileIn!.name.isNotEmpty
             ? fileIn!.name
             : fileIn!.path.split(RegExp(r'[/\\]')).last;
@@ -106,7 +106,7 @@ class ScheduleAttendanceRequest {
       if (addressOut != null && addressOut!.trim().isNotEmpty) {
         map['addressOut'] = addressOut!.trim();
       }
-      if (fileOut != null && attendanceMethod == 'photo') {
+      if (fileOut != null && (attendanceMethod == 'photo' || attendanceMethod == 'liveness')) {
         final fileName = fileOut!.name.isNotEmpty
             ? fileOut!.name
             : fileOut!.path.split(RegExp(r'[/\\]')).last;
@@ -132,7 +132,7 @@ class ScheduleAttendanceRequest {
     if (fallbackAddr != null && fallbackAddr.trim().isNotEmpty) {
       map['address'] = fallbackAddr.trim();
     }
-    if (fallbackFile != null && attendanceMethod == 'photo') {
+    if (fallbackFile != null && (attendanceMethod == 'photo' || attendanceMethod == 'liveness')) {
       final fileName = fallbackFile.name.isNotEmpty
           ? fallbackFile.name
           : fallbackFile.path.split(RegExp(r'[/\\]')).last;

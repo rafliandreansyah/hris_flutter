@@ -17,8 +17,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── KONDISI KHUSUS: Sembunyikan jika bukan metode foto ─────────────
-    if (!detail.isPhotoMethod) {
+    if (!detail.isPhotoMethod && !detail.isLivenessMethod) {
       return const SizedBox.shrink();
     }
 
@@ -59,15 +58,82 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'FOTO BUKTI KEHADIRAN / KUNJUNGAN',
-            style: AppTypography.labelSmall.copyWith(
-              color: subtitleCol,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                detail.isLivenessMethod
+                    ? 'VERIFIKASI WAJAH LIVENESS AI'
+                    : 'FOTO BUKTI KEHADIRAN / KUNJUNGAN',
+                style: AppTypography.labelSmall.copyWith(
+                  color: subtitleCol,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              if (detail.isLivenessMethod)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        LucideIcons.shieldCheck,
+                        size: 13,
+                        color: Color(0xFF059669),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Liveness AI Verified',
+                        style: AppTypography.labelSmall.copyWith(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF047857),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
+          if (detail.isLivenessMethod &&
+              (detail.livenessScore != null || detail.similarityScore != null)) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.brandTeal.withValues(alpha: 0.1)
+                    : const Color(0xFFF0FDFA),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.brandTeal.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.sparkles, size: 14, color: AppColors.brandTeal),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Skor Liveness: ${((detail.livenessScore ?? 1.0) * 100).toStringAsFixed(1)}% • Kemiripan: ${((detail.similarityScore ?? 1.0) * 100).toStringAsFixed(1)}%',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontSize: 11,
+                        color: AppColors.brandTeal,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           if (detail.isInOut && hasInImage && hasOutImage) ...[
             // Tampilkan foto masuk dan pulang jika kedua foto ada

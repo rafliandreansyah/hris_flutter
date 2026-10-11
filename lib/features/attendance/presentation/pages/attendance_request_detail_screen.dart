@@ -456,8 +456,8 @@ class _AttendanceRequestDetailViewState
             approverNotes: detail.approverNote,
           ),
 
-          // Section 5: Photo Proof Card (otomatis tersembunyi jika bukan metode foto)
-          if (detail.isPhotoMethod) ...[
+          // Section 5: Photo Proof Card (otomatis tersembunyi jika bukan metode foto/liveness)
+          if (detail.isPhotoMethod || detail.isLivenessMethod) ...[
             const SizedBox(height: 16),
             AttendanceRequestPhotoCard(detail: detail),
           ],
