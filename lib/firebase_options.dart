@@ -52,28 +52,26 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAWnKA3IIkkkWdl8mWVPXFSQzl1vgdLkLE',
-    appId: '1:525705437311:android:a436a4faf38d3cc5585f4a',
+    appId: '1:525705437311:android:27aa8fedd7a7e2f8585f4a',
     messagingSenderId: '525705437311',
     projectId: 'oasish-65f81',
     storageBucket: 'oasish-65f81.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAFYmVT48ywp6VqlAwdb0ZCM55kA2IRy08',
-    appId: '1:525705437311:ios:0189ae3532f1fb3f585f4a',
+    appId: '1:525705437311:ios:a1d8ddf5c12e6836585f4a',
     messagingSenderId: '525705437311',
     projectId: 'oasish-65f81',
     storageBucket: 'oasish-65f81.firebasestorage.app',
-    iosBundleId: 'com.example.hrisFlutter',
+    iosBundleId: 'com.hroasish.app',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAFYmVT48ywp6VqlAwdb0ZCM55kA2IRy08',
-    appId: '1:525705437311:ios:0189ae3532f1fb3f585f4a',
+    appId: '1:525705437311:ios:a1d8ddf5c12e6836585f4a',
     messagingSenderId: '525705437311',
     projectId: 'oasish-65f81',
     storageBucket: 'oasish-65f81.firebasestorage.app',
-    iosBundleId: 'com.example.hrisFlutter',
+    iosBundleId: 'com.hroasish.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

@@ -148,8 +148,8 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 patrol:
-  app_name: "Oasish HRIS"
+  app_name: "Oasish"
   android:
-    package_name: "com.example.hris_flutter"
+    package_name: "com.hroasish.app"
   ios:
-    bundle_id: "com.example.hris_flutter"
+    bundle_id: "com.hroasish.app"

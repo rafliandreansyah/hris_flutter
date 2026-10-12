@@ -1,4 +1,4 @@
-package com.example.hris_flutter
+package com.hroasish.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

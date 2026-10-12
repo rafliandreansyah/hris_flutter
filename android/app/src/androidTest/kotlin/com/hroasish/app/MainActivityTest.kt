@@ -1,4 +1,4 @@
-package com.example.hris_flutter
+package com.hroasish.app
 
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Test

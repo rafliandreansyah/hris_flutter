@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "hris_flutter" "\0"
+            VALUE "CompanyName", "com.hroasish" "\0"
+            VALUE "FileDescription", "Oasish" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "hris_flutter" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "hris_flutter.exe" "\0"
-            VALUE "ProductName", "hris_flutter" "\0"
+            VALUE "InternalName", "Oasish" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.hroasish. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Oasish.exe" "\0"
+            VALUE "ProductName", "Oasish" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
