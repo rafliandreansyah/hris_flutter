@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/services/notification_navigation_handler.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
@@ -75,6 +76,16 @@ class _DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<_DashboardView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        NotificationNavigationHandler.instance.consumePendingPayload(context);
+      }
+    });
+  }
+
   // Format jam dengan detik secara tepat (HH:mm:ss)
   String _formatTimeWithSeconds(DateTime dt) =>
       AppDateUtil.formatTimeWithSeconds(dt);

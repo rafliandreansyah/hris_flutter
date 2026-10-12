@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/services/notification_navigation_handler.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
@@ -82,18 +81,19 @@ class _NotificationViewState extends State<_NotificationView> {
   }
 
   void _handleNotificationTap(NotificationItemModel item) {
-    final type = item.type.toLowerCase();
+    // Tandai sebagai dibaca otomatis saat diketuk jika belum dibaca
+    if (!item.isRead) {
+      context.read<NotificationListBloc>().add(
+            NotificationMarkAsReadRequested(item.id),
+          );
+    }
 
-    // Navigasi kontekstual berdasarkan tipe notifikasi
-    if (type.contains('leave')) {
-      context.push(Routes.LEAVE);
-    } else if (type.contains('overtime')) {
-      context.push(Routes.OVERTIME);
-    } else if (type.contains('attendance')) {
-      context.push(Routes.ATTENDANCE);
-    } else if (type.contains('activity')) {
-      context.push(Routes.ACTIVITY);
-    } else {
+    // Navigasikan secara kontekstual menggunakan handler terpusat
+    final handled = NotificationNavigationHandler.instance
+        .handleNotificationItem(context, item);
+
+    // Fallback: Tampilkan bottom sheet detail jika tipe notifikasi generik / tanpa rute spesifik
+    if (!handled) {
       _showDetailBottomSheet(item);
     }
   }

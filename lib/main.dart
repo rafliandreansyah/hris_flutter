@@ -8,6 +8,7 @@ import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/network/alice_service.dart';
+import 'package:hris_flutter/core/services/notification_navigation_handler.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/widgets/offline_status_banner.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
@@ -29,7 +30,11 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await NotificationService.instance.initialize();
+    await NotificationService.instance.initialize(
+      onNotificationOpened: (message) {
+        NotificationNavigationHandler.instance.handleMessage(message);
+      },
+    );
   } catch (e) {
     debugPrint('ℹ️ [Firebase Setup]: $e');
   }
