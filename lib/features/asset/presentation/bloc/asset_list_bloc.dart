@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_filter_criteria.dart';
@@ -11,13 +13,18 @@ import 'package:hris_flutter/features/asset/presentation/bloc/asset_list_state.d
 
 class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
   final AssetRepository _repository;
+  final SecureStorageService _storageService;
 
   static const int defaultPageSize = 10;
 
-  AssetListBloc({AssetRepository? repository})
-      : _repository = repository ?? AssetRepositoryImpl(),
+  AssetListBloc({
+    AssetRepository? repository,
+    SecureStorageService? storageService,
+  })  : _repository = repository ?? AssetRepositoryImpl(),
+        _storageService = storageService ?? SecureStorageService.instance,
         super(const AssetListState()) {
     on<AssetListStarted>(_onStarted);
+    on<AssetListTabChanged>(_onTabChanged);
     on<AssetListRefreshed>(_onRefreshed);
     on<AssetListLoadMore>(_onLoadMore);
     on<AssetListSearchChanged>(
@@ -31,13 +38,31 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     on<AssetAssignmentRejected>(_onAssignmentRejected);
   }
 
+  String _resolveStatus(AssetListState state) {
+    if (state.currentTab == AssetListTab.warehouse) {
+      return 'AVAILABLE';
+    }
+    return state.filter.status;
+  }
+
   Future<void> _onStarted(
     AssetListStarted event,
     Emitter<AssetListState> emit,
   ) async {
+    // 0. Periksa wewenang akses
+    final hasView = _storageService.hasPermissionInMemory(AppPermissions.assetView);
+    final hasHandover =
+        _storageService.hasPermissionInMemory(AppPermissions.assetHandover);
+    final hasCreate =
+        _storageService.hasPermissionInMemory(AppPermissions.assetCreate);
+    final hasWarehouseAccess = hasView || hasHandover || hasCreate;
+
     emit(state.copyWith(
       status: AssetListStatus.loading,
       categoriesLoading: true,
+      hasWarehouseAccess: hasWarehouseAccess,
+      canCreateAsset: hasCreate,
+      canHandoverAsset: hasHandover,
       clearError: true,
     ));
 
@@ -51,6 +76,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
 
     // 2. Muat Daftar Fasilitas Aset
     try {
+      final statusQuery = _resolveStatus(state);
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
@@ -58,7 +84,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: state.filter.categoryId,
-        status: state.filter.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;
@@ -93,11 +119,64 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     }
   }
 
+  Future<void> _onTabChanged(
+    AssetListTabChanged event,
+    Emitter<AssetListState> emit,
+  ) async {
+    if (event.tab == state.currentTab) return;
+
+    final updatedState = state.copyWith(
+      currentTab: event.tab,
+      status: AssetListStatus.loading,
+      page: 1,
+      clearError: true,
+    );
+    emit(updatedState);
+
+    try {
+      final statusQuery = _resolveStatus(updatedState);
+      final response = await _repository.getAssets(
+        page: 1,
+        size: defaultPageSize,
+        search: updatedState.searchQuery.trim().isNotEmpty
+            ? updatedState.searchQuery.trim()
+            : null,
+        categoryId: updatedState.filter.categoryId,
+        status: statusQuery,
+      );
+
+      final total = response.meta?.total ?? response.data.length;
+      final limit = response.meta?.limit ?? defaultPageSize;
+      final hasReachedMax = response.data.length < limit ||
+          response.data.length >= total;
+
+      emit(updatedState.copyWith(
+        status: AssetListStatus.success,
+        assets: response.data,
+        page: 1,
+        total: total,
+        hasReachedMax: hasReachedMax,
+        clearError: true,
+      ));
+    } on ApiException catch (e) {
+      emit(updatedState.copyWith(
+        status: AssetListStatus.failure,
+        errorMessage: e.message,
+      ));
+    } catch (e) {
+      emit(updatedState.copyWith(
+        status: AssetListStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
   Future<void> _onRefreshed(
     AssetListRefreshed event,
     Emitter<AssetListState> emit,
   ) async {
     try {
+      final statusQuery = _resolveStatus(state);
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
@@ -105,7 +184,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: state.filter.categoryId,
-        status: state.filter.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;
@@ -142,6 +221,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     final nextPage = state.page + 1;
 
     try {
+      final statusQuery = _resolveStatus(state);
       final response = await _repository.getAssets(
         page: nextPage,
         size: defaultPageSize,
@@ -149,7 +229,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: state.filter.categoryId,
-        status: state.filter.status,
+        status: statusQuery,
       );
 
       final newItems = response.data;
@@ -190,12 +270,13 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     ));
 
     try {
+      final statusQuery = _resolveStatus(state);
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
         search: event.query.trim().isNotEmpty ? event.query.trim() : null,
         categoryId: state.filter.categoryId,
-        status: state.filter.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;
@@ -235,6 +316,9 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     ));
 
     try {
+      final statusQuery = state.currentTab == AssetListTab.warehouse
+          ? 'AVAILABLE'
+          : event.criteria.status;
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
@@ -242,7 +326,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: event.criteria.categoryId,
-        status: event.criteria.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;
@@ -283,6 +367,9 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     ));
 
     try {
+      final statusQuery = state.currentTab == AssetListTab.warehouse
+          ? 'AVAILABLE'
+          : defaultFilter.status;
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
@@ -290,7 +377,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: null,
-        status: defaultFilter.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;
@@ -338,6 +425,9 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     ));
 
     try {
+      final statusQuery = state.currentTab == AssetListTab.warehouse
+          ? 'AVAILABLE'
+          : updatedFilter.status;
       final response = await _repository.getAssets(
         page: 1,
         size: defaultPageSize,
@@ -345,7 +435,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
             ? state.searchQuery.trim()
             : null,
         categoryId: updatedFilter.categoryId,
-        status: updatedFilter.status,
+        status: statusQuery,
       );
 
       final total = response.meta?.total ?? response.data.length;

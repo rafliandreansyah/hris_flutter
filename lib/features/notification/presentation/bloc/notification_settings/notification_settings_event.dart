@@ -7,6 +7,10 @@ enum NotificationSettingKey {
   payroll,
   announcement,
   warningLetter,
+  reimbursement,
+  resignation,
+  asset,
+  activity,
 }
 
 abstract class NotificationSettingsEvent extends Equatable {

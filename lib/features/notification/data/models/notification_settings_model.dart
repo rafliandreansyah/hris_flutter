@@ -9,6 +9,10 @@ class NotificationSettingsModel extends Equatable {
   final bool pushPayroll;
   final bool pushAnnouncement;
   final bool pushWarningLetter;
+  final bool pushReimbursement;
+  final bool pushResignation;
+  final bool pushAsset;
+  final bool pushActivity;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -21,6 +25,10 @@ class NotificationSettingsModel extends Equatable {
     this.pushPayroll = true,
     this.pushAnnouncement = true,
     this.pushWarningLetter = true,
+    this.pushReimbursement = true,
+    this.pushResignation = true,
+    this.pushAsset = true,
+    this.pushActivity = true,
     this.createdAt,
     this.updatedAt,
   });
@@ -31,7 +39,11 @@ class NotificationSettingsModel extends Equatable {
       pushOvertime &&
       pushPayroll &&
       pushAnnouncement &&
-      pushWarningLetter;
+      pushWarningLetter &&
+      pushReimbursement &&
+      pushResignation &&
+      pushAsset &&
+      pushActivity;
 
   NotificationSettingsModel copyWith({
     String? id,
@@ -42,6 +54,10 @@ class NotificationSettingsModel extends Equatable {
     bool? pushPayroll,
     bool? pushAnnouncement,
     bool? pushWarningLetter,
+    bool? pushReimbursement,
+    bool? pushResignation,
+    bool? pushAsset,
+    bool? pushActivity,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -55,6 +71,10 @@ class NotificationSettingsModel extends Equatable {
       pushPayroll: pushPayroll ?? this.pushPayroll,
       pushAnnouncement: pushAnnouncement ?? this.pushAnnouncement,
       pushWarningLetter: pushWarningLetter ?? this.pushWarningLetter,
+      pushReimbursement: pushReimbursement ?? this.pushReimbursement,
+      pushResignation: pushResignation ?? this.pushResignation,
+      pushAsset: pushAsset ?? this.pushAsset,
+      pushActivity: pushActivity ?? this.pushActivity,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -68,6 +88,10 @@ class NotificationSettingsModel extends Equatable {
       pushPayroll: value,
       pushAnnouncement: value,
       pushWarningLetter: value,
+      pushReimbursement: value,
+      pushResignation: value,
+      pushAsset: value,
+      pushActivity: value,
     );
   }
 
@@ -89,6 +113,10 @@ class NotificationSettingsModel extends Equatable {
       pushPayroll: json['pushPayroll'] as bool? ?? true,
       pushAnnouncement: json['pushAnnouncement'] as bool? ?? true,
       pushWarningLetter: json['pushWarningLetter'] as bool? ?? true,
+      pushReimbursement: json['pushReimbursement'] as bool? ?? true,
+      pushResignation: json['pushResignation'] as bool? ?? true,
+      pushAsset: json['pushAsset'] as bool? ?? true,
+      pushActivity: json['pushActivity'] as bool? ?? true,
       createdAt: parseDate(json['createdAt']),
       updatedAt: parseDate(json['updatedAt']),
     );
@@ -104,6 +132,10 @@ class NotificationSettingsModel extends Equatable {
       'pushPayroll': pushPayroll,
       'pushAnnouncement': pushAnnouncement,
       'pushWarningLetter': pushWarningLetter,
+      'pushReimbursement': pushReimbursement,
+      'pushResignation': pushResignation,
+      'pushAsset': pushAsset,
+      'pushActivity': pushActivity,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
@@ -117,6 +149,10 @@ class NotificationSettingsModel extends Equatable {
       'pushPayroll': pushPayroll,
       'pushAnnouncement': pushAnnouncement,
       'pushWarningLetter': pushWarningLetter,
+      'pushReimbursement': pushReimbursement,
+      'pushResignation': pushResignation,
+      'pushAsset': pushAsset,
+      'pushActivity': pushActivity,
     };
   }
 
@@ -130,6 +166,10 @@ class NotificationSettingsModel extends Equatable {
         pushPayroll,
         pushAnnouncement,
         pushWarningLetter,
+        pushReimbursement,
+        pushResignation,
+        pushAsset,
+        pushActivity,
         createdAt,
         updatedAt,
       ];

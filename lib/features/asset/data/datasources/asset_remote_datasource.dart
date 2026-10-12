@@ -1,7 +1,11 @@
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
+import 'package:hris_flutter/features/asset/data/models/asset_detail_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
+import 'package:hris_flutter/features/asset/data/models/create_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/direct_transfer_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/handover_asset_payload.dart';
 
 abstract class AssetRemoteDataSource {
   /// Mengambil daftar aset/fasilitas dari endpoint GET /api/v1/assets.
@@ -15,6 +19,21 @@ abstract class AssetRemoteDataSource {
 
   /// Mengambil daftar kategori aset aktif dari GET /api/v1/assets/categories.
   Future<List<AssetCategoryModel>> getAssetCategories({String? search});
+
+  /// Mengambil detail aset lengkap beserta riwayat penugasan dari GET /api/v1/assets/:id.
+  Future<AssetDetailData> getAssetDetail(String assetId);
+
+  /// Mendaftarkan master unit aset baru ke POST /api/v1/assets.
+  Future<void> createAsset(CreateAssetPayload payload);
+
+  /// Serah terima unit dari gudang/pool ke karyawan via POST /api/v1/assets/:id/handover.
+  Future<void> handoverAsset(String assetId, HandoverAssetPayload payload);
+
+  /// Inisiasi alih tangan ke rekan kerja via POST /api/v1/assets/:id/transfer.
+  Future<void> directTransferAsset(
+    String assetId,
+    DirectTransferAssetPayload payload,
+  );
 
   /// Menyetujui penerimaan alih tangan fasilitas dari POST /api/v1/assets/assignments/:id/approve.
   Future<void> approveAssignment({
@@ -86,6 +105,41 @@ class AssetRemoteDataSourceImpl implements AssetRemoteDataSource {
     return list
         .map((e) => AssetCategoryModel.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<AssetDetailData> getAssetDetail(String assetId) async {
+    final response = await _apiClient.get(ApiEndpoints.assetDetail(assetId));
+    final map = response.data as Map<String, dynamic>;
+    final data = (map['data'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    return AssetDetailData.fromJson(data);
+  }
+
+  @override
+  Future<void> createAsset(CreateAssetPayload payload) async {
+    await _apiClient.post(
+      ApiEndpoints.assets,
+      data: payload.toJson(),
+    );
+  }
+
+  @override
+  Future<void> handoverAsset(String assetId, HandoverAssetPayload payload) async {
+    await _apiClient.post(
+      ApiEndpoints.assetHandover(assetId),
+      data: payload.toJson(),
+    );
+  }
+
+  @override
+  Future<void> directTransferAsset(
+    String assetId,
+    DirectTransferAssetPayload payload,
+  ) async {
+    await _apiClient.post(
+      ApiEndpoints.assetTransfer(assetId),
+      data: payload.toJson(),
+    );
   }
 
   @override

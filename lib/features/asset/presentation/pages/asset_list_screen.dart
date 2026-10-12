@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
@@ -16,11 +18,12 @@ import 'package:hris_flutter/features/asset/presentation/bloc/asset_list_state.d
 import 'package:hris_flutter/features/asset/presentation/widgets/asset_card.dart';
 import 'package:hris_flutter/features/asset/presentation/widgets/asset_filter_bottom_sheet.dart';
 import 'package:hris_flutter/features/asset/presentation/widgets/asset_reject_bottom_sheet.dart';
+import 'package:hris_flutter/features/asset/presentation/widgets/asset_warehouse_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Halaman Fasilitas Saya (Unified Asset List).
-/// Sesuai Stitch Screen: "Oasish Fasilitas Saya (Unified Asset List)"
-/// (ID: fa2fa6bde7d648aabb74209dbd5dde63).
+/// Halaman Fasilitas Saya & Gudang Fasilitas (Unified Asset Directory).
+/// Mendukung Pill-Style TabBar saat pengguna memiliki wewenang akses gudang
+/// (asset.view / asset.handover / asset.create / admin_system).
 class AssetListScreen extends StatelessWidget {
   final AssetRepository? repository;
 
@@ -114,6 +117,20 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
     );
   }
 
+  Future<void> _openDetail(String assetId) async {
+    await context.push(Routes.ASSET_DETAIL, extra: assetId);
+    if (mounted) {
+      context.read<AssetListBloc>().add(const AssetListRefreshed());
+    }
+  }
+
+  Future<void> _openCreateAsset() async {
+    final created = await context.push<bool>(Routes.CREATE_ASSET);
+    if (created == true && mounted) {
+      context.read<AssetListBloc>().add(const AssetListRefreshed());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -167,7 +184,9 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Asset Saya',
+                  state.currentTab == AssetListTab.warehouse
+                      ? 'Gudang Fasilitas'
+                      : 'Asset Saya',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: textCol,
@@ -175,7 +194,9 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                   ),
                 ),
                 Text(
-                  'Inventaris & Serah Terima Aset',
+                  state.currentTab == AssetListTab.warehouse
+                      ? 'Inventaris Siap Pakai & Serah Terima'
+                      : 'Inventaris & Serah Terima Aset',
                   style: AppTypography.labelSmall.copyWith(
                     color: subtitleCol,
                     fontSize: 12,
@@ -214,12 +235,35 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
               const SizedBox(width: AppSpacing.xs),
             ],
           ),
+          floatingActionButton: state.canCreateAsset
+              ? FloatingActionButton.extended(
+                  onPressed: _openCreateAsset,
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  icon: const Icon(LucideIcons.plus, size: 20),
+                  label: Text(
+                    'Daftarkan Aset',
+                    style: AppTypography.labelMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : null,
           body: Column(
             children: [
-              const SizedBox(height: 12),
+              // 1. Pill-Style TabBar (Hanya ditampilkan jika pengguna memiliki akses gudang)
+              if (state.hasWarehouseAccess) ...[
+                const SizedBox(height: 8),
+                _buildPillTabBar(context, state: state, isDark: isDark),
+              ],
+
+              const SizedBox(height: 8),
               AppSearchBar(
                 controller: _searchController,
-                hintText: 'Cari nama aset, kode, atau kategori...',
+                hintText: state.currentTab == AssetListTab.warehouse
+                    ? 'Cari aset di gudang (nama, kode, serial)...'
+                    : 'Cari nama aset, kode, atau kategori...',
                 onChanged: (val) {
                   context
                       .read<AssetListBloc>()
@@ -228,7 +272,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                 margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               ),
 
-              // Active Filter Chip Row (Horizontal Scroll)
+              // 2. Active Filter Chip Row (Horizontal Scroll)
               if (state.filter.status != 'all' ||
                   state.filter.categoryId != null) ...[
                 Padding(
@@ -272,18 +316,19 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                 ),
               ],
 
-              // 2. Summary & Result Count Row
+              // 3. Summary & Result Count Row
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
-                  AppSpacing.sm + 2,
+                  AppSpacing.sm,
                   AppSpacing.lg,
                   AppSpacing.xs,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (state.pendingActionCount > 0)
+                    if (state.currentTab == AssetListTab.myAssets &&
+                        state.pendingActionCount > 0)
                       Row(
                         children: [
                           Container(
@@ -304,10 +349,31 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                           ),
                         ],
                       )
+                    else if (state.currentTab == AssetListTab.warehouse)
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Pool Fasilitas Siap Pakai',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: const Color(0xFF15803D),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
                     else
                       const SizedBox.shrink(),
                     Text(
-                      'Menampilkan ${sortedAssets.length} fasilitas',
+                      'Menampilkan ${sortedAssets.length} unit',
                       style: AppTypography.labelSmall.copyWith(
                         color: subtitleCol,
                         fontWeight: FontWeight.w500,
@@ -317,7 +383,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                 ),
               ),
 
-              // 3. Asset Cards List View
+              // 4. Asset Cards List View
               Expanded(
                 child: RefreshIndicator(
                   color: primaryCol,
@@ -337,6 +403,120 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
           ),
         );
       },
+    );
+  }
+
+  /// Unified Pill-Style TabBar sesuai standar AGENTS.md Rule 16
+  Widget _buildPillTabBar(
+    BuildContext context, {
+    required AssetListState state,
+    required bool isDark,
+  }) {
+    final activeTab = state.currentTab;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceContainer : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTabButton(
+              context,
+              label: 'Fasilitas Saya',
+              icon: LucideIcons.laptop,
+              isSelected: activeTab == AssetListTab.myAssets,
+              isDark: isDark,
+              onTap: () {
+                context
+                    .read<AssetListBloc>()
+                    .add(const AssetListTabChanged(AssetListTab.myAssets));
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildTabButton(
+              context,
+              label: 'Gudang Fasilitas',
+              icon: LucideIcons.warehouse,
+              isSelected: activeTab == AssetListTab.warehouse,
+              isDark: isDark,
+              onTap: () {
+                context
+                    .read<AssetListBloc>()
+                    .add(const AssetListTabChanged(AssetListTab.warehouse));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    final activeBg = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final activeColor =
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
+    final inactiveColor =
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected ? activeBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.3 : 0.06,
+                      ),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: AppTypography.labelMedium.copyWith(
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? activeColor : inactiveColor,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -425,7 +605,9 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Gagal Memuat Fasilitas',
+            state.currentTab == AssetListTab.warehouse
+                ? 'Gagal Memuat Gudang Fasilitas'
+                : 'Gagal Memuat Fasilitas',
             textAlign: TextAlign.center,
             style: AppTypography.titleMedium.copyWith(
               fontWeight: FontWeight.bold,
@@ -460,12 +642,18 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
     if (sortedAssets.isEmpty) {
       final isFiltered =
           state.filter.hasActiveFilter || _searchController.text.trim().isNotEmpty;
+      final isWarehouse = state.currentTab == AssetListTab.warehouse;
+
       return AppEmptyState(
-        icon: LucideIcons.packageOpen,
-        title: isFiltered ? 'Tidak Ada Fasilitas Ditemukan' : 'Tidak Ada Fasilitas',
+        icon: isWarehouse ? LucideIcons.warehouse : LucideIcons.packageOpen,
+        title: isFiltered
+            ? 'Tidak Ada Unit Ditemukan'
+            : (isWarehouse ? 'Gudang Fasilitas Kosong' : 'Tidak Ada Fasilitas'),
         message: isFiltered
-            ? 'Tidak ada aset yang cocok dengan filter atau kata kunci pencarian.'
-            : 'Belum ada fasilitas kerja yang ditugaskan kepada Anda.',
+            ? 'Tidak ada unit yang cocok dengan filter atau kata kunci pencarian.'
+            : (isWarehouse
+                ? 'Saat ini seluruh fasilitas inventaris sedang digunakan oleh karyawan.'
+                : 'Belum ada fasilitas kerja yang ditugaskan kepada Anda.'),
         onResetFilter: isFiltered
             ? () {
                 _searchController.clear();
@@ -500,10 +688,23 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
         }
 
         final item = sortedAssets[index];
+
+        // Mode Gudang: Render AssetWarehouseCard
+        if (state.currentTab == AssetListTab.warehouse) {
+          return AssetWarehouseCard(
+            asset: item,
+            canHandover: state.canHandoverAsset,
+            onHandover: () => _openDetail(item.id),
+            onTap: () => _openDetail(item.id),
+          );
+        }
+
+        // Mode Fasilitas Saya: Render AssetCard
         return AssetCard(
           asset: item,
           onAccept: () => _handleAccept(item),
           onReject: () => _handleReject(item),
+          onTap: () => _openDetail(item.id),
         );
       },
     );

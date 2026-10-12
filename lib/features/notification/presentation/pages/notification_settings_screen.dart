@@ -348,6 +348,78 @@ class _NotificationSettingsView extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          _buildSectionHeader('OPERASIONAL, KLAIM & ASET', subtitleCol),
+          const SizedBox(height: 8),
+          _buildGroupCard(
+            borderCol: borderCol,
+            cardBg: cardBg,
+            children: [
+              _NotificationSwitchTile(
+                switchKey: const Key('switch_reimbursement'),
+                icon: LucideIcons.wallet,
+                iconColor: subtitleCol,
+                title: 'Reimbursement & Kasbon',
+                value: settings.pushReimbursement,
+                onChanged: (val) {
+                  context.read<NotificationSettingsBloc>().add(
+                        NotificationSettingsToggled(
+                          key: NotificationSettingKey.reimbursement,
+                          value: val,
+                        ),
+                      );
+                },
+              ),
+              Divider(height: 1, color: borderCol),
+              _NotificationSwitchTile(
+                switchKey: const Key('switch_resignation'),
+                icon: LucideIcons.userMinus,
+                iconColor: subtitleCol,
+                title: 'Pengunduran Diri (Resign)',
+                value: settings.pushResignation,
+                onChanged: (val) {
+                  context.read<NotificationSettingsBloc>().add(
+                        NotificationSettingsToggled(
+                          key: NotificationSettingKey.resignation,
+                          value: val,
+                        ),
+                      );
+                },
+              ),
+              Divider(height: 1, color: borderCol),
+              _NotificationSwitchTile(
+                switchKey: const Key('switch_asset'),
+                icon: LucideIcons.laptop,
+                iconColor: subtitleCol,
+                title: 'Fasilitas & Aset Kerja',
+                value: settings.pushAsset,
+                onChanged: (val) {
+                  context.read<NotificationSettingsBloc>().add(
+                        NotificationSettingsToggled(
+                          key: NotificationSettingKey.asset,
+                          value: val,
+                        ),
+                      );
+                },
+              ),
+              Divider(height: 1, color: borderCol),
+              _NotificationSwitchTile(
+                switchKey: const Key('switch_activity'),
+                icon: LucideIcons.briefcase,
+                iconColor: subtitleCol,
+                title: 'Aktivitas Harian & Lapangan',
+                value: settings.pushActivity,
+                onChanged: (val) {
+                  context.read<NotificationSettingsBloc>().add(
+                        NotificationSettingsToggled(
+                          key: NotificationSettingKey.activity,
+                          value: val,
+                        ),
+                      );
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );

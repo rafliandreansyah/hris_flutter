@@ -62,7 +62,7 @@ void main() {
       expect(find.text('Login'), findsOneWidget);
       expect(find.text('Forgot Password?'), findsOneWidget);
       expect(find.textContaining("Don't have an account?"), findsOneWidget);
-      expect(find.textContaining('Contact HR'), findsOneWidget);
+      expect(find.textContaining('Contact Admin'), findsOneWidget);
     });
 
     testWidgets('validates empty email and password on submit (AUTH-03)', (tester) async {
@@ -259,6 +259,25 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Reset Password Mock Screen'), findsOneWidget);
+    });
+
+    testWidgets('tapping Contact Admin opens ContactAdminBottomSheet with WhatsApp and Email (AUTH-07)', (tester) async {
+      final authBloc = TestAuthBloc();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LoginScreen(authBloc: authBloc),
+        ),
+      );
+
+      await tester.tap(find.text('Contact Admin'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Hubungi Admin Oasish'), findsOneWidget);
+      expect(find.text('WhatsApp Official'), findsOneWidget);
+      expect(find.text('Email Support'), findsOneWidget);
+      expect(find.text('+62 858-8816-4634'), findsOneWidget);
+      expect(find.text('halo@hroasish.com'), findsOneWidget);
     });
   });
 }

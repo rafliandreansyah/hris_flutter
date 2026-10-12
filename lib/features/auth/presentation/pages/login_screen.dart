@@ -12,6 +12,7 @@ import 'package:hris_flutter/core/widgets/app_text_field.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_event.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_state.dart';
+import 'package:hris_flutter/features/auth/presentation/widgets/contact_admin_bottom_sheet.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -112,245 +113,271 @@ class _LoginFormViewState extends State<_LoginFormView> {
         SystemNavigator.pop();
       },
       child: Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.backgroundSubtle,
-      body: Stack(
-        children: [
-          // Background Gradient Subtle Teal
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            top: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    (isDark ? AppColors.brandTeal : AppColors.accentTealLight)
-                        .withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
+        backgroundColor: isDark
+            ? AppColors.darkBackground
+            : AppColors.backgroundSubtle,
+        body: Stack(
+          children: [
+            // Background Gradient Subtle Teal
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              top: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      (isDark ? AppColors.brandTeal : AppColors.accentTealLight)
+                          .withValues(alpha: 0.15),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Konten Utama
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 40,
+            // Konten Utama
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
                       ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          children: [
-                            // 1. Logo Oasish
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.brandTeal.withValues(
-                                      alpha: 0.12,
-                                    ),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                Assets.icons.logo.path,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // 2. Header Area
-                            Text(
-                              'Welcome Back',
-                              style: AppTypography.headlineLargeMobile.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Sign in to continue',
-                              style: AppTypography.bodyMedium.copyWith(
-                                color: labelCol,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 32),
-
-                            // 3. Card Container Form
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: cardBg,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: borderCol, width: 1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(
-                                      alpha: isDark ? 0.2 : 0.03,
-                                    ),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Global Email Input
-                                    AppTextField(
-                                      label: 'Email Address',
-                                      hintText: 'name@company.com',
-                                      controller: _emailController,
-                                      keyboardType: TextInputType.emailAddress,
-                                      prefixIcon: LucideIcons.mail,
-                                      textInputAction: TextInputAction.next,
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'Email tidak boleh kosong';
-                                        }
-                                        if (!value.contains('@')) {
-                                          return 'Format email tidak valid';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                    const SizedBox(height: 20),
-
-                                    // Global Password Input dengan Forgot Password Link
-                                    AppTextField(
-                                      label: 'Password',
-                                      labelTrailing: GestureDetector(
-                                        onTap: () {
-                                          context.push(Routes.RESET);
-                                        },
-                                        child: Text(
-                                          'Forgot Password?',
-                                          style: AppTypography.labelMedium
-                                              .copyWith(
-                                                color: AppColors.brandTeal,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 40,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            children: [
+                              // 1. Logo Oasish
+                              Container(
+                                width: 96,
+                                height: 96,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.brandTeal.withValues(
+                                        alpha: 0.12,
                                       ),
-                                      hintText: '••••••••',
-                                      controller: _passwordController,
-                                      isPassword: true,
-                                      prefixIcon: LucideIcons.lock,
-                                      textInputAction: TextInputAction.done,
-                                      onFieldSubmitted: (_) =>
-                                          _onSignInPressed(),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Password tidak boleh kosong';
-                                        }
-                                        if (value.length < 6) {
-                                          return 'Password minimal 6 karakter';
-                                        }
-                                        return null;
-                                      },
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
                                     ),
-                                    const SizedBox(height: 28),
+                                  ],
+                                ),
+                                child: Image.asset(
+                                  Assets.icons.logo.path,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
 
-                                    // 4. Global AppButton with BLoC
-                                    BlocConsumer<AuthBloc, AuthState>(
-                                      listener: (context, state) {
-                                        if (state is AuthSuccess) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(state.message),
-                                              backgroundColor:
-                                                  AppColors.brandTeal,
-                                            ),
-                                          );
-                                          context.go(Routes.DASHBOARD);
-                                        } else if (state is AuthFailure) {
-                                          AppDialogUtil.showError(
-                                            context,
-                                            title: 'Login Gagal',
-                                            message: state.message,
-                                          );
-                                        }
-                                      },
-                                      builder: (context, state) {
-                                        return AppButton(
-                                          text: 'Login',
-                                          trailingIcon: LucideIcons.arrowRight,
-                                          isLoading: state is AuthLoading,
-                                          onPressed: _onSignInPressed,
-                                        );
-                                      },
+                              // 2. Header Area
+                              Text(
+                                'Welcome Back',
+                                style: AppTypography.headlineLargeMobile
+                                    .copyWith(
+                                      color: textCol,
+                                      fontWeight: FontWeight.w700,
                                     ),
-                                    const SizedBox(height: 20),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Sign in to continue',
+                                style: AppTypography.bodyMedium.copyWith(
+                                  color: labelCol,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 32),
 
-                                    // 5. Contact HR Link
-                                    Center(
-                                      child: Text.rich(
-                                        TextSpan(
-                                          text: "Don't have an account? ",
-                                          style: AppTypography.bodyMedium
-                                              .copyWith(color: labelCol),
+                              // 3. Card Container Form
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: borderCol,
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.2 : 0.03,
+                                      ),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Global Email Input
+                                      AppTextField(
+                                        label: 'Email Address',
+                                        hintText: 'name@company.com',
+                                        controller: _emailController,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        prefixIcon: LucideIcons.mail,
+                                        textInputAction: TextInputAction.next,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Email tidak boleh kosong';
+                                          }
+                                          if (!value.contains('@')) {
+                                            return 'Format email tidak valid';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // Global Password Input dengan Forgot Password Link
+                                      AppTextField(
+                                        label: 'Password',
+                                        labelTrailing: GestureDetector(
+                                          onTap: () {
+                                            context.push(Routes.RESET);
+                                          },
+                                          child: Text(
+                                            'Forgot Password?',
+                                            style: AppTypography.labelMedium
+                                                .copyWith(
+                                                  color: AppColors.brandTeal,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ),
+                                        hintText: '••••••••',
+                                        controller: _passwordController,
+                                        isPassword: true,
+                                        prefixIcon: LucideIcons.lock,
+                                        textInputAction: TextInputAction.done,
+                                        onFieldSubmitted: (_) =>
+                                            _onSignInPressed(),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Password tidak boleh kosong';
+                                          }
+                                          if (value.length < 6) {
+                                            return 'Password minimal 6 karakter';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 28),
+
+                                      // 4. Global AppButton with BLoC
+                                      BlocConsumer<AuthBloc, AuthState>(
+                                        listener: (context, state) {
+                                          if (state is AuthSuccess) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(state.message),
+                                                backgroundColor:
+                                                    AppColors.brandTeal,
+                                              ),
+                                            );
+                                            context.go(Routes.DASHBOARD);
+                                          } else if (state is AuthFailure) {
+                                            AppDialogUtil.showError(
+                                              context,
+                                              title: 'Login Gagal',
+                                              message: state.message,
+                                            );
+                                          }
+                                        },
+                                        builder: (context, state) {
+                                          return AppButton(
+                                            text: 'Login',
+                                            trailingIcon:
+                                                LucideIcons.arrowRight,
+                                            isLoading: state is AuthLoading,
+                                            onPressed: _onSignInPressed,
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // 5. Contact Admin Link (WhatsApp & Email)
+                                      Center(
+                                        child: Wrap(
+                                          alignment: WrapAlignment.center,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
                                           children: [
-                                            TextSpan(
-                                              text: 'Contact HR',
+                                            Text(
+                                              "Don't have an account? ",
                                               style: AppTypography.bodyMedium
-                                                  .copyWith(
-                                                    color: AppColors.brandTeal,
-                                                    fontWeight: FontWeight.w700,
+                                                  .copyWith(color: labelCol),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () =>
+                                                  ContactAdminBottomSheet.show(
+                                                    context,
                                                   ),
+                                              child: Text(
+                                                'Contact Admin',
+                                                style: AppTypography.bodyMedium
+                                                    .copyWith(
+                                                      color:
+                                                          AppColors.brandTeal,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      decoration:
+                                                          TextDecoration
+                                                              .underline,
+                                                      decorationColor: AppColors
+                                                          .brandTeal
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                                    ),
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            // Pendorong ke bawah (Spacer) & Jarak minimal jika layar kecil (SizedBox)
-                            const Spacer(),
-                            const SizedBox(height: 24),
+                              // Pendorong ke bawah (Spacer) & Jarak minimal jika layar kecil (SizedBox)
+                              const Spacer(),
+                              const SizedBox(height: 24),
 
-                            // 6. Bottom Brand & Version Text
-                            const AppNameVersionText(),
-                          ],
+                              // 6. Bottom Brand & Version Text
+                              const AppNameVersionText(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 }

@@ -1,6 +1,10 @@
 import 'package:hris_flutter/features/asset/data/datasources/asset_remote_datasource.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
+import 'package:hris_flutter/features/asset/data/models/asset_detail_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
+import 'package:hris_flutter/features/asset/data/models/create_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/direct_transfer_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/handover_asset_payload.dart';
 import 'package:hris_flutter/features/asset/domain/repositories/asset_repository.dart';
 
 class AssetRepositoryImpl implements AssetRepository {
@@ -29,6 +33,29 @@ class AssetRepositoryImpl implements AssetRepository {
   @override
   Future<List<AssetCategoryModel>> getAssetCategories({String? search}) {
     return _remoteDataSource.getAssetCategories(search: search);
+  }
+
+  @override
+  Future<AssetDetailData> getAssetDetail(String assetId) {
+    return _remoteDataSource.getAssetDetail(assetId);
+  }
+
+  @override
+  Future<void> createAsset(CreateAssetPayload payload) {
+    return _remoteDataSource.createAsset(payload);
+  }
+
+  @override
+  Future<void> handoverAsset(String assetId, HandoverAssetPayload payload) {
+    return _remoteDataSource.handoverAsset(assetId, payload);
+  }
+
+  @override
+  Future<void> directTransferAsset(
+    String assetId,
+    DirectTransferAssetPayload payload,
+  ) {
+    return _remoteDataSource.directTransferAsset(assetId, payload);
   }
 
   @override

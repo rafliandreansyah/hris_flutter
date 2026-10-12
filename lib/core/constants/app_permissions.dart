@@ -49,6 +49,12 @@ abstract class AppPermissions {
   // --- Modul Fasilitas & Aset (Asset) ---
   static const String assetMyAssets = 'asset.my_assets';
   static const String assetView = 'asset.view';
+  static const String assetCreate = 'asset.create';
+  static const String assetHandover = 'asset.handover';
+  static const String assetReturn = 'asset.return';
+  static const String assetMaintenance = 'asset.maintenance';
+  static const String assetEdit = 'asset.edit';
+  static const String assetDelete = 'asset.delete';
 
   // --- Modul Resign (Resignation) ---
   static const String resignationView = 'resignation.view';

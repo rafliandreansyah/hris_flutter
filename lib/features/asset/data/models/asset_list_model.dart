@@ -381,6 +381,54 @@ class AssetListItem extends Equatable {
     return cat;
   }
 
+  /// Label teks kondisi aset untuk badge UI
+  String get conditionBadgeLabel {
+    switch (condition.toUpperCase()) {
+      case 'NEW':
+        return 'Baru';
+      case 'GOOD':
+        return 'Baik';
+      case 'FAIR':
+        return 'Cukup';
+      case 'DAMAGED':
+        return 'Rusak';
+      default:
+        return condition;
+    }
+  }
+
+  /// Warna background badge kondisi
+  Color get conditionBadgeBgColor {
+    switch (condition.toUpperCase()) {
+      case 'NEW':
+        return const Color(0xFFE0E7FF);
+      case 'GOOD':
+        return const Color(0xFFDCFCE7);
+      case 'FAIR':
+        return const Color(0xFFFEF3C7);
+      case 'DAMAGED':
+        return const Color(0xFFFEE2E2);
+      default:
+        return const Color(0xFFF1F5F9);
+    }
+  }
+
+  /// Warna teks badge kondisi
+  Color get conditionBadgeTextColor {
+    switch (condition.toUpperCase()) {
+      case 'NEW':
+        return const Color(0xFF3730A3);
+      case 'GOOD':
+        return const Color(0xFF166534);
+      case 'FAIR':
+        return const Color(0xFF92400E);
+      case 'DAMAGED':
+        return const Color(0xFF991B1B);
+      default:
+        return const Color(0xFF475569);
+    }
+  }
+
   @override
   List<Object?> get props => [
         id,

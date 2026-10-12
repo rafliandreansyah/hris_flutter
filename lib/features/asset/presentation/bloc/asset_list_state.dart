@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_filter_criteria.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
+import 'package:hris_flutter/features/asset/presentation/bloc/asset_list_event.dart';
 
 enum AssetListStatus { initial, loading, success, failure }
 
@@ -21,6 +22,10 @@ class AssetListState extends Equatable {
   final int total;
   final bool isLoadingMore;
   final String? errorMessage;
+  final AssetListTab currentTab;
+  final bool hasWarehouseAccess;
+  final bool canCreateAsset;
+  final bool canHandoverAsset;
 
   const AssetListState({
     this.status = AssetListStatus.initial,
@@ -36,6 +41,10 @@ class AssetListState extends Equatable {
     this.total = 0,
     this.isLoadingMore = false,
     this.errorMessage,
+    this.currentTab = AssetListTab.myAssets,
+    this.hasWarehouseAccess = false,
+    this.canCreateAsset = false,
+    this.canHandoverAsset = false,
   });
 
   /// Jumlah fasilitas yang memerlukan tindakan persetujuan (status PENDING_ACCEPTANCE)
@@ -94,6 +103,10 @@ class AssetListState extends Equatable {
     bool? isLoadingMore,
     String? errorMessage,
     bool clearError = false,
+    AssetListTab? currentTab,
+    bool? hasWarehouseAccess,
+    bool? canCreateAsset,
+    bool? canHandoverAsset,
   }) {
     return AssetListState(
       status: status ?? this.status,
@@ -112,6 +125,10 @@ class AssetListState extends Equatable {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       errorMessage:
           clearError ? null : (errorMessage ?? this.errorMessage),
+      currentTab: currentTab ?? this.currentTab,
+      hasWarehouseAccess: hasWarehouseAccess ?? this.hasWarehouseAccess,
+      canCreateAsset: canCreateAsset ?? this.canCreateAsset,
+      canHandoverAsset: canHandoverAsset ?? this.canHandoverAsset,
     );
   }
 
@@ -130,5 +147,9 @@ class AssetListState extends Equatable {
         total,
         isLoadingMore,
         errorMessage,
+        currentTab,
+        hasWarehouseAccess,
+        canCreateAsset,
+        canHandoverAsset,
       ];
 }

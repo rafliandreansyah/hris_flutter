@@ -8,9 +8,22 @@ abstract class AssetListEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Tab pada layar Fasilitas (Fasilitas Saya vs Gudang Fasilitas)
+enum AssetListTab { myAssets, warehouse }
+
 /// Event saat halaman Fasilitas Saya dibuka pertama kali
 class AssetListStarted extends AssetListEvent {
   const AssetListStarted();
+}
+
+/// Event pergantian tab antara Fasilitas Saya dan Gudang Fasilitas
+class AssetListTabChanged extends AssetListEvent {
+  final AssetListTab tab;
+
+  const AssetListTabChanged(this.tab);
+
+  @override
+  List<Object?> get props => [tab];
 }
 
 /// Event pull-to-refresh

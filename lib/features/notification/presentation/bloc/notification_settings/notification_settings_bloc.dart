@@ -100,6 +100,18 @@ class NotificationSettingsBloc
       case NotificationSettingKey.warningLetter:
         updated = current.copyWith(pushWarningLetter: event.value);
         break;
+      case NotificationSettingKey.reimbursement:
+        updated = current.copyWith(pushReimbursement: event.value);
+        break;
+      case NotificationSettingKey.resignation:
+        updated = current.copyWith(pushResignation: event.value);
+        break;
+      case NotificationSettingKey.asset:
+        updated = current.copyWith(pushAsset: event.value);
+        break;
+      case NotificationSettingKey.activity:
+        updated = current.copyWith(pushActivity: event.value);
+        break;
     }
 
     emit(state.copyWith(

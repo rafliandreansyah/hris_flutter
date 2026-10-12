@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
+import 'package:hris_flutter/features/asset/data/models/asset_detail_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_filter_criteria.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_list_model.dart';
+import 'package:hris_flutter/features/asset/data/models/create_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/direct_transfer_asset_payload.dart';
+import 'package:hris_flutter/features/asset/data/models/handover_asset_payload.dart';
 import 'package:hris_flutter/features/asset/domain/repositories/asset_repository.dart';
 import 'package:hris_flutter/features/asset/presentation/bloc/asset_list_bloc.dart';
 import 'package:hris_flutter/features/asset/presentation/bloc/asset_list_event.dart';
@@ -126,6 +130,26 @@ class _MockAssetRepository implements AssetRepository {
       );
     }
   }
+
+  @override
+  Future<AssetDetailData> getAssetDetail(String assetId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createAsset(CreateAssetPayload payload) async {}
+
+  @override
+  Future<void> handoverAsset(
+    String assetId,
+    HandoverAssetPayload payload,
+  ) async {}
+
+  @override
+  Future<void> directTransferAsset(
+    String assetId,
+    DirectTransferAssetPayload payload,
+  ) async {}
 }
 
 void main() {

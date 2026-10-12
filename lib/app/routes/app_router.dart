@@ -55,6 +55,8 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/disburse_
 import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_list_screen.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/pages/reimbursement_detail_screen.dart';
 import 'package:hris_flutter/features/asset/presentation/pages/asset_list_screen.dart';
+import 'package:hris_flutter/features/asset/presentation/pages/asset_detail_screen.dart';
+import 'package:hris_flutter/features/asset/presentation/pages/create_asset_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_bloc.dart';
@@ -619,6 +621,32 @@ class AppRouter {
         path: Routes.ASSETS,
         name: Routes.ASSETS,
         builder: (context, state) => const AssetListScreen(),
+      ),
+
+      // 35b. Detail Fasilitas & Riwayat Handover (Asset Detail)
+      GoRoute(
+        path: Routes.ASSET_DETAIL,
+        name: Routes.ASSET_DETAIL,
+        builder: (context, state) {
+          final extra = state.extra;
+          String id = '';
+          if (extra is String) {
+            id = extra;
+          } else if (extra is Map<String, dynamic>) {
+            id = extra['id']?.toString() ?? '';
+          }
+          if (id.isEmpty && state.uri.queryParameters.containsKey('id')) {
+            id = state.uri.queryParameters['id']!;
+          }
+          return AssetDetailScreen(assetId: id);
+        },
+      ),
+
+      // 35c. Pendaftaran Master Aset Baru (Create Asset)
+      GoRoute(
+        path: Routes.CREATE_ASSET,
+        name: Routes.CREATE_ASSET,
+        builder: (context, state) => const CreateAssetScreen(),
       ),
       // 36. Resignation Hub & Live Offboarding Tracking Screen
       GoRoute(
