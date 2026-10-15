@@ -511,7 +511,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             ? AppColors.darkSurfaceContainer
             : const Color(0xFFF1F5F9));
     final fg = isSelected
-        ? (isDark ? const Color(0xFF003732) : Colors.white)
+        ? (isDark ? const AppColors.darkOnPrimary : Colors.white)
         : subtitleCol;
 
     return Material(
@@ -910,7 +910,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandColor,
                   foregroundColor:
-                      isDark ? const Color(0xFF003732) : Colors.white,
+                      isDark ? const AppColors.darkOnPrimary : Colors.white,
                   shape: const StadiumBorder(),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(
@@ -939,7 +939,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandColor,
                   foregroundColor:
-                      isDark ? const Color(0xFF003732) : Colors.white,
+                      isDark ? const AppColors.darkOnPrimary : Colors.white,
                   shape: const StadiumBorder(),
                   elevation: 0,
                 ),
@@ -952,7 +952,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: brandColor,
                   foregroundColor:
-                      isDark ? const Color(0xFF003732) : Colors.white,
+                      isDark ? const AppColors.darkOnPrimary : Colors.white,
                   shape: const StadiumBorder(),
                   elevation: 0,
                 ),

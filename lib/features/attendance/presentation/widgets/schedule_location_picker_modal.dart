@@ -246,7 +246,9 @@ class _ScheduleLocationPickerModalState
       );
 
       await _reverseGeocode(_currentLat, _currentLng);
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   }
 
   @override
@@ -255,13 +257,13 @@ class _ScheduleLocationPickerModalState
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
     final tealBrand =
-        isDark ? AppColors.inversePrimary : const Color(0xFF0D9488);
+        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
 
     final sheetHeight = MediaQuery.of(context).size.height * 0.86;
 
@@ -375,7 +377,9 @@ class _ScheduleLocationPickerModalState
                               ),
                             ),
                           );
-                        } catch (_) {}
+                        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
                       }
                     },
                     onCameraMove: _onCameraMove,
@@ -545,7 +549,7 @@ class _ScheduleLocationPickerModalState
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkSurfaceContainerLow
-                        : const Color(0xFFF8FAFC),
+                        : const AppColors.backgroundSubtle,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _hasMovedPin
@@ -562,7 +566,7 @@ class _ScheduleLocationPickerModalState
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
                           color: (_hasMovedPin
-                                  ? const Color(0xFFF59E0B)
+                                  ? const AppColors.warning
                                   : tealBrand)
                               .withValues(alpha: 0.12),
                           shape: BoxShape.circle,
@@ -725,7 +729,7 @@ class _ScheduleLocationPickerModalState
 
   Widget _buildFallbackMap(bool isDark, Color textCol, Color subtitleCol) {
     return Container(
-      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+      color: isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

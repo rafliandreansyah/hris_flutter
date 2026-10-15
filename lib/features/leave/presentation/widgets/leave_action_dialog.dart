@@ -45,7 +45,7 @@ class _LeaveActionDialogState extends State<LeaveActionDialog> {
 
     final primaryActionColor = widget.isApproved
         ? (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-        : const Color(0xFFEF4444);
+        : const AppColors.errorRed;
 
     final titleText =
         widget.isApproved ? 'Setujui Pengajuan Cuti' : 'Tolak Pengajuan Cuti';

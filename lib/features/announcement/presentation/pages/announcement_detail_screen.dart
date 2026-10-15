@@ -487,20 +487,20 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
         label = 'URGENT NOTICE';
         break;
       case 'high':
-        bg = const Color(0xFFFEF3C7);
+        bg = const AppColors.warningContainer;
         fg = const Color(0xFFB45309);
         label = 'HIGH PRIORITY';
         break;
       case 'medium':
-        bg = isDark ? AppColors.darkSurfaceContainer : const Color(0xFFE2E8F0);
+        bg = isDark ? AppColors.darkSurfaceContainer : const AppColors.darkOnBackground;
         fg = isDark ? AppColors.darkOnSurface : AppColors.onSurfaceVariant;
         label = 'MEDIUM';
         break;
       case 'low':
       default:
         bg =
-            isDark ? AppColors.darkSurfaceContainerLow : const Color(0xFFF8FAFC);
-        fg = isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+            isDark ? AppColors.darkSurfaceContainerLow : const AppColors.backgroundSubtle;
+        fg = isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
         label = 'LOW';
         break;
     }
@@ -540,10 +540,10 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: isDark
               ? AppColors.darkSurfaceContainer
-              : const Color(0xFFE2E8F0),
+              : const AppColors.darkOnBackground,
           highlightColor: isDark
               ? AppColors.darkSurfaceContainerHigh
-              : const Color(0xFFF8FAFC),
+              : const AppColors.backgroundSubtle,
           child: Container(
             color: Colors.white,
             width: double.infinity,

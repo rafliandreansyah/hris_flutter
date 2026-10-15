@@ -343,7 +343,7 @@ class _DashboardViewState extends State<_DashboardView> {
                           ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                              colors: [AppColors.errorRed, Color(0xFFDC2626)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),

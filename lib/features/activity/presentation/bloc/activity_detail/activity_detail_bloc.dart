@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -19,8 +20,8 @@ class ActivityDetailBloc
   })  : _repository = repository ?? ActivityRepositoryImpl(),
         _storageService = storageService ?? SecureStorageService.instance,
         super(ActivityDetailState(
-          activity: initialActivity ?? ActivityItem.sampleActivities[1],
-          isCreator: (initialActivity ?? ActivityItem.sampleActivities[1]).isMyActivity,
+          activity: initialActivity ?? ActivityItem.placeholder(),
+          isCreator: initialActivity?.isMyActivity ?? false,
         )) {
     on<ActivityDetailStarted>(_onStarted);
     on<ActivityDetailFetchRequested>(_onFetchRequested);
@@ -29,25 +30,29 @@ class ActivityDetailBloc
     on<ActivityDetailCancelSubmitted>(_onCancelSubmitted);
   }
 
+  /// Tidak pernah memakai data demo. Bila belum ada data lengkap, kembalikan placeholder kosong
+  /// yang akan diisi setelah `ActivityDetailFetchRequested` berhasil.
   static ActivityItem resolveInitialActivity({
     ActivityItem? activity,
     String? activityId,
   }) {
     if (activity != null) return activity;
-    if (activityId != null) {
-      final found = ActivityItem.sampleActivities.firstWhere(
-        (item) => item.id == activityId,
-        orElse: () => ActivityItem.sampleActivities[1],
-      );
-      return found;
-    }
-    return ActivityItem.sampleActivities[1];
+    return ActivityItem.placeholder(id: activityId ?? '');
   }
 
   Future<void> _onStarted(
     ActivityDetailStarted event,
     Emitter<ActivityDetailState> emit,
   ) async {
+    final idToLoad = event.initialActivity?.id ?? event.activityId;
+    if (idToLoad == null || idToLoad.isEmpty) {
+      emit(state.copyWith(
+        status: ActivityDetailStatus.failure,
+        errorMessage: 'Aktivitas tidak ditemukan',
+      ));
+      return;
+    }
+
     final resolvedActivity = resolveInitialActivity(
       activity: event.initialActivity,
       activityId: event.activityId,
@@ -56,7 +61,9 @@ class ActivityDetailBloc
     String? empId;
     try {
       empId = await _storageService.getEmployeeId();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[ActivityDetailBloc] gagal membaca employeeId: $e');
+    }
 
     final isCreator = _determineIsCreator(resolvedActivity, empId);
 
@@ -66,14 +73,11 @@ class ActivityDetailBloc
       currentEmployeeId: empId,
     ));
 
-    final idToLoad = event.initialActivity?.id ?? event.activityId;
-    if (idToLoad != null && idToLoad.isNotEmpty) {
-      final shouldFetch =
-          !idToLoad.startsWith('ACT-') || _repository is! ActivityRepositoryImpl;
-      if (shouldFetch) {
-        add(ActivityDetailFetchRequested(id: idToLoad, showLoading: false));
-      }
-    }
+    // Selalu ambil data terbaru dari API. Bila belum ada data awal, tampilkan spinner.
+    add(ActivityDetailFetchRequested(
+      id: idToLoad,
+      showLoading: event.initialActivity == null,
+    ));
   }
 
   Future<String?> _resolveActivityTypeName(String? typeId) async {
@@ -153,7 +157,9 @@ class ActivityDetailBloc
           activityTypeName: resolvedTypeName,
           existingItem: state.activity,
         );
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
 
       emit(state.copyWith(
@@ -203,7 +209,9 @@ class ActivityDetailBloc
           activityTypeName: resolvedTypeName,
           existingItem: state.activity,
         );
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
 
       emit(state.copyWith(
@@ -259,7 +267,9 @@ class ActivityDetailBloc
           activityTypeName: resolvedTypeName,
           existingItem: state.activity,
         );
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
       final isCreator = _determineIsCreator(updatedItem, state.currentEmployeeId);
 

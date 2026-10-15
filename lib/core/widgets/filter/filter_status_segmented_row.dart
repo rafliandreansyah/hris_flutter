@@ -106,11 +106,11 @@ class FilterStatusSegmentedRow extends StatelessWidget {
     final chipBg = isSelected
         ? (isDark
             ? brandColor.withValues(alpha: 0.18)
-            : const Color(0xFFF0FDFA))
+            : const AppColors.primaryContainer)
         : fieldBg;
     final chipBorder = isSelected ? brandColor : borderCol;
     final chipTextCol =
-        isSelected ? (isDark ? brandColor : const Color(0xFF0D9488)) : labelCol;
+        isSelected ? (isDark ? brandColor : const AppColors.brandTeal) : labelCol;
 
     return InkWell(
       onTap: () => onSelected(option.value),

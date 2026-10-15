@@ -312,11 +312,11 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
 
     return BlocConsumer<LiveAttendanceBloc, LiveAttendanceState>(
       listenWhen: (previous, current) {
@@ -507,7 +507,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.brandTeal.withValues(alpha: 0.15)
-                  : const Color(0xFFF0FDFA),
+                  : const AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: AppColors.brandTeal.withValues(alpha: 0.25),
@@ -589,7 +589,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                         color: isClockIn
                             ? (isDark
                                 ? AppColors.brandTeal.withValues(alpha: 0.25)
-                                : const Color(0xFFF0FDFA))
+                                : const AppColors.primaryContainer)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                         border: isClockIn
@@ -641,7 +641,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                         color: !isClockIn
                             ? (isDark
                                 ? AppColors.brandTeal.withValues(alpha: 0.25)
-                                : const Color(0xFFF0FDFA))
+                                : const AppColors.primaryContainer)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                         border: !isClockIn
@@ -901,7 +901,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.08)
-                      : const Color(0xFFF0FDFA),
+                      : const AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: _isCompressing
@@ -1148,7 +1148,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
           decoration: BoxDecoration(
             color: isDark
                 ? AppColors.brandTeal.withValues(alpha: 0.12)
-                : const Color(0xFFF0FDFA),
+                : const AppColors.primaryContainer,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: AppColors.brandTeal.withValues(alpha: 0.3),
@@ -1263,7 +1263,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.brandTeal.withValues(alpha: 0.12)
-                  : const Color(0xFFF0FDFA),
+                  : const AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: AppColors.brandTeal.withValues(alpha: 0.3),

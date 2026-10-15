@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/config/maps_config.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter/foundation.dart';
 
 /// Card 2: Geo-Location Card (Lokasi Absensi)
 /// Sesuai spesifikasi Google Stitch Screen ID: `c0c581134c61461a8585cf77a66f1dd7`.
@@ -44,14 +45,14 @@ class _AttendanceRequestLocationCardState
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
     final primaryContainerCol = isDark
         ? AppColors.primaryContainer.withValues(alpha: 0.15)
-        : const Color(0xFFF0FDFA);
+        : const AppColors.primaryContainer;
     final brandTealCol =
         isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
@@ -320,7 +321,9 @@ class _AttendanceRequestLocationCardState
                 ),
               ),
             );
-          } catch (_) {}
+          } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
         }
       },
       borderRadius: BorderRadius.circular(20),
@@ -330,15 +333,15 @@ class _AttendanceRequestLocationCardState
           color: isSelected
               ? (isDark
                   ? AppColors.primaryContainer.withValues(alpha: 0.25)
-                  : const Color(0xFFF0FDFA))
+                  : const AppColors.primaryContainer)
               : (isDark
                   ? AppColors.darkSurfaceContainerLow
-                  : const Color(0xFFF8FAFC)),
+                  : const AppColors.backgroundSubtle),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? brandTealCol
-                : (isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0)),
+                : (isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground),
             width: isSelected ? 1.2 : 1,
           ),
         ),

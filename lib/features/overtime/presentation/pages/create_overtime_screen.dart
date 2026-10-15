@@ -103,16 +103,16 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
+                    surface: AppColors.darkSurfaceBright,
                     onSurface: Colors.white,
                   )
                 : const ColorScheme.light(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
                     surface: Colors.white,
-                    onSurface: Color(0xFF0F172A),
+                    onSurface: AppColors.darkBackgroundSubtle,
                   ),
           ),
           child: child ?? const SizedBox.shrink(),
@@ -130,16 +130,16 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
+                    surface: AppColors.darkSurfaceBright,
                     onSurface: Colors.white,
                   )
                 : const ColorScheme.light(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
                     surface: Colors.white,
-                    onSurface: Color(0xFF0F172A),
+                    onSurface: AppColors.darkBackgroundSubtle,
                   ),
           ),
           child: child ?? const SizedBox.shrink(),
@@ -175,16 +175,16 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
+                    surface: AppColors.darkSurfaceBright,
                     onSurface: Colors.white,
                   )
                 : const ColorScheme.light(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
                     surface: Colors.white,
-                    onSurface: Color(0xFF0F172A),
+                    onSurface: AppColors.darkBackgroundSubtle,
                   ),
           ),
           child: child ?? const SizedBox.shrink(),
@@ -202,16 +202,16 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
           data: Theme.of(context).copyWith(
             colorScheme: isDark
                 ? const ColorScheme.dark(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
+                    surface: AppColors.darkSurfaceBright,
                     onSurface: Colors.white,
                   )
                 : const ColorScheme.light(
-                    primary: Color(0xFF0D9488),
+                    primary: AppColors.brandTeal,
                     onPrimary: Colors.white,
                     surface: Colors.white,
-                    onSurface: Color(0xFF0F172A),
+                    onSurface: AppColors.darkBackgroundSubtle,
                   ),
           ),
           child: child ?? const SizedBox.shrink(),
@@ -254,7 +254,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const Color(0xFFEF4444),
+        backgroundColor: const AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 3),
@@ -337,7 +337,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(LucideIcons.info, color: Color(0xFF0D9488), size: 20),
+            const Icon(LucideIcons.info, color: AppColors.brandTeal, size: 20),
             const SizedBox(width: 8),
             Text(
               'Panduan Pengajuan Lembur',
@@ -386,7 +386,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             child: const Text(
               'Mengerti',
               style: TextStyle(
-                color: Color(0xFF0D9488),
+                color: AppColors.brandTeal,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -404,7 +404,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF0D9488)),
+        Icon(icon, size: 16, color: const AppColors.brandTeal),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -561,14 +561,14 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                               children: [
                                 const Icon(
                                   LucideIcons.calendarClock,
-                                  color: Color(0xFF0D9488),
+                                  color: AppColors.brandTeal,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'PERIODE & JADWAL LEMBUR',
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: const Color(0xFF0D9488),
+                                    color: const AppColors.brandTeal,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   ),
@@ -576,7 +576,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 const Text(
                                   ' *',
                                   style: TextStyle(
-                                    color: Color(0xFFEF4444),
+                                    color: AppColors.errorRed,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -652,7 +652,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                               children: [
                                 const Icon(
                                   LucideIcons.calendar,
-                                  color: Color(0xFF0D9488),
+                                  color: AppColors.brandTeal,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 10),
@@ -667,7 +667,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 Text(
                                   'Ubah',
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: const Color(0xFF0D9488),
+                                    color: const AppColors.brandTeal,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -724,7 +724,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                       : LucideIcons.calendarCheck,
                                   color: state.isEndTimeLocked
                                       ? subtitleCol
-                                      : const Color(0xFF0D9488),
+                                      : const AppColors.brandTeal,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 10),
@@ -763,7 +763,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                   Text(
                                     'Ubah',
                                     style: AppTypography.labelSmall.copyWith(
-                                      color: const Color(0xFF0D9488),
+                                      color: const AppColors.brandTeal,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -777,7 +777,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             child: Text(
                               '*Terkunci otomatis dari jam check-out kehadiran',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const Color(0xFF0D9488),
+                                color: const AppColors.brandTeal,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -789,10 +789,10 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDFA),
+                            color: const AppColors.primaryContainer,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: const Color(0xFF0D9488)
+                              color: const AppColors.brandTeal
                                   .withValues(alpha: 0.2),
                             ),
                           ),
@@ -800,7 +800,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             children: [
                               const Icon(
                                 LucideIcons.timer,
-                                color: Color(0xFF0D9488),
+                                color: AppColors.brandTeal,
                                 size: 18,
                               ),
                               const SizedBox(width: 10),
@@ -808,7 +808,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 child: Text(
                                   'Total Durasi Lembur: ${state.durationLabel}',
                                   style: AppTypography.bodySmall.copyWith(
-                                    color: const Color(0xFF0F766E),
+                                    color: const AppColors.primaryHover,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -836,14 +836,14 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                           children: [
                             const Icon(
                               LucideIcons.fileEdit,
-                              color: Color(0xFF0D9488),
+                              color: AppColors.brandTeal,
                               size: 16,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'ALASAN / CATATAN',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const Color(0xFF0D9488),
+                                color: const AppColors.brandTeal,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -851,7 +851,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             const Text(
                               ' *',
                               style: TextStyle(
-                                color: Color(0xFFEF4444),
+                                color: AppColors.errorRed,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -886,7 +886,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(
-                                color: Color(0xFF0D9488),
+                                color: AppColors.brandTeal,
                                 width: 1.5,
                               ),
                             ),
@@ -1052,7 +1052,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             ? const Color(0xFF451A03).withValues(alpha: 0.6)
             : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+        border: Border.all(color: const AppColors.warning, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1078,7 +1078,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark
                         ? const Color(0xFFFDE68A)
-                        : const Color(0xFF92400E),
+                        : const AppColors.onWarningContainer,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -1123,7 +1123,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
       child: Row(
         children: [
           const Icon(LucideIcons.calendarClock,
-              size: 16, color: Color(0xFF0D9488)),
+              size: 16, color: AppColors.brandTeal),
           const SizedBox(width: 8),
           Expanded(
             child: Column(

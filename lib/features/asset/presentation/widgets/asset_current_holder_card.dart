@@ -82,7 +82,7 @@ class AssetCurrentHolderCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkBackgroundSubtle
-                      : const Color(0xFFF8FAFC),
+                      : const AppColors.backgroundSubtle,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(

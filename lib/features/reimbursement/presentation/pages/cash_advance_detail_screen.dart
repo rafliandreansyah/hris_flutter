@@ -211,8 +211,8 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                           text: 'Tolak',
                           leadingIcon: LucideIcons.x,
                           variant: AppButtonVariant.outlined,
-                          foregroundColor: const Color(0xFFEF4444),
-                          borderColor: const Color(0xFFEF4444),
+                          foregroundColor: const AppColors.errorRed,
+                          borderColor: const AppColors.errorRed,
                           height: 48,
                           isLoading: state.isActionLoading,
                           onPressed: state.isActionLoading
@@ -323,7 +323,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errorMessage!),
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: const AppColors.errorRed,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -333,7 +333,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.actionSuccessMessage!),
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: const AppColors.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -352,7 +352,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(LucideIcons.fileX,
-                        size: 48, color: Color(0xFFEF4444)),
+                        size: 48, color: AppColors.errorRed),
                     const SizedBox(height: 12),
                     Text(
                       'Gagal memuat detail kasbon',
@@ -564,7 +564,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                   LucideIcons.calendarClock,
                   size: 15,
                   color: detail.isOverdue
-                      ? const Color(0xFFEF4444)
+                      ? const AppColors.errorRed
                       : subtitleCol,
                 ),
                 const SizedBox(width: 6),
@@ -572,7 +572,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                   'Batas Settlement: ${detail.deadlineDateTime != null ? DateFormat('dd MMMM yyyy').format(detail.deadlineDateTime!) : (detail.settlementDeadline ?? '-')}',
                   style: TextStyle(
                     color: detail.isOverdue
-                        ? const Color(0xFFEF4444)
+                        ? const AppColors.errorRed
                         : subtitleCol,
                     fontWeight: detail.isOverdue
                         ? FontWeight.w700
@@ -631,7 +631,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                       Text(
                         formatRupiah(detail.disbursedAmount),
                         style: AppTypography.titleMedium.copyWith(
-                          color: const Color(0xFF10B981),
+                          color: const AppColors.success,
                           fontWeight: FontWeight.w800,
                           fontSize: 17,
                         ),
@@ -698,10 +698,10 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
               minHeight: 8,
               backgroundColor: isDark
                   ? AppColors.darkSurfaceContainer
-                  : const Color(0xFFE2E8F0),
+                  : const AppColors.darkOnBackground,
               valueColor: AlwaysStoppedAnimation<Color>(
                 progress >= 1.0
-                    ? const Color(0xFF10B981)
+                    ? const AppColors.success
                     : brandColor,
               ),
             ),
@@ -743,8 +743,8 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         color: detail.remainingAmount > 0
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF10B981),
+                            ? const AppColors.warning
+                            : const AppColors.success,
                         fontSize: 13.5,
                       ),
                     ),
@@ -801,13 +801,13 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      color: const AppColors.success.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       LucideIcons.arrowDownLeft,
                       size: 16,
-                      color: Color(0xFF10B981),
+                      color: AppColors.success,
                     ),
                   ),
                   const SizedBox(width: 10),

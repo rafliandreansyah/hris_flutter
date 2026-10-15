@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/payroll/data/repositories/payroll_reposito
 import 'package:hris_flutter/features/payroll/domain/repositories/payroll_repository.dart';
 import 'package:hris_flutter/features/payroll/presentation/bloc/payroll_employee_slips/payroll_employee_slips_event.dart';
 import 'package:hris_flutter/features/payroll/presentation/bloc/payroll_employee_slips/payroll_employee_slips_state.dart';
+import 'package:flutter/foundation.dart';
 
 class PayrollEmployeeSlipsBloc
     extends Bloc<PayrollEmployeeSlipsEvent, PayrollEmployeeSlipsState> {
@@ -123,7 +124,9 @@ class PayrollEmployeeSlipsBloc
         hasMore: response.meta.page < response.meta.totalPages,
         clearErrorMessage: true,
       ));
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   }
 
   Future<void> _onLoadMore(

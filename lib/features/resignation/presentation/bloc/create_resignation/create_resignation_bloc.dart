@@ -6,6 +6,7 @@ import 'package:hris_flutter/features/resignation/data/repositories/resignation_
 import 'package:hris_flutter/features/resignation/domain/repositories/resignation_repository.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/create_resignation/create_resignation_event.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/create_resignation/create_resignation_state.dart';
+import 'package:flutter/foundation.dart';
 
 class CreateResignationBloc
     extends Bloc<CreateResignationEvent, CreateResignationState> {
@@ -42,8 +43,10 @@ class CreateResignationBloc
       DateTime? defaultDate;
       if (initialData.minSuggestedDate.isNotEmpty) {
         try {
-          defaultDate = DateTime.parse(initialData.minSuggestedDate);
-        } catch (_) {}
+          defaultDate = DateTime.tryParse(initialData.minSuggestedDate);
+        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       }
       defaultDate ??= DateTime.now().add(
         Duration(days: initialData.companyPolicy.effectiveNoticePeriodDays),

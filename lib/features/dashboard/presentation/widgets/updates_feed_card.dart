@@ -129,7 +129,7 @@ class UpdatesFeedCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkSurfaceContainer
-                        : const Color(0xFFE2E8F0),
+                        : const AppColors.darkOnBackground,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(

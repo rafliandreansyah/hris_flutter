@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
@@ -7,6 +9,7 @@ import 'package:hris_flutter/features/auth/data/repositories/auth_repository_imp
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_event.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_state.dart';
+import 'package:flutter/foundation.dart';
 
 /// BLoC untuk mengelola State autentikasi login, session check, dan logout
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -31,14 +34,42 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final token = await _authRepository.getSavedToken();
       if (token != null && token.isNotEmpty) {
+        // Token JWT yang sudah lewat masa berlakunya dibersihkan sekarang, bukan setelah 401 dari server.
+        if (_isJwtExpired(token)) {
+          await _authRepository.logout();
+          emit(const AuthInitial());
+          return;
+        }
         emit(AuthSuccess(token: token, message: 'Sesi aktif ditemukan'));
       } else {
         emit(const AuthInitial());
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[AuthBloc] gagal memeriksa sesi: $e');
       emit(const AuthInitial());
     }
   }
+
+  /// Mengecek klaim `exp` pada JWT tanpa verifikasi tanda tangan (verifikasi tetap di server).
+  /// Token yang bukan JWT dianggap belum kedaluwarsa; keputusan akhir tetap ada pada respons 401.
+  @visibleForTesting
+  static bool isJwtExpired(String token, {DateTime? now}) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+      final payloadJson = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payload = jsonDecode(payloadJson);
+      if (payload is! Map) return false;
+      final exp = payload['exp'];
+      if (exp is! num) return false;
+      final nowSeconds = (now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+      return nowSeconds >= exp.toInt();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _isJwtExpired(String token) => isJwtExpired(token);
 
   Future<void> _onLoginSubmitted(
     AuthLoginSubmitted event,
@@ -83,7 +114,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     try {
       await _authRepository.logout();
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     emit(const AuthInitial());
   }
 }

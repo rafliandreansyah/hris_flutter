@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 /// Utility terpusat untuk parsing dan formatting tanggal & waktu di aplikasi Oasish HRIS.
 ///
@@ -48,7 +49,9 @@ class AppDateUtil {
       try {
         final parsed = DateFormat(pattern).parseLoose(trimmed);
         return _timeFormatHHmm.format(parsed);
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     }
 
     // 3. Fallback: pasang tanggal dummy 1970-01-01 untuk parsing format ISO time (misal "08:30:00.000Z")

@@ -220,8 +220,8 @@ class _CreateActivityOptionSheetContent extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFE2E8F0),
+                                    ? const AppColors.darkSurfaceContainerHigh
+                                    : const AppColors.darkOnBackground,
                                 borderRadius: BorderRadius.circular(100),
                               ),
                               child: Text(
@@ -229,7 +229,7 @@ class _CreateActivityOptionSheetContent extends StatelessWidget {
                                 style: AppTypography.labelSmall.copyWith(
                                   color: isDark
                                       ? const Color(0xFFCBD5E1)
-                                      : const Color(0xFF475569),
+                                      : const AppColors.darkSurfaceContainerHighest,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),

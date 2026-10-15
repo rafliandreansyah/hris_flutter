@@ -282,7 +282,7 @@ class AnnouncementCard extends StatelessWidget {
         showDot = true;
         break;
       case 'high':
-        bg = const Color(0xFFFEF3C7);
+        bg = const AppColors.warningContainer;
         fg = const Color(0xFFB45309);
         label = 'Tinggi';
         showDot = true;
@@ -290,7 +290,7 @@ class AnnouncementCard extends StatelessWidget {
       case 'medium':
         bg = isDark
             ? AppColors.darkSurfaceContainer
-            : const Color(0xFFE2E8F0);
+            : const AppColors.darkOnBackground;
         fg = isDark
             ? AppColors.darkOnSurface
             : AppColors.onSurfaceVariant;
@@ -300,10 +300,10 @@ class AnnouncementCard extends StatelessWidget {
       default:
         bg = isDark
             ? AppColors.darkSurfaceContainerLow
-            : const Color(0xFFF8FAFC);
+            : const AppColors.backgroundSubtle;
         fg = isDark
             ? AppColors.darkOnSurfaceVariant
-            : const Color(0xFF64748B);
+            : const AppColors.surfaceVariant;
         label = 'Rendah';
         break;
     }
@@ -359,10 +359,10 @@ class AnnouncementCard extends StatelessWidget {
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: isDark
               ? AppColors.darkSurfaceContainer
-              : const Color(0xFFE2E8F0),
+              : const AppColors.darkOnBackground,
           highlightColor: isDark
               ? AppColors.darkSurfaceContainerHigh
-              : const Color(0xFFF8FAFC),
+              : const AppColors.backgroundSubtle,
           child: Container(
             color: Colors.white,
             width: double.infinity,
@@ -425,10 +425,10 @@ class AnnouncementCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF3C7),
+        color: const AppColors.warningContainer,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+          color: const AppColors.warning.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -438,13 +438,13 @@ class AnnouncementCard extends StatelessWidget {
           const Icon(
             LucideIcons.info,
             size: 13,
-            color: Color(0xFF92400E),
+            color: AppColors.onWarningContainer,
           ),
           const SizedBox(width: 4),
           Text(
             'Perlu Konfirmasi',
             style: AppTypography.labelSmall.copyWith(
-              color: const Color(0xFF92400E),
+              color: const AppColors.onWarningContainer,
               fontWeight: FontWeight.w700,
               fontSize: 11,
             ),

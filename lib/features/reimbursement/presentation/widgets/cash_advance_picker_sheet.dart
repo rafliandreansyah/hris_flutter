@@ -275,7 +275,7 @@ class _CashAdvancePickerSheetState extends State<CashAdvancePickerSheet> {
             decoration: BoxDecoration(
               color: isSelected
                   ? brandColor.withValues(alpha: isDark ? 0.2 : 0.08)
-                  : (isDark ? Colors.white.withValues(alpha: 0.03) : const Color(0xFFF8FAFC)),
+                  : (isDark ? Colors.white.withValues(alpha: 0.03) : const AppColors.backgroundSubtle),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected ? brandColor : borderCol,

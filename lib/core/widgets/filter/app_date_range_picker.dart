@@ -15,7 +15,7 @@ Future<DateTimeRange?> showAppDateRangePicker(
   final now = DateTime.now();
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final primaryCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-  final onPrimaryCol = isDark ? const Color(0xFF003732) : Colors.white;
+  final onPrimaryCol = isDark ? const AppColors.darkOnPrimary : Colors.white;
   final surfaceCol = isDark
       ? AppColors.darkSurfaceContainerLowest
       : AppColors.surfaceContainerLowest;
@@ -53,8 +53,8 @@ Future<DateTimeRange?> showAppDateRangePicker(
                   onPrimary: onPrimaryCol,
                   surface: surfaceCol,
                   onSurface: textCol,
-                  surfaceContainerHighest: const Color(0xFFE2E8F0),
-                  onSurfaceVariant: const Color(0xFF64748B),
+                  surfaceContainerHighest: const AppColors.darkOnBackground,
+                  onSurfaceVariant: const AppColors.surfaceVariant,
                   outline: borderCol,
                 ),
           datePickerTheme: DatePickerThemeData(

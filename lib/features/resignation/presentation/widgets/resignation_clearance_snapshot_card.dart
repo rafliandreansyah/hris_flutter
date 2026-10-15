@@ -120,7 +120,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF134E4A)
-                      : const Color(0xFFCCFBF1),
+                      : const AppColors.accentTealLight,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
@@ -142,7 +142,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: isDark
                             ? const Color(0xFF5EEAD4)
-                            : const Color(0xFF0F766E),
+                            : const AppColors.primaryHover,
                       ),
                     ),
                   ],
@@ -161,7 +161,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
             icon: LucideIcons.laptop,
             iconBg: isAssetOk
                 ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7))
-                : (isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7)),
+                : (isDark ? const Color(0xFF78350F) : const AppColors.warningContainer),
             iconColor: isAssetOk
                 ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
                 : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
@@ -181,7 +181,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
             icon: LucideIcons.walletCards,
             iconBg: isFinanceOk
                 ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7))
-                : (isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7)),
+                : (isDark ? const Color(0xFF78350F) : const AppColors.warningContainer),
             iconColor: isFinanceOk
                 ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
                 : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
@@ -230,7 +230,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
   }) {
     final badgeBg = isSuccess
         ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7))
-        : (isDark ? const Color(0xFF78350F) : const Color(0xFFFEF3C7));
+        : (isDark ? const Color(0xFF78350F) : const AppColors.warningContainer);
     final badgeFg = isSuccess
         ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
         : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706));
@@ -240,7 +240,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.darkSurfaceContainer
-            : const Color(0xFFF8FAFC),
+            : const AppColors.backgroundSubtle,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderCol.withValues(alpha: 0.6)),
       ),

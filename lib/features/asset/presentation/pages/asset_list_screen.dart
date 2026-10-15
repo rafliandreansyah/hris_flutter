@@ -80,7 +80,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
           'Apakah Anda yakin ingin menerima fasilitas "${item.name}"? Fasilitas ini akan menjadi tanggung jawab fisik Anda.',
       confirmText: 'Terima Aset',
       confirmIcon: LucideIcons.check,
-      confirmButtonColor: const Color(0xFF0D9488),
+      confirmButtonColor: const AppColors.brandTeal,
     );
 
     if (confirmed && mounted) {
@@ -238,7 +238,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
           floatingActionButton: state.canCreateAsset
               ? FloatingActionButton.extended(
                   onPressed: _openCreateAsset,
-                  backgroundColor: const Color(0xFF0D9488),
+                  backgroundColor: const AppColors.brandTeal,
                   foregroundColor: Colors.white,
                   icon: const Icon(LucideIcons.plus, size: 20),
                   label: Text(
@@ -335,7 +335,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                             width: 7,
                             height: 7,
                             decoration: const BoxDecoration(
-                              color: Color(0xFFF59E0B),
+                              color: AppColors.warning,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -356,7 +356,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                             width: 7,
                             height: 7,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
+                              color: AppColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),

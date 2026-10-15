@@ -51,7 +51,7 @@ class _AttendanceRequestActionDialogState
 
     final primaryActionColor = widget.isApproved
         ? (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-        : const Color(0xFFEF4444);
+        : const AppColors.errorRed;
 
     final titleText = widget.isApproved
         ? 'Setujui Presensi Luar Kantor'
@@ -132,7 +132,7 @@ class _AttendanceRequestActionDialogState
                 filled: true,
                 fillColor: isDark
                     ? AppColors.darkSurfaceContainerLow
-                    : const Color(0xFFF8FAFC),
+                    : const AppColors.backgroundSubtle,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: borderCol),

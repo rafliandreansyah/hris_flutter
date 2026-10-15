@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Status aktivitas kerja pada Oasish HRIS (StatusEmployeeActivity)
 enum ActivityStatus {
@@ -32,7 +33,7 @@ extension ActivityStatusExtension on ActivityStatus {
   Color get textColor {
     switch (this) {
       case ActivityStatus.planned:
-        return const Color(0xFF475569); // Slate 600
+        return const AppColors.darkSurfaceContainerHighest; // Slate 600
       case ActivityStatus.ongoing:
         return const Color(0xFFB45309); // Amber 700
       case ActivityStatus.completed:
@@ -49,7 +50,7 @@ extension ActivityStatusExtension on ActivityStatus {
       case ActivityStatus.planned:
         return const Color(0xFFF1F5F9); // Slate 100
       case ActivityStatus.ongoing:
-        return const Color(0xFFFEF3C7); // Amber 100
+        return const AppColors.warningContainer; // Amber 100
       case ActivityStatus.completed:
         return const Color(0xFFDCFCE7); // Green 100
       case ActivityStatus.canceled:
@@ -62,13 +63,13 @@ extension ActivityStatusExtension on ActivityStatus {
   Color get dotColor {
     switch (this) {
       case ActivityStatus.planned:
-        return const Color(0xFF64748B);
+        return const AppColors.surfaceVariant;
       case ActivityStatus.ongoing:
-        return const Color(0xFFF59E0B);
+        return const AppColors.warning;
       case ActivityStatus.completed:
         return const Color(0xFF16A34A);
       case ActivityStatus.canceled:
-        return const Color(0xFFEF4444);
+        return const AppColors.errorRed;
       case ActivityStatus.pendingReview:
         return const Color(0xFF0284C7);
     }
@@ -174,6 +175,31 @@ class ActivityItem {
     this.employeeNumber,
     this.userLevel,
   });
+
+  /// Placeholder kosong untuk state awal saat data aktivitas belum dimuat dari API.
+  /// Tidak memakai data demo: field dikosongkan agar tidak pernah tampil sebagai data nyata.
+  factory ActivityItem.placeholder({String id = ''}) {
+    return ActivityItem(
+      id: id,
+      title: '',
+      description: '',
+      userName: '',
+      userRole: '',
+      department: '',
+      company: '',
+      initials: '',
+      status: ActivityStatus.planned,
+      location: '',
+      time: '',
+      date: DateTime.fromMillisecondsSinceEpoch(0),
+      latitude: 0,
+      longitude: 0,
+      fullAddress: '',
+      districtCity: '',
+      gpsAccuracy: '',
+      isGpsVerified: false,
+    );
+  }
 
   ActivityItem copyWith({
     String? id,

@@ -8,6 +8,7 @@ import 'package:hris_flutter/core/widgets/filter/filter_option_selector_modal.da
 import 'package:hris_flutter/core/widgets/filter/filter_status_segmented_row.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter/foundation.dart';
 
 const _monthNames = [
   'Semua Bulan',
@@ -97,7 +98,9 @@ class PayrollFilterBottomSheet extends StatefulWidget {
           OrganizationFilterBloc? resolvedOrgBloc;
           try {
             resolvedOrgBloc = context.read<OrganizationFilterBloc>();
-          } catch (_) {}
+          } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
           if (resolvedOrgBloc != null) {
             return BlocProvider<OrganizationFilterBloc>.value(

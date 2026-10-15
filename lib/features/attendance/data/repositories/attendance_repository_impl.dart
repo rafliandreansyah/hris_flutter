@@ -11,6 +11,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
   final AttendanceRemoteDataSource remoteDataSource;
@@ -111,8 +112,8 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       officeDetail = selectedWorkLocation.address.isNotEmpty
           ? selectedWorkLocation.address
           : 'Bisa absen di mana saja';
-      officeLat = selectedWorkLocation.latitude ?? -6.2253;
-      officeLng = selectedWorkLocation.longitude ?? 106.8097;
+      officeLat = selectedWorkLocation.latitude ?? 0;
+      officeLng = selectedWorkLocation.longitude ?? 0;
       geofenceRadius = 0.0;
       isInsideGeofence = true;
     } else {
@@ -120,9 +121,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       officeName = selectedWorkLocation.name;
       officeDetail = selectedWorkLocation.address.isNotEmpty
           ? selectedWorkLocation.address
-          : 'HQ Office — Main Lobby';
-      officeLat = selectedWorkLocation.latitude ?? -6.2253;
-      officeLng = selectedWorkLocation.longitude ?? 106.8097;
+          : '-';
+      officeLat = selectedWorkLocation.latitude ?? 0;
+      officeLng = selectedWorkLocation.longitude ?? 0;
       final rawRadius = selectedWorkLocation.radius;
       geofenceRadius = rawRadius < 5 ? 50.0 : rawRadius;
       isInsideGeofence = false;
@@ -376,7 +377,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     if (targetEmployeeId == null || targetEmployeeId.isEmpty) {
       try {
         targetEmployeeId = await SecureStorageService.instance.getEmployeeId();
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     }
 
     final response = await remoteDataSource.getAttendanceLogs(

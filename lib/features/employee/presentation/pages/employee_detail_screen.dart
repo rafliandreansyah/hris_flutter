@@ -80,7 +80,8 @@ class _EmployeeDetailView extends StatelessWidget {
   String _formatDate(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '-';
     try {
-      final dt = DateTime.parse(raw);
+      final dt = DateTime.tryParse(raw);
+      if (dt == null) return raw;
       const months = [
         'Januari',
         'Februari',
@@ -103,7 +104,8 @@ class _EmployeeDetailView extends StatelessWidget {
 
   String _buildFullAddress(EmployeeDetailData? data) {
     if (data == null) {
-      return 'Jl. Dharmahusada Indah Barat No. 88, Kel. Mojo, Kec. Gubeng, Surabaya, Jawa Timur 60285, Indonesia';
+      // Jangan tampilkan alamat contoh; kosong bila data belum tersedia.
+      return '-';
     }
     final parts = [
       data.address,
@@ -337,15 +339,13 @@ class _EmployeeDetailView extends StatelessWidget {
                 WorkLocationCard(
                   residentialAddress: _buildFullAddress(detail),
                   officeName:
-                      detail?.employeeWorkLocation.firstOrNull?.name ??
-                      'HQ Office Sudirman',
+                      detail?.employeeWorkLocation.firstOrNull?.name ?? '-',
                   officeAddress:
-                      detail?.employeeWorkLocation.firstOrNull?.address ??
-                      'SCBD Lot 28 Floor 14, Jakarta Selatan',
+                      detail?.employeeWorkLocation.firstOrNull?.address ?? '-',
                   radius:
                       detail?.employeeWorkLocation.firstOrNull?.radius != null
                       ? '${detail!.employeeWorkLocation.firstOrNull!.radius}m'
-                      : '50m',
+                      : '-',
                   isDefaultOffice:
                       detail?.employeeWorkLocation.firstOrNull?.isDefault ??
                       true,

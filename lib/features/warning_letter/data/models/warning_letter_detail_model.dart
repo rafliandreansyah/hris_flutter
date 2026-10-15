@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_item_model.dart';
+import 'package:flutter/foundation.dart';
 
 class WarningLetterDetail extends Equatable {
   final String id;
@@ -162,7 +163,9 @@ class WarningLetterDetail extends Equatable {
       if (segment.isNotEmpty) {
         return Uri.decodeComponent(segment);
       }
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     final ref = referenceNumber?.replaceAll(RegExp(r'[^\w\-]'), '_') ?? id;
     return 'Surat_Peringatan_$ref.pdf';
   }

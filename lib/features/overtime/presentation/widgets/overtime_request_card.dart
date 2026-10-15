@@ -74,7 +74,7 @@ class OvertimeRequestCard extends StatelessWidget {
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
     final blockBg = isDark
         ? AppColors.darkSurfaceContainerLow
-        : const Color(0xFFF8FAFC);
+        : const AppColors.backgroundSubtle;
     final mutedTint = isDark
         ? AppColors.darkSurfaceContainerHigh
         : AppColors.accentTealLight;

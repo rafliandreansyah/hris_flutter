@@ -450,7 +450,7 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
                                     const Icon(
                                       LucideIcons.calendarClock,
                                       size: 16,
-                                      color: Color(0xFF64748B),
+                                      color: AppColors.surfaceVariant,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -553,7 +553,7 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
                                 const Icon(
                                   LucideIcons.userPlus,
                                   size: 18,
-                                  color: Color(0xFF64748B),
+                                  color: AppColors.surfaceVariant,
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
@@ -614,9 +614,9 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
           setState(() => _condition = value);
         }
       },
-      selectedColor: const Color(0xFFCCFBF1),
+      selectedColor: const AppColors.accentTealLight,
       labelStyle: AppTypography.labelSmall.copyWith(
-        color: isSelected ? const Color(0xFF0F766E) : null,
+        color: isSelected ? const AppColors.primaryHover : null,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
       ),
     );

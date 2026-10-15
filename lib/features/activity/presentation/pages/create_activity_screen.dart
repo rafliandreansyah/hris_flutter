@@ -85,6 +85,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             timeLimit: Duration(seconds: 6),
           ),
         );
+        if (!mounted) return;
         setState(() {
           _latitude = pos.latitude;
           _longitude = pos.longitude;
@@ -176,7 +177,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
-                        color: isSelected ? const Color(0xFF0D9488) : null,
+                        color: isSelected ? const AppColors.brandTeal : null,
                       ),
                     ),
                     subtitle: type.code != null && type.code!.isNotEmpty
@@ -193,7 +194,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                     trailing: isSelected
                         ? const Icon(
                             LucideIcons.check,
-                            color: Color(0xFF0D9488),
+                            color: AppColors.brandTeal,
                           )
                         : null,
                     onTap: () {
@@ -272,7 +273,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const Color(0xFFEF4444),
+        backgroundColor: const AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -340,7 +341,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                   ),
                 ],
               ),
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: const AppColors.errorRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -628,7 +629,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
           const Text(
             '*',
             style: TextStyle(
-              color: Color(0xFFEF4444),
+              color: AppColors.errorRed,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),

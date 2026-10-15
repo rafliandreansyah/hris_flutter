@@ -35,15 +35,25 @@ class LiveTrackingFilterChanged extends LiveTrackingEvent {
   final String? status;
   final bool? activeOnly;
 
+  /// Setel true untuk menghapus filter perusahaan (kembali ke "Semua").
+  /// `null` pada [companyId] berarti "tidak diubah", bukan "hapus".
+  final bool clearCompanyId;
+
+  /// Setel true untuk menghapus filter departemen (kembali ke "Semua").
+  final bool clearDepartmentId;
+
   const LiveTrackingFilterChanged({
     this.companyId,
     this.departmentId,
     this.status,
     this.activeOnly,
+    this.clearCompanyId = false,
+    this.clearDepartmentId = false,
   });
 
   @override
-  List<Object?> get props => [companyId, departmentId, status, activeOnly];
+  List<Object?> get props =>
+      [companyId, departmentId, status, activeOnly, clearCompanyId, clearDepartmentId];
 }
 
 /// Pencarian nama atau NIK karyawan

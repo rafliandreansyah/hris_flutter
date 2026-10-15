@@ -11,7 +11,7 @@ import 'package:hris_flutter/core/network/interceptors/logging_interceptor.dart'
 import 'package:hris_flutter/core/network/interceptors/retry_interceptor.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
-import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Client jaringan utama berbasis Dio untuk mengelola semua HTTP request ke backend Muratech HRIS.
 class ApiClient {
@@ -61,7 +61,7 @@ class ApiClient {
 
     try {
       // 1. Bersihkan token dari secure storage
-      await AuthLocalDataSourceImpl().clearToken();
+      await SecureStorageService.instance.clearAuthData();
 
       // 2. Bersihkan token dari memory ApiClient
       clearAuthToken();
@@ -69,7 +69,9 @@ class ApiClient {
       // 3. Hapus FCM Token perangkat jika ada
       try {
         await NotificationService.instance.deleteFcmToken();
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
       // 4. Tampilkan dialog sesi berakhir dan arahkan ke Login jika belum di halaman Login
       final context = AppRouter.rootNavigatorKey.currentContext;
@@ -77,7 +79,9 @@ class ApiClient {
       try {
         currentPath =
             AppRouter.router.routerDelegate.currentConfiguration.uri.path;
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       final isAlreadyOnLogin = currentPath == Routes.LOGIN;
 
       if (!isAlreadyOnLogin && context != null && context.mounted) {
@@ -97,7 +101,9 @@ class ApiClient {
     } catch (_) {
       try {
         AppRouter.router.go(Routes.LOGIN);
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     } finally {
       Future.delayed(const Duration(seconds: 3), () {
         _isHandlingUnauthorized = false;
@@ -117,6 +123,9 @@ class ApiClient {
   void clearAuthToken() {
     _authInterceptor.clearToken();
   }
+
+  /// Apakah sesi sedang memiliki token aktif di memori
+  bool get hasAuthToken => _authInterceptor.hasToken;
 
   // ==========================================
   // --- 🌐 HTTP METHODS WRAPPERS ---

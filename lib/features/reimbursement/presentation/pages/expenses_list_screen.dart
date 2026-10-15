@@ -179,8 +179,8 @@ class _ExpensesListViewState extends State<_ExpensesListView>
               const SizedBox(height: 18),
               _buildCreateOptionTile(
                 icon: LucideIcons.receiptText,
-                iconBg: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                iconColor: const Color(0xFF0D9488),
+                iconBg: const AppColors.brandTeal.withValues(alpha: 0.12),
+                iconColor: const AppColors.brandTeal,
                 title: 'Ajukan Reimbursement',
                 subtitle:
                     'Klaim penggantian dana operasional pribadi atau penyelesaian nota kasbon',
@@ -490,7 +490,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
           key: const ValueKey('add_reimbursement_fab'),
           onPressed: _showCreateActionSheet,
           backgroundColor: brandColor,
-          foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
+          foregroundColor: isDark ? const AppColors.darkOnPrimary : Colors.white,
           elevation: 3,
           shape: const StadiumBorder(),
           icon: const Icon(LucideIcons.plus, size: 20),
@@ -498,7 +498,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             'Ajukan',
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF003732) : Colors.white,
+              color: isDark ? const AppColors.darkOnPrimary : Colors.white,
             ),
           ),
         ),
@@ -509,7 +509,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),
-                backgroundColor: const Color(0xFFEF4444),
+                backgroundColor: const AppColors.errorRed,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -602,7 +602,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
     final chipBg = isSelected
         ? (isDark
               ? brandColor.withValues(alpha: 0.18)
-              : const Color(0xFFF0FDFA))
+              : const AppColors.primaryContainer)
         : (isDark
               ? AppColors.darkSurfaceContainer
               : AppColors.backgroundSubtle);
@@ -610,7 +610,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
         ? brandColor
         : (isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted);
     final textCol = isSelected
-        ? (isDark ? brandColor : const Color(0xFF0D9488))
+        ? (isDark ? brandColor : const AppColors.brandTeal)
         : (isDark
               ? AppColors.darkOnSurfaceVariant
               : AppColors.onSurfaceVariant);
@@ -822,13 +822,13 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                color: const AppColors.errorRed.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 LucideIcons.shieldAlert,
                 size: 48,
-                color: Color(0xFFEF4444),
+                color: AppColors.errorRed,
               ),
             ),
             const SizedBox(height: 18),

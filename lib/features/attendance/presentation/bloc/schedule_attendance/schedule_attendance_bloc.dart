@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_request_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/schedule_attendance/schedule_attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/schedule_attendance/schedule_attendance_state.dart';
+import 'package:flutter/foundation.dart';
 
 class ScheduleAttendanceBloc
     extends Bloc<ScheduleAttendanceEvent, ScheduleAttendanceState> {
@@ -45,7 +46,9 @@ class ScheduleAttendanceBloc
         if (attData.hasAttendanceMethod) {
           method = attData.attendanceMethod;
         }
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     }
 
     emit(state.copyWith(

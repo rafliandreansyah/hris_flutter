@@ -3,17 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/constants/app_contacts.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Modal Bottom Sheet untuk menghubungi Admin Oasish via WhatsApp & Email
 class ContactAdminBottomSheet extends StatelessWidget {
-  static const String whatsappUrl =
-      'https://api.whatsapp.com/send/?phone=6285888164634&text=Halo+Tim+Oasish%2C+saya+tertarik+dengan+software+HRIS+untuk+usaha+saya&type=phone_number&app_absent=0';
-  static const String whatsappNumber = '+62 858-8816-4634';
-  static const String adminEmail = 'halo@hroasish.com';
-
   const ContactAdminBottomSheet({super.key});
 
   /// Helper untuk menampilkan bottom sheet secara modal
@@ -29,34 +25,34 @@ class ContactAdminBottomSheet extends StatelessWidget {
 
   Future<void> _openWhatsApp(BuildContext context) async {
     try {
-      final uri = Uri.parse(whatsappUrl);
+      final uri = Uri.parse(AppContacts.whatsappUrl);
       final launched =
           await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched && context.mounted) {
         AppDialogUtil.showError(
           context,
           message:
-              'Tidak dapat membuka aplikasi WhatsApp. Nomor WhatsApp telah disalin ke papan klip: $whatsappNumber',
+              'Tidak dapat membuka aplikasi WhatsApp. Nomor WhatsApp telah disalin ke papan klip: ${AppContacts.whatsappNumberDisplay}',
         );
       }
-      await Clipboard.setData(const ClipboardData(text: '6285888164634'));
+      await Clipboard.setData(const ClipboardData(text: AppContacts.whatsappNumber));
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Nomor WhatsApp telah disalin: +62 858-8816-4634'),
+            content: Text('Nomor WhatsApp telah disalin: ${AppContacts.whatsappNumberDisplay}'),
             backgroundColor: Color(0xFF25D366),
           ),
         );
       }
-      await Clipboard.setData(const ClipboardData(text: '6285888164634'));
+      await Clipboard.setData(const ClipboardData(text: AppContacts.whatsappNumber));
     }
   }
 
   Future<void> _openEmail(BuildContext context) async {
     try {
       final uri = Uri.parse(
-        'mailto:$adminEmail?subject=Tertarik%20dengan%20Software%20HRIS%20Oasish',
+        'mailto:${AppContacts.adminEmail}?subject=Tertarik%20dengan%20Software%20HRIS%20Oasish',
       );
       final launched =
           await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -64,10 +60,10 @@ class ContactAdminBottomSheet extends StatelessWidget {
         AppDialogUtil.showError(
           context,
           message:
-              'Tidak dapat membuka aplikasi Email. Alamat email telah disalin: $adminEmail',
+              'Tidak dapat membuka aplikasi Email. Alamat email telah disalin: ${AppContacts.adminEmail}',
         );
       }
-      await Clipboard.setData(const ClipboardData(text: adminEmail));
+      await Clipboard.setData(const ClipboardData(text: AppContacts.adminEmail));
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +73,7 @@ class ContactAdminBottomSheet extends StatelessWidget {
           ),
         );
       }
-      await Clipboard.setData(const ClipboardData(text: adminEmail));
+      await Clipboard.setData(const ClipboardData(text: AppContacts.adminEmail));
     }
   }
 
@@ -205,7 +201,7 @@ class ContactAdminBottomSheet extends StatelessWidget {
               _buildContactCard(
                 context,
                 title: 'Email Support',
-                subtitle: adminEmail,
+                subtitle: AppContacts.adminEmail,
                 tag: 'Penawaran & Surat',
                 tagColor: AppColors.brandTeal,
                 icon: LucideIcons.mail,

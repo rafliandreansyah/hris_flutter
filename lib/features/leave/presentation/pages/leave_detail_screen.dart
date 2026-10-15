@@ -267,12 +267,12 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                         child: Row(
                           children: [
                             Icon(LucideIcons.trash2,
-                                color: Color(0xFFEF4444), size: 18),
+                                color: AppColors.errorRed, size: 18),
                             SizedBox(width: 10),
                             Text(
                               'Hapus Pengajuan',
                               style: TextStyle(
-                                color: Color(0xFFEF4444),
+                                color: AppColors.errorRed,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -323,7 +323,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                 size: 54,
                 color: is404
                     ? AppColors.onSurfaceVariant
-                    : const Color(0xFFEF4444),
+                    : const AppColors.errorRed,
               ),
               const SizedBox(height: 16),
               Text(
@@ -476,8 +476,8 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
               leadingIcon: isRejecting ? null : LucideIcons.x,
               isLoading: isRejecting,
               variant: AppButtonVariant.outlined,
-              foregroundColor: const Color(0xFFEF4444),
-              borderColor: const Color(0xFFEF4444),
+              foregroundColor: const AppColors.errorRed,
+              borderColor: const AppColors.errorRed,
               height: 48,
               borderRadius: 100,
               onPressed:

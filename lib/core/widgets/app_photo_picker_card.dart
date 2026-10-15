@@ -88,7 +88,8 @@ class AppPhotoPickerCard extends StatefulWidget {
     this.uploadPlaceholderSubtitle = 'Kamera atau Galeri (Maksimal 100 KB)',
     this.sheetTitle = 'Pilih Sumber Dokumen / Foto',
     this.previewTitle = 'Foto Bukti',
-    this.allowSample = true,
+    // Opsi sampel hanya tersedia saat debug; di build release user wajib mengunggah foto asli.
+    this.allowSample = kDebugMode,
     this.sampleTitle = 'Gunakan Sampel Bukti',
     this.sampleSubtitle = 'Simulasi lampiran dokumen pendukung',
     this.sampleFileName = 'sample_evidence.jpg',
@@ -334,7 +335,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
               if (widget.allowSample)
                 ListTile(
                   leading: const CircleAvatar(
-                    backgroundColor: Color(0xFFFEF3C7),
+                    backgroundColor: AppColors.warningContainer,
                     child: Icon(LucideIcons.sparkles, color: Color(0xFFD97706)),
                   ),
                   title: Text(widget.sampleTitle),
@@ -388,7 +389,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.brandTeal.withValues(alpha: 0.08)
-                  : const Color(0xFFF0FDFA),
+                  : const AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -413,7 +414,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
                 Text(
                   widget.uploadPlaceholderSubtitle,
                   style: TextStyle(
-                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                    color: isDark ? Colors.white60 : const AppColors.surfaceVariant,
                     fontSize: 11,
                   ),
                 ),
@@ -548,7 +549,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
                           'Mohon tunggu sebentar (Maks 100 KB)',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF64748B),
+                            color: AppColors.surfaceVariant,
                           ),
                         ),
                       ],

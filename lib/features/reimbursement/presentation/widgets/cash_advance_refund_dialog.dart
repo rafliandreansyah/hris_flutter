@@ -180,7 +180,7 @@ class _CashAdvanceRefundDialogState extends State<CashAdvanceRefundDialog> {
                   Text(
                     _amountError!,
                     style: const TextStyle(
-                      color: Color(0xFFEF4444),
+                      color: AppColors.errorRed,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),

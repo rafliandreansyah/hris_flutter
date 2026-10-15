@@ -187,7 +187,7 @@ class WorkScheduleItem extends Equatable {
 
   DateTime? get parsedDate {
     try {
-      return DateTime.parse(workDate);
+      return DateTime.tryParse(workDate);
     } catch (_) {
       return null;
     }

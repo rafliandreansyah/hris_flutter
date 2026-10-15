@@ -235,7 +235,9 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
   //
   //       widget.onAddressDetected?.call(fullAddr, locName);
   //     }
-  //   } catch (_) {}
+  //   } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   // }
 
   void _animateCameraToCurrent() {
@@ -321,10 +323,10 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.15)
-                      : const Color(0xFFF0FDFA),
+                      : const AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF0D9488).withValues(alpha: 0.3),
+                    color: const AppColors.brandTeal.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -335,7 +337,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
+                        color: AppColors.success,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -345,7 +347,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF0D9488),
+                        color: AppColors.brandTeal,
                       ),
                     ),
                   ],
@@ -365,7 +367,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
               decoration: BoxDecoration(
                 border: Border.all(color: borderCol, width: 1),
                 color: isDark
-                    ? const Color(0xFF1E293B)
+                    ? const AppColors.darkSurfaceBright
                     : const Color(0xFFF1F5F9),
               ),
               child: Stack(
@@ -476,7 +478,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0D9488).withValues(alpha: 0.92),
+                        color: const AppColors.brandTeal.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -545,7 +547,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                             width: 5,
                             height: 5,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
+                              color: AppColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -596,7 +598,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                           child: const Icon(
                             LucideIcons.locateFixed,
                             size: 15,
-                            color: Color(0xFF0D9488),
+                            color: AppColors.brandTeal,
                           ),
                         ),
                       ),
@@ -672,7 +674,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
   /// Tampilan Fallback Map Preview saat testing/web dengan indikator titik biru GPS
   Widget _buildFallbackMapPreview(bool isDark, Color textCol) {
     return Container(
-      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+      color: isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

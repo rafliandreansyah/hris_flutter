@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -51,7 +52,8 @@ class AppDocumentUploadCard extends StatefulWidget {
     this.sampleTitle = 'Gunakan Sampel Bukti',
     this.sampleSubtitle = 'Simulasi lampiran dokumen pendukung',
     this.sampleFileName = 'sample_proof.jpg',
-    this.allowSample = true,
+    // Opsi sampel hanya tersedia saat debug; di build release user wajib mengunggah bukti asli.
+    this.allowSample = kDebugMode,
     this.file,
     this.compressResult,
     this.isCompressing = false,
@@ -186,7 +188,7 @@ class _AppDocumentUploadCardState extends State<AppDocumentUploadCard> {
                 _buildTag(
                   label: widget.optionalTagText,
                   bgColor: const Color(0xFFF1F5F9),
-                  textColor: const Color(0xFF64748B),
+                  textColor: const AppColors.surfaceVariant,
                 ),
             ],
           ),

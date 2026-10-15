@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
@@ -28,12 +30,15 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       if (!mounted) return;
 
       final hasSession = results.first as bool;
+      AppRouter.sessionChecked = true;
       if (hasSession) {
         context.replaceNamed(Routes.DASHBOARD);
       } else {
         context.replaceNamed(Routes.LOGIN);
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[SplashScreen] gagal memeriksa sesi: $e');
+      AppRouter.sessionChecked = true;
       if (!mounted) return;
       context.replaceNamed(Routes.LOGIN);
     }

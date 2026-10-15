@@ -31,6 +31,9 @@ class AuthInterceptor extends Interceptor {
     _accessToken = null;
   }
 
+  /// Apakah ada token yang aktif di memori
+  bool get hasToken => _accessToken != null && _accessToken!.isNotEmpty;
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     if (_accessToken != null && _accessToken!.isNotEmpty) {
@@ -83,7 +86,6 @@ class AuthInterceptor extends Interceptor {
     const excludedPaths = [
       ApiEndpoints.auth, // '/auth'
       ApiEndpoints.login, // '/auth/login'
-      ApiEndpoints.forgotPassword, // '/auth/forgot-password'
       ApiEndpoints.resetPassword, // '/auth/reset-password'
     ];
 

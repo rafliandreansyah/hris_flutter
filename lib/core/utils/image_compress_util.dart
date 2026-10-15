@@ -267,7 +267,9 @@ class ImageCompressUtil {
           if (tempF.path != bestCandidateFile.path && tempF.existsSync()) {
             try {
               tempF.deleteSync();
-            } catch (_) {}
+            } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
           }
         }
 

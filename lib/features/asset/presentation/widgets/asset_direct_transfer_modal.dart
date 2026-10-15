@@ -262,7 +262,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppColors.darkBackgroundSubtle
-                              : const Color(0xFFF8FAFC),
+                              : const AppColors.backgroundSubtle,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _targetEmployee == null
@@ -524,9 +524,9 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
           setState(() => _condition = value);
         }
       },
-      selectedColor: const Color(0xFFCCFBF1),
+      selectedColor: const AppColors.accentTealLight,
       labelStyle: AppTypography.labelSmall.copyWith(
-        color: isSelected ? const Color(0xFF0F766E) : null,
+        color: isSelected ? const AppColors.primaryHover : null,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
       ),
     );

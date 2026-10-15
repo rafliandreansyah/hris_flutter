@@ -58,6 +58,7 @@ import 'package:hris_flutter/features/asset/presentation/pages/asset_list_screen
 import 'package:hris_flutter/features/asset/presentation/pages/asset_detail_screen.dart';
 import 'package:hris_flutter/features/asset/presentation/pages/create_asset_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
+import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_bloc.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_event.dart';
@@ -66,6 +67,17 @@ import 'package:hris_flutter/features/tracking/presentation/pages/live_tracking_
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'root');
+
+  /// Diset true oleh SplashScreen setelah pemeriksaan sesi selesai.
+  /// Sebelum itu guard rute tidak aktif, agar deep link saat cold start tidak dialihkan ke login.
+  static bool sessionChecked = false;
+
+  /// Rute yang boleh diakses tanpa sesi.
+  static const Set<String> _publicRoutes = {
+    Routes.SPLASH,
+    Routes.LOGIN,
+    Routes.RESET,
+  };
 
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -701,6 +713,12 @@ class AppRouter {
       ),
     ],
     redirect: (context, state) {
+      if (!sessionChecked) return null;
+      final path = state.matchedLocation;
+      final isPublic = _publicRoutes.contains(path);
+      if (!isPublic && !ApiClient.instance.hasAuthToken) {
+        return Routes.LOGIN;
+      }
       return null;
     },
   );

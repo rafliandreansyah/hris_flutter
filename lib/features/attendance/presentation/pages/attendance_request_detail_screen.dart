@@ -165,11 +165,11 @@ class _AttendanceRequestDetailViewState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -305,14 +305,14 @@ class _AttendanceRequestDetailViewState
                           children: [
                             Icon(
                               LucideIcons.trash2,
-                              color: Color(0xFFEF4444),
+                              color: AppColors.errorRed,
                               size: 18,
                             ),
                             SizedBox(width: 10),
                             Text(
                               'Hapus Pengajuan',
                               style: TextStyle(
-                                color: Color(0xFFEF4444),
+                                color: AppColors.errorRed,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -364,7 +364,7 @@ class _AttendanceRequestDetailViewState
                 size: 54,
                 color: is404
                     ? AppColors.onSurfaceVariant
-                    : const Color(0xFFEF4444),
+                    : const AppColors.errorRed,
               ),
               const SizedBox(height: 16),
               Text(

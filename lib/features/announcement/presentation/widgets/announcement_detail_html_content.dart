@@ -23,7 +23,7 @@ class AnnouncementDetailHtmlContent extends StatelessWidget {
         : AppColors.surfaceContainerLowest;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF334155);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkSurfaceContainerHigh;
 
     if (htmlContent.trim().isEmpty) {
       return const SizedBox.shrink();

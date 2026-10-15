@@ -26,9 +26,9 @@ class ResignationCountdownCard extends StatelessWidget {
 
     final bgCol = isDark
         ? const Color(0xFF042F2E)
-        : const Color(0xFFF0FDFA);
+        : const AppColors.primaryContainer;
     final borderCol = isDark
-        ? const Color(0xFF115E59)
+        ? const AppColors.onPrimaryContainer
         : const Color(0xFF99F6E4);
 
     final totalNoticeDays = resignation.actualNoticePeriodDays > 0
@@ -80,7 +80,7 @@ class ResignationCountdownCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF134E4A)
-                      : const Color(0xFFCCFBF1),
+                      : const AppColors.accentTealLight,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
@@ -92,7 +92,7 @@ class ResignationCountdownCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: isDark
                         ? const Color(0xFF5EEAD4)
-                        : const Color(0xFF0F766E),
+                        : const AppColors.primaryHover,
                   ),
                 ),
               ),
@@ -127,7 +127,7 @@ class ResignationCountdownCard extends StatelessWidget {
               minHeight: 8,
               backgroundColor: isDark
                   ? const Color(0xFF134E4A)
-                  : const Color(0xFFCCFBF1),
+                  : const AppColors.accentTealLight,
               valueColor: AlwaysStoppedAnimation<Color>(brandCol),
             ),
           ),

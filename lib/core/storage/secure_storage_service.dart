@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hris_flutter/core/constants/app_constants.dart';
+import 'package:flutter/foundation.dart';
 
 /// Layanan terpusat untuk menyimpan data sensitif (JWT Token, Session, Kredensial)
 /// menggunakan enkripsi perangkat (iOS Keychain & Android EncryptedSharedPreferences).
@@ -103,7 +104,9 @@ class SecureStorageService {
         key: AppConstants.userPermissionsKey,
         value: permissions.join(','),
       );
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   }
 
   /// Mengambil daftar kode izin (permissions) pengguna

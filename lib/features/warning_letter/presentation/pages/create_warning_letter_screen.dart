@@ -451,13 +451,13 @@ class _CreateWarningLetterScreenViewState
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const Color(0xFF64748B);
+        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const Color(0xFFE2E8F0);
+        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
     final brandColor =
-        isDark ? AppColors.inversePrimary : const Color(0xFF0D9488);
+        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
     final inputBg = isDark
         ? AppColors.darkSurfaceContainerLow
         : AppColors.surfaceContainerLow;
@@ -684,12 +684,12 @@ class _CreateWarningLetterScreenViewState
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? const Color(0xFF042F2E)
-                                    : const Color(0xFFF0FDFA),
+                                    : const AppColors.primaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isDark
-                                      ? const Color(0xFF115E59)
-                                      : const Color(0xFFCCFBF1),
+                                      ? const AppColors.onPrimaryContainer
+                                      : const AppColors.accentTealLight,
                                 ),
                               ),
                               child: Row(
@@ -706,7 +706,7 @@ class _CreateWarningLetterScreenViewState
                                       style: AppTypography.bodySmall.copyWith(
                                         color: isDark
                                             ? const Color(0xFF5EEAD4)
-                                            : const Color(0xFF0F766E),
+                                            : const AppColors.primaryHover,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12,
                                       ),
@@ -1084,7 +1084,7 @@ class _CreateWarningLetterScreenViewState
           border: Border.all(
             color: isDark
                 ? AppColors.darkOutlineMuted
-                : const Color(0xFFE2E8F0),
+                : const AppColors.darkOnBackground,
           ),
         ),
         child: const Row(
@@ -1113,7 +1113,7 @@ class _CreateWarningLetterScreenViewState
       final primaryText =
           isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B);
       final badgeBg =
-          isDark ? const Color(0xFF7F1D1D) : const Color(0xFFEF4444);
+          isDark ? const Color(0xFF7F1D1D) : const AppColors.errorRed;
 
       return Container(
         padding: const EdgeInsets.all(16),

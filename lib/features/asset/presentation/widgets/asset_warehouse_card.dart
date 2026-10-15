@@ -251,7 +251,7 @@ class AssetWarehouseCard extends StatelessWidget {
                       icon: const Icon(LucideIcons.userPlus, size: 16),
                       label: const Text('Serah Terima ke Karyawan'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D9488),
+                        backgroundColor: const AppColors.brandTeal,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(

@@ -7,6 +7,7 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_filter_bottom_sheet.dart';
+import 'package:flutter/foundation.dart';
 
 export 'attendance_logs_event.dart';
 export 'attendance_logs_state.dart';
@@ -42,7 +43,9 @@ class AttendanceLogsBloc
     if (empId == null || empId.isEmpty) {
       try {
         empId = await _storageService.getEmployeeId();
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     }
     await _fetchPage(
       emit: emit,

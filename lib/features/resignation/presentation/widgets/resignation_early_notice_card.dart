@@ -30,7 +30,7 @@ class ResignationEarlyNoticeCard extends StatelessWidget {
         ? const Color(0xFF78350F).withValues(alpha: 0.2)
         : const Color(0xFFFFFBEB);
     final cardBorder = isDark
-        ? const Color(0xFF92400E).withValues(alpha: 0.5)
+        ? const AppColors.onWarningContainer.withValues(alpha: 0.5)
         : const Color(0xFFFDE68A);
 
     return Container(

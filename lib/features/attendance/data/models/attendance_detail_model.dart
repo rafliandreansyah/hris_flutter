@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 class AttendanceEmployeeInfo extends Equatable {
   final String id;
@@ -206,7 +207,9 @@ class AttendanceDetailModel extends Equatable {
       if (attMinutes < shiftEndMinutes) {
         return shiftEndMinutes - attMinutes;
       }
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
     return 0;
   }
@@ -244,7 +247,8 @@ class AttendanceDetailModel extends Equatable {
           RegExp(r'(?:[+-]\d{2}:?\d{2}|Z)$'),
           '',
         );
-        final parsed = DateTime.parse(cleanWorkDate);
+        final parsed = DateTime.tryParse(cleanWorkDate);
+        if (parsed == null) return workDate!;
         return DateFormat('EEEE, dd MMMM yyyy').format(parsed);
       } catch (_) {
         return workDate!;

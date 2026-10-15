@@ -152,7 +152,7 @@ class TeamCoworkersCard extends StatelessWidget {
                                   // Call Action Button
                                   IconButton(
                                     style: IconButton.styleFrom(
-                                      backgroundColor: isDark ? AppColors.darkBackgroundSubtle : const Color(0xFFF8FAFC),
+                                      backgroundColor: isDark ? AppColors.darkBackgroundSubtle : const AppColors.backgroundSubtle,
                                       shape: const CircleBorder(),
                                       padding: const EdgeInsets.all(8),
                                     ),

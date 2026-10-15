@@ -694,7 +694,7 @@ class _ActivityDetailView extends StatelessWidget {
                                         'Foto siap diunggah',
                                         style: AppTypography.labelSmall
                                             .copyWith(
-                                              color: const Color(0xFF10B981),
+                                              color: const AppColors.success,
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
@@ -704,7 +704,7 @@ class _ActivityDetailView extends StatelessWidget {
                                 IconButton(
                                   icon: const Icon(
                                     LucideIcons.trash2,
-                                    color: Color(0xFFEF4444),
+                                    color: AppColors.errorRed,
                                     size: 18,
                                   ),
                                   onPressed: () {
@@ -913,7 +913,9 @@ class _ActivityDetailView extends StatelessWidget {
         currentLng = pos.longitude;
         currentAccuracy = '±${pos.accuracy.toStringAsFixed(0)}m';
       }
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
     final initialAddr = (item.fullAddress.trim().isNotEmpty && item.fullAddress != '-')
         ? item.fullAddress.trim()
@@ -1241,7 +1243,7 @@ class _ActivityDetailView extends StatelessWidget {
                                         style: AppTypography.labelSmall.copyWith(
                                           color: isCompressingPhoto
                                               ? AppColors.brandTeal
-                                              : const Color(0xFF10B981),
+                                              : const AppColors.success,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1251,7 +1253,7 @@ class _ActivityDetailView extends StatelessWidget {
                                 IconButton(
                                   icon: const Icon(
                                     LucideIcons.trash2,
-                                    color: Color(0xFFEF4444),
+                                    color: AppColors.errorRed,
                                     size: 18,
                                   ),
                                   onPressed: () {
@@ -1375,13 +1377,13 @@ class _ActivityDetailView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.15)
-                      : const Color(0xFFF0FDFA),
+                      : const AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   categoryText,
                   style: const TextStyle(
-                    color: Color(0xFF0D9488),
+                    color: AppColors.brandTeal,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1456,7 +1458,7 @@ class _ActivityDetailView extends StatelessWidget {
               children: [
                 const Icon(
                   LucideIcons.mapPin,
-                  color: Color(0xFF0D9488),
+                  color: AppColors.brandTeal,
                   size: 16,
                 ),
                 const SizedBox(width: 8),

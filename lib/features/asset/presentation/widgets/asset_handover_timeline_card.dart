@@ -121,22 +121,22 @@ class AssetHandoverTimelineCard extends StatelessWidget {
 
     switch (item.status) {
       case 'ACTIVE':
-        nodeColor = const Color(0xFF10B981);
-        nodeBg = const Color(0xFFD1FAE5);
+        nodeColor = const AppColors.success;
+        nodeBg = const AppColors.successContainer;
         nodeIcon = LucideIcons.check;
         break;
       case 'PENDING_ACCEPTANCE':
-        nodeColor = const Color(0xFFF59E0B);
-        nodeBg = const Color(0xFFFEF3C7);
+        nodeColor = const AppColors.warning;
+        nodeBg = const AppColors.warningContainer;
         nodeIcon = LucideIcons.clock;
         break;
       case 'RETURNED':
-        nodeColor = const Color(0xFF64748B);
-        nodeBg = const Color(0xFFE2E8F0);
+        nodeColor = const AppColors.surfaceVariant;
+        nodeBg = const AppColors.darkOnBackground;
         nodeIcon = LucideIcons.rotateCcw;
         break;
       case 'REJECTED':
-        nodeColor = const Color(0xFFEF4444);
+        nodeColor = const AppColors.errorRed;
         nodeBg = const Color(0xFFFEE2E2);
         nodeIcon = LucideIcons.x;
         break;
@@ -168,7 +168,7 @@ class AssetHandoverTimelineCard extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? const AppColors.darkSurfaceContainerHigh : const AppColors.darkOnBackground,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                   ),
                 ),
@@ -185,12 +185,12 @@ class AssetHandoverTimelineCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkBackgroundSubtle
-                      : const Color(0xFFF8FAFC),
+                      : const AppColors.backgroundSubtle,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark
                         ? AppColors.darkOutlineMuted
-                        : const Color(0xFFE2E8F0),
+                        : const AppColors.darkOnBackground,
                   ),
                 ),
                 child: Column(
@@ -289,19 +289,19 @@ class AssetHandoverTimelineCard extends StatelessWidget {
     switch (status) {
       case 'ACTIVE':
         label = 'Sedang Dipegang';
-        color = const Color(0xFF10B981);
+        color = const AppColors.success;
         break;
       case 'PENDING_ACCEPTANCE':
         label = 'Menunggu Konfirmasi';
-        color = const Color(0xFFF59E0B);
+        color = const AppColors.warning;
         break;
       case 'RETURNED':
         label = 'Telah Dialihkan / Kembali';
-        color = const Color(0xFF64748B);
+        color = const AppColors.surfaceVariant;
         break;
       case 'REJECTED':
         label = 'Ditolak';
-        color = const Color(0xFFEF4444);
+        color = const AppColors.errorRed;
         break;
       default:
         label = status;

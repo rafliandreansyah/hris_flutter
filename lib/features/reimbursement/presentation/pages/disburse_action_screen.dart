@@ -158,7 +158,7 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),
-                backgroundColor: const Color(0xFFEF4444),
+                backgroundColor: const AppColors.errorRed,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -168,7 +168,7 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Dana berhasil dicairkan!'),
-                backgroundColor: Color(0xFF10B981),
+                backgroundColor: AppColors.success,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -212,14 +212,14 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF10B981)
+                              color: const AppColors.success
                                   .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'Siap Dicairkan',
                               style: TextStyle(
-                                color: Color(0xFF10B981),
+                                color: AppColors.success,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 11,
                               ),

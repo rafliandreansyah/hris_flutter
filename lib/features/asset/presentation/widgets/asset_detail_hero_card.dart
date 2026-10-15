@@ -50,14 +50,14 @@ class AssetDetailHeroCard extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                    colors: [AppColors.brandTeal, AppColors.brandTealSecondary],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.25),
+                      color: const AppColors.brandTeal.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -160,9 +160,9 @@ class AssetDetailHeroCard extends StatelessWidget {
         label = 'Tersedia di Gudang';
         break;
       case 'ASSIGNED':
-        bg = const Color(0xFFF0FDFA);
+        bg = const AppColors.primaryContainer;
         border = const Color(0xFF99F6E4);
-        text = const Color(0xFF0F766E);
+        text = const AppColors.primaryHover;
         label = 'Sedang Digunakan';
         break;
       case 'MAINTENANCE':
@@ -179,8 +179,8 @@ class AssetDetailHeroCard extends StatelessWidget {
         break;
       default:
         bg = const Color(0xFFF1F5F9);
-        border = const Color(0xFFE2E8F0);
-        text = const Color(0xFF475569);
+        border = const AppColors.darkOnBackground;
+        text = const AppColors.darkSurfaceContainerHighest;
         label = status;
     }
 
@@ -219,8 +219,8 @@ class AssetDetailHeroCard extends StatelessWidget {
         label = 'Kondisi: Baik';
         break;
       case 'FAIR':
-        bg = const Color(0xFFFEF3C7);
-        text = const Color(0xFF92400E);
+        bg = const AppColors.warningContainer;
+        text = const AppColors.onWarningContainer;
         label = 'Kondisi: Cukup';
         break;
       case 'DAMAGED':
@@ -230,7 +230,7 @@ class AssetDetailHeroCard extends StatelessWidget {
         break;
       default:
         bg = const Color(0xFFF1F5F9);
-        text = const Color(0xFF475569);
+        text = const AppColors.darkSurfaceContainerHighest;
         label = 'Kondisi: $condition';
     }
 

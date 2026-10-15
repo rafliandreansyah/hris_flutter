@@ -312,7 +312,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
           key: const ValueKey('add_overtime_fab'),
           onPressed: _handleCreateOvertime,
           backgroundColor: brandColor,
-          foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
+          foregroundColor: isDark ? const AppColors.darkOnPrimary : Colors.white,
           elevation: 3,
           shape: const StadiumBorder(),
           icon: const Icon(LucideIcons.plus, size: 20),
@@ -320,7 +320,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             'Tambah Lembur',
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF003732) : Colors.white,
+              color: isDark ? const AppColors.darkOnPrimary : Colors.white,
             ),
           ),
         ),
@@ -779,7 +779,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                 color: surfaceCol,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  color: const AppColors.warning.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
                 boxShadow: [
@@ -797,7 +797,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      color: const AppColors.warning.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -881,7 +881,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandColor,
                           foregroundColor: isDark
-                              ? const Color(0xFF003732)
+                              ? const AppColors.darkOnPrimary
                               : Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -899,7 +899,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                               LucideIcons.alarmClock,
                               size: 14,
                               color: isDark
-                                  ? const Color(0xFF003732)
+                                  ? const AppColors.darkOnPrimary
                                   : Colors.white,
                             ),
                             const SizedBox(width: 8),
@@ -907,7 +907,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                               'Ke Lembur Saya',
                               style: AppTypography.bodySmall.copyWith(
                                 color: isDark
-                                    ? const Color(0xFF003732)
+                                    ? const AppColors.darkOnPrimary
                                     : Colors.white,
                                 fontWeight: FontWeight.w600,
                                 height: 1.0,

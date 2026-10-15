@@ -152,9 +152,9 @@ void main() {
       expect(handler.handledError, equals(dioException));
     });
 
-    test('does NOT call onUnauthorized for HTTP 401 on forgot password endpoint', () {
+    test('does NOT call onUnauthorized for HTTP 401 on public reset request endpoint', () {
       final requestOptions = RequestOptions(
-        path: ApiEndpoints.forgotPassword,
+        path: ApiEndpoints.resetPassword,
         baseUrl: 'https://apidev.hroasish.com/api/v1',
       );
       final dioException = DioException(

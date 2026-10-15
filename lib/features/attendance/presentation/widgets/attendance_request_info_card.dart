@@ -28,12 +28,12 @@ class AttendanceRequestInfoCard extends StatelessWidget {
         ? const Color(0xFF1E212B)
         : const Color(0xFFFFFBEB); // Soft Amber Tint
     final borderCol = isDark
-        ? const Color(0xFF92400E).withValues(alpha: 0.4)
+        ? const AppColors.onWarningContainer.withValues(alpha: 0.4)
         : const Color(0xFFFDE68A);
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
-        : const Color(0xFF92400E);
+        : const AppColors.onWarningContainer;
 
     final requestId = detail.attendanceRequestId!;
 
@@ -64,7 +64,7 @@ class AttendanceRequestInfoCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF78350F).withValues(alpha: 0.4)
-                      : const Color(0xFFFEF3C7),
+                      : const AppColors.warningContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(

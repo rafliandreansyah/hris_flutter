@@ -150,7 +150,7 @@ class _AttendanceMapCardState extends State<AttendanceMapCard> {
               decoration: BoxDecoration(
                 border: Border.all(color: borderCol, width: 1),
                 color: isDark
-                    ? const Color(0xFF1E293B)
+                    ? const AppColors.darkSurfaceBright
                     : const Color(0xFFF1F5F9),
               ),
               child: Stack(

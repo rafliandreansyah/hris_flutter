@@ -4,6 +4,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hris_flutter/core/network/alice_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Background message handler untuk FCM saat aplikasi di-terminate / di background.
 /// Harus diletakkan di top-level function dengan anotasi entry-point.
@@ -11,7 +13,9 @@ import 'package:hris_flutter/core/network/alice_service.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
-  } catch (_) {}
+  } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   debugPrint('📬 [FCM Background Message]: ${message.messageId} - ${message.notification?.title}');
 }
 
@@ -110,7 +114,9 @@ class NotificationService {
             try {
               final data = jsonDecode(response.payload!) as Map<String, dynamic>;
               onNotificationOpened(RemoteMessage(data: data));
-            } catch (_) {}
+            } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
           }
         },
       );
@@ -129,6 +135,8 @@ class NotificationService {
         sound: true,
       );
 
+      // Listener FCM di bawah ini hidup seumur aplikasi: service adalah singleton dan
+      // initialize() dijaga _isInitialized, jadi tidak ada listener ganda.
       // Listener: Pesan diterima saat aplikasi aktif (Foreground)
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('📩 [FCM Foreground Message]: ${message.notification?.title}');
@@ -152,7 +160,9 @@ class NotificationService {
           try {
             final data = jsonDecode(payload) as Map<String, dynamic>;
             onNotificationOpened(RemoteMessage(data: data));
-          } catch (_) {}
+          } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
         }
       }
 
@@ -184,7 +194,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
-      color: const Color(0xFF0D9488),
+      color: const AppColors.brandTeal,
     );
 
     const iosDetails = DarwinNotificationDetails(

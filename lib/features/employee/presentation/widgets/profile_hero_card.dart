@@ -229,7 +229,7 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = foregroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkOnSurface : const Color(0xFF334155));
+    final fg = foregroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkOnSurface : const AppColors.darkSurfaceContainerHigh);
 
     return Material(
       color: backgroundColor,

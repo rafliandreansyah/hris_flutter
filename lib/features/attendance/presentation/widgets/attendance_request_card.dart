@@ -19,19 +19,19 @@ class AttendanceRequestCard extends StatelessWidget {
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
-        : const Color(0xFF64748B);
+        : const AppColors.surfaceVariant;
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
     final innerBoxBg = isDark
         ? AppColors.darkSurfaceContainerLow
-        : const Color(0xFFF8FAFC);
+        : const AppColors.backgroundSubtle;
     final brandColor = isDark
         ? AppColors.inversePrimary
-        : const Color(0xFF0D9488);
+        : const AppColors.brandTeal;
 
     final status = item.status;
 
@@ -235,9 +235,9 @@ class AttendanceRequestCard extends StatelessWidget {
     } else {
       bg = isDark
           ? const Color(0xFF134E4A).withValues(alpha: 0.35)
-          : const Color(0xFFF0FDFA);
-      fg = isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E);
-      border = isDark ? const Color(0xFF115E59) : const Color(0xFFCCFBF1);
+          : const AppColors.primaryContainer;
+      fg = isDark ? const Color(0xFF5EEAD4) : const AppColors.primaryHover;
+      border = isDark ? const AppColors.onPrimaryContainer : const AppColors.accentTealLight;
     }
 
     return Container(

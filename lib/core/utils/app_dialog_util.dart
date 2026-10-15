@@ -6,6 +6,7 @@ import '../../app/config/app_colors.dart';
 import '../../app/config/app_design.dart';
 import '../../app/config/app_typography.dart';
 import '../widgets/app_button.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Model item representasi perizinan untuk [AppDialogUtil.showPermissionDialog].
 class AppPermissionItem {
@@ -132,7 +133,7 @@ class AppDialogUtil {
           : null;
     } else {
       bgColor = const Color(0xFFF1F5F9);
-      fgColor = textColor ?? const Color(0xFF64748B);
+      fgColor = textColor ?? const AppColors.surfaceVariant;
       border = borderColor != null
           ? Border.all(color: borderColor, width: 1.5)
           : null;

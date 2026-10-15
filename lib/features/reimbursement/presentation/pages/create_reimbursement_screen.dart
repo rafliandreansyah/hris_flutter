@@ -169,6 +169,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
       if (picked == null) return;
 
       final length = await picked.length();
+      if (!mounted) return;
       setState(() {
         _itemsData[index].receiptFile = picked;
         _itemsData[index].fileSizeBytes = length;
@@ -363,20 +364,20 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBg = isDark
         ? AppColors.darkBackground
-        : const Color(0xFFF8FAFC);
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+        : const AppColors.backgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
-        : const Color(0xFF64748B);
+        : const AppColors.surfaceVariant;
     final brandColor = isDark
         ? AppColors.inversePrimary
-        : const Color(0xFF0D9488);
+        : const AppColors.brandTeal;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -767,7 +768,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.white10
-                                : const Color(0xFFFEF3C7),
+                                : const AppColors.warningContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -994,7 +995,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                 decoration: BoxDecoration(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.05)
-                      : const Color(0xFFF8FAFC),
+                      : const AppColors.backgroundSubtle,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: borderCol),
                 ),
@@ -1380,7 +1381,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.04)
-                              : const Color(0xFFF8FAFC),
+                              : const AppColors.backgroundSubtle,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: borderCol),
                         ),
@@ -1567,7 +1568,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.03)
-                          : const Color(0xFFF8FAFC),
+                          : const AppColors.backgroundSubtle,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: borderCol,
@@ -1617,8 +1618,8 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: isDark
-                              ? const Color(0xFF065F46)
-                              : const Color(0xFFD1FAE5),
+                              ? const AppColors.onSuccessContainer
+                              : const AppColors.successContainer,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isDark
@@ -1869,7 +1870,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
             : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+          color: isDark ? Colors.white10 : const AppColors.darkOnBackground,
         ),
       ),
       child: Row(

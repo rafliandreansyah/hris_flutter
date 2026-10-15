@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 
 /// Metadata paginasi respons dari endpoint `/activity`.
@@ -89,10 +90,9 @@ String? resolveFileUrl(String? path) {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
-  // Hapus /api/v1 jika base url memuatnya untuk file statis / uploads
-  const cleanBase = 'https://apidev.hroasish.com';
+  // File statis / upload berada di host yang sama dengan API, tanpa prefix /api/vX
   final normalizedPath = trimmed.startsWith('/') ? trimmed : '/$trimmed';
-  return '$cleanBase$normalizedPath';
+  return '${ApiEndpoints.fileBaseUrl}$normalizedPath';
 }
 
 /// Helper untuk mengonversi JSON objek aktivitas API ke model UI [ActivityItem].
@@ -287,9 +287,8 @@ ActivityItem activityItemFromApiJson(
                 ? locationName
                 : (status == ActivityStatus.planned
                     ? ''
-                    : 'SCBD Lot 28, Jl. Jend. Sudirman Kav. 52-53'))),
-    districtCity: existingItem?.districtCity ??
-        'Kec. Kebayoran Baru, Kota Jakarta Selatan, DKI Jakarta 12190',
+                    : ''))),
+    districtCity: existingItem?.districtCity ?? '',
     gpsAccuracy: existingItem?.gpsAccuracy ?? '±3m',
     isGpsVerified: existingItem?.isGpsVerified ?? true,
     phases: existingItem?.phases,

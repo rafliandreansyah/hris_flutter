@@ -150,9 +150,9 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
 
     switch (level) {
       case 1:
-        bg = isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7);
+        bg = isDark ? const Color(0xFF451A03) : const AppColors.warningContainer;
         text = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
-        dot = const Color(0xFFF59E0B);
+        dot = const AppColors.warning;
         break;
       case 2:
         bg = isDark ? const Color(0xFF431407) : const Color(0xFFFFEDD5);
@@ -163,7 +163,7 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
       default:
         bg = isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2);
         text = isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
-        dot = const Color(0xFFEF4444);
+        dot = const AppColors.errorRed;
         break;
     }
 
@@ -206,13 +206,13 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
     final isActive = detail.isActive;
     final bg = isActive
         ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2))
-        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9));
+        : (isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9));
     final text = isActive
         ? (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C))
-        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+        : (isDark ? const AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant);
     final dot = isActive
-        ? const Color(0xFFEF4444)
-        : const Color(0xFF94A3B8);
+        ? const AppColors.errorRed
+        : const AppColors.darkOnSurfaceVariant;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -751,10 +751,10 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
   Widget _buildShimmerLoading(bool isDark) {
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const Color(0xFFF8FAFC);
+        : const AppColors.backgroundSubtle;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -867,7 +867,7 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
               ),
               child: Icon(
                 is404 ? LucideIcons.fileX : LucideIcons.alertCircle,
-                color: const Color(0xFFEF4444),
+                color: const AppColors.errorRed,
                 size: 32,
               ),
             ),

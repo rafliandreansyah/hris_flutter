@@ -42,7 +42,9 @@ void main() async {
   // Pre-warm permissions cache ke memori
   try {
     await SecureStorageService.instance.getUserPermissions();
-  } catch (_) {}
+  } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
   runApp(const MyApp());
 }

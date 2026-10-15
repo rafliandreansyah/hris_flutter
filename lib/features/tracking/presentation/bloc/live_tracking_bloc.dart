@@ -11,6 +11,10 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
   final TrackingRepository repository;
   Timer? _pollingTimer;
 
+  /// Nomor urut request daftar live tracking. Respons dari request yang sudah tidak terbaru
+  /// (mis. polling yang selesai setelah filter berubah) dibuang agar tidak menimpa data baru.
+  int _fetchSeq = 0;
+
   LiveTrackingBloc({
     TrackingRepository? repository,
     bool enableAutoPolling = true,
@@ -70,8 +74,12 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
   ) async {
     emit(state.copyWith(
       status: LiveTrackingStatus.loading,
-      selectedCompanyId: () => event.companyId ?? state.selectedCompanyId,
-      selectedDepartmentId: () => event.departmentId ?? state.selectedDepartmentId,
+      selectedCompanyId: () => event.clearCompanyId
+          ? null
+          : (event.companyId ?? state.selectedCompanyId),
+      selectedDepartmentId: () => event.clearDepartmentId
+          ? null
+          : (event.departmentId ?? state.selectedDepartmentId),
       selectedStatus: event.status ?? state.selectedStatus,
       activeOnly: event.activeOnly ?? state.activeOnly,
       errorMessage: () => null,
@@ -137,6 +145,7 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
     Emitter<LiveTrackingState> emit, {
     required bool isSilent,
   }) async {
+    final seq = ++_fetchSeq;
     try {
       final response = await repository.getLiveTracking(
         companyId: state.selectedCompanyId,
@@ -144,6 +153,7 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
         status: state.selectedStatus,
         activeOnly: state.activeOnly,
       );
+      if (seq != _fetchSeq) return; // respons usang, request yang lebih baru sudah dikirim
 
       // Pertahankan selectedEmployee jika masih ada di daftar terbaru
       LiveEmployeeLocation? updatedSelected = state.selectedEmployee;
@@ -164,11 +174,13 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
         errorMessage: () => null,
       ));
     } on ApiException catch (e) {
+      if (seq != _fetchSeq) return;
       emit(state.copyWith(
         status: LiveTrackingStatus.failure,
         errorMessage: () => e.message,
       ));
     } catch (e) {
+      if (seq != _fetchSeq) return;
       emit(state.copyWith(
         status: LiveTrackingStatus.failure,
         errorMessage: () => 'Gagal memuat data live tracking: $e',

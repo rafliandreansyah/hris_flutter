@@ -117,6 +117,7 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
       if (!mounted) return;
 
       await controller.startImageStream(_processCameraFrame);
+      if (!mounted) return;
       setState(() {});
     } catch (e) {
       debugPrint('Failed to initialize CameraController: $e');

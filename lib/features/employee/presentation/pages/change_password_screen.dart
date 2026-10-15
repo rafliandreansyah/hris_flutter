@@ -266,12 +266,12 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.brandTeal.withValues(alpha: 0.12)
-            : const Color(0xFFF0FDFA),
+            : const AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
               ? AppColors.brandTeal.withValues(alpha: 0.3)
-              : const Color(0xFFCCFBF1),
+              : const AppColors.accentTealLight,
         ),
       ),
       child: Row(
@@ -280,7 +280,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           const Icon(
             LucideIcons.shield,
             size: 22,
-            color: Color(0xFF0D9488),
+            color: AppColors.brandTeal,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -290,7 +290,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                 Text(
                   'Tips Keamanan Akun',
                   style: AppTypography.titleSmall.copyWith(
-                    color: const Color(0xFF0D9488),
+                    color: const AppColors.brandTeal,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
@@ -301,7 +301,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark
                         ? AppColors.darkOnSurfaceVariant
-                        : const Color(0xFF115E59),
+                        : const AppColors.onPrimaryContainer,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -342,7 +342,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
             prefixWidget: const Icon(
               LucideIcons.lock,
               size: 20,
-              color: Color(0xFF0D9488),
+              color: AppColors.brandTeal,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -363,7 +363,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
               child: Text(
                 'Lupa Password?',
                 style: AppTypography.labelMedium.copyWith(
-                  color: const Color(0xFF0D9488),
+                  color: const AppColors.brandTeal,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -382,7 +382,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
             prefixWidget: const Icon(
               LucideIcons.lockKeyhole,
               size: 20,
-              color: Color(0xFF0D9488),
+              color: AppColors.brandTeal,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -403,7 +403,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
             prefixWidget: const Icon(
               LucideIcons.circleCheck,
               size: 20,
-              color: Color(0xFF0D9488),
+              color: AppColors.brandTeal,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -492,10 +492,10 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           isMet ? LucideIcons.circleCheck : LucideIcons.circle,
           size: 18,
           color: isMet
-              ? const Color(0xFF10B981)
+              ? const AppColors.success
               : (isDark
                   ? AppColors.darkOutlineVariant
-                  : const Color(0xFF94A3B8)),
+                  : const AppColors.darkOnSurfaceVariant),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(

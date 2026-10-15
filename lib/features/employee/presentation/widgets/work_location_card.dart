@@ -13,12 +13,12 @@ class WorkLocationCard extends StatelessWidget {
 
   const WorkLocationCard({
     super.key,
-    this.residentialAddress =
-        'Jl. Dharmahusada Indah Barat No. 88, Kel. Mojo, Kec. Gubeng, Surabaya, Jawa Timur 60285, Indonesia',
-    this.officeName = 'HQ Office Sudirman',
-    this.officeAddress = 'SCBD Lot 28 Floor 14, Jakarta Selatan',
-    this.radius = '50m',
-    this.isDefaultOffice = true,
+    // Default kosong ('-'): tidak ada data contoh yang tampil sebagai data karyawan.
+    this.residentialAddress = '-',
+    this.officeName = '-',
+    this.officeAddress = '-',
+    this.radius = '-',
+    this.isDefaultOffice = false,
   });
 
   @override

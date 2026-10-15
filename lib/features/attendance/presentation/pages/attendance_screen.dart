@@ -32,6 +32,7 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter/foundation.dart';
 
 class AttendanceScreen extends StatelessWidget {
   final AttendanceRepository? repository;
@@ -152,7 +153,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
             ),
           );
         }
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
       // 2. Ambil koordinat GPS akurat dengan batas waktu responsif (4 detik jika sudah ada posisi, 6 detik jika cold start)
       try {
@@ -365,7 +368,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         ),
       );
     },
-  );
+  ).whenComplete(() { textController.dispose(); });
   }
 
   Future<void> _handleClockAction(
@@ -1031,10 +1034,10 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   Widget _buildShimmerLoading(bool isDark) {
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const Color(0xFFF8FAFC);
+        : const AppColors.backgroundSubtle;
 
     return Shimmer.fromColors(
       baseColor: baseColor,

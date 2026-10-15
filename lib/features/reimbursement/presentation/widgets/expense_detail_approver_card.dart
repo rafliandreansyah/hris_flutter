@@ -39,7 +39,7 @@ class ExpenseDetailApproverCard extends StatelessWidget {
         rejectionReason != null && rejectionReason!.trim().isNotEmpty;
     final noteText = (isRejected ? rejectionReason : approverNotes)?.trim();
     final hasNotes = noteText != null && noteText.isNotEmpty;
-    final noteColor = isRejected ? const Color(0xFFEF4444) : brandColor;
+    final noteColor = isRejected ? const AppColors.errorRed : brandColor;
 
     final app = approver;
     final empNo = app?.displayEmployeeNumber;

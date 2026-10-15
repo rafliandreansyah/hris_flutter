@@ -1,19 +1,25 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 /// Daftar konstanta URL dan Endpoint API backend Muratech HRIS.
 abstract class ApiEndpoints {
-  /// Base URL dinamis yang otomatis mendeteksi platform saat development:
-  /// - Android Emulator: http://10.0.2.2:3000/api/v1
-  /// - iOS Simulator / Desktop / Web: http://localhost:3000/api/v1
+  /// Host API release (production). Dipakai pada build release bila tidak ada override.
+  static const String _releaseApiBaseUrl = 'https://api.hroasish.com/api/v1';
+
+  /// Host API development. Dipakai pada debug/profile bila tidak ada override.
+  static const String _devApiBaseUrl = 'https://apidev.hroasish.com/api/v1';
+
+  /// Base URL API. Bisa diganti per build, misalnya:
+  /// `flutter build apk --dart-define=API_BASE_URL=https://api.hroasish.com/api/v1`
+  /// Satu sumber untuk semua platform (Android, iOS, web).
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'https://apidev.hroasish.com/api/v1';
-    }
-    if (Platform.isAndroid) {
-      return 'https://apidev.hroasish.com/api/v1';
-    }
-    return 'https://apidev.hroasish.com/api/v1';
+    const fromEnv = String.fromEnvironment('API_BASE_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return kReleaseMode ? _releaseApiBaseUrl : _devApiBaseUrl;
+  }
+
+  /// Host untuk file statis/upload (tanpa prefix `/api/vX`), diturunkan dari [baseUrl].
+  static String get fileBaseUrl {
+    return baseUrl.replaceFirst(RegExp(r'/api/v\d+/?$'), '');
   }
 
   // ==========================================
@@ -24,8 +30,6 @@ abstract class ApiEndpoints {
   static const String logout = '/auth/logout';
   static const String refreshToken = '/auth/refresh';
   static const String me = '/auth/me';
-  static const String changePassword = '/auth/change-password';
-  static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String authMenus = '/auth/menus';
   static const String authLanguage = '/auth/language';
@@ -72,7 +76,6 @@ abstract class ApiEndpoints {
   // ==========================================
   // --- 🏖️ LEAVE & TIME-OFF ENDPOINTS ---
   // ==========================================
-  static const String leaveRequests = '/leave-requests';
   /// Endpoint tunggal untuk daftar pengajuan cuti/izin (Leave & Time Off).
   static const String leaveRequest = '/leave-request';
   static const String leaveQuota = '/leave-requests/quota';

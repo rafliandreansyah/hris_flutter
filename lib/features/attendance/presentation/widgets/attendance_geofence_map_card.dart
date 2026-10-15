@@ -45,7 +45,7 @@ class AttendanceGeofenceMapCard extends StatefulWidget {
     this.isAnyWhere = false,
     this.hasWorkLocation = true,
     this.isGpsAcquired = true,
-    this.officeName = 'HQ Office',
+    this.officeName = '-',
   });
 
   @override
@@ -84,7 +84,9 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
     bool isTest = false;
     try {
       isTest = Platform.environment.containsKey('FLUTTER_TEST');
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
 
     if (!isTest) {
       _pulseController.repeat();
@@ -294,7 +296,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.92),
+                      color: const AppColors.brandTeal.withValues(alpha: 0.92),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(

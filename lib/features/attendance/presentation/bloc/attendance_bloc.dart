@@ -252,9 +252,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       // Tentukan parameter lokasi kantor baru
       final String officeName = loc.name;
       final String officeDetail =
-          loc.address.isNotEmpty ? loc.address : 'HQ Office — Main Lobby';
-      final double officeLat = loc.latitude ?? -6.2253;
-      final double officeLng = loc.longitude ?? 106.8097;
+          loc.address.isNotEmpty ? loc.address : '-';
+      final double officeLat = loc.latitude ?? 0;
+      final double officeLng = loc.longitude ?? 0;
       final double geofenceRadius = loc.isAnyWhere
           ? 0.0
           : (loc.radius < 5 ? 50.0 : loc.radius);

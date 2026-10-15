@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Status pengajuan presensi luar kantor pada Oasish HRIS.
 enum AttendanceRequestStatus { requested, approved, rejected }
@@ -44,11 +45,11 @@ extension AttendanceRequestStatusExtension on AttendanceRequestStatus {
   Color get dotColor {
     switch (this) {
       case AttendanceRequestStatus.requested:
-        return const Color(0xFFF59E0B);
+        return const AppColors.warning;
       case AttendanceRequestStatus.approved:
         return const Color(0xFF059669);
       case AttendanceRequestStatus.rejected:
-        return const Color(0xFFEF4444);
+        return const AppColors.errorRed;
     }
   }
 }

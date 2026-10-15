@@ -7,6 +7,7 @@ import 'package:hris_flutter/features/employee/data/models/organization_filter_m
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter/foundation.dart';
 
 /// Kriteria filter untuk daftar log aktivitas kerja Oasish HRIS.
 class ActivityFilterCriteria {
@@ -172,7 +173,9 @@ Future<ActivityFilterCriteria?> showActivityFilterBottomSheet(
       if (resolvedOrgBloc == null) {
         try {
           resolvedOrgBloc = context.read<OrganizationFilterBloc>();
-        } catch (_) {}
+        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       }
 
       if (resolvedOrgBloc != null) {
@@ -416,7 +419,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final now = DateTime.now();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final onPrimaryCol = isDark ? const Color(0xFF003732) : Colors.white;
+    final onPrimaryCol = isDark ? const AppColors.darkOnPrimary : Colors.white;
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -454,8 +457,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                     onPrimary: onPrimaryCol,
                     surface: surfaceCol,
                     onSurface: textCol,
-                    surfaceContainerHighest: const Color(0xFFE2E8F0),
-                    onSurfaceVariant: const Color(0xFF64748B),
+                    surfaceContainerHighest: const AppColors.darkOnBackground,
+                    onSurfaceVariant: const AppColors.surfaceVariant,
                     outline: borderCol,
                   ),
             datePickerTheme: DatePickerThemeData(
@@ -833,11 +836,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final chipBg = isSelected
         ? (isDark
               ? brandColor.withValues(alpha: 0.18)
-              : const Color(0xFFF0FDFA))
+              : const AppColors.primaryContainer)
         : fieldBg;
     final chipBorder = isSelected ? brandColor : borderCol;
     final chipTextCol = isSelected
-        ? (isDark ? brandColor : const Color(0xFF0D9488))
+        ? (isDark ? brandColor : const AppColors.brandTeal)
         : labelCol;
 
     return InkWell(

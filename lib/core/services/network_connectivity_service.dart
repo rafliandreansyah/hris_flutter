@@ -13,6 +13,7 @@ class NetworkConnectivityService {
   final Connectivity _connectivity;
   final StreamController<bool> _controller = StreamController<bool>.broadcast();
   bool _isOnline = true;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   @visibleForTesting
   static Stream<bool>? testStream;
@@ -39,13 +40,16 @@ class NetworkConnectivityService {
     try {
       final initialResults = await _connectivity.checkConnectivity();
       _isOnline = _checkIsOnline(initialResults);
-      _controller.add(_isOnline);
-    } catch (_) {
+      if (!_controller.isClosed) _controller.add(_isOnline);
+    } catch (e) {
+      debugPrint('[NetworkConnectivityService] gagal cek konektivitas awal: $e');
       _isOnline = true;
-      _controller.add(true);
+      if (!_controller.isClosed) _controller.add(true);
     }
 
-    _connectivity.onConnectivityChanged.listen((results) {
+    _connectivitySub?.cancel();
+    _connectivitySub = _connectivity.onConnectivityChanged.listen((results) {
+      if (_controller.isClosed) return;
       final online = _checkIsOnline(results);
       if (online != _isOnline) {
         _isOnline = online;
@@ -59,7 +63,12 @@ class NetworkConnectivityService {
     return results.any((r) => r != ConnectivityResult.none);
   }
 
-  void dispose() {
-    _controller.close();
+  /// Membatalkan listener konektivitas dan menutup stream. Setelah ini, event baru diabaikan.
+  Future<void> dispose() async {
+    await _connectivitySub?.cancel();
+    _connectivitySub = null;
+    if (!_controller.isClosed) {
+      await _controller.close();
+    }
   }
 }

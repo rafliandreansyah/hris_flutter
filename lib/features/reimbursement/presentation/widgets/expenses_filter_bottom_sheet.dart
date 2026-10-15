@@ -10,6 +10,7 @@ import 'package:hris_flutter/core/widgets/filter/filter_option_selector_modal.da
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter/foundation.dart';
 
 /// Pilihan status untuk filter transaksi klaim & kasbon.
 class ExpenseFilterStatusOption {
@@ -62,7 +63,9 @@ Future<AppRequestFilterData?> showExpensesFilterBottomSheet(
       if (resolvedOrgBloc == null) {
         try {
           resolvedOrgBloc = context.read<OrganizationFilterBloc>();
-        } catch (_) {}
+        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       }
 
       if (resolvedOrgBloc != null) {
@@ -200,6 +203,7 @@ class _ExpensesFilterBottomSheetState extends State<ExpensesFilterBottomSheet> {
       context,
       initialDateRange: _selectedDateRange,
     );
+    if (!mounted) return;
     if (picked != null) {
       setState(() {
         _selectedDateRange = picked;
@@ -502,11 +506,11 @@ class _ExpensesFilterBottomSheetState extends State<ExpensesFilterBottomSheet> {
             final chipBg = isSelected
                 ? (isDark
                     ? brandColor.withValues(alpha: 0.18)
-                    : const Color(0xFFF0FDFA))
+                    : const AppColors.primaryContainer)
                 : fieldBg;
             final chipBorder = isSelected ? brandColor : borderCol;
             final chipTextCol = isSelected
-                ? (isDark ? brandColor : const Color(0xFF0D9488))
+                ? (isDark ? brandColor : const AppColors.brandTeal)
                 : labelCol;
 
             return InkWell(

@@ -238,7 +238,7 @@ class AttendanceActionButtons extends StatelessWidget {
                   ? AppColors.brandTeal.withValues(alpha: 0.5)
                   : (isDark
                         ? AppColors.darkSurfaceContainerHigh
-                        : const Color(0xFFE2E8F0)),
+                        : const AppColors.darkOnBackground),
             ),
             onPressed: primaryAction,
             child: isLoading

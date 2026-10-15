@@ -330,7 +330,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           key: const ValueKey('add_activity_fab'),
           onPressed: _handleCreateActivity,
           backgroundColor: brandColor,
-          foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
+          foregroundColor: isDark ? const AppColors.darkOnPrimary : Colors.white,
           elevation: 3,
           shape: const StadiumBorder(),
           icon: const Icon(LucideIcons.plus, size: 20),
@@ -338,7 +338,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
             'Tambah Aktivitas',
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF003732) : Colors.white,
+              color: isDark ? const AppColors.darkOnPrimary : Colors.white,
             ),
           ),
         ),
@@ -810,7 +810,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                 color: surfaceCol,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  color: const AppColors.warning.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
                 boxShadow: [
@@ -828,7 +828,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      color: const AppColors.warning.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -908,7 +908,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandColor,
                           foregroundColor: isDark
-                              ? const Color(0xFF003732)
+                              ? const AppColors.darkOnPrimary
                               : Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -929,7 +929,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                               LucideIcons.arrowLeft,
                               size: 14,
                               color: isDark
-                                  ? const Color(0xFF003732)
+                                  ? const AppColors.darkOnPrimary
                                   : Colors.white,
                             ),
                             const SizedBox(width: 8),
@@ -937,7 +937,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                               'Aktivitasku',
                               style: AppTypography.bodySmall.copyWith(
                                 color: isDark
-                                    ? const Color(0xFF003732)
+                                    ? const AppColors.darkOnPrimary
                                     : Colors.white,
                                 fontWeight: FontWeight.w700,
                                 height: 1.0,
@@ -1313,14 +1313,14 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                                         'Aktivitas "$title" berhasil ditambahkan!',
                                       ),
                                       behavior: SnackBarBehavior.floating,
-                                      backgroundColor: const Color(0xFF0F766E),
+                                      backgroundColor: const AppColors.primaryHover,
                                     ),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: brandColor,
                                   foregroundColor: isDark
-                                      ? const Color(0xFF003732)
+                                      ? const AppColors.darkOnPrimary
                                       : Colors.white,
                                   shape: const StadiumBorder(),
                                   elevation: 0,
@@ -1329,7 +1329,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                                   'Simpan Aktivitas',
                                   style: AppTypography.bodyMedium.copyWith(
                                     color: isDark
-                                        ? const Color(0xFF003732)
+                                        ? const AppColors.darkOnPrimary
                                         : Colors.white,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1347,6 +1347,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           },
         );
       },
-    );
+    ).whenComplete(() { titleController.dispose(); descController.dispose(); locationController.dispose(); });
   }
 }

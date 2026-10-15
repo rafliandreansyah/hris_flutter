@@ -151,16 +151,10 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           myTotalPages: response.meta.totalPages,
         ));
       } catch (e) {
-        final fallback = state.myActivities.isEmpty
-            ? ActivityItem.sampleActivities
-                .where((a) => a.isMyActivity)
-                .toList()
-            : state.myActivities;
-
+        // Jangan tampilkan data demo saat gagal memuat; pertahankan data yang sudah ada.
         emit(state.copyWith(
           status: ActivityListStatus.failure,
           isMyLoading: false,
-          myActivities: fallback,
           errorMessage: e.toString(),
         ));
       }
@@ -207,14 +201,10 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
             errorMessage: 'Tidak memiliki hak akses approver (403)',
           ));
         } else {
-          final fallback = state.teamActivities.isEmpty
-              ? List<ActivityItem>.from(ActivityItem.sampleActivities)
-              : state.teamActivities;
-
+          // Jangan tampilkan data demo saat gagal memuat; pertahankan data yang sudah ada.
           emit(state.copyWith(
             status: ActivityListStatus.failure,
             isTeamLoading: false,
-            teamActivities: fallback,
             errorMessage: e.toString(),
           ));
         }

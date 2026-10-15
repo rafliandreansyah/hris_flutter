@@ -9,6 +9,7 @@ import 'package:hris_flutter/features/auth/data/models/login_request_model.dart'
 import 'package:hris_flutter/features/auth/data/models/login_response_model.dart';
 import 'package:hris_flutter/features/auth/data/models/user_profile_response_model.dart';
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
@@ -104,7 +105,9 @@ class AuthRepositoryImpl implements AuthRepository {
     // 3. Hapus token FCM jika ada
     try {
       await NotificationService.instance.deleteFcmToken();
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   }
 
   @override

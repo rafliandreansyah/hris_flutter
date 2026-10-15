@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Status permintaan lembur pada Oasish HRIS.
 ///
@@ -40,7 +41,7 @@ extension OvertimeStatusExtension on OvertimeStatus {
     switch (this) {
       case OvertimeStatus.pending:
       case OvertimeStatus.requested:
-        return const Color(0xFFFEF3C7); // Amber 100
+        return const AppColors.warningContainer; // Amber 100
       case OvertimeStatus.approved:
         return const Color(0xFFDCFCE7); // Green 100
       case OvertimeStatus.rejected:
@@ -53,11 +54,11 @@ extension OvertimeStatusExtension on OvertimeStatus {
     switch (this) {
       case OvertimeStatus.pending:
       case OvertimeStatus.requested:
-        return const Color(0xFFF59E0B);
+        return const AppColors.warning;
       case OvertimeStatus.approved:
         return const Color(0xFF16A34A);
       case OvertimeStatus.rejected:
-        return const Color(0xFFEF4444);
+        return const AppColors.errorRed;
     }
   }
 }

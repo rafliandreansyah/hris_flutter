@@ -203,16 +203,16 @@ class _AttendanceRequestsScreenViewState
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const Color(0xFF0F172A);
+    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
-        : const Color(0xFF64748B);
+        : const AppColors.surfaceVariant;
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
     final brandColor = isDark
         ? AppColors.inversePrimary
-        : const Color(0xFF0D9488);
+        : const AppColors.brandTeal;
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -306,7 +306,7 @@ class _AttendanceRequestsScreenViewState
           key: const ValueKey('add_attendance_request_fab'),
           onPressed: _openAttendanceTypeSelection,
           backgroundColor: brandColor,
-          foregroundColor: isDark ? const Color(0xFF003732) : Colors.white,
+          foregroundColor: isDark ? const AppColors.darkOnPrimary : Colors.white,
           elevation: 3,
           shape: const StadiumBorder(),
           icon: const Icon(LucideIcons.plus, size: 20),
@@ -314,7 +314,7 @@ class _AttendanceRequestsScreenViewState
             'Ajukan Presensi',
             style: AppTypography.bodyMedium.copyWith(
               fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFF003732) : Colors.white,
+              color: isDark ? const AppColors.darkOnPrimary : Colors.white,
             ),
           ),
         ),
@@ -745,7 +745,7 @@ class _AttendanceRequestsScreenViewState
                 color: surfaceCol,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                  color: const AppColors.warning.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
                 boxShadow: [
@@ -763,7 +763,7 @@ class _AttendanceRequestsScreenViewState
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      color: const AppColors.warning.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -843,7 +843,7 @@ class _AttendanceRequestsScreenViewState
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brandColor,
                           foregroundColor: isDark
-                              ? const Color(0xFF003732)
+                              ? const AppColors.darkOnPrimary
                               : Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -858,7 +858,7 @@ class _AttendanceRequestsScreenViewState
                           'Ke Pengajuan Saya',
                           style: AppTypography.bodySmall.copyWith(
                             color: isDark
-                                ? const Color(0xFF003732)
+                                ? const AppColors.darkOnPrimary
                                 : Colors.white,
                             fontWeight: FontWeight.w700,
                           ),

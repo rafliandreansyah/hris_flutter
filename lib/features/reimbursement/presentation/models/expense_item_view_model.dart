@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Helper pemformatan mata uang Rupiah.
 String formatRupiah(num? amount) {
@@ -45,7 +46,7 @@ extension ExpenseStatusExtension on ExpenseStatus {
       case ExpenseStatus.requested:
         return const Color(0xFFB45309); // Amber 700
       case ExpenseStatus.approved:
-        return const Color(0xFF0F766E); // Teal 700
+        return const AppColors.primaryHover; // Teal 700
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFF166534); // Green 800
@@ -59,9 +60,9 @@ extension ExpenseStatusExtension on ExpenseStatus {
   Color get backgroundColor {
     switch (this) {
       case ExpenseStatus.requested:
-        return const Color(0xFFFEF3C7); // Amber 100
+        return const AppColors.warningContainer; // Amber 100
       case ExpenseStatus.approved:
-        return const Color(0xFFCCFBF1); // Teal 100
+        return const AppColors.accentTealLight; // Teal 100
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFFDCFCE7); // Green 100
@@ -75,16 +76,16 @@ extension ExpenseStatusExtension on ExpenseStatus {
   Color get dotColor {
     switch (this) {
       case ExpenseStatus.requested:
-        return const Color(0xFFF59E0B);
+        return const AppColors.warning;
       case ExpenseStatus.approved:
-        return const Color(0xFF14B8A6);
+        return const AppColors.brandTealSecondary;
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFF16A34A);
       case ExpenseStatus.settlementInProgress:
         return const Color(0xFF6366F1);
       case ExpenseStatus.rejected:
-        return const Color(0xFFEF4444);
+        return const AppColors.errorRed;
     }
   }
 }

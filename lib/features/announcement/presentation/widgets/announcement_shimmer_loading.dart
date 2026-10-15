@@ -17,10 +17,10 @@ class AnnouncementShimmerLoading extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const Color(0xFFE2E8F0);
+        : const AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const Color(0xFFF8FAFC);
+        : const AppColors.backgroundSubtle;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;

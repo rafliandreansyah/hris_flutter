@@ -16,7 +16,8 @@ class ResignationPolicyBanner extends StatelessWidget {
   String _formatSuggestedDate(String rawDate) {
     if (rawDate.isEmpty) return '-';
     try {
-      final date = DateTime.parse(rawDate);
+      final date = DateTime.tryParse(rawDate);
+      if (date == null) return rawDate;
       return DateFormat('d MMMM yyyy', 'id_ID').format(date);
     } catch (_) {
       return rawDate;
@@ -31,10 +32,10 @@ class ResignationPolicyBanner extends StatelessWidget {
 
     final bgColor = isDark
         ? AppColors.brandTeal.withValues(alpha: 0.12)
-        : const Color(0xFFCCFBF1).withValues(alpha: 0.45);
+        : const AppColors.accentTealLight.withValues(alpha: 0.45);
     final borderColor = isDark
         ? AppColors.brandTeal.withValues(alpha: 0.3)
-        : const Color(0xFF6DF5E1).withValues(alpha: 0.6);
+        : const AppColors.secondaryContainer.withValues(alpha: 0.6);
 
     return Container(
       decoration: BoxDecoration(

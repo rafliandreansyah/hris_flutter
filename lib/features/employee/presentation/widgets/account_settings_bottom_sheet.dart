@@ -212,7 +212,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? AppColors.darkSurfaceContainerHighest
-                                        : const Color(0xFFDAE2FD),
+                                        : const AppColors.surfaceContainerHighest,
                                     borderRadius: BorderRadius.circular(100),
                                   ),
                                   child: Text(

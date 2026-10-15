@@ -5,6 +5,7 @@ import 'package:hris_flutter/features/employee/domain/repositories/employee_repo
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_event.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_state.dart';
+import 'package:flutter/foundation.dart';
 
 export 'employee_detail_event.dart';
 export 'employee_detail_state.dart';
@@ -69,7 +70,9 @@ class EmployeeDetailBloc
     if (targetId == null || targetId.isEmpty) {
       try {
         targetId = await SecureStorageService.instance.getEmployeeId();
-      } catch (_) {}
+      } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
     }
 
     if (targetId != null && targetId.isNotEmpty) {
@@ -80,14 +83,18 @@ class EmployeeDetailBloc
         String? myEmployeeId;
         try {
           myEmployeeId = await SecureStorageService.instance.getEmployeeId();
-        } catch (_) {}
+        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
         final isOwnProfile = (employeeId == null && employeeRawId == null) ||
             (myEmployeeId != null && targetId == myEmployeeId);
 
         if (isOwnProfile) {
           try {
             coworkers = await _repository.getCoworkers();
-          } catch (_) {}
+          } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
         }
 
         emit(state.copyWith(

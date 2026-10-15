@@ -140,7 +140,7 @@ class _ActivityMapCardState extends State<ActivityMapCard> {
               decoration: BoxDecoration(
                 border: Border.all(color: borderCol, width: 1),
                 color: isDark
-                    ? const Color(0xFF1E293B)
+                    ? const AppColors.darkSurfaceBright
                     : const Color(0xFFF1F5F9),
               ),
               child: Stack(
@@ -269,7 +269,7 @@ class _ActivityMapCardState extends State<ActivityMapCard> {
   /// Stylized Map Preview used in Widget Tests or as fallback
   Widget _buildFallbackMapPreview(bool isDark, Color textCol) {
     return Container(
-      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+      color: isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

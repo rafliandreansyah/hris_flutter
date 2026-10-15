@@ -254,7 +254,7 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppColors.darkBackgroundSubtle
-                              : const Color(0xFFF8FAFC),
+                              : const AppColors.backgroundSubtle,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _selectedEmployee == null
@@ -383,7 +383,7 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
                             const Icon(
                               LucideIcons.calendarClock,
                               size: 18,
-                              color: Color(0xFF64748B),
+                              color: AppColors.surfaceVariant,
                             ),
                             const SizedBox(width: 10),
                             Text(
@@ -488,9 +488,9 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
           setState(() => _condition = value);
         }
       },
-      selectedColor: const Color(0xFFCCFBF1),
+      selectedColor: const AppColors.accentTealLight,
       labelStyle: AppTypography.labelSmall.copyWith(
-        color: isSelected ? const Color(0xFF0F766E) : null,
+        color: isSelected ? const AppColors.primaryHover : null,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
       ),
     );

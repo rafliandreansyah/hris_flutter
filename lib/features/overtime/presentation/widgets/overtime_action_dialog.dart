@@ -45,7 +45,7 @@ class _OvertimeActionDialogState extends State<OvertimeActionDialog> {
 
     final primaryActionColor = widget.isApproved
         ? (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-        : const Color(0xFFEF4444);
+        : const AppColors.errorRed;
 
     final titleText = widget.isApproved
         ? 'Setujui Pengajuan Lembur'

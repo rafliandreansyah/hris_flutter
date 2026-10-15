@@ -198,8 +198,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                           text: 'Tolak',
                           leadingIcon: LucideIcons.x,
                           variant: AppButtonVariant.outlined,
-                          foregroundColor: const Color(0xFFEF4444),
-                          borderColor: const Color(0xFFEF4444),
+                          foregroundColor: const AppColors.errorRed,
+                          borderColor: const AppColors.errorRed,
                           height: 48,
                           isLoading: state.isActionLoading,
                           onPressed: state.isActionLoading
@@ -259,7 +259,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errorMessage!),
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: const AppColors.errorRed,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -269,7 +269,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.actionSuccessMessage!),
-                  backgroundColor: const Color(0xFF10B981),
+                  backgroundColor: const AppColors.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -290,7 +290,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(LucideIcons.fileX,
-                        size: 48, color: Color(0xFFEF4444)),
+                        size: 48, color: AppColors.errorRed),
                     const SizedBox(height: 12),
                     Text(
                       'Gagal memuat detail reimbursement',
@@ -487,7 +487,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                 decoration: BoxDecoration(
                   color: (isSettlement
                           ? const Color(0xFF3B82F6)
-                          : const Color(0xFF0D9488))
+                          : const AppColors.brandTeal)
                       .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -496,7 +496,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                   style: TextStyle(
                     color: isSettlement
                         ? const Color(0xFF3B82F6)
-                        : const Color(0xFF0D9488),
+                        : const AppColors.brandTeal,
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
                   ),
@@ -581,7 +581,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                       Text(
                         formatRupiah(detail.approvedAmount!),
                         style: AppTypography.titleMedium.copyWith(
-                          color: const Color(0xFF10B981),
+                          color: const AppColors.success,
                           fontWeight: FontWeight.w800,
                           fontSize: 17,
                         ),
@@ -907,8 +907,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: (isApp
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFEF4444))
+                              ? const AppColors.success
+                              : const AppColors.errorRed)
                           .withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
@@ -916,8 +916,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                       isApp ? LucideIcons.check : LucideIcons.x,
                       size: 14,
                       color: isApp
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444),
+                          ? const AppColors.success
+                          : const AppColors.errorRed,
                     ),
                   ),
                   const SizedBox(width: 10),

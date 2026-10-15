@@ -9,6 +9,7 @@ import 'package:hris_flutter/features/payroll/data/repositories/payroll_reposito
 import 'package:hris_flutter/features/payroll/domain/repositories/payroll_repository.dart';
 import 'package:hris_flutter/features/payroll/presentation/bloc/payroll_list/payroll_list_event.dart';
 import 'package:hris_flutter/features/payroll/presentation/bloc/payroll_list/payroll_list_state.dart';
+import 'package:flutter/foundation.dart';
 
 class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
   final PayrollRepository _repository;
@@ -86,7 +87,9 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
           employees = empResponse.data;
           employeesPage = empResponse.meta.page;
           employeesHasMore = empResponse.meta.page < empResponse.meta.totalPages;
-        } catch (_) {}
+        } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
       }
 
       emit(state.copyWith(
@@ -297,7 +300,9 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
           clearErrorMessage: true,
         ));
       }
-    } catch (_) {}
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
   }
 
   Future<void> _onLoadMore(

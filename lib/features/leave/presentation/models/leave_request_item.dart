@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Status pengajuan cuti/izin pada Oasish HRIS.
 ///
@@ -40,7 +41,7 @@ extension LeaveStatusExtension on LeaveStatus {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return const Color(0xFFFEF3C7); // Amber 100
+        return const AppColors.warningContainer; // Amber 100
       case LeaveStatus.approved:
         return const Color(0xFFDCFCE7); // Green 100
       case LeaveStatus.rejected:
@@ -53,11 +54,11 @@ extension LeaveStatusExtension on LeaveStatus {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return const Color(0xFFF59E0B);
+        return const AppColors.warning;
       case LeaveStatus.approved:
         return const Color(0xFF16A34A);
       case LeaveStatus.rejected:
-        return const Color(0xFFEF4444);
+        return const AppColors.errorRed;
     }
   }
 }
