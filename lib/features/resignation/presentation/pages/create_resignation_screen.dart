@@ -19,6 +19,7 @@ import 'package:hris_flutter/features/resignation/presentation/bloc/create_resig
 import 'package:hris_flutter/features/resignation/presentation/widgets/resignation_colleague_picker_modal.dart';
 import 'package:hris_flutter/features/resignation/presentation/widgets/resignation_early_notice_card.dart';
 import 'package:hris_flutter/features/resignation/presentation/widgets/resignation_policy_banner.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 
 class _CategoryOption {
   final String key;
@@ -136,7 +137,7 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
           '2. Early Waiver: Pengajuan di bawah notice period membutuhkan persetujuan manajerial khusus dan alasan yang jelas.\n\n'
           '3. Serah Terima (Handover): Wajib menunjuk rekan kerja pengganti untuk kelancaran transisi tugas & aset.\n\n'
           '4. Surat Resmi: Unggah surat pernyataan resign bertanda tangan basah atau digital.',
-      confirmText: 'Saya Mengerti',
+      cancelText: 'Saya Mengerti',
     );
   }
 
@@ -366,10 +367,13 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                       source: ImageSource.camera,
                       imageQuality: 85,
                     );
-                    if (photo != null && mounted) {
+                    if (photo != null) {
+                      final compressed =
+                          (await ImageCompressUtil.compressXFile(photo)).file;
+                      if (!mounted) return;
                       context
                           .read<CreateResignationBloc>()
-                          .add(CreateResignationFileChanged(photo));
+                          .add(CreateResignationFileChanged(compressed));
                     }
                   },
                 ),
@@ -399,10 +403,13 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                       source: ImageSource.gallery,
                       imageQuality: 85,
                     );
-                    if (photo != null && mounted) {
+                    if (photo != null) {
+                      final compressed =
+                          (await ImageCompressUtil.compressXFile(photo)).file;
+                      if (!mounted) return;
                       context
                           .read<CreateResignationBloc>()
-                          .add(CreateResignationFileChanged(photo));
+                          .add(CreateResignationFileChanged(compressed));
                     }
                   },
                 ),

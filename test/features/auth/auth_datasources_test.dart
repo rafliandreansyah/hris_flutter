@@ -9,6 +9,7 @@ import 'package:hris_flutter/features/auth/data/models/login_request_model.dart'
 
 class _MockApiClient implements ApiClient {
   String? lastPath;
+  String? lastMethod;
   dynamic lastData;
   Map<String, dynamic>? lastQueryParams;
   dynamic mockResponseData;
@@ -22,6 +23,7 @@ class _MockApiClient implements ApiClient {
     CancelToken? cancelToken,
   }) async {
     lastPath = path;
+    lastMethod = 'POST';
     lastData = data;
     lastQueryParams = queryParameters;
     return Response<T>(
@@ -39,6 +41,7 @@ class _MockApiClient implements ApiClient {
     CancelToken? cancelToken,
   }) async {
     lastPath = path;
+    lastMethod = 'GET';
     lastQueryParams = queryParameters;
     return Response<T>(
       requestOptions: RequestOptions(path: path),
@@ -56,6 +59,7 @@ class _MockApiClient implements ApiClient {
     CancelToken? cancelToken,
   }) async {
     lastPath = path;
+    lastMethod = 'PUT';
     lastData = data;
     lastQueryParams = queryParameters;
     return Response<T>(

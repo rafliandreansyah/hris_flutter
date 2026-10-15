@@ -6,6 +6,7 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_create_models.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_api_models.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 abstract class LeaveRemoteDataSource {
   /// Mengambil daftar pengajuan cuti/izin dari endpoint `GET /leave-request`.
@@ -199,7 +200,7 @@ class LeaveRemoteDataSourceImpl implements LeaveRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );

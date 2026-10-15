@@ -38,13 +38,6 @@ abstract class AttendanceRepository {
   /// Melakukan Start/End Break kehadiran.
   Future<AttendanceTodayData> toggleBreak();
 
-  /// Mengirim laporan kendala lokasi (Report Location Issue).
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  });
-
   Future<AttendanceLogListResponse> getAttendanceLogs({
     String? employeeId,
     bool lastMonth = false,
@@ -58,7 +51,6 @@ abstract class AttendanceRepository {
 
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
 
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
 
   /// Mengambil detail presensi berdasarkan id.
   Future<AttendanceDetailModel> getAttendanceDetail(String id);

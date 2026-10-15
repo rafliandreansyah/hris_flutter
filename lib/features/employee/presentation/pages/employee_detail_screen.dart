@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/coworker_list_screen.dart';
@@ -143,23 +144,23 @@ class _EmployeeDetailView extends StatelessWidget {
 
     final displayName = detail?.fullName.isNotEmpty == true
         ? detail!.fullName
-        : (employee?.name ?? 'Sarah Jenkins');
+        : (employee?.name ?? '-');
 
     final displayRole = detail?.position?.name.isNotEmpty == true
         ? detail!.position!.name
-        : (employee?.role ?? 'Senior Frontend Engineer');
+        : (employee?.role ?? '-');
 
     final displayDept = detail?.department?.name.isNotEmpty == true
         ? detail!.department!.name
-        : (employee?.department ?? 'Engineering');
+        : (employee?.department ?? '-');
 
     final displayId = detail?.employeeNumber?.isNotEmpty == true
         ? detail!.employeeNumber!
-        : (employee?.id ?? 'EMP-2024-019');
+        : (employee?.id ?? '-');
 
     final displayCompany = detail?.company?.name.isNotEmpty == true
         ? detail!.company!.name
-        : (employee?.company ?? 'PT Oasish Tech Nusantara');
+        : (employee?.company ?? '-');
 
     final displayAvatar = detail?.photoUrl ?? employee?.avatarUrl;
 
@@ -249,17 +250,54 @@ class _EmployeeDetailView extends StatelessWidget {
                     ),
                   ),
 
+                // Error state (pesan berasal dari API; 404 hanya "Kembali")
+                if (state.status == EmployeeDetailStatus.failure &&
+                    detail == null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      children: [
+                        const Icon(LucideIcons.circleAlert, size: 40, color: AppColors.errorRed),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.errorMessage ?? 'Terjadi kesalahan pada sistem',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMedium.copyWith(color: labelCol),
+                        ),
+                        const SizedBox(height: 12),
+                        if (state.errorStatusCode == 404)
+                          AppButton(
+                            text: 'Kembali',
+                            leadingIcon: LucideIcons.arrowLeft,
+                            width: 140,
+                            height: 42,
+                            onPressed: () => context.pop(),
+                          )
+                        else
+                          AppButton(
+                            text: 'Coba Lagi',
+                            leadingIcon: LucideIcons.rotateCcw,
+                            width: 140,
+                            height: 42,
+                            onPressed: () => context
+                                .read<EmployeeDetailBloc>()
+                                .add(const EmployeeDetailRefreshed()),
+                          ),
+                      ],
+                    ),
+                  ),
+
                 // 1. Hero Profile Header
                 ProfileHeroCard(
                   name: displayName,
                   role: displayRole,
-                  level: detail?.level?.name ?? 'Level Senior Specialist (L4)',
+                  level: detail?.level?.name ?? '-',
                   department: displayDept,
                   company: displayCompany,
                   employmentStatus: detail != null
                       ? (detail.status ? 'Active Employee' : 'Inactive')
-                      : 'Active Employee',
-                  contractType: detail?.employmentType ?? 'Permanent / Tetap',
+                      : '-',
+                  contractType: detail?.employmentType ?? '-',
                   avatarUrl: displayAvatar,
                   onCall: () {
                     final ph = detail?.phone ?? employee?.phone;
@@ -288,11 +326,11 @@ class _EmployeeDetailView extends StatelessWidget {
                 MetricsStripCard(
                   overtimeFormatted: detail?.totalOvertime != null
                       ? '${detail!.totalOvertime} Jam'
-                      : '4 Jam 0 Menit',
+                      : '-',
                   overtimeTotalMinutes: detail?.totalOvertime != null
                       ? (detail!.totalOvertime! * 60).toInt()
-                      : 240,
-                  leaveRequestCount: detail?.totalLeaveRequest?.toInt() ?? 3,
+                      : 0,
+                  leaveRequestCount: detail?.totalLeaveRequest?.toInt() ?? 0,
                   leaveRequestStatus: 'Menunggu Approval',
                 ),
                 const SizedBox(height: 16),
@@ -304,7 +342,7 @@ class _EmployeeDetailView extends StatelessWidget {
                 // 4. Direct Reporting Manager
                 ManagerInfoCard(
                   name: detail?.manager?.fullName,
-                  role: detail?.manager != null ? 'Senior Engineering Manager' : null,
+                  role: null,
                   department: displayDept,
                   company: displayCompany,
                   employeeId: detail?.manager?.employeeNumber,
@@ -315,22 +353,22 @@ class _EmployeeDetailView extends StatelessWidget {
 
                 // 5. Employment & Personal Data
                 EmploymentDataCard(
-                  joinDate: _formatDate(detail?.joinDate ?? '2024-08-28'),
+                  joinDate: detail?.joinDate != null ? _formatDate(detail!.joinDate) : '-',
                   contractExpiry: detail?.contractExpiryDate != null
                       ? _formatDate(detail!.contractExpiryDate)
-                      : (detail?.employmentType ?? 'Karyawan Tetap'),
+                      : (detail?.employmentType ?? '-'),
                   employeeId: displayId,
-                  nik: detail?.idNumber ?? '3171012345670001',
+                  nik: detail?.idNumber ?? '-',
                   placeDob:
                       (detail?.placeOfBirth != null || detail?.dob != null)
                       ? '${detail?.placeOfBirth ?? ""}, ${_formatDate(detail?.dob)}'
-                      : 'Surabaya, 20 Februari 1995',
-                  gender: detail?.gender ?? 'Perempuan',
-                  bloodType: detail?.bloodType ?? 'O+',
-                  bankName: detail?.bankName ?? 'Bank BCA',
+                      : '-',
+                  gender: detail?.gender ?? '-',
+                  bloodType: detail?.bloodType ?? '-',
+                  bankName: detail?.bankName ?? '-',
                   accountNumber:
                       detail?.bankNumber ??
-                      (detail?.bankAccount ?? '8801-2345-6789'),
+                      (detail?.bankAccount ?? '-'),
                   accountHolder: displayName,
                 ),
                 const SizedBox(height: 16),

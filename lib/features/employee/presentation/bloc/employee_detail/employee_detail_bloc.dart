@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
@@ -101,6 +102,13 @@ class EmployeeDetailBloc
           detail: data,
           coworkers: coworkers,
           status: EmployeeDetailStatus.success,
+        ));
+        return;
+      } on ApiException catch (e) {
+        emit(state.copyWith(
+          status: EmployeeDetailStatus.failure,
+          errorMessage: e.message,
+          errorStatusCode: e.statusCode,
         ));
         return;
       } catch (e) {

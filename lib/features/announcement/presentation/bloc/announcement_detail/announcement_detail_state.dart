@@ -9,6 +9,7 @@ class AnnouncementDetailState extends Equatable {
   final bool isAcknowledging;
   final bool isAcknowledgedSuccess;
   final String? errorMessage;
+  final int? errorStatusCode;
   final String? actionMessage;
 
   const AnnouncementDetailState({
@@ -17,6 +18,7 @@ class AnnouncementDetailState extends Equatable {
     this.isAcknowledging = false,
     this.isAcknowledgedSuccess = false,
     this.errorMessage,
+    this.errorStatusCode,
     this.actionMessage,
   });
 
@@ -26,6 +28,7 @@ class AnnouncementDetailState extends Equatable {
     bool? isAcknowledging,
     bool? isAcknowledgedSuccess,
     String? errorMessage,
+    int? errorStatusCode,
     String? actionMessage,
   }) {
     return AnnouncementDetailState(
@@ -35,6 +38,7 @@ class AnnouncementDetailState extends Equatable {
       isAcknowledgedSuccess:
           isAcknowledgedSuccess ?? this.isAcknowledgedSuccess,
       errorMessage: errorMessage,
+      errorStatusCode: errorStatusCode,
       actionMessage: actionMessage,
     );
   }
@@ -46,6 +50,7 @@ class AnnouncementDetailState extends Equatable {
         isAcknowledging,
         isAcknowledgedSuccess,
         errorMessage,
+        errorStatusCode,
         actionMessage,
       ];
 }

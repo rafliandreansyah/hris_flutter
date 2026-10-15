@@ -17,7 +17,6 @@ class MockAttendanceLogsRepository implements AttendanceRepository {
   List<EmployeeDirectoryItem> teamEmployees = const [];
   int totalPages = 1;
   bool shouldThrow = false;
-  bool throwSummaryOnly = false;
   int? throwStatusCode;
   int lastRequestedPage = 0;
   String? lastEmployeeId;
@@ -77,16 +76,6 @@ class MockAttendanceLogsRepository implements AttendanceRepository {
     return teamEmployees;
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    if (throwSummaryOnly) throw Exception('Summary unavailable');
-    return const AttendanceLogSummary(
-      totalInDays: 22,
-      presentPercentage: 100,
-      lateMinutes: 15,
-      lateCount: 0,
-    );
-  }
 
   @override
   Future<AttendanceTodayData> getTodayAttendance() async =>
@@ -123,13 +112,6 @@ class MockAttendanceLogsRepository implements AttendanceRepository {
   @override
   Future<AttendanceTodayData> toggleBreak() async =>
       throw UnimplementedError();
-
-  @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async => throw UnimplementedError();
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
@@ -179,11 +161,10 @@ void main() {
       final bloc = AttendanceLogsBloc(repository: repo);
       expect(bloc.state.status, AttendanceLogsStatus.initial);
       expect(bloc.state.logs, isEmpty);
-      expect(bloc.state.summary, isNull);
       bloc.close();
     });
 
-    test('Started emits loading then success with logs and summary', () async {
+    test('Started emits loading then success with logs', () async {
       final bloc = AttendanceLogsBloc(repository: repo);
       bloc.add(const AttendanceLogsStarted());
 
@@ -196,8 +177,7 @@ void main() {
           predicate<AttendanceLogsState>(
             (s) =>
                 s.status == AttendanceLogsStatus.success &&
-                s.logs.length == 2 &&
-                s.summary?.totalInDays == 22,
+                s.logs.length == 2,
           ),
         ]),
       );
@@ -244,28 +224,6 @@ void main() {
           ),
           predicate<AttendanceLogsState>(
             (s) => s.status == AttendanceLogsStatus.failure && s.isNotFound,
-          ),
-        ]),
-      );
-      await bloc.close();
-    });
-
-    test('summary failure still yields success state with null summary',
-        () async {
-      repo.throwSummaryOnly = true;
-      final bloc = AttendanceLogsBloc(repository: repo);
-      bloc.add(const AttendanceLogsStarted());
-      await expectLater(
-        bloc.stream,
-        emitsInOrder([
-          predicate<AttendanceLogsState>(
-            (s) => s.status == AttendanceLogsStatus.loading,
-          ),
-          predicate<AttendanceLogsState>(
-            (s) =>
-                s.status == AttendanceLogsStatus.success &&
-                s.summary == null &&
-                s.logs.length == 2,
           ),
         ]),
       );

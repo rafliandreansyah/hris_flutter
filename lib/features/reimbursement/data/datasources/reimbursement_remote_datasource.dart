@@ -8,6 +8,7 @@ import 'package:hris_flutter/features/reimbursement/data/models/cash_advance_det
 import 'package:hris_flutter/features/reimbursement/data/models/expenses_feed_model.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/reimbursement_category_model.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/reimbursement_detail_model.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 abstract class ReimbursementRemoteDataSource {
   Future<ExpensesFeedResponseModel> getExpensesFeed({
@@ -240,7 +241,7 @@ class ReimbursementRemoteDataSourceImpl
         formData.files.add(
           MapEntry(
             'file',
-            await MultipartFile.fromFile(
+            await multipartFromPath(
               file.path,
               filename: file.name,
             ),
@@ -253,7 +254,7 @@ class ReimbursementRemoteDataSourceImpl
           formData.files.add(
             MapEntry(
               'files',
-              await MultipartFile.fromFile(
+              await multipartFromPath(
                 f.path,
                 filename: f.name,
               ),
@@ -333,7 +334,7 @@ class ReimbursementRemoteDataSourceImpl
         formData.files.add(
           MapEntry(
             'proofFile',
-            await MultipartFile.fromFile(
+            await multipartFromPath(
               proofFile.path,
               filename: proofFile.name,
             ),
@@ -441,7 +442,7 @@ class ReimbursementRemoteDataSourceImpl
         formData.files.add(
           MapEntry(
             'proofFile',
-            await MultipartFile.fromFile(
+            await multipartFromPath(
               proofFile.path,
               filename: proofFile.name,
             ),
@@ -481,7 +482,7 @@ class ReimbursementRemoteDataSourceImpl
         formData.files.add(
           MapEntry(
             'proofFile',
-            await MultipartFile.fromFile(
+            await multipartFromPath(
               proofFile.path,
               filename: proofFile.name,
             ),

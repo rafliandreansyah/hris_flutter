@@ -11,6 +11,7 @@ class EmployeeDetailState extends Equatable {
   final EmployeeDirectoryItem? employee;
   final List<EmployeeDirectoryItem>? coworkers;
   final String? errorMessage;
+  final int? errorStatusCode;
 
   const EmployeeDetailState({
     this.status = EmployeeDetailStatus.initial,
@@ -19,6 +20,7 @@ class EmployeeDetailState extends Equatable {
     this.employee,
     this.coworkers,
     this.errorMessage,
+    this.errorStatusCode,
   });
 
   bool get isLoading => status == EmployeeDetailStatus.loading;
@@ -30,6 +32,7 @@ class EmployeeDetailState extends Equatable {
     EmployeeDirectoryItem? employee,
     List<EmployeeDirectoryItem>? coworkers,
     String? errorMessage,
+    int? errorStatusCode,
     bool clearError = false,
   }) {
     return EmployeeDetailState(
@@ -39,6 +42,8 @@ class EmployeeDetailState extends Equatable {
       employee: employee ?? this.employee,
       coworkers: coworkers ?? this.coworkers,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorStatusCode:
+          clearError ? null : (errorStatusCode ?? this.errorStatusCode),
     );
   }
 
@@ -50,5 +55,6 @@ class EmployeeDetailState extends Equatable {
         employee,
         coworkers,
         errorMessage,
+        errorStatusCode,
       ];
 }

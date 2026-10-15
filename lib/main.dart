@@ -17,7 +17,7 @@ import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/firebase_options.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inisialisasi Alice HTTP Inspector (Debug Mode)

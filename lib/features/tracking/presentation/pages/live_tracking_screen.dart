@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -16,7 +18,12 @@ import 'package:hris_flutter/features/tracking/presentation/widgets/tracking_rou
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
-  const LiveTrackingScreen({super.key});
+  final bool isTest;
+
+  const LiveTrackingScreen({
+    super.key,
+    this.isTest = false,
+  });
 
   @override
   State<LiveTrackingScreen> createState() => _LiveTrackingScreenState();
@@ -25,6 +32,17 @@ class LiveTrackingScreen extends StatefulWidget {
 class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
   GoogleMapController? _mapController;
   final TextEditingController _searchController = TextEditingController();
+
+  bool get _isTestEnvironment {
+    if (widget.isTest) return true;
+    if (kIsWeb) return false;
+    try {
+      if (Platform.environment.containsKey('FLUTTER_TEST')) return true;
+      return Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    } catch (_) {
+      return false;
+    }
+  }
 
   static const CameraPosition _initialPosition = CameraPosition(
     target: LatLng(MapsConfig.defaultLatitude, MapsConfig.defaultLongitude),
@@ -162,27 +180,34 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           body: Stack(
             children: [
               // 1. Google Map Layer
-              GoogleMap(
-                initialCameraPosition: _initialPosition,
-                markers: _buildEmployeeMarkers(context, employees, selected),
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                onMapCreated: (ctrl) {
-                  _mapController = ctrl;
-                  if (employees.isNotEmpty) {
-                    _fitAllEmployees(employees);
-                  }
-                },
-                onTap: (_) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                  if (state.selectedEmployee != null) {
-                    context
-                        .read<LiveTrackingBloc>()
-                        .add(const LiveTrackingEmployeeSelected(null));
-                  }
-                },
-              ),
+              if (!_isTestEnvironment)
+                GoogleMap(
+                  initialCameraPosition: _initialPosition,
+                  markers: _buildEmployeeMarkers(context, employees, selected),
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  mapToolbarEnabled: false,
+                  onMapCreated: (ctrl) {
+                    _mapController = ctrl;
+                    if (employees.isNotEmpty) {
+                      _fitAllEmployees(employees);
+                    }
+                  },
+                  onTap: (_) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    if (state.selectedEmployee != null) {
+                      context
+                          .read<LiveTrackingBloc>()
+                          .add(const LiveTrackingEmployeeSelected(null));
+                    }
+                  },
+                )
+              else
+                Container(
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
+                ),
 
               // 2. Top Header & Floating Filters Overlay
               SafeArea(

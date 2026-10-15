@@ -6,7 +6,6 @@ import '../../app/config/app_colors.dart';
 import '../../app/config/app_design.dart';
 import '../../app/config/app_typography.dart';
 import '../widgets/app_button.dart';
-import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Model item representasi perizinan untuk [AppDialogUtil.showPermissionDialog].
 class AppPermissionItem {

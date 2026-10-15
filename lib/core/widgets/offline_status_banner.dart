@@ -108,14 +108,17 @@ class _OfflineStatusBannerState extends State<OfflineStatusBanner> {
                             size: 14,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            _isOnline
-                                ? 'Koneksi internet terhubung kembali.'
-                                : 'Tidak ada koneksi internet. Mencoba menghubungkan...',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: Text(
+                              _isOnline
+                                  ? 'Koneksi internet terhubung kembali.'
+                                  : 'Tidak ada koneksi internet. Mencoba menghubungkan...',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],

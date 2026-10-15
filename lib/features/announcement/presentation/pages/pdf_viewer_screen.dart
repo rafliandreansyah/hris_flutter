@@ -17,12 +17,14 @@ class PdfViewerScreen extends StatefulWidget {
   final String title;
   final String fileName;
   final String fileUrl;
+  final Widget? pdfViewer;
 
   const PdfViewerScreen({
     super.key,
     required this.title,
     required this.fileName,
     required this.fileUrl,
+    this.pdfViewer,
   });
 
   @override
@@ -209,8 +211,9 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SfPdfViewer.network(
-        widget.fileUrl,
+      body: widget.pdfViewer ??
+          SfPdfViewer.network(
+            widget.fileUrl,
         controller: _pdfViewerController,
         canShowScrollHead: true,
         canShowScrollStatus: true,

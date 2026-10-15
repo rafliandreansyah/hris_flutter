@@ -47,10 +47,6 @@ class ResignationRepositoryImpl implements ResignationRepository {
     return _remoteDataSource.cancelMyResignation();
   }
 
-  @override
-  Future<ResignationDetailModel> getResignationDetail(String id) {
-    return _remoteDataSource.getResignationDetail(id);
-  }
 
   @override
   Future<ResignationInitialFormModel> getInitialFormData() {

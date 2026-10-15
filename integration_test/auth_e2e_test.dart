@@ -1,117 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hris_flutter/main.dart' as app;
+import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
+import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:patrol/patrol.dart';
 
+import 'helpers/e2e_helpers.dart';
+
 void main() {
-  patrolTest(
-    'E2E Auth Test: Form validation, obscure toggle, navigation, invalid credentials, and login flow',
-    ($) async {
-      // 1. Inisialisasi dan jalankan aplikasi HRIS
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('AUTH-03: login dengan form kosong menampilkan error validasi', (
+    $,
+  ) async {
+    await launchApp($);
+    expect(
+      find.byType(LoginScreen),
+      findsOneWidget,
+      reason: 'Test auth harus mulai tanpa sesi (data app dibersihkan).',
+    );
 
-      // 2. Intercept dialog izin sistem native OS jika muncul (Notifikasi/Lokasi)
-      try {
-        if (await $.platformAutomator.mobile.isPermissionDialogVisible()) {
-          await $.platformAutomator.mobile.grantPermissionWhenInUse();
-        }
-      } catch (_) {}
+    await $.tester.tap(find.text('Login'));
+    await $.pump();
+    await pumpFor($, const Duration(milliseconds: 500));
 
-      await $.pumpAndSettle();
+    expect(find.text('Email tidak boleh kosong'), findsOneWidget);
+    expect(find.text('Password tidak boleh kosong'), findsOneWidget);
+    expect(find.byType(DashboardScreen), findsNothing);
+  });
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 1: Validasi Form Kosong (AUTH-03)
-      // -----------------------------------------------------------------------
-      if ($('Login').exists) {
-        // Klik tombol Login langsung tanpa mengisi form
-        await $('Login').tap();
-        await $.pumpAndSettle();
+  patrolTest('AUTH-05: ikon mata mengganti visibilitas password', ($) async {
+    await launchApp($);
+    expect(find.byType(LoginScreen), findsOneWidget);
 
-        expect(find.text('Email tidak boleh kosong'), findsOneWidget);
-        expect(find.text('Password tidak boleh kosong'), findsOneWidget);
-      }
+    await $.tester.enterText(find.byType(TextField).last, 'secretpassword');
+    await $.pump();
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 2: Toggle Visibilitas Password (AUTH-05)
-      // -----------------------------------------------------------------------
-      final passwordField = $(find.byType(TextField).last);
-      if (passwordField.exists) {
-        await passwordField.enterText('secretpassword');
-        await $.pumpAndSettle();
+    expect(find.byIcon(LucideIcons.eye), findsOneWidget);
+    await $.tester.tap(find.byIcon(LucideIcons.eye));
+    await $.pump();
+    expect(find.byIcon(LucideIcons.eyeOff), findsOneWidget);
+    expect(find.byIcon(LucideIcons.eye), findsNothing);
 
-        // Cari ikon mata untuk toggle obscure password
-        final eyeIcon = $(find.byIcon(LucideIcons.eye));
-        if (eyeIcon.exists) {
-          await eyeIcon.tap();
-          await $.pumpAndSettle();
+    await $.tester.tap(find.byIcon(LucideIcons.eyeOff));
+    await $.pump();
+    expect(find.byIcon(LucideIcons.eye), findsOneWidget);
+  });
 
-          // Ikon harus berganti menjadi eyeOff
-          expect(find.byIcon(LucideIcons.eyeOff), findsOneWidget);
+  patrolTest('AUTH-06: navigasi Lupa Password lalu kembali ke Login', (
+    $,
+  ) async {
+    await launchApp($);
+    expect(find.byType(LoginScreen), findsOneWidget);
 
-          // Kembalikan ke posisi ter-obscure
-          await $(find.byIcon(LucideIcons.eyeOff)).tap();
-          await $.pumpAndSettle();
-          expect(find.byIcon(LucideIcons.eye), findsOneWidget);
-        }
-      }
+    await $.tester.tap(find.text('Forgot Password?'));
+    await $.pump();
+    await waitFor($, find.text('Back to Login'), reason: 'layar Reset Password');
+    expect(find.text('Reset Password'), findsWidgets);
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 3: Navigasi Lupa Kata Sandi & Kembali (AUTH-06)
-      // -----------------------------------------------------------------------
-      if ($('Forgot Password?').exists) {
-        await $('Forgot Password?').tap();
-        await $.pumpAndSettle();
+    await $.tester.tap(find.text('Back to Login'));
+    await $.pump();
+    await waitFor($, find.text('Welcome Back'), reason: 'kembali ke Login');
+    expect(find.byType(LoginScreen), findsOneWidget);
+  });
 
-        expect(find.text('Reset Password'), findsOneWidget);
-        expect(find.text('Back to Login'), findsOneWidget);
+  patrolTest('AUTH-04: kredensial salah menampilkan dialog "Login Gagal"', (
+    $,
+  ) async {
+    await launchApp($);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    E2EConfig.ensureCredentials();
 
-        // Kembali ke halaman Login
-        await $('Back to Login').tap();
-        await $.pumpAndSettle();
+    await $.tester.enterText(find.byType(TextField).first, E2EConfig.email);
+    await $.tester.enterText(
+      find.byType(TextField).last,
+      '${E2EConfig.password}-SALAH-!',
+    );
+    await $.pump();
+    await $.tester.tap(find.text('Login'));
+    await $.pump();
 
-        expect(find.text('Welcome Back'), findsOneWidget);
-      }
+    await waitFor($, find.text('Login Gagal'), reason: 'dialog error login');
+    expect(find.byType(DashboardScreen), findsNothing);
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 4: Kredensial Salah & Dialog Error API (AUTH-04)
-      // -----------------------------------------------------------------------
-      final emailField = $(find.byType(TextField).first);
-      if (emailField.exists && passwordField.exists) {
-        await emailField.enterText('user@gmail.com');
-        await passwordField.enterText('salah123');
-        await $.pumpAndSettle();
+    await $.tester.tap(find.text('Tutup'));
+    await $.pump();
+    await waitGone(
+      $,
+      find.text('Login Gagal'),
+      reason: 'dialog tertutup',
+      timeout: const Duration(seconds: 5),
+    );
+    expect(find.byType(LoginScreen), findsOneWidget);
+  });
 
-        await $('Login').tap();
-        await $.pumpAndSettle(timeout: const Duration(seconds: 5));
+  patrolTest('AUTH-01: login valid mengarah ke Dashboard', ($) async {
+    await launchApp($);
+    expect(find.byType(LoginScreen), findsOneWidget);
 
-        // Dialog error Login Gagal atau popup muncul jika backend merespon
-        if ($('Login Gagal').exists) {
-          expect($('Tutup'), findsOneWidget);
-          await $('Tutup').tap();
-          await $.pumpAndSettle();
-          expect($('Login Gagal'), findsNothing);
-        }
-      }
+    await loginIfNeeded($);
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 5: Login Akun Bawahan Valid (AUTH-01)
-      // -----------------------------------------------------------------------
-      if (emailField.exists && passwordField.exists && $('Login').exists) {
-        await emailField.enterText('user@gmail.com');
-        await passwordField.enterText('amaterasu');
-        await $.pumpAndSettle();
-
-        await $('Login').tap();
-        await $.pumpAndSettle(timeout: const Duration(seconds: 10));
-
-        // Verifikasi transisi ke Dashboard jika server online
-        if (!$('Welcome Back').exists) {
-          // Berhasil diarahkan ke Dashboard
-          expect(find.byType(app.MyApp), findsOneWidget);
-        }
-      }
-    },
-  );
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(LoginScreen), findsNothing);
+  });
 }

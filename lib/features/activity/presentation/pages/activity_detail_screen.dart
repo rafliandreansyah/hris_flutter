@@ -572,8 +572,9 @@ class _ActivityDetailView extends StatelessWidget {
                                         imageQuality: 85,
                                       );
                                       if (picked != null) {
+                                        final compressedPick = (await ImageCompressUtil.compressXFile(picked)).file;
                                         setModalState(
-                                          () => selectedFile = picked,
+                                          () => selectedFile = compressedPick,
                                         );
                                       }
                                     },
@@ -606,8 +607,9 @@ class _ActivityDetailView extends StatelessWidget {
                                         imageQuality: 85,
                                       );
                                       if (picked != null) {
+                                        final compressedPick = (await ImageCompressUtil.compressXFile(picked)).file;
                                         setModalState(
-                                          () => selectedFile = picked,
+                                          () => selectedFile = compressedPick,
                                         );
                                       }
                                     },

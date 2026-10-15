@@ -24,7 +24,6 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     on<AttendanceClockInSubmitted>(_onClockInSubmitted);
     on<AttendanceClockOutSubmitted>(_onClockOutSubmitted);
     on<AttendanceBreakToggled>(_onBreakToggled);
-    on<AttendanceReportIssueSubmitted>(_onReportIssueSubmitted);
 
     if (autoStartClock) {
       _startClockTimer();
@@ -655,37 +654,6 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           current.copyWith(
             isSubmittingAction: false,
             errorMessage: 'Gagal memperbarui status break: ${_extractErrorMessage(e)}',
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _onReportIssueSubmitted(
-    AttendanceReportIssueSubmitted event,
-    Emitter<AttendanceState> emit,
-  ) async {
-    if (state is AttendanceLoaded) {
-      final current = state as AttendanceLoaded;
-      emit(current.copyWith(isSubmittingAction: true));
-      try {
-        await repository.reportLocationIssue(
-          issueDescription: event.issueDescription,
-          latitude: event.latitude,
-          longitude: event.longitude,
-        );
-
-        emit(
-          current.copyWith(
-            isSubmittingAction: false,
-            actionMessage: 'Laporan kendala lokasi berhasil dikirim',
-          ),
-        );
-      } catch (e) {
-        emit(
-          current.copyWith(
-            isSubmittingAction: false,
-            errorMessage: 'Gagal mengirim laporan kendala lokasi: ${_extractErrorMessage(e)}',
           ),
         );
       }

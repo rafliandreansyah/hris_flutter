@@ -24,7 +24,6 @@ abstract class ResignationRemoteDataSource {
 
   Future<void> cancelMyResignation();
 
-  Future<ResignationDetailModel> getResignationDetail(String id);
 
   Future<ResignationInitialFormModel> getInitialFormData();
 
@@ -116,20 +115,6 @@ class ResignationRemoteDataSourceImpl implements ResignationRemoteDataSource {
     }
   }
 
-  @override
-  Future<ResignationDetailModel> getResignationDetail(String id) async {
-    final response = await _apiClient.get(ApiEndpoints.resignationDetail(id));
-    final rawData = response.data;
-    if (rawData is Map<String, dynamic>) {
-      final data = rawData['data'];
-      if (data is Map<String, dynamic>) {
-        return ResignationDetailModel.fromJson(data);
-      }
-    }
-    throw const ApiException(
-      message: 'Gagal memuat detail pengajuan pengunduran diri.',
-    );
-  }
 
   @override
   Future<ResignationInitialFormModel> getInitialFormData() async {

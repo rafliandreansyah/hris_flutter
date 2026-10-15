@@ -96,15 +96,6 @@ class MockAttendanceRepository implements AttendanceRepository {
   }
 
   @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {
-    if (shouldThrow) throw Exception('Report Issue Error');
-  }
-
-  @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
     int page = 1,
     int size = 20,
@@ -133,10 +124,6 @@ class MockAttendanceRepository implements AttendanceRepository {
     return const [];
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    return AttendanceLogSummary.empty;
-  }
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
@@ -368,27 +355,6 @@ void main() {
       await bloc.close();
     });
 
-    test('AttendanceReportIssueSubmitted emits confirmation message', () async {
-      final repo = MockAttendanceRepository();
-      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
-
-      bloc.add(const AttendanceFetchRequested());
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      bloc.add(
-        const AttendanceReportIssueSubmitted(
-          issueDescription: 'GPS jumping due to indoor structure',
-          latitude: -6.2253,
-          longitude: 106.8097,
-        ),
-      );
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      final loaded = bloc.state as AttendanceLoaded;
-      expect(loaded.actionMessage, 'Laporan kendala lokasi berhasil dikirim');
-
-      await bloc.close();
-    });
 
     test('AttendanceFailure emitted when repository throws error', () async {
       final repo = MockAttendanceRepository(shouldThrow: true);

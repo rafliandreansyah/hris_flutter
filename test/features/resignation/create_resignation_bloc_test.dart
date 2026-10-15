@@ -75,10 +75,6 @@ class _MockResignationRepository implements ResignationRepository {
     throw UnimplementedError();
   }
 
-  @override
-  Future<ResignationDetailModel> getResignationDetail(String id) async {
-    throw UnimplementedError();
-  }
 }
 
 void main() {

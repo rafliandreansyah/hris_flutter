@@ -75,6 +75,15 @@ class ReimbursementDetailBloc
         isActionLoading: false,
         errorMessage: e is ApiException ? e.message : e.toString(),
       ));
+      // 409: data sudah diproses pengguna lain. Muat ulang agar status yang tampil ikut berubah.
+      if (e is ApiException && e.isAlreadyProcessed) {
+        try {
+          final latest = await _repository.getReimbursementDetail(_currentId!);
+          emit(state.copyWith(detail: latest));
+        } catch (_) {
+          // Gagal memuat ulang: pesan error tetap tampil, layar tidak diubah.
+        }
+      }
     }
   }
 }

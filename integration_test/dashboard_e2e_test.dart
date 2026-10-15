@@ -1,139 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
-import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
+import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/attendance_hero_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
-import 'package:hris_flutter/main.dart' as app;
+import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
+import 'package:hris_flutter/features/notification/presentation/pages/notification_screen.dart';
+import 'package:hris_flutter/features/schedule/presentation/pages/work_schedule_screen.dart';
 import 'package:patrol/patrol.dart';
 
+import 'helpers/e2e_helpers.dart';
+
 void main() {
-  patrolTest(
-    'E2E Dashboard & Bento Grid Test: Rendering, dynamic menus, navigation, realtime clock, and pull to refresh',
-    ($) async {
-      // 1. Inisialisasi dan jalankan aplikasi HRIS
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('DASH-01: elemen utama Dashboard ter-render setelah login', (
+    $,
+  ) async {
+    await launchAndLogin($);
 
-      // 2. Intercept dialog izin sistem native OS jika muncul (Notifikasi/Lokasi)
-      try {
-        if (await $.platformAutomator.mobile.isPermissionDialogVisible()) {
-          await $.platformAutomator.mobile.grantPermissionWhenInUse();
-        }
-      } catch (_) {}
+    expect(find.text('Oasish'), findsOneWidget);
+    expect(find.byType(AttendanceHeroCard), findsOneWidget);
+    expect(find.text('CURRENT STATUS'), findsOneWidget);
+    expect(find.byType(QuickAccessGrid), findsOneWidget);
+    expect(find.text('Quick Access'), findsOneWidget);
+    expect(find.byType(UpdatesFeedCard), findsOneWidget);
+  });
 
-      await $.pumpAndSettle();
+  patrolTest('DASH-02/03: menu Pegawai di grid membuka direktori & kembali', (
+    $,
+  ) async {
+    await launchAndLogin($);
 
-      // 3. Login jika berada pada halaman Login
-      if ($('Login').exists) {
-        final emailField = $(find.byType(TextField).first);
-        final passwordField = $(find.byType(TextField).last);
-        if (emailField.exists && passwordField.exists) {
-          await emailField.enterText('user@gmail.com');
-          await passwordField.enterText('amaterasu');
-          await $.pumpAndSettle();
+    await openMenu($, 'Pegawai', screen: EmployeeDirectoryScreen);
+    expect(find.text('Employee Directory'), findsOneWidget);
 
-          await $('Login').tap();
-          await $.pumpAndSettle(timeout: const Duration(seconds: 10));
-        }
-      }
+    await goBackToDashboard($);
+    expect(find.byType(QuickAccessGrid), findsOneWidget);
+  });
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 1: Verifikasi Rendering Elemen Dashboard (DASH-01)
-      // -----------------------------------------------------------------------
-      if ($('Oasish').exists) {
-        expect(find.text('Oasish'), findsOneWidget);
-        expect(find.byType(AttendanceHeroCard), findsOneWidget);
-        expect(find.byType(QuickAccessGrid), findsOneWidget);
-        expect(find.byType(UpdatesFeedCard), findsOneWidget);
-        expect(find.byType(AppNameVersionText), findsOneWidget);
-      }
+  patrolTest('DASH-04: pull-to-refresh memuat ulang Dashboard tanpa error', (
+    $,
+  ) async {
+    await launchAndLogin($);
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 2: Jam Server Realtime di Kartu Presensi (DASH-05)
-      // -----------------------------------------------------------------------
-      if (find.byType(AttendanceHeroCard).evaluate().isNotEmpty) {
-        expect(find.text('CURRENT STATUS'), findsOneWidget);
-        // Menunggu detik jam bertambah
-        await $.pump(const Duration(seconds: 1));
-        await $.pump(const Duration(seconds: 1));
-      }
+    await $.tester.drag(
+      find.byType(RefreshIndicator).first,
+      const Offset(0, 400),
+    );
+    await $.pump();
+    await pumpFor($, const Duration(seconds: 2));
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 3: Menu Bento Grid Dinamis & Navigasi (DASH-02 & DASH-03)
-      // -----------------------------------------------------------------------
-      if ($('Quick Access').exists) {
-        expect(find.text('Quick Access'), findsOneWidget);
+    await waitFor(
+      $,
+      find.byType(QuickAccessGrid),
+      reason: 'grid kembali tampil setelah refresh',
+    );
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.byType(AttendanceHeroCard), findsOneWidget);
+  });
 
-        // Uji navigasi modul Pegawai jika menu tersedia
-        if ($('Pegawai').exists) {
-          await $('Pegawai').tap();
-          await $.pumpAndSettle();
+  patrolTest('DASH-10: tombol notifikasi di header membuka NotificationScreen', (
+    $,
+  ) async {
+    await launchAndLogin($);
 
-          // Kembali ke Dashboard
-          final backBtn = $(find.byTooltip('Back'));
-          if (backBtn.exists) {
-            await backBtn.tap();
-            await $.pumpAndSettle();
-          } else {
-            final navigatorPop = $(find.byType(BackButton));
-            if (navigatorPop.exists) {
-              await navigatorPop.tap();
-              await $.pumpAndSettle();
-            }
-          }
-        }
-      }
+    await $.tester.tap(find.byKey(const ValueKey('dashboard_notification_btn')));
+    await $.pump();
+    await waitFor($, find.byType(NotificationScreen), reason: 'NotificationScreen');
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 4: Pull to Refresh Gesture (DASH-04)
-      // -----------------------------------------------------------------------
-      if (find.byType(RefreshIndicator).evaluate().isNotEmpty) {
-        // Melakukan pull-to-refresh swipe down
-        await $.tester.drag(find.byType(SingleChildScrollView), const Offset(0, 300));
-        await $.pumpAndSettle();
-      }
+    await goBackToDashboard($);
+  });
 
-      // -----------------------------------------------------------------------
-      // SKENARIO 5: Navigasi Header Notifikasi, Jadwal, & Profil (DASH-10 & DASH-12)
-      // -----------------------------------------------------------------------
-      final notifBtn = $(find.byKey(const ValueKey('dashboard_notification_btn')));
-      if (notifBtn.exists) {
-        await notifBtn.tap();
-        await $.pumpAndSettle();
+  patrolTest('DASH-11: tombol jadwal kerja di header membuka WorkScheduleScreen', (
+    $,
+  ) async {
+    await launchAndLogin($);
 
-        // Kembali ke Dashboard
-        final backButton = $(find.byType(BackButton));
-        if (backButton.exists) {
-          await backButton.tap();
-          await $.pumpAndSettle();
-        }
-      }
+    await $.tester.tap(find.byKey(const ValueKey('dashboard_work_schedule_btn')));
+    await $.pump();
+    await waitFor($, find.byType(WorkScheduleScreen), reason: 'WorkScheduleScreen');
 
-      final scheduleBtn = $(find.byKey(const ValueKey('dashboard_work_schedule_btn')));
-      if (scheduleBtn.exists) {
-        await scheduleBtn.tap();
-        await $.pumpAndSettle();
+    await goBackToDashboard($);
+  });
 
-        final backButton = $(find.byType(BackButton));
-        if (backButton.exists) {
-          await backButton.tap();
-          await $.pumpAndSettle();
-        }
-      }
+  patrolTest('DASH-12: avatar header membuka profil karyawan', ($) async {
+    await launchAndLogin($);
 
-      final avatar = $(find.byType(AppAvatar));
-      if (avatar.exists) {
-        await avatar.tap();
-        await $.pumpAndSettle();
+    final avatar = find.byType(AppAvatar).hitTestable();
+    expect(avatar, findsWidgets, reason: 'Avatar header harus tampil');
+    await $.tester.tap(avatar.first);
+    await $.pump();
+    await pumpFor($, const Duration(seconds: 2));
 
-        final backButton = $(find.byType(BackButton));
-        if (backButton.exists) {
-          await backButton.tap();
-          await $.pumpAndSettle();
-        }
-      }
-    },
-  );
+    expect(
+      find.byType(DashboardScreen).hitTestable(),
+      findsNothing,
+      reason: 'Layar profil harus menutupi Dashboard',
+    );
+    await goBackToDashboard($);
+  });
 }

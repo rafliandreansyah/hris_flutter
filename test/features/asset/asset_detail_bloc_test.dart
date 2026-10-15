@@ -181,8 +181,9 @@ void main() {
             s.currentEmployeeId == 'emp-001'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
       bloc.add(const AssetDetailStarted('ast-101'));
+      await expectation;
     });
 
     test('AssetDetailStarted gagal menangani ApiException dengan status failure', () async {
@@ -199,8 +200,9 @@ void main() {
             s.errorMessage == 'Aset tidak ditemukan di sistem'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
       bloc.add(const AssetDetailStarted('ast-999'));
+      await expectation;
     });
 
     test('AssetDetailPoolHandedOver sukses memanggil repository', () async {

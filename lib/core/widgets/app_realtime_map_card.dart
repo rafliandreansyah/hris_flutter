@@ -236,8 +236,8 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
   //       widget.onAddressDetected?.call(fullAddr, locName);
   //     }
   //   } catch (silentError) {
-      debugPrint('[diabaikan] $silentError');
-    }
+  //     debugPrint('[diabaikan] $silentError');
+  //   }
   // }
 
   void _animateCameraToCurrent() {

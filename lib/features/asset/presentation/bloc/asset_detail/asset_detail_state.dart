@@ -10,6 +10,7 @@ class AssetDetailState extends Equatable {
   final AssetDetailActionStatus actionStatus;
   final AssetDetailData? asset;
   final String? errorMessage;
+  final int? errorStatusCode;
   final String? actionMessage;
   final bool canHandover;
   final bool canCreate;
@@ -20,6 +21,7 @@ class AssetDetailState extends Equatable {
     this.actionStatus = AssetDetailActionStatus.idle,
     this.asset,
     this.errorMessage,
+    this.errorStatusCode,
     this.actionMessage,
     this.canHandover = false,
     this.canCreate = false,
@@ -48,6 +50,7 @@ class AssetDetailState extends Equatable {
     AssetDetailActionStatus? actionStatus,
     AssetDetailData? asset,
     String? errorMessage,
+    int? errorStatusCode,
     bool clearError = false,
     String? actionMessage,
     bool clearActionMessage = false,
@@ -60,6 +63,8 @@ class AssetDetailState extends Equatable {
       actionStatus: actionStatus ?? this.actionStatus,
       asset: asset ?? this.asset,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorStatusCode:
+          clearError ? null : (errorStatusCode ?? this.errorStatusCode),
       actionMessage:
           clearActionMessage ? null : (actionMessage ?? this.actionMessage),
       canHandover: canHandover ?? this.canHandover,
@@ -74,6 +79,7 @@ class AssetDetailState extends Equatable {
         actionStatus,
         asset,
         errorMessage,
+        errorStatusCode,
         actionMessage,
         canHandover,
         canCreate,

@@ -143,7 +143,6 @@ class AttendanceLogsBloc
       lastMonth: activeLastMonth,
       filterCriteria: activeCriteria,
       logs: isMonthChanged ? const [] : null,
-      clearSummary: isMonthChanged,
       clearError: true,
     ));
 
@@ -159,20 +158,9 @@ class AttendanceLogsBloc
         status: activeCriteria.statusQuery,
       );
 
-      AttendanceLogSummary? summary;
-      try {
-        summary = await _repository.getAttendanceSummary(
-          employeeId: activeEmployeeId,
-        );
-      } catch (_) {
-        summary = null;
-      }
-
       emit(state.copyWith(
         employeeId: activeEmployeeId,
         logs: response.data,
-        summary: summary,
-        clearSummary: summary == null,
         currentPage: response.meta.page,
         totalPages: response.meta.totalPages,
         status: AttendanceLogsStatus.success,

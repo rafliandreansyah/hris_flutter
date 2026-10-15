@@ -67,17 +67,6 @@ class _MockResignationRepository implements ResignationRepository {
     cancelCalled = true;
   }
 
-  @override
-  Future<ResignationDetailModel> getResignationDetail(String id) async {
-    if (shouldThrowError) {
-      throw ApiException(message: errorMessage);
-    }
-    return const ResignationDetailModel(
-      id: 'test-id',
-      companyId: 'comp-1',
-      employeeId: 'emp-1',
-    );
-  }
 
   @override
   Future<ResignationInitialFormModel> getInitialFormData() async {

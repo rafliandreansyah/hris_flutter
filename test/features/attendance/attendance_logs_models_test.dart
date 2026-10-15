@@ -213,40 +213,4 @@ void main() {
     });
   });
 
-  group('AttendanceLogSummary parsing', () {
-    test('parses primary keys', () {
-      final summary = AttendanceLogSummary.fromJson({
-        'totalInDays': 22,
-        'presentPercentage': 100,
-        'lateMinutes': 15,
-        'lateCount': 0,
-      });
-
-      expect(summary.totalInDays, 22);
-      expect(summary.presentPercentage, 100);
-      expect(summary.lateMinutes, 15);
-      expect(summary.lateCount, 0);
-    });
-
-    test('parses nested data with alternative keys', () {
-      final summary = AttendanceLogSummary.fromJson({
-        'data': {
-          'totalIn': '18',
-          'attendancePercentage': '95.5',
-          'totalLateMinutes': 30,
-          'lateRecords': 2,
-        },
-      });
-
-      expect(summary.totalInDays, 18);
-      expect(summary.presentPercentage, 95.5);
-      expect(summary.lateMinutes, 30);
-      expect(summary.lateCount, 2);
-    });
-
-    test('empty constant has zero values', () {
-      expect(AttendanceLogSummary.empty.totalInDays, 0);
-      expect(AttendanceLogSummary.empty.lateMinutes, 0);
-    });
-  });
 }

@@ -1,26 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/auth/presentation/pages/login_screen.dart';
+import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:patrol/patrol.dart';
-import 'package:hris_flutter/main.dart' as app;
+
+import 'helpers/e2e_helpers.dart';
 
 void main() {
   patrolTest(
-    'Smoke test: App launches, handles native permissions, and renders login screen',
+    'Smoke: aplikasi terbuka, izin native ditangani, lalu Login/Dashboard tampil',
     ($) async {
-      // 1. Inisialisasi dan jalankan aplikasi HRIS
-      app.main();
-      await $.pumpAndSettle();
+      await launchApp($);
 
-      // 2. Intercept dialog izin sistem native OS jika muncul (Notifikasi/Lokasi)
-      // Menggunakan mobile platform automator pada Patrol 4.10+
-      if (await $.platformAutomator.mobile.isPermissionDialogVisible()) {
-        await $.platformAutomator.mobile.grantPermissionWhenInUse();
-      }
-
-      // 3. Verifikasi tampilan antarmuka
-      await $.pumpAndSettle();
-
-      // Verifikasi komponen dasar aplikasi
-      expect(find.byType(app.MyApp), findsOneWidget);
+      expect(
+        find.byType(LoginScreen).evaluate().isNotEmpty ||
+            find.byType(DashboardScreen).evaluate().isNotEmpty,
+        isTrue,
+        reason: 'Layar awal harus LoginScreen atau DashboardScreen',
+      );
     },
   );
 }

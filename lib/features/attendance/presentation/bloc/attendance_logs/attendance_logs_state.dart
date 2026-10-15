@@ -8,7 +8,6 @@ enum AttendanceLogsStatus { initial, loading, success, failure }
 class AttendanceLogsState extends Equatable {
   final AttendanceLogsStatus status;
   final List<AttendanceLogItem> logs;
-  final AttendanceLogSummary? summary;
   final int currentPage;
   final int totalPages;
   final int pageSize;
@@ -22,7 +21,6 @@ class AttendanceLogsState extends Equatable {
   const AttendanceLogsState({
     this.status = AttendanceLogsStatus.initial,
     this.logs = const [],
-    this.summary,
     this.currentPage = 1,
     this.totalPages = 1,
     this.pageSize = 20,
@@ -42,7 +40,6 @@ class AttendanceLogsState extends Equatable {
   AttendanceLogsState copyWith({
     AttendanceLogsStatus? status,
     List<AttendanceLogItem>? logs,
-    AttendanceLogSummary? summary,
     int? currentPage,
     int? totalPages,
     int? pageSize,
@@ -53,12 +50,10 @@ class AttendanceLogsState extends Equatable {
     String? employeeId,
     bool? lastMonth,
     bool clearError = false,
-    bool clearSummary = false,
   }) {
     return AttendanceLogsState(
       status: status ?? this.status,
       logs: logs ?? this.logs,
-      summary: clearSummary ? null : (summary ?? this.summary),
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       pageSize: pageSize ?? this.pageSize,
@@ -75,7 +70,6 @@ class AttendanceLogsState extends Equatable {
   List<Object?> get props => [
     status,
     logs,
-    summary,
     currentPage,
     totalPages,
     pageSize,

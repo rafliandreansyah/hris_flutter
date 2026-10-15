@@ -117,33 +117,37 @@ void main() {
         const AuthSuccess(token: 'valid-saved-token', message: 'Sesi aktif ditemukan'),
       ];
 
-      expectLater(authBloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(authBloc.stream, emitsInOrder(expectedStates));
 
       authBloc.add(const AuthCheckSessionRequested());
+      await expectation;
     });
 
     test('emits [AuthInitial] when saved token is null', () async {
       mockRepository.savedToken = null;
 
-      expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
+      final expectation = expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
 
       authBloc.add(const AuthCheckSessionRequested());
+      await expectation;
     });
 
     test('emits [AuthInitial] when saved token is empty', () async {
       mockRepository.savedToken = '';
 
-      expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
+      final expectation = expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
 
       authBloc.add(const AuthCheckSessionRequested());
+      await expectation;
     });
 
     test('emits [AuthInitial] when repository throws error', () async {
       mockRepository.genericExceptionToThrow = Exception('Storage read corrupted');
 
-      expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
+      final expectation = expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
 
       authBloc.add(const AuthCheckSessionRequested());
+      await expectation;
     });
   });
 
@@ -154,19 +158,20 @@ void main() {
         const AuthSuccess(token: 'mock-jwt-token-999'),
       ];
 
-      expectLater(authBloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(authBloc.stream, emitsInOrder(expectedStates));
 
       authBloc.add(const AuthLoginSubmitted(
         email: '  user@gmail.com  ',
-        password: 'amaterasu',
+        password: 'secret-pass-123',
       ));
 
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(mockRepository.lastLoginRequest?.email, equals('user@gmail.com'));
-      expect(mockRepository.lastLoginRequest?.password, equals('amaterasu'));
+      expect(mockRepository.lastLoginRequest?.password, equals('secret-pass-123'));
       expect(mockRepository.lastLoginRequest?.deviceId, equals('test-device-uuid'));
       expect(mockRepository.lastLoginRequest?.fcmToken, equals('mock-fcm-device-token'));
+      await expectation;
     });
 
     test('emits [AuthLoading, AuthFailure] when repository throws ApiException with statusCode', () async {
@@ -183,12 +188,13 @@ void main() {
         ),
       ];
 
-      expectLater(authBloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(authBloc.stream, emitsInOrder(expectedStates));
 
       authBloc.add(const AuthLoginSubmitted(
         email: 'user@gmail.com',
         password: 'wrong_password',
       ));
+      await expectation;
     });
 
     test('emits [AuthLoading, AuthFailure] when repository throws generic Exception', () async {
@@ -199,36 +205,39 @@ void main() {
         const AuthFailure(message: 'Terjadi kesalahan: Exception: Network timeout'),
       ];
 
-      expectLater(authBloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(authBloc.stream, emitsInOrder(expectedStates));
 
       authBloc.add(const AuthLoginSubmitted(
         email: 'user@gmail.com',
         password: 'password',
       ));
+      await expectation;
     });
   });
 
   group('AuthLogoutRequested', () {
     test('calls repository logout and emits [AuthInitial]', () async {
-      expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
+      final expectation = expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
 
       authBloc.add(const AuthLogoutRequested());
 
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(mockRepository.logoutCalled, isTrue);
+      await expectation;
     });
 
     test('emits [AuthInitial] even when repository logout throws exception', () async {
       mockRepository.shouldThrowLogout = true;
 
-      expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
+      final expectation = expectLater(authBloc.stream, emitsInOrder([const AuthInitial()]));
 
       authBloc.add(const AuthLogoutRequested());
 
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(mockRepository.logoutCalled, isTrue);
+      await expectation;
     });
   });
 }

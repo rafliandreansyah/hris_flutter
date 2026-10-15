@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 /// Request payload untuk pembuatan surat peringatan baru ke `POST /warning-letter`.
 class CreateWarningLetterRequest extends Equatable {
@@ -44,13 +45,13 @@ class CreateWarningLetterRequest extends Equatable {
           nameCandidate.isNotEmpty ? nameCandidate : 'attachment.pdf';
       final fileObj = file!.path.isNotEmpty ? File(file!.path) : null;
       if (fileObj != null && fileObj.existsSync()) {
-        map['file'] = await MultipartFile.fromFile(
+        map['file'] = await multipartFromPath(
           file!.path,
           filename: fileName,
         );
       } else {
         final bytes = await file!.readAsBytes();
-        map['file'] = MultipartFile.fromBytes(
+        map['file'] = multipartFromBytes(
           bytes,
           filename: fileName,
         );

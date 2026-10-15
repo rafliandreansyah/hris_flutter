@@ -6,6 +6,7 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_api_models.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_create_models.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 abstract class OvertimeRemoteDataSource {
   /// Mengambil daftar permintaan lembur dari endpoint `GET /overtime`.
@@ -160,7 +161,7 @@ class OvertimeRemoteDataSourceImpl implements OvertimeRemoteDataSource {
     final fileName = file.name.isNotEmpty
         ? file.name
         : file.path.split(RegExp(r'[/\\]')).last;
-    map['file'] = await MultipartFile.fromFile(
+    map['file'] = await multipartFromPath(
       file.path,
       filename: fileName,
     );

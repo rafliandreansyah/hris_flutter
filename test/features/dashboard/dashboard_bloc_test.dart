@@ -136,11 +136,12 @@ void main() {
               .having((s) => s.userProfile?.user.language, 'language', 'en'),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -166,13 +167,14 @@ void main() {
               .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(authRepo.logoutCalled, isTrue);
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -195,13 +197,14 @@ void main() {
               .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(authRepo.logoutCalled, isTrue);
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -227,13 +230,14 @@ void main() {
               .having((s) => s.currentDeviceId, 'currentDeviceId', 'current_phone_abc'),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(authRepo.logoutCalled, isTrue);
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -255,11 +259,12 @@ void main() {
           ),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -309,13 +314,14 @@ void main() {
           isA<DashboardLoaded>(),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested(isRefresh: true));
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(bloc.state, isA<DashboardLoaded>());
         await bloc.close();
+        await expectation;
       },
     );
 
@@ -335,11 +341,12 @@ void main() {
               .having((s) => s.userProfile, 'userProfile', isNull),
         ];
 
-        expectLater(bloc.stream, emitsInOrder(expectedStates));
+        final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
         bloc.add(const DashboardFetchRequested());
         await Future.delayed(const Duration(milliseconds: 100));
         await bloc.close();
+        await expectation;
       },
     );
   });

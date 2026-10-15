@@ -7,6 +7,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
@@ -378,6 +379,64 @@ class _PayrollViewState extends State<_PayrollView>
   ) {
     if (state.isMyLoading && state.mySlips.isEmpty) {
       return const RequestCardShimmerLoading(itemCount: 4);
+    }
+
+    if (state.status == PayrollListStatus.failure && state.mySlips.isEmpty) {
+      final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+      final subtitleCol = isDark
+          ? AppColors.darkOnSurfaceVariant
+          : AppColors.onSurfaceVariant;
+
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.alertCircle,
+                  size: 32,
+                  color: AppColors.errorRed,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Gagal Memuat Slip Gaji',
+                textAlign: TextAlign.center,
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textCol,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                state.errorMessage ?? 'Terjadi kesalahan pada sistem',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: subtitleCol,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                text: 'Coba Lagi',
+                leadingIcon: LucideIcons.rotateCcw,
+                onPressed: () {
+                  context.read<PayrollListBloc>().add(const PayrollListStarted());
+                },
+                width: 140,
+                height: 42,
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (state.mySlips.isEmpty) {

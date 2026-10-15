@@ -98,13 +98,6 @@ class TestAttendanceRepository implements AttendanceRepository {
   }
 
   @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {}
-
-  @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
     int page = 1,
     int size = 20,
@@ -133,10 +126,6 @@ class TestAttendanceRepository implements AttendanceRepository {
     return const [];
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    return AttendanceLogSummary.empty;
-  }
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
@@ -226,7 +215,7 @@ void main() {
       expect(find.text('Metode Presensi: Foto Selfie'), findsOneWidget);
       expect(find.text('Clock In Now'), findsOneWidget);
       expect(find.text('Start Break'), findsNothing);
-      expect(find.text('Report Location Issue'), findsOneWidget);
+      expect(find.text('Report Location Issue'), findsNothing);
     });
 
     testWidgets('attendanceMethod biometric renders biometric button label and badge automatically', (tester) async {
@@ -463,33 +452,6 @@ void main() {
       expect(find.text('Recorded'), findsOneWidget);
     });
 
-    testWidgets('tapping Report Location Issue opens modal bottom sheet', (tester) async {
-      tester.view.physicalSize = const Size(800, 1600);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      final repo = TestAttendanceRepository();
-
-      await tester.pumpWidget(
-        createTestApp(
-          AttendanceScreen(repository: repo, autoStartClock: false),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      await tester.ensureVisible(find.text('Report Location Issue'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Report Location Issue'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Laporkan Kendala Lokasi'), findsOneWidget);
-      expect(find.text('Kirim Laporan'), findsOneWidget);
-    });
 
     testWidgets('tapping Update Lokasi icon in app bar triggers GPS update feedback', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
@@ -659,7 +621,7 @@ void main() {
 
       expect(find.text('Di Luar Radius Kantor'), findsOneWidget);
       expect(find.textContaining('Anda berada di luar radius lokasi kerja'), findsOneWidget);
-      expect(find.text('Laporkan Kendala'), findsOneWidget);
+      expect(find.text('Laporkan Kendala'), findsNothing);
       expect(find.text('Kembali'), findsOneWidget);
 
       await tester.tap(find.text('Kembali').last, warnIfMissed: false);
@@ -939,13 +901,6 @@ class Test404AttendanceRepository implements AttendanceRepository {
   Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
 
   @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {}
-
-  @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
     int page = 1,
     int size = 20,
@@ -961,9 +916,6 @@ class Test404AttendanceRepository implements AttendanceRepository {
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async =>
       throw UnimplementedError();
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async =>
-      throw UnimplementedError();
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async =>

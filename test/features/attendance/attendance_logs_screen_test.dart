@@ -15,7 +15,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_summary_card.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
@@ -79,15 +78,6 @@ class TestLogsRepository implements AttendanceRepository {
     return teamEmployees;
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    return const AttendanceLogSummary(
-      totalInDays: 22,
-      presentPercentage: 100,
-      lateMinutes: 15,
-      lateCount: 0,
-    );
-  }
 
   @override
   Future<AttendanceTodayData> getTodayAttendance() async =>
@@ -124,13 +114,6 @@ class TestLogsRepository implements AttendanceRepository {
   @override
   Future<AttendanceTodayData> toggleBreak() async =>
       throw UnimplementedError();
-
-  @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async => throw UnimplementedError();
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {
@@ -256,17 +239,11 @@ void main() {
       expect(find.byType(ActionChip), findsNothing);
     });
 
-    testWidgets('renders KPI summary cards and log cards on My Attendance', (
+    testWidgets('renders log cards on My Attendance', (
       tester,
     ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
-
-      expect(find.byType(AttendanceLogsSummaryCard), findsOneWidget);
-      expect(find.text('22 Days'), findsOneWidget);
-      expect(find.text('15 Mins'), findsOneWidget);
-      expect(find.text('100% Present'), findsOneWidget);
-      expect(find.text('0 Late records'), findsOneWidget);
 
       expect(find.byType(AttendanceLogCard), findsNWidgets(3));
       expect(find.text('Thursday, 27 Aug 2026'), findsNWidgets(2));

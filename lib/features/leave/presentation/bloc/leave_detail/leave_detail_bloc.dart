@@ -118,6 +118,7 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
         actionMessage: msg,
       ));
     } on ApiException catch (e) {
+      if (e.isAlreadyProcessed) add(const LeaveDetailRefreshRequested());
       emit(state.copyWith(
         status: LeaveDetailStatus.actionFailure,
         errorMessage: e.message,

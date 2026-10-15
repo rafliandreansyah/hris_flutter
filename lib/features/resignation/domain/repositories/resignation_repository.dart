@@ -20,7 +20,6 @@ abstract class ResignationRepository {
 
   Future<void> cancelMyResignation();
 
-  Future<ResignationDetailModel> getResignationDetail(String id);
 
   Future<ResignationInitialFormModel> getInitialFormData();
 

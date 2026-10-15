@@ -4,22 +4,16 @@ import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
-import 'package:hris_flutter/features/attendance/data/models/check_in_request_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 abstract class AttendanceRemoteDataSource {
   Future<Map<String, dynamic>> fetchAttendanceInfo();
   Future<Map<String, dynamic>> fetchDashboardAttendance();
   Future<CreateAttendanceResponse> recordAttendance(CreateAttendanceRequest request);
-  Future<Map<String, dynamic>> checkIn(CheckInRequestModel request);
-  Future<Map<String, dynamic>> checkOut(CheckInRequestModel request);
-  Future<Map<String, dynamic>> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  });
+
   Future<AttendanceLogListResponse> getAttendanceLogs({
     String? employeeId,
     bool lastMonth = false,
@@ -31,7 +25,6 @@ abstract class AttendanceRemoteDataSource {
     String? status,
   });
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees();
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId});
   Future<AttendanceDetailModel> getAttendanceDetail(String id);
   Future<Map<String, dynamic>> setDefaultWorkLocation({
     String? workLocationId,
@@ -81,7 +74,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         final fileName = request.file!.name.isNotEmpty
             ? request.file!.name
             : request.file!.path.split(RegExp(r'[/\\]')).last;
-        map['file'] = await MultipartFile.fromFile(
+        map['file'] = await multipartFromPath(
           request.file!.path,
           filename: fileName,
         );
@@ -104,61 +97,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     }
   }
 
-  @override
-  Future<Map<String, dynamic>> checkIn(CheckInRequestModel request) async {
-    try {
-      final response = await apiClient.post(
-        ApiEndpoints.checkIn,
-        data: request.toJson(),
-      );
-      if (response.data is Map<String, dynamic>) {
-        return response.data as Map<String, dynamic>;
-      }
-      return {};
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    }
-  }
 
-  @override
-  Future<Map<String, dynamic>> checkOut(CheckInRequestModel request) async {
-    try {
-      final response = await apiClient.post(
-        ApiEndpoints.checkOut,
-        data: request.toJson(),
-      );
-      if (response.data is Map<String, dynamic>) {
-        return response.data as Map<String, dynamic>;
-      }
-      return {};
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      final response = await apiClient.post(
-        ApiEndpoints.outsideAttendance,
-        data: {
-          'reason': issueDescription,
-          'latitude': latitude,
-          'longitude': longitude,
-        },
-      );
-      if (response.data is Map<String, dynamic>) {
-        return response.data as Map<String, dynamic>;
-      }
-      return {};
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    }
-  }
 
   @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
@@ -241,29 +180,6 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     }
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    try {
-      final queryParams = <String, dynamic>{};
-      if (employeeId != null && employeeId.trim().isNotEmpty) {
-        queryParams['employeeId'] = employeeId.trim();
-      }
-
-      final response = await apiClient.get(
-        ApiEndpoints.attendanceSummary,
-        queryParameters: queryParams.isNotEmpty ? queryParams : null,
-      );
-
-      final rawData = response.data;
-      if (rawData is Map<String, dynamic>) {
-        return AttendanceLogSummary.fromJson(rawData);
-      }
-
-      return AttendanceLogSummary.empty;
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    }
-  }
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {

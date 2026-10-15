@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 /// Model payload permintaan untuk endpoint Schedule Attendance (`POST /attendances/requests/schedule`).
 class ScheduleAttendanceRequest {
@@ -86,7 +87,7 @@ class ScheduleAttendanceRequest {
         final fileName = fileIn!.name.isNotEmpty
             ? fileIn!.name
             : fileIn!.path.split(RegExp(r'[/\\]')).last;
-        map['fileIn'] = await MultipartFile.fromFile(
+        map['fileIn'] = await multipartFromPath(
           fileIn!.path,
           filename: fileName,
         );
@@ -110,7 +111,7 @@ class ScheduleAttendanceRequest {
         final fileName = fileOut!.name.isNotEmpty
             ? fileOut!.name
             : fileOut!.path.split(RegExp(r'[/\\]')).last;
-        map['fileOut'] = await MultipartFile.fromFile(
+        map['fileOut'] = await multipartFromPath(
           fileOut!.path,
           filename: fileName,
         );
@@ -136,7 +137,7 @@ class ScheduleAttendanceRequest {
       final fileName = fallbackFile.name.isNotEmpty
           ? fallbackFile.name
           : fallbackFile.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         fallbackFile.path,
         filename: fileName,
       );

@@ -61,7 +61,7 @@ void main() {
       expect(data.employeeName, 'Alex Rivera');
       expect(data.employeeRole, 'Senior Product Designer');
       expect(data.employeeId, '8829');
-      expect(data.officeName, 'Jakarta HQ Office');
+      expect(data.officeName, '-');
       expect(data.geofenceRadiusMeters, 50.0);
       expect(data.isInsideGeofence, isTrue);
       expect(data.availableWorkLocations, isEmpty);

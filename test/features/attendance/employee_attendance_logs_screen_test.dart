@@ -17,7 +17,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MockEmployeeLogsRepository implements AttendanceRepository {
   final List<AttendanceLogItem> logs;
-  final AttendanceLogSummary? summary;
   final bool shouldThrow;
   final bool throwOnLastMonthOnly;
   final int? throwStatusCode;
@@ -25,7 +24,6 @@ class MockEmployeeLogsRepository implements AttendanceRepository {
 
   MockEmployeeLogsRepository({
     this.logs = const [],
-    this.summary,
     this.shouldThrow = false,
     this.throwOnLastMonthOnly = false,
     this.throwStatusCode,
@@ -62,22 +60,6 @@ class MockEmployeeLogsRepository implements AttendanceRepository {
     );
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async {
-    if (shouldThrow) {
-      throw ApiException(
-        message: throwMessage ?? 'Error summary',
-        statusCode: throwStatusCode ?? 500,
-      );
-    }
-    return summary ??
-        const AttendanceLogSummary(
-          totalInDays: 20,
-          presentPercentage: 95,
-          lateMinutes: 10,
-          lateCount: 1,
-        );
-  }
 
   @override
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async => [];
@@ -118,13 +100,6 @@ class MockEmployeeLogsRepository implements AttendanceRepository {
 
   @override
   Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
-
-  @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {}
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {

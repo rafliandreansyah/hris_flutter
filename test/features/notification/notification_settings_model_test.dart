@@ -12,6 +12,10 @@ void main() {
       'pushPayroll': false,
       'pushAnnouncement': true,
       'pushWarningLetter': true,
+      'pushReimbursement': false,
+      'pushResignation': true,
+      'pushAsset': false,
+      'pushActivity': true,
       'createdAt': '2026-08-28T14:15:00.000Z',
       'updatedAt': '2026-08-28T14:15:00.000Z',
     };
@@ -27,6 +31,10 @@ void main() {
       expect(model.pushPayroll, isFalse);
       expect(model.pushAnnouncement, isTrue);
       expect(model.pushWarningLetter, isTrue);
+      expect(model.pushReimbursement, isFalse);
+      expect(model.pushResignation, isTrue);
+      expect(model.pushAsset, isFalse);
+      expect(model.pushActivity, isTrue);
       expect(model.createdAt, isNotNull);
       expect(model.updatedAt, isNotNull);
       expect(model.isAllEnabled, isFalse);
@@ -40,24 +48,32 @@ void main() {
       expect(json['pushAttendanceRequest'], isTrue);
       expect(json['pushLeave'], isFalse);
       expect(json['pushPayroll'], isFalse);
+      expect(json['pushReimbursement'], isFalse);
+      expect(json['pushResignation'], isTrue);
+      expect(json['pushAsset'], isFalse);
+      expect(json['pushActivity'], isTrue);
     });
 
-    test('toUpdatePayload returns only the 6 push configuration fields', () {
+    test('toUpdatePayload returns only the 10 push configuration fields', () {
       final model = NotificationSettingsModel.fromJson(jsonSample);
       final payload = model.toUpdatePayload();
 
-      expect(payload.length, 6);
+      expect(payload.length, 10);
       expect(payload['pushAttendanceRequest'], isTrue);
       expect(payload['pushLeave'], isFalse);
       expect(payload['pushOvertime'], isTrue);
       expect(payload['pushPayroll'], isFalse);
       expect(payload['pushAnnouncement'], isTrue);
       expect(payload['pushWarningLetter'], isTrue);
+      expect(payload['pushReimbursement'], isFalse);
+      expect(payload['pushResignation'], isTrue);
+      expect(payload['pushAsset'], isFalse);
+      expect(payload['pushActivity'], isTrue);
       expect(payload.containsKey('id'), isFalse);
       expect(payload.containsKey('createdAt'), isFalse);
     });
 
-    test('toggleAll switches all 6 flags', () {
+    test('toggleAll switches all 10 flags', () {
       const model = NotificationSettingsModel(
         pushAttendanceRequest: false,
         pushLeave: false,
@@ -65,6 +81,10 @@ void main() {
         pushPayroll: false,
         pushAnnouncement: false,
         pushWarningLetter: false,
+        pushReimbursement: false,
+        pushResignation: false,
+        pushAsset: false,
+        pushActivity: false,
       );
       expect(model.isAllEnabled, isFalse);
 
@@ -76,11 +96,19 @@ void main() {
       expect(allOn.pushPayroll, isTrue);
       expect(allOn.pushAnnouncement, isTrue);
       expect(allOn.pushWarningLetter, isTrue);
+      expect(allOn.pushReimbursement, isTrue);
+      expect(allOn.pushResignation, isTrue);
+      expect(allOn.pushAsset, isTrue);
+      expect(allOn.pushActivity, isTrue);
 
       final allOff = allOn.toggleAll(false);
       expect(allOff.isAllEnabled, isFalse);
       expect(allOff.pushAttendanceRequest, isFalse);
       expect(allOff.pushWarningLetter, isFalse);
+      expect(allOff.pushReimbursement, isFalse);
+      expect(allOff.pushResignation, isFalse);
+      expect(allOff.pushAsset, isFalse);
+      expect(allOff.pushActivity, isFalse);
     });
 
     test('copyWith updates individual flags', () {

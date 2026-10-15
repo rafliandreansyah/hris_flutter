@@ -346,23 +346,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      await remoteDataSource.reportLocationIssue(
-        issueDescription: issueDescription,
-        latitude: latitude,
-        longitude: longitude,
-      );
-    } catch (_) {
-      // Silently handled for simulation if backend endpoint is unavailable
-    }
-  }
-
-  @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
     String? employeeId,
     bool lastMonth = false,
@@ -417,10 +400,6 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     return remoteDataSource.getAttendanceEmployees();
   }
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) {
-    return remoteDataSource.getAttendanceSummary(employeeId: employeeId);
-  }
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) {

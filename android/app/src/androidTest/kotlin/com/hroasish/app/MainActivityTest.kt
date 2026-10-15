@@ -19,7 +19,7 @@ class MainActivityTest(private val dartTestName: String) {
     companion object {
         @JvmStatic
         @Parameters(name = "{0}")
-        fun testCases(): List<String> {
+        fun testCases(): Array<out Any?> {
             val instrumentation = InstrumentationRegistry.getInstrumentation() as PatrolJUnitRunner
             instrumentation.setUp(MainActivity::class.java)
             instrumentation.waitForPatrolAppService()

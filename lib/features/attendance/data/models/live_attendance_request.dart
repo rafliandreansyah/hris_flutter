@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 /// Model payload permintaan untuk endpoint Live Attendance (`POST /attendances/requests/live`).
 class LiveAttendanceRequest {
@@ -49,7 +50,7 @@ class LiveAttendanceRequest {
       final fileName = file!.name.isNotEmpty
           ? file!.name
           : file!.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file!.path,
         filename: fileName,
       );

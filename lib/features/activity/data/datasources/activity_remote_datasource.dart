@@ -4,6 +4,7 @@ import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 abstract class ActivityRemoteDataSource {
   /// Mengambil daftar aktivitas kerja dari endpoint `/activity`.
@@ -170,7 +171,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );
@@ -209,7 +210,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );
@@ -275,7 +276,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );
@@ -327,7 +328,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );
@@ -370,7 +371,7 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
       final fileName = file.name.isNotEmpty
           ? file.name
           : file.path.split(RegExp(r'[/\\]')).last;
-      map['file'] = await MultipartFile.fromFile(
+      map['file'] = await multipartFromPath(
         file.path,
         filename: fileName,
       );

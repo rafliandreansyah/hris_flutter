@@ -79,14 +79,6 @@ class MockAttendanceDetailRepository implements AttendanceRepository {
   Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
 
   @override
-  Future<void> reportLocationIssue({
-    required String issueDescription,
-    required double latitude,
-    required double longitude,
-  }) async =>
-      throw UnimplementedError();
-
-  @override
   Future<AttendanceLogListResponse> getAttendanceLogs({
     int page = 1,
     int size = 20,
@@ -103,9 +95,6 @@ class MockAttendanceDetailRepository implements AttendanceRepository {
   Future<List<EmployeeDirectoryItem>> getAttendanceEmployees() async =>
       throw UnimplementedError();
 
-  @override
-  Future<AttendanceLogSummary> getAttendanceSummary({String? employeeId}) async =>
-      throw UnimplementedError();
 
   @override
   Future<String> setDefaultWorkLocation({

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 
 class SubmitResignationRequestModel {
   final String effectiveDate;
@@ -56,7 +57,7 @@ class SubmitResignationRequestModel {
       formData.files.add(
         MapEntry(
           'file',
-          MultipartFile.fromBytes(
+          multipartFromBytes(
             bytes,
             filename: fileName,
           ),

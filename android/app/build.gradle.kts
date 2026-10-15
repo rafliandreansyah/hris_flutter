@@ -32,6 +32,11 @@ android {
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
+    testOptions {
+        // Wajib agar clearPackageData berfungsi (state tidak bocor antar test E2E).
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -53,6 +58,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    androidTestImplementation("androidx.test:runner:1.6.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.5.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
 }

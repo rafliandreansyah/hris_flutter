@@ -211,9 +211,10 @@ void main() {
             s.hasReachedMax == true),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const AssetListStarted());
+      await expectation;
     });
 
     test('AssetListStarted gagal menangani ApiException dengan rapi', () async {
@@ -240,9 +241,10 @@ void main() {
             s.errorMessage == 'Akses ditolak'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const AssetListStarted());
+      await expectation;
     });
 
     test('AssetListLoadMore mengambil halaman berikutnya dan menggabungkan data', () async {

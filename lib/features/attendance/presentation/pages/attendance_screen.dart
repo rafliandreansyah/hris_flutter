@@ -261,115 +261,6 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
     }
   }
 
-  void _showReportLocationDialog(BuildContext context) {
-    final textController = TextEditingController();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final attendanceBloc = context.read<AttendanceBloc>();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: isDark
-          ? AppColors.darkSurfaceContainerLowest
-          : AppColors.surfaceContainerLowest,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return BlocProvider.value(
-          value: attendanceBloc,
-          child: Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 8,
-            bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Laporkan Kendala Lokasi',
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(LucideIcons.x, size: 20),
-                    onPressed: () => Navigator.pop(bottomSheetContext),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Jika GPS Anda mendeteksi di luar radius kantor padahal Anda sudah di lokasi, jelaskan detail kendala di bawah ini:',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.surfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: textController,
-                maxLines: 3,
-                onTapOutside: (event) =>
-                    FocusManager.instance.primaryFocus?.unfocus(),
-                decoration: InputDecoration(
-                  hintText:
-                      'Contoh: GPS melompat atau sinyal di lobi utama lemah...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.outlineMuted),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              BlocBuilder<AttendanceBloc, AttendanceState>(
-                builder: (context, state) {
-                  final isSubmitting =
-                      state is AttendanceLoaded && state.isSubmittingAction;
-                  return AppButton(
-                    text: 'Kirim Laporan',
-                    isLoading: isSubmitting,
-                    onPressed: isSubmitting
-                        ? null
-                        : () {
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            final text = textController.text.trim();
-                            if (text.isNotEmpty) {
-                              final bloc = context.read<AttendanceBloc>();
-                              final currentState = bloc.state;
-                              final lat = currentState is AttendanceLoaded
-                                  ? currentState.userLatitude ?? -6.2253
-                                  : -6.2253;
-                              final lng = currentState is AttendanceLoaded
-                                  ? currentState.userLongitude ?? 106.8097
-                                  : 106.8097;
-
-                              bloc.add(
-                                AttendanceReportIssueSubmitted(
-                                  issueDescription: text,
-                                  latitude: lat,
-                                  longitude: lng,
-                                ),
-                              );
-                              Navigator.pop(bottomSheetContext);
-                            }
-                          },
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  ).whenComplete(() { textController.dispose(); });
-  }
 
   Future<void> _handleClockAction(
     BuildContext context, {
@@ -428,9 +319,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         context,
         title: 'Di Luar Radius Kantor',
         message:
-            'Anda berada di luar radius lokasi kerja (${data.geofenceRadiusMeters.toStringAsFixed(0)}m). Silakan mendekat ke area kantor untuk melakukan presensi, atau laporkan kendala lokasi jika GPS Anda tidak akurat.',
-        retryText: 'Laporkan Kendala',
-        onRetry: () => _showReportLocationDialog(context),
+            'Anda berada di luar radius lokasi kerja (${data.geofenceRadiusMeters.toStringAsFixed(0)}m). Silakan mendekat ke area kantor untuk melakukan presensi.',
         closeText: 'Kembali',
       );
       return;
@@ -1015,8 +904,6 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                               const AttendanceBreakToggled(),
                             );
                           },
-                          onReportIssuePressed: () =>
-                              _showReportLocationDialog(context),
                         ),
                         const SizedBox(height: 24),
                       ]),

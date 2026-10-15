@@ -160,7 +160,7 @@ class QuickAccessGrid extends StatelessWidget {
       if (targetCode == 'mobile_warning_letter' &&
           (mName.contains('peringatan') ||
               mName.contains('warning') ||
-              mName.contains('sp'))) {
+              RegExp(r'\bsp\b').hasMatch(mName))) {
         return true;
       }
       if (targetCode == 'mobile_payroll' &&
@@ -263,7 +263,9 @@ class QuickAccessGrid extends StatelessWidget {
         : AppColors.onSurface;
 
     // Filter menu: hanya tampilkan menu yang ada di respon API
-    final displayMenus = (menus != null && menus!.isNotEmpty)
+    // `menus == null` = belum dimuat/offline (tampilkan default). List kosong dari
+    // API berarti semua menu dicabut, sehingga tidak boleh menampilkan default.
+    final displayMenus = menus != null
         ? _defaultMenus
               .where((item) => isMenuAvailable(item.code, item.title, menus))
               .toList()

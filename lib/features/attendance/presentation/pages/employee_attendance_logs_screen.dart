@@ -8,7 +8,6 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_filter_bottom_sheet.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_summary_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/employee_attendance_header_card.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
@@ -430,19 +429,10 @@ class _EmployeeAttendanceLogsViewState
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        itemCount: state.logs.length + 2,
+        itemCount: state.logs.length + 1,
         itemBuilder: (context, index) {
-          if (index == 0) {
-            if (state.summary == null) {
-              return const SizedBox.shrink();
-            }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: AttendanceLogsSummaryCard(summary: state.summary!),
-            );
-          }
-          if (index <= state.logs.length) {
-            return AttendanceLogCard(log: state.logs[index - 1]);
+          if (index < state.logs.length) {
+            return AttendanceLogCard(log: state.logs[index]);
           }
           if (state.isLoadingMore) {
             return Padding(

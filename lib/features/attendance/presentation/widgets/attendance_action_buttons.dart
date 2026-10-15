@@ -11,7 +11,6 @@ class AttendanceActionButtons extends StatelessWidget {
   final bool isLoading;
   final VoidCallback? onClockPressed;
   final VoidCallback? onBreakPressed;
-  final VoidCallback? onReportIssuePressed;
 
   /// Apakah user memiliki lokasi kerja yang ditentukan.
   final bool hasWorkLocation;
@@ -37,7 +36,6 @@ class AttendanceActionButtons extends StatelessWidget {
     this.onClockPressed,
     this.onClockWithMethodPressed,
     this.onBreakPressed,
-    this.onReportIssuePressed,
     this.hasWorkLocation = true,
     this.breakOutTime,
     this.attendanceMethod = 'photo',
@@ -325,26 +323,6 @@ class AttendanceActionButtons extends StatelessWidget {
         ],
 
         // 3. Report Location Issue Button
-        if (onReportIssuePressed != null && !isAttendanceCompleted) ...[
-          const SizedBox(height: 8),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor:
-                  isDark ? AppColors.inversePrimary : AppColors.brandTeal,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: const StadiumBorder(),
-            ),
-            onPressed: onReportIssuePressed,
-            child: Text(
-              'Report Location Issue',
-              style: AppTypography.labelMedium.copyWith(
-                color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }

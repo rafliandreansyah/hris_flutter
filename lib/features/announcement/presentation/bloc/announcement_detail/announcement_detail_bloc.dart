@@ -40,6 +40,7 @@ class AnnouncementDetailBloc
       emit(state.copyWith(
         status: AnnouncementDetailStatus.failure,
         errorMessage: e.message,
+        errorStatusCode: e.statusCode,
       ));
     } catch (e) {
       emit(state.copyWith(

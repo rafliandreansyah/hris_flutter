@@ -118,6 +118,7 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
         actionMessage: msg,
       ));
     } on ApiException catch (e) {
+      if (e.isAlreadyProcessed) add(const OvertimeDetailRefreshRequested());
       emit(state.copyWith(
         status: OvertimeDetailStatus.actionFailure,
         errorMessage: e.message,

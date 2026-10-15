@@ -119,6 +119,7 @@ class AttendanceRequestDetailBloc
         actionMessage: msg,
       ));
     } on ApiException catch (e) {
+      if (e.isAlreadyProcessed) add(const AttendanceRequestDetailRefreshRequested());
       emit(state.copyWith(
         status: AttendanceRequestDetailStatus.actionFailure,
         errorMessage: e.message,

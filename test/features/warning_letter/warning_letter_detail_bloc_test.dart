@@ -122,9 +122,10 @@ void main() {
         WarningLetterDetailLoaded(sampleDetail),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expected));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expected));
 
       bloc.add(const FetchWarningLetterDetail('wl-101'));
+      await expectation;
     });
 
     test('FetchWarningLetterDetail emits loading and error on ApiException',
@@ -142,9 +143,10 @@ void main() {
         ),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expected));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expected));
 
       bloc.add(const FetchWarningLetterDetail('wl-nonexistent'));
+      await expectation;
     });
 
     test('FetchWarningLetterDetail emits loading and error on generic Exception',
@@ -159,9 +161,10 @@ void main() {
         }),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expected));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expected));
 
       bloc.add(const FetchWarningLetterDetail('wl-101'));
+      await expectation;
     });
 
     test('RefreshWarningLetterDetail refetches and updates loaded state',
@@ -189,12 +192,13 @@ void main() {
       );
       repository.detailToReturn = updatedDetail;
 
-      expectLater(
+      final expectation = expectLater(
         bloc.stream,
         emits(WarningLetterDetailLoaded(updatedDetail)),
       );
 
       bloc.add(const RefreshWarningLetterDetail());
+      await expectation;
     });
   });
 }

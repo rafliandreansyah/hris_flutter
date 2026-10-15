@@ -197,16 +197,6 @@ class _AssetDetailView extends StatelessWidget {
     Color textCol,
     Color subtitleCol,
   ) {
-    if (state.status == AssetDetailStatus.loading && state.asset == null) {
-      return ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        itemCount: 3,
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: AppSpacing.md),
-        itemBuilder: (context, index) => const RequestCardShimmerLoading(),
-      );
-    }
-
     if (state.status == AssetDetailStatus.failure && state.asset == null) {
       return Center(
         child: Padding(
@@ -245,19 +235,35 @@ class _AssetDetailView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                text: 'Coba Lagi',
-                leadingIcon: LucideIcons.rotateCcw,
-                onPressed: () {
-                  context.read<AssetDetailBloc>().add(const AssetDetailRefreshed());
-                },
-                width: 140,
-                height: 42,
-              ),
+              if (state.errorStatusCode == 404)
+                AppButton(
+                  text: 'Kembali',
+                  leadingIcon: LucideIcons.arrowLeft,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  width: 140,
+                  height: 42,
+                )
+              else
+                AppButton(
+                  text: 'Coba Lagi',
+                  leadingIcon: LucideIcons.rotateCcw,
+                  onPressed: () {
+                    context.read<AssetDetailBloc>().add(const AssetDetailRefreshed());
+                  },
+                  width: 140,
+                  height: 42,
+                ),
             ],
           ),
         ),
       );
+    }
+
+    if (state.asset == null) {
+      if (state.status == AssetDetailStatus.success) {
+        return const Center(child: Text('Data aset tidak tersedia'));
+      }
+      return const RequestCardShimmerLoading(itemCount: 3);
     }
 
     final asset = state.asset!;

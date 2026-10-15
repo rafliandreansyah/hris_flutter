@@ -118,7 +118,7 @@ void main() {
         ),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const LocaleChanged('en'));
       await Future.delayed(const Duration(milliseconds: 50));
@@ -126,6 +126,7 @@ void main() {
       expect(mockStorage.savedLang, 'en');
       expect(mockAuthRepo.currentLang, 'en');
       bloc.close();
+      await expectation;
     });
 
     test('LocaleChanged emits error on API failure', () async {
@@ -150,13 +151,14 @@ void main() {
         ),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const LocaleChanged('en'));
       await Future.delayed(const Duration(milliseconds: 50));
 
       expect(mockStorage.savedLang, null);
       bloc.close();
+      await expectation;
     });
 
     test('LocaleChanged ignores unsupported language code', () async {

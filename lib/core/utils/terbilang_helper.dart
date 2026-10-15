@@ -5,14 +5,16 @@
 /// - `250000` -> `"Dua Ratus Lima Puluh Ribu Rupiah"`
 String angkaKeTerbilang(num number) {
   final n = number.toInt();
-  if (n <= 0) return 'Nol Rupiah';
+  if (n == 0) return 'Nol Rupiah';
+  if (n < 0) return 'Minus ${angkaKeTerbilang(-n)}';
 
   final hasil = _bilang(n).trim();
-  // Kapitalisasi huruf pertama setiap kata
-  final kata = hasil.split(' ').map((k) {
-    if (k.isEmpty) return '';
-    return k[0].toUpperCase() + k.substring(1).toLowerCase();
-  }).join(' ');
+  // Kapitalisasi huruf pertama setiap kata dan bersihkan spasi berlebih
+  final kata = hasil
+      .split(RegExp(r'\s+'))
+      .where((k) => k.isNotEmpty)
+      .map((k) => k[0].toUpperCase() + k.substring(1).toLowerCase())
+      .join(' ');
 
   return '$kata Rupiah';
 }

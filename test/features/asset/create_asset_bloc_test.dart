@@ -118,8 +118,9 @@ void main() {
             s.categories.first.name == 'Laptop'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
       bloc.add(const CreateAssetStarted());
+      await expectation;
     });
 
     test('CreateAssetStarted gagal memuat kategori dan menyimpan pesan error', () async {
@@ -133,8 +134,9 @@ void main() {
             s.errorMessage == 'Gagal memuat master kategori'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
       bloc.add(const CreateAssetStarted());
+      await expectation;
     });
 
     test('CreateAssetSubmitted berhasil mendaftarkan aset baru', () async {
@@ -148,7 +150,7 @@ void main() {
             s.successMessage == 'Unit aset baru berhasil didaftarkan.'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const CreateAssetSubmitted(
         CreateAssetPayload(
@@ -162,6 +164,7 @@ void main() {
       await pumpEventQueue();
       expect(repository.lastCreatedPayload?.assetCode, 'AST-009');
       expect(repository.lastCreatedPayload?.name, 'MacBook Air M2');
+      await expectation;
     });
 
     test('CreateAssetSubmitted gagal menangani error kode duplikat dari server', () async {
@@ -176,7 +179,7 @@ void main() {
             s.errorMessage == 'Kode aset sudah digunakan'),
       ];
 
-      expectLater(bloc.stream, emitsInOrder(expectedStates));
+      final expectation = expectLater(bloc.stream, emitsInOrder(expectedStates));
 
       bloc.add(const CreateAssetSubmitted(
         CreateAssetPayload(
@@ -186,6 +189,7 @@ void main() {
           condition: 'NEW',
         ),
       ));
+      await expectation;
     });
   });
 }

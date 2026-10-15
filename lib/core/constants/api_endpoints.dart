@@ -28,7 +28,6 @@ abstract class ApiEndpoints {
   static const String auth = '/auth';
   static const String login = '/auth/login';
   static const String logout = '/auth/logout';
-  static const String refreshToken = '/auth/refresh';
   static const String me = '/auth/me';
   static const String resetPassword = '/auth/reset-password';
   static const String authMenus = '/auth/menus';
@@ -61,11 +60,7 @@ abstract class ApiEndpoints {
   static const String attendances = '/attendances';
   static const String attendancesEmployees = '/attendances/employees';
   static const String employeeAttendanceInfo = '/employee/attendance/info';
-  static const String checkIn = '/attendance/check-in';
-  static const String checkOut = '/attendance/check-out';
   static const String attendanceLogs = '/attendances';
-  static const String attendanceSummary = '/attendance/summary';
-  static const String outsideAttendance = '/attendance/outside';
   static const String attendanceRequests = '/attendances/requests';
   static const String attendanceLiveRequest = '/attendances/requests/live';
   static const String attendanceScheduleRequest = '/attendances/requests/schedule';
@@ -170,7 +165,6 @@ abstract class ApiEndpoints {
   static const String myResignationStatus = '/resignations/my-status';
   static const String resignationInitialForm = '/resignations/initial-form';
   static const String subordinateResignations = '/resignations/subordinates';
-  static String resignationDetail(String id) => '/resignations/$id';
   static String resignationClearance(String id) => '/resignations/$id/clearance';
 
   // ==========================================

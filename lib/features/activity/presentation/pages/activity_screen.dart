@@ -1347,6 +1347,14 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           },
         );
       },
-    ).whenComplete(() { titleController.dispose(); descController.dispose(); locationController.dispose(); });
+    ).whenComplete(() {
+      // Tunda dispose sampai animasi tutup bottom sheet selesai agar
+      // controller tidak dipakai setelah di-dispose.
+      Future<void>.delayed(const Duration(milliseconds: 400), () {
+        titleController.dispose();
+        descController.dispose();
+        locationController.dispose();
+      });
+    });
   }
 }

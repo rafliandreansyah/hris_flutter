@@ -5,7 +5,7 @@ void main() {
   test('whatsappUrl memakai nomor dan pesan yang sudah di-encode', () {
     final url = AppContacts.whatsappUrl;
     expect(url, contains('phone=${AppContacts.whatsappNumber}'));
-    expect(url, contains('text=Halo%20Tim%20Oasish'));
+    expect(url, contains('text=Halo+Tim+Oasish'));
     expect(url, isNot(contains(' ')));
   });
 

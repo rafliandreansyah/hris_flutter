@@ -8,6 +8,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
@@ -420,6 +421,58 @@ class _PayrollEmployeeSlipsViewState extends State<_PayrollEmployeeSlipsView> {
     if (state.status == PayrollEmployeeSlipsStatus.loading &&
         state.slips.isEmpty) {
       return const RequestCardShimmerLoading(itemCount: 4);
+    }
+
+    if (state.status == PayrollEmployeeSlipsStatus.failure &&
+        state.slips.isEmpty) {
+      final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+      final subtitleCol = isDark
+          ? AppColors.darkOnSurfaceVariant
+          : AppColors.onSurfaceVariant;
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                LucideIcons.alertCircle,
+                size: 48,
+                color: AppColors.errorRed,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Gagal Memuat Slip Gaji',
+                textAlign: TextAlign.center,
+                style: AppTypography.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textCol,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                state.errorMessage ?? 'Terjadi kesalahan pada sistem',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySmall.copyWith(
+                  color: subtitleCol,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                text: 'Coba Lagi',
+                leadingIcon: LucideIcons.rotateCcw,
+                onPressed: () {
+                  context
+                      .read<PayrollEmployeeSlipsBloc>()
+                      .add(const PayrollEmployeeSlipsRefreshed());
+                },
+                width: 140,
+                height: 42,
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (state.slips.isEmpty) {

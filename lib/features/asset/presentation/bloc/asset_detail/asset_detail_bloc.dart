@@ -59,6 +59,7 @@ class AssetDetailBloc extends Bloc<AssetDetailEvent, AssetDetailState> {
       emit(state.copyWith(
         status: AssetDetailStatus.failure,
         errorMessage: e.message,
+        errorStatusCode: e.statusCode,
         canHandover: canHandover,
         canCreate: canCreate,
         currentEmployeeId: employeeId,

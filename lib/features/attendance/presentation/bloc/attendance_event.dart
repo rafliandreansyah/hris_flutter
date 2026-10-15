@@ -126,18 +126,3 @@ class AttendanceBreakToggled extends AttendanceEvent {
   const AttendanceBreakToggled();
 }
 
-class AttendanceReportIssueSubmitted extends AttendanceEvent {
-  final String issueDescription;
-  final double latitude;
-  final double longitude;
-
-  const AttendanceReportIssueSubmitted({
-    required this.issueDescription,
-    required this.latitude,
-    required this.longitude,
-  });
-
-  @override
-  List<Object?> get props => [issueDescription, latitude, longitude];
-}
-

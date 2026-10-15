@@ -122,7 +122,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Skor Liveness: ${((detail.livenessScore ?? 1.0) * 100).toStringAsFixed(1)}% • Kemiripan: ${((detail.similarityScore ?? 1.0) * 100).toStringAsFixed(1)}%',
+                      'Skor Liveness: ${_formatScore(detail.livenessScore)} • Kemiripan: ${_formatScore(detail.similarityScore)}',
                       style: AppTypography.bodySmall.copyWith(
                         fontSize: 11,
                         color: AppColors.brandTeal,
@@ -211,3 +211,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
     );
   }
 }
+
+/// Skor null (mis. tidak dihitung server) ditampilkan "-", bukan 100%.
+String _formatScore(double? value) =>
+    value == null ? '-' : '${(value * 100).toStringAsFixed(1)}%';

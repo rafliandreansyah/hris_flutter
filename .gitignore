@@ -124,3 +124,6 @@ migrate_working_dir/
 **/fastlane/test_output/
 # OpenCode config (contains API keys)
 .opencode/
+
+# Patrol generated bundle (jangan di-commit)
+patrol_test/test_bundle.dart

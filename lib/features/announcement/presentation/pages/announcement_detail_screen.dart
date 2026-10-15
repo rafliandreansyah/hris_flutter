@@ -262,18 +262,28 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              AppButton(
-                text: 'Coba Lagi',
-                variant: AppButtonVariant.primary,
-                width: 160,
-                height: 44,
-                leadingIcon: LucideIcons.refreshCw,
-                onPressed: () {
-                  context.read<AnnouncementDetailBloc>().add(
-                        AnnouncementDetailStarted(widget.id),
-                      );
-                },
-              ),
+              if (state.errorStatusCode == 404)
+                AppButton(
+                  text: 'Kembali',
+                  variant: AppButtonVariant.primary,
+                  width: 160,
+                  height: 44,
+                  leadingIcon: LucideIcons.arrowLeft,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                )
+              else
+                AppButton(
+                  text: 'Coba Lagi',
+                  variant: AppButtonVariant.primary,
+                  width: 160,
+                  height: 44,
+                  leadingIcon: LucideIcons.refreshCw,
+                  onPressed: () {
+                    context.read<AnnouncementDetailBloc>().add(
+                          AnnouncementDetailStarted(widget.id),
+                        );
+                  },
+                ),
             ],
           ),
         ),

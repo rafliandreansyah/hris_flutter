@@ -13,6 +13,7 @@ import 'package:hris_flutter/features/reimbursement/presentation/bloc/create_rei
 import 'package:hris_flutter/features/reimbursement/presentation/models/expense_item_view_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/beneficiary_account_card.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/cash_advance_picker_sheet.dart';
+import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -168,10 +169,12 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
       );
       if (picked == null) return;
 
-      final length = await picked.length();
+      // Kompres ke JPEG: format HEIC/WebP dari galeri ditolak server (validasi magic bytes)
+      final compressed = (await ImageCompressUtil.compressXFile(picked)).file;
+      final length = await compressed.length();
       if (!mounted) return;
       setState(() {
-        _itemsData[index].receiptFile = picked;
+        _itemsData[index].receiptFile = compressed;
         _itemsData[index].fileSizeBytes = length;
       });
     } catch (e) {

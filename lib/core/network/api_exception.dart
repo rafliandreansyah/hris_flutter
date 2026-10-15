@@ -20,6 +20,10 @@ class ApiException implements Exception {
     this.code,
   });
 
+  /// True bila server menolak aksi karena data sudah diproses pengguna lain (HTTP 409 / code ALREADY_PROCESSED).
+  /// Pemanggil sebaiknya menampilkan pesan lalu memuat ulang detail.
+  bool get isAlreadyProcessed => statusCode == 409 || code == 'ALREADY_PROCESSED';
+
   /// Factory untuk memetakan DioException ke ApiException dengan pesan yang ramah pengguna.
   factory ApiException.fromDioException(DioException error) {
     switch (error.type) {
