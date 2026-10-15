@@ -257,13 +257,13 @@ class _ScheduleLocationPickerModalState
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final tealBrand =
-        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     final sheetHeight = MediaQuery.of(context).size.height * 0.86;
 
@@ -549,7 +549,7 @@ class _ScheduleLocationPickerModalState
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkSurfaceContainerLow
-                        : const AppColors.backgroundSubtle,
+                        : AppColors.backgroundSubtle,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _hasMovedPin
@@ -566,7 +566,7 @@ class _ScheduleLocationPickerModalState
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
                           color: (_hasMovedPin
-                                  ? const AppColors.warning
+                                  ? AppColors.warning
                                   : tealBrand)
                               .withValues(alpha: 0.12),
                           shape: BoxShape.circle,
@@ -729,7 +729,7 @@ class _ScheduleLocationPickerModalState
 
   Widget _buildFallbackMap(bool isDark, Color textCol, Color subtitleCol) {
     return Container(
-      color: isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
+      color: isDark ? AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

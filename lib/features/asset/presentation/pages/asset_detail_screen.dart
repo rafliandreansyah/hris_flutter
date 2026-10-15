@@ -55,7 +55,7 @@ class _AssetDetailView extends StatelessWidget {
           'Apakah Anda yakin ingin menerima fasilitas "${state.asset!.name}"? Fasilitas ini akan menjadi tanggung jawab fisik Anda.',
       confirmText: 'Terima Aset',
       confirmIcon: LucideIcons.check,
-      confirmButtonColor: const AppColors.brandTeal,
+      confirmButtonColor: AppColors.brandTeal,
     );
 
     if (confirmed && context.mounted) {

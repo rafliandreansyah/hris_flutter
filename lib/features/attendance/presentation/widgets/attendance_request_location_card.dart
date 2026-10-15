@@ -45,14 +45,14 @@ class _AttendanceRequestLocationCardState
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final primaryContainerCol = isDark
         ? AppColors.primaryContainer.withValues(alpha: 0.15)
-        : const AppColors.primaryContainer;
+        : AppColors.primaryContainer;
     final brandTealCol =
         isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
@@ -333,15 +333,15 @@ class _AttendanceRequestLocationCardState
           color: isSelected
               ? (isDark
                   ? AppColors.primaryContainer.withValues(alpha: 0.25)
-                  : const AppColors.primaryContainer)
+                  : AppColors.primaryContainer)
               : (isDark
                   ? AppColors.darkSurfaceContainerLow
-                  : const AppColors.backgroundSubtle),
+                  : AppColors.backgroundSubtle),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? brandTealCol
-                : (isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground),
+                : (isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground),
             width: isSelected ? 1.2 : 1,
           ),
         ),

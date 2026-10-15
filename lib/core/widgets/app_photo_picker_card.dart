@@ -389,7 +389,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.brandTeal.withValues(alpha: 0.08)
-                  : const AppColors.primaryContainer,
+                  : AppColors.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -414,7 +414,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
                 Text(
                   widget.uploadPlaceholderSubtitle,
                   style: TextStyle(
-                    color: isDark ? Colors.white60 : const AppColors.surfaceVariant,
+                    color: isDark ? Colors.white60 : AppColors.surfaceVariant,
                     fontSize: 11,
                   ),
                 ),

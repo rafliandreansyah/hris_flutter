@@ -53,7 +53,7 @@ class LiveTrackingSummaryBar extends StatelessWidget {
             context,
             label: 'Presensi',
             count: summary.attendanceCount,
-            color: const AppColors.success, // Emerald Green
+            color: AppColors.success, // Emerald Green
             icon: LucideIcons.fingerprint,
           ),
           _buildDivider(isDark),

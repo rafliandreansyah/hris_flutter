@@ -26,9 +26,9 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
 
     final hasInImage =
         detail.filePath != null && detail.filePath!.trim().isNotEmpty;
@@ -110,7 +110,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.brandTeal.withValues(alpha: 0.1)
-                    : const AppColors.primaryContainer,
+                    : AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: AppColors.brandTeal.withValues(alpha: 0.2),
@@ -181,7 +181,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.darkSurfaceContainerLow
-                    : const AppColors.backgroundSubtle,
+                    : AppColors.backgroundSubtle,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: borderCol.withValues(alpha: 0.6),

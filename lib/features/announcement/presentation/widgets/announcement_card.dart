@@ -282,7 +282,7 @@ class AnnouncementCard extends StatelessWidget {
         showDot = true;
         break;
       case 'high':
-        bg = const AppColors.warningContainer;
+        bg = AppColors.warningContainer;
         fg = const Color(0xFFB45309);
         label = 'Tinggi';
         showDot = true;
@@ -290,7 +290,7 @@ class AnnouncementCard extends StatelessWidget {
       case 'medium':
         bg = isDark
             ? AppColors.darkSurfaceContainer
-            : const AppColors.darkOnBackground;
+            : AppColors.darkOnBackground;
         fg = isDark
             ? AppColors.darkOnSurface
             : AppColors.onSurfaceVariant;
@@ -300,10 +300,10 @@ class AnnouncementCard extends StatelessWidget {
       default:
         bg = isDark
             ? AppColors.darkSurfaceContainerLow
-            : const AppColors.backgroundSubtle;
+            : AppColors.backgroundSubtle;
         fg = isDark
             ? AppColors.darkOnSurfaceVariant
-            : const AppColors.surfaceVariant;
+            : AppColors.surfaceVariant;
         label = 'Rendah';
         break;
     }
@@ -359,10 +359,10 @@ class AnnouncementCard extends StatelessWidget {
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: isDark
               ? AppColors.darkSurfaceContainer
-              : const AppColors.darkOnBackground,
+              : AppColors.darkOnBackground,
           highlightColor: isDark
               ? AppColors.darkSurfaceContainerHigh
-              : const AppColors.backgroundSubtle,
+              : AppColors.backgroundSubtle,
           child: Container(
             color: Colors.white,
             width: double.infinity,
@@ -425,10 +425,10 @@ class AnnouncementCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
-        color: const AppColors.warningContainer,
+        color: AppColors.warningContainer,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: const AppColors.warning.withValues(alpha: 0.4),
+          color: AppColors.warning.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -444,7 +444,7 @@ class AnnouncementCard extends StatelessWidget {
           Text(
             'Perlu Konfirmasi',
             style: AppTypography.labelSmall.copyWith(
-              color: const AppColors.onWarningContainer,
+              color: AppColors.onWarningContainer,
               fontWeight: FontWeight.w700,
               fontSize: 11,
             ),

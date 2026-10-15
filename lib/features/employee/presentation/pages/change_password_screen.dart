@@ -266,12 +266,12 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.brandTeal.withValues(alpha: 0.12)
-            : const AppColors.primaryContainer,
+            : AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
               ? AppColors.brandTeal.withValues(alpha: 0.3)
-              : const AppColors.accentTealLight,
+              : AppColors.accentTealLight,
         ),
       ),
       child: Row(
@@ -290,7 +290,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                 Text(
                   'Tips Keamanan Akun',
                   style: AppTypography.titleSmall.copyWith(
-                    color: const AppColors.brandTeal,
+                    color: AppColors.brandTeal,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
@@ -301,7 +301,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark
                         ? AppColors.darkOnSurfaceVariant
-                        : const AppColors.onPrimaryContainer,
+                        : AppColors.onPrimaryContainer,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -363,7 +363,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
               child: Text(
                 'Lupa Password?',
                 style: AppTypography.labelMedium.copyWith(
-                  color: const AppColors.brandTeal,
+                  color: AppColors.brandTeal,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -492,10 +492,10 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           isMet ? LucideIcons.circleCheck : LucideIcons.circle,
           size: 18,
           color: isMet
-              ? const AppColors.success
+              ? AppColors.success
               : (isDark
                   ? AppColors.darkOutlineVariant
-                  : const AppColors.darkOnSurfaceVariant),
+                  : AppColors.darkOnSurfaceVariant),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(

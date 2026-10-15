@@ -29,10 +29,10 @@ class LeaveDetailOverviewCard extends StatelessWidget {
     } else if (detail.isRejected) {
       bg = const Color(0xFFFEE2E2); // Red 100
       text = const Color(0xFF991B1B); // Red 800
-      dot = const AppColors.errorRed; // Red 500
+      dot = AppColors.errorRed; // Red 500
       label = 'Rejected';
     } else {
-      bg = const AppColors.warningContainer; // Amber 100
+      bg = AppColors.warningContainer; // Amber 100
       text = const Color(0xFFD97706); // Amber 600
       dot = const Color(0xFFD97706);
       label = 'Pending Approval';
@@ -113,15 +113,15 @@ class LeaveDetailOverviewCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF004D44)
-                      : const AppColors.accentTealLight,
+                      : AppColors.accentTealLight,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
                   leaveTypeName,
                   style: TextStyle(
                     color: isDark
-                        ? const AppColors.secondaryContainer
-                        : const AppColors.primaryHover,
+                        ? AppColors.secondaryContainer
+                        : AppColors.primaryHover,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -163,14 +163,14 @@ class LeaveDetailOverviewCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4.5),
             decoration: BoxDecoration(
               color: isDark
-                  ? const AppColors.darkSurfaceBright
-                  : const AppColors.surfaceContainer,
+                  ? AppColors.darkSurfaceBright
+                  : AppColors.surfaceContainer,
               borderRadius: BorderRadius.circular(100),
             ),
             child: Text(
               detail.durationLabel,
               style: TextStyle(
-                color: isDark ? const AppColors.darkOnSurfaceVariant : const AppColors.darkSurfaceContainerHigh,
+                color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.darkSurfaceContainerHigh,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),

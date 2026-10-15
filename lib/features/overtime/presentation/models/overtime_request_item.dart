@@ -41,7 +41,7 @@ extension OvertimeStatusExtension on OvertimeStatus {
     switch (this) {
       case OvertimeStatus.pending:
       case OvertimeStatus.requested:
-        return const AppColors.warningContainer; // Amber 100
+        return AppColors.warningContainer; // Amber 100
       case OvertimeStatus.approved:
         return const Color(0xFFDCFCE7); // Green 100
       case OvertimeStatus.rejected:
@@ -54,11 +54,11 @@ extension OvertimeStatusExtension on OvertimeStatus {
     switch (this) {
       case OvertimeStatus.pending:
       case OvertimeStatus.requested:
-        return const AppColors.warning;
+        return AppColors.warning;
       case OvertimeStatus.approved:
         return const Color(0xFF16A34A);
       case OvertimeStatus.rejected:
-        return const AppColors.errorRed;
+        return AppColors.errorRed;
     }
   }
 }

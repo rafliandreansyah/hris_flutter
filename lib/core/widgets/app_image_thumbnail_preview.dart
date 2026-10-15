@@ -163,7 +163,7 @@ class AppImageThumbnailPreview extends StatelessWidget {
                   ),
                   child: Icon(
                     centerIcon,
-                    color: const AppColors.onBackground,
+                    color: AppColors.onBackground,
                     size: centerIconSize,
                   ),
                 ),

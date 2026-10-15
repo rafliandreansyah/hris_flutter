@@ -45,11 +45,11 @@ extension AttendanceRequestStatusExtension on AttendanceRequestStatus {
   Color get dotColor {
     switch (this) {
       case AttendanceRequestStatus.requested:
-        return const AppColors.warning;
+        return AppColors.warning;
       case AttendanceRequestStatus.approved:
         return const Color(0xFF059669);
       case AttendanceRequestStatus.rejected:
-        return const AppColors.errorRed;
+        return AppColors.errorRed;
     }
   }
 }

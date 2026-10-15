@@ -161,10 +161,10 @@ class SubordinateResignationCard extends StatelessWidget {
                   color: item.isEarlyNotice
                       ? (isDark
                           ? const Color(0xFF78350F)
-                          : const AppColors.warningContainer)
+                          : AppColors.warningContainer)
                       : (isDark
                           ? const Color(0xFF134E4A)
-                          : const AppColors.accentTealLight),
+                          : AppColors.accentTealLight),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -180,7 +180,7 @@ class SubordinateResignationCard extends StatelessWidget {
                             : const Color(0xFFD97706))
                         : (isDark
                             ? const Color(0xFF5EEAD4)
-                            : const AppColors.primaryHover),
+                            : AppColors.primaryHover),
                   ),
                 ),
               ),
@@ -196,7 +196,7 @@ class SubordinateResignationCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.darkSurfaceContainer
-                    : const AppColors.backgroundSubtle,
+                    : AppColors.backgroundSubtle,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -283,14 +283,14 @@ class SubordinateResignationCard extends StatelessWidget {
       case 'submitted':
         return (
           'Menunggu 1-on-1',
-          isDark ? const Color(0xFF78350F) : const AppColors.warningContainer,
+          isDark ? const Color(0xFF78350F) : AppColors.warningContainer,
           isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
         );
       case 'manager_approved':
         return (
           'Disetujui Manajer',
-          isDark ? const Color(0xFF134E4A) : const AppColors.accentTealLight,
-          isDark ? const Color(0xFF5EEAD4) : const AppColors.primaryHover,
+          isDark ? const Color(0xFF134E4A) : AppColors.accentTealLight,
+          isDark ? const Color(0xFF5EEAD4) : AppColors.primaryHover,
         );
       case 'hr_approved':
       case 'in_clearance':

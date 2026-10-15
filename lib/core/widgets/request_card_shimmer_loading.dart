@@ -20,10 +20,10 @@ class RequestCardShimmerLoading extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const AppColors.darkOnBackground;
+        : AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const AppColors.backgroundSubtle;
+        : AppColors.backgroundSubtle;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -112,12 +112,12 @@ class RequestCardShimmerLoading extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkSurfaceContainerLow
-                      : const AppColors.backgroundSubtle,
+                      : AppColors.backgroundSubtle,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark
                         ? AppColors.darkOutlineMuted.withValues(alpha: 0.5)
-                        : const AppColors.darkOnBackground,
+                        : AppColors.darkOnBackground,
                   ),
                 ),
                 child: Column(

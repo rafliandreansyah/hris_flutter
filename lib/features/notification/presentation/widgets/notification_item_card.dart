@@ -97,7 +97,7 @@ class NotificationItemCard extends StatelessWidget {
       case 'reimbursement_approval':
         return const Color(0xFF2563EB); // Blue
       case 'cash_advance':
-        return const AppColors.brandTeal; // Teal
+        return AppColors.brandTeal; // Teal
       case 'asset_handover':
       case 'asset_transfer':
       case 'asset_approved':
@@ -108,7 +108,7 @@ class NotificationItemCard extends StatelessWidget {
       case 'resignation_approval':
         return const Color(0xFFE11D48); // Rose
       case 'payroll':
-        return const AppColors.success; // Emerald
+        return AppColors.success; // Emerald
       default:
         return AppColors.brandTeal;
     }

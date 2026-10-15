@@ -614,9 +614,9 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
           setState(() => _condition = value);
         }
       },
-      selectedColor: const AppColors.accentTealLight,
+      selectedColor: AppColors.accentTealLight,
       labelStyle: AppTypography.labelSmall.copyWith(
-        color: isSelected ? const AppColors.primaryHover : null,
+        color: isSelected ? AppColors.primaryHover : null,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
       ),
     );

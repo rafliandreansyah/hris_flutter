@@ -267,7 +267,7 @@ class AssetListItem extends Equatable {
   Color get statusBadgeBgColor {
     switch (status.toUpperCase()) {
       case 'PENDING_ACCEPTANCE':
-        return const AppColors.warningContainer; // Amber 100
+        return AppColors.warningContainer; // Amber 100
       case 'ACTIVE':
         return const Color(0xFFECFDF5); // Emerald 50
       case 'RETURNED':
@@ -285,17 +285,17 @@ class AssetListItem extends Equatable {
   Color get statusBadgeTextColor {
     switch (status.toUpperCase()) {
       case 'PENDING_ACCEPTANCE':
-        return const AppColors.onWarningContainer; // Amber 800
+        return AppColors.onWarningContainer; // Amber 800
       case 'ACTIVE':
         return const Color(0xFF047857); // Emerald 700
       case 'RETURNED':
-        return const AppColors.darkSurfaceContainerHighest; // Slate 600
+        return AppColors.darkSurfaceContainerHighest; // Slate 600
       case 'REJECTED':
         return const Color(0xFFB91C1C); // Red 700
       case 'AVAILABLE':
         return const Color(0xFF1D4ED8); // Blue 700
       default:
-        return const AppColors.darkSurfaceContainerHighest;
+        return AppColors.darkSurfaceContainerHighest;
     }
   }
 
@@ -406,7 +406,7 @@ class AssetListItem extends Equatable {
       case 'GOOD':
         return const Color(0xFFDCFCE7);
       case 'FAIR':
-        return const AppColors.warningContainer;
+        return AppColors.warningContainer;
       case 'DAMAGED':
         return const Color(0xFFFEE2E2);
       default:
@@ -422,11 +422,11 @@ class AssetListItem extends Equatable {
       case 'GOOD':
         return const Color(0xFF166534);
       case 'FAIR':
-        return const AppColors.onWarningContainer;
+        return AppColors.onWarningContainer;
       case 'DAMAGED':
         return const Color(0xFF991B1B);
       default:
-        return const AppColors.darkSurfaceContainerHighest;
+        return AppColors.darkSurfaceContainerHighest;
     }
   }
 

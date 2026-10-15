@@ -169,7 +169,7 @@ class _AttendanceLogsFilterBottomSheetState
         ? AppColors.darkOutlineMuted
         : AppColors.outlineMuted;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final brandFg = isDark ? const AppColors.darkOnPrimary : Colors.white;
+    final brandFg = isDark ? AppColors.darkOnPrimary : Colors.white;
     final dateFormat = DateFormat('dd MMM yyyy', 'en_US');
 
     return Material(

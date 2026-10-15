@@ -188,7 +188,7 @@ class _AppDocumentUploadCardState extends State<AppDocumentUploadCard> {
                 _buildTag(
                   label: widget.optionalTagText,
                   bgColor: const Color(0xFFF1F5F9),
-                  textColor: const AppColors.surfaceVariant,
+                  textColor: AppColors.surfaceVariant,
                 ),
             ],
           ),

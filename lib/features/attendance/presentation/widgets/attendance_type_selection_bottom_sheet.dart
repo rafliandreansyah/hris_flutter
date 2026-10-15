@@ -37,16 +37,16 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final tealIconBg = isDark
-        ? const AppColors.darkOnPrimary.withValues(alpha: 0.6)
-        : const AppColors.primaryContainer;
+        ? AppColors.darkOnPrimary.withValues(alpha: 0.6)
+        : AppColors.primaryContainer;
     final tealBrand =
-        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -102,8 +102,8 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
                 'Catat kehadiran secara langsung di lokasi saat ini menggunakan koordinat GPS real-time.',
             badgeText: 'Instant Check-In / Out',
             badgeBgColor: isDark
-                ? const AppColors.darkOnPrimary.withValues(alpha: 0.5)
-                : const AppColors.primaryContainer,
+                ? AppColors.darkOnPrimary.withValues(alpha: 0.5)
+                : AppColors.primaryContainer,
             badgeTextColor: tealBrand,
             tealIconBg: tealIconBg,
             tealBrand: tealBrand,
@@ -132,7 +132,7 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
                 : const Color(0xFFF1F5F9),
             badgeTextColor: isDark
                 ? AppColors.darkOnSurfaceVariant
-                : const AppColors.darkSurfaceContainerHighest,
+                : AppColors.darkSurfaceContainerHighest,
             tealIconBg: tealIconBg,
             tealBrand: tealBrand,
             textCol: textCol,

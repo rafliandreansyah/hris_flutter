@@ -32,10 +32,10 @@ class ResignationPolicyBanner extends StatelessWidget {
 
     final bgColor = isDark
         ? AppColors.brandTeal.withValues(alpha: 0.12)
-        : const AppColors.accentTealLight.withValues(alpha: 0.45);
+        : AppColors.accentTealLight.withValues(alpha: 0.45);
     final borderColor = isDark
         ? AppColors.brandTeal.withValues(alpha: 0.3)
-        : const AppColors.secondaryContainer.withValues(alpha: 0.6);
+        : AppColors.secondaryContainer.withValues(alpha: 0.6);
 
     return Container(
       decoration: BoxDecoration(

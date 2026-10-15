@@ -41,7 +41,7 @@ extension LeaveStatusExtension on LeaveStatus {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return const AppColors.warningContainer; // Amber 100
+        return AppColors.warningContainer; // Amber 100
       case LeaveStatus.approved:
         return const Color(0xFFDCFCE7); // Green 100
       case LeaveStatus.rejected:
@@ -54,11 +54,11 @@ extension LeaveStatusExtension on LeaveStatus {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return const AppColors.warning;
+        return AppColors.warning;
       case LeaveStatus.approved:
         return const Color(0xFF16A34A);
       case LeaveStatus.rejected:
-        return const AppColors.errorRed;
+        return AppColors.errorRed;
     }
   }
 }

@@ -133,7 +133,7 @@ class AppDialogUtil {
           : null;
     } else {
       bgColor = const Color(0xFFF1F5F9);
-      fgColor = textColor ?? const AppColors.surfaceVariant;
+      fgColor = textColor ?? AppColors.surfaceVariant;
       border = borderColor != null
           ? Border.all(color: borderColor, width: 1.5)
           : null;

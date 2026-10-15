@@ -17,14 +17,14 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final innerBoxBg = isDark
         ? AppColors.darkSurfaceContainerLow
-        : const AppColors.backgroundSubtle;
+        : AppColors.backgroundSubtle;
 
     return Container(
       width: double.infinity,
@@ -54,7 +54,7 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.primaryContainer.withValues(alpha: 0.15)
-                      : const AppColors.primaryContainer,
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -62,7 +62,7 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
                   style: AppTypography.labelMedium.copyWith(
                     color: isDark
                         ? AppColors.inversePrimary
-                        : const AppColors.onPrimaryContainer,
+                        : AppColors.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -155,7 +155,7 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
             Text(
               detail.approverNote!.trim(),
               style: AppTypography.bodyMedium.copyWith(
-                color: detail.isRejected ? const AppColors.errorRed : textCol,
+                color: detail.isRejected ? AppColors.errorRed : textCol,
                 fontSize: 13.5,
                 height: 1.45,
               ),
@@ -209,7 +209,7 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.primaryContainer.withValues(alpha: 0.25)
-                    : const AppColors.primaryContainer,
+                    : AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -410,9 +410,9 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
 
     if (detail.isApproved) {
       bg = isDark
-          ? const AppColors.primaryHover.withValues(alpha: 0.25)
-          : const AppColors.accentTealLight;
-      fg = isDark ? const Color(0xFF5EEAD4) : const AppColors.primaryHover;
+          ? AppColors.primaryHover.withValues(alpha: 0.25)
+          : AppColors.accentTealLight;
+      fg = isDark ? const Color(0xFF5EEAD4) : AppColors.primaryHover;
       text = 'Disetujui';
     } else if (detail.isRejected) {
       bg = isDark
@@ -423,8 +423,8 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
     } else {
       bg = isDark
           ? const Color(0xFF78350F).withValues(alpha: 0.25)
-          : const AppColors.warningContainer;
-      fg = isDark ? const Color(0xFFFCD34D) : const AppColors.onWarningContainer;
+          : AppColors.warningContainer;
+      fg = isDark ? const Color(0xFFFCD34D) : AppColors.onWarningContainer;
       text = 'Menunggu Persetujuan';
     }
 

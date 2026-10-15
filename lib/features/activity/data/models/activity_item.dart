@@ -33,7 +33,7 @@ extension ActivityStatusExtension on ActivityStatus {
   Color get textColor {
     switch (this) {
       case ActivityStatus.planned:
-        return const AppColors.darkSurfaceContainerHighest; // Slate 600
+        return AppColors.darkSurfaceContainerHighest; // Slate 600
       case ActivityStatus.ongoing:
         return const Color(0xFFB45309); // Amber 700
       case ActivityStatus.completed:
@@ -50,7 +50,7 @@ extension ActivityStatusExtension on ActivityStatus {
       case ActivityStatus.planned:
         return const Color(0xFFF1F5F9); // Slate 100
       case ActivityStatus.ongoing:
-        return const AppColors.warningContainer; // Amber 100
+        return AppColors.warningContainer; // Amber 100
       case ActivityStatus.completed:
         return const Color(0xFFDCFCE7); // Green 100
       case ActivityStatus.canceled:
@@ -63,13 +63,13 @@ extension ActivityStatusExtension on ActivityStatus {
   Color get dotColor {
     switch (this) {
       case ActivityStatus.planned:
-        return const AppColors.surfaceVariant;
+        return AppColors.surfaceVariant;
       case ActivityStatus.ongoing:
-        return const AppColors.warning;
+        return AppColors.warning;
       case ActivityStatus.completed:
         return const Color(0xFF16A34A);
       case ActivityStatus.canceled:
-        return const AppColors.errorRed;
+        return AppColors.errorRed;
       case ActivityStatus.pendingReview:
         return const Color(0xFF0284C7);
     }

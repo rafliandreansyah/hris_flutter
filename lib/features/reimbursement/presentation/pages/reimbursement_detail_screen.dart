@@ -198,8 +198,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                           text: 'Tolak',
                           leadingIcon: LucideIcons.x,
                           variant: AppButtonVariant.outlined,
-                          foregroundColor: const AppColors.errorRed,
-                          borderColor: const AppColors.errorRed,
+                          foregroundColor: AppColors.errorRed,
+                          borderColor: AppColors.errorRed,
                           height: 48,
                           isLoading: state.isActionLoading,
                           onPressed: state.isActionLoading
@@ -259,7 +259,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errorMessage!),
-                  backgroundColor: const AppColors.errorRed,
+                  backgroundColor: AppColors.errorRed,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -269,7 +269,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.actionSuccessMessage!),
-                  backgroundColor: const AppColors.success,
+                  backgroundColor: AppColors.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -487,7 +487,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                 decoration: BoxDecoration(
                   color: (isSettlement
                           ? const Color(0xFF3B82F6)
-                          : const AppColors.brandTeal)
+                          : AppColors.brandTeal)
                       .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
@@ -496,7 +496,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                   style: TextStyle(
                     color: isSettlement
                         ? const Color(0xFF3B82F6)
-                        : const AppColors.brandTeal,
+                        : AppColors.brandTeal,
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
                   ),
@@ -581,7 +581,7 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                       Text(
                         formatRupiah(detail.approvedAmount!),
                         style: AppTypography.titleMedium.copyWith(
-                          color: const AppColors.success,
+                          color: AppColors.success,
                           fontWeight: FontWeight.w800,
                           fontSize: 17,
                         ),
@@ -907,8 +907,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: (isApp
-                              ? const AppColors.success
-                              : const AppColors.errorRed)
+                              ? AppColors.success
+                              : AppColors.errorRed)
                           .withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
@@ -916,8 +916,8 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                       isApp ? LucideIcons.check : LucideIcons.x,
                       size: 14,
                       color: isApp
-                          ? const AppColors.success
-                          : const AppColors.errorRed,
+                          ? AppColors.success
+                          : AppColors.errorRed,
                     ),
                   ),
                   const SizedBox(width: 10),

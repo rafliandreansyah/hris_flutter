@@ -239,7 +239,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                                 ? FontWeight.w700
                                                 : FontWeight.w600,
                                             color: isSelected
-                                                ? const AppColors.brandTeal
+                                                ? AppColors.brandTeal
                                                 : null,
                                           ),
                                         ),
@@ -251,7 +251,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const AppColors.brandTeal
+                                              color: AppColors.brandTeal
                                                   .withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(6),
@@ -260,7 +260,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                               type.code,
                                               style: AppTypography.labelSmall
                                                   .copyWith(
-                                                color: const AppColors.brandTeal,
+                                                color: AppColors.brandTeal,
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: 10,
                                               ),
@@ -381,7 +381,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const AppColors.errorRed,
+        backgroundColor: AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 3),
@@ -526,7 +526,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                             Text(
                               'JENIS CUTI / IZIN',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const AppColors.brandTeal,
+                                color: AppColors.brandTeal,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -667,7 +667,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                             Text(
                               'PERIODE & DURASI CUTI',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const AppColors.brandTeal,
+                                color: AppColors.brandTeal,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -725,7 +725,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                 Text(
                                   'Ubah',
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: const AppColors.brandTeal,
+                                    color: AppColors.brandTeal,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -772,7 +772,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                           setState(() => _totalDays--);
                                         },
                                   icon: const Icon(LucideIcons.minusCircle),
-                                  color: const AppColors.brandTeal,
+                                  color: AppColors.brandTeal,
                                   disabledColor: Colors.grey.withValues(alpha: 0.3),
                                 ),
                                 Container(
@@ -793,7 +793,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                       key: const ValueKey('days_counter_text'),
                                       style: AppTypography.bodyMedium.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: const AppColors.brandTeal,
+                                        color: AppColors.brandTeal,
                                       ),
                                     ),
                                   ),
@@ -807,7 +807,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                           setState(() => _totalDays++);
                                         },
                                   icon: const Icon(LucideIcons.plusCircle),
-                                  color: const AppColors.brandTeal,
+                                  color: AppColors.brandTeal,
                                   disabledColor: Colors.grey.withValues(alpha: 0.3),
                                 ),
                               ],
@@ -835,12 +835,12 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                         setState(() => _totalDays = days);
                                       }
                                     },
-                                    selectedColor: const AppColors.brandTeal
+                                    selectedColor: AppColors.brandTeal
                                         .withValues(alpha: 0.15),
                                     backgroundColor: inputBg,
                                     labelStyle: TextStyle(
                                       color: isSelected
-                                          ? const AppColors.brandTeal
+                                          ? AppColors.brandTeal
                                           : textCol,
                                       fontWeight: isSelected
                                           ? FontWeight.bold
@@ -851,7 +851,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                       borderRadius: BorderRadius.circular(8),
                                       side: BorderSide(
                                         color: isSelected
-                                            ? const AppColors.brandTeal
+                                            ? AppColors.brandTeal
                                             : borderCol,
                                       ),
                                     ),
@@ -867,10 +867,10 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const AppColors.primaryContainer,
+                            color: AppColors.primaryContainer,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: const AppColors.brandTeal.withValues(alpha: 0.2),
+                              color: AppColors.brandTeal.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
@@ -885,7 +885,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                 child: Text(
                                   'Periode: ${_formatDate(_startDate)} s/d ${_formatDate(_calculatedEndDate)} ($_totalDays hari)',
                                   style: AppTypography.bodySmall.copyWith(
-                                    color: const AppColors.primaryHover,
+                                    color: AppColors.primaryHover,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -920,7 +920,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                             Text(
                               'ALASAN / CATATAN',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const AppColors.brandTeal,
+                                color: AppColors.brandTeal,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),

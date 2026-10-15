@@ -165,11 +165,11 @@ class _AttendanceRequestDetailViewState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -364,7 +364,7 @@ class _AttendanceRequestDetailViewState
                 size: 54,
                 color: is404
                     ? AppColors.onSurfaceVariant
-                    : const AppColors.errorRed,
+                    : AppColors.errorRed,
               ),
               const SizedBox(height: 16),
               Text(

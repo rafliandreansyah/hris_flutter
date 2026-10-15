@@ -101,7 +101,7 @@ class ResignationStepperCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF134E4A)
-                      : const AppColors.accentTealLight,
+                      : AppColors.accentTealLight,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
@@ -111,7 +111,7 @@ class ResignationStepperCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: isDark
                         ? const Color(0xFF5EEAD4)
-                        : const AppColors.primaryHover,
+                        : AppColors.primaryHover,
                   ),
                 ),
               ),
@@ -160,7 +160,7 @@ class ResignationStepperCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.darkSurfaceContainer
-                          : const AppColors.backgroundSubtle,
+                          : AppColors.backgroundSubtle,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: borderCol.withValues(alpha: 0.5),
@@ -258,12 +258,12 @@ class ResignationStepperCard extends StatelessWidget {
       iconBg = brandCol;
       iconWidget = const Icon(LucideIcons.check, size: 14, color: Colors.white);
     } else if (isCurrent) {
-      iconBg = isDark ? const Color(0xFF134E4A) : const AppColors.accentTealLight;
+      iconBg = isDark ? const Color(0xFF134E4A) : AppColors.accentTealLight;
       iconWidget = Icon(LucideIcons.loader, size: 14, color: brandCol);
     } else {
       iconBg = isDark
           ? AppColors.darkSurfaceContainer
-          : const AppColors.darkOnBackground;
+          : AppColors.darkOnBackground;
       iconWidget = Icon(LucideIcons.circle, size: 10, color: subtitleCol);
     }
 
@@ -292,7 +292,7 @@ class ResignationStepperCard extends StatelessWidget {
                         ? brandCol.withValues(alpha: 0.4)
                         : (isDark
                             ? AppColors.darkSurfaceContainerHigh
-                            : const AppColors.darkOnBackground),
+                            : AppColors.darkOnBackground),
                   ),
                 ),
             ],

@@ -659,10 +659,10 @@ class _NotificationSettingsShimmer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const AppColors.darkOnBackground;
+        : AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const AppColors.backgroundSubtle;
+        : AppColors.backgroundSubtle;
 
     Widget shimmerBox({
       required double height,

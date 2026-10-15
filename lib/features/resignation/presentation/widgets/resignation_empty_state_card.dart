@@ -49,7 +49,7 @@ class ResignationEmptyStateCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? const Color(0xFF134E4A)
-                    : const AppColors.accentTealLight,
+                    : AppColors.accentTealLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(LucideIcons.fileCheck2, size: 34, color: brandCol),
@@ -80,7 +80,7 @@ class ResignationEmptyStateCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.darkSurfaceContainer
-                    : const AppColors.backgroundSubtle,
+                    : AppColors.backgroundSubtle,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: borderCol.withValues(alpha: 0.6)),
               ),

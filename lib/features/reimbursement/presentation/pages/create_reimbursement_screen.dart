@@ -364,20 +364,20 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBg = isDark
         ? AppColors.darkBackground
-        : const AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+        : AppColors.backgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
-        : const AppColors.surfaceVariant;
+        : AppColors.surfaceVariant;
     final brandColor = isDark
         ? AppColors.inversePrimary
-        : const AppColors.brandTeal;
+        : AppColors.brandTeal;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
-        : const AppColors.darkOnBackground;
+        : AppColors.darkOnBackground;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -768,7 +768,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.white10
-                                : const AppColors.warningContainer,
+                                : AppColors.warningContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -995,7 +995,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                 decoration: BoxDecoration(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.05)
-                      : const AppColors.backgroundSubtle,
+                      : AppColors.backgroundSubtle,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: borderCol),
                 ),
@@ -1381,7 +1381,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.04)
-                              : const AppColors.backgroundSubtle,
+                              : AppColors.backgroundSubtle,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: borderCol),
                         ),
@@ -1568,7 +1568,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.03)
-                          : const AppColors.backgroundSubtle,
+                          : AppColors.backgroundSubtle,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: borderCol,
@@ -1618,8 +1618,8 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: isDark
-                              ? const AppColors.onSuccessContainer
-                              : const AppColors.successContainer,
+                              ? AppColors.onSuccessContainer
+                              : AppColors.successContainer,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isDark
@@ -1870,7 +1870,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
             : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : const AppColors.darkOnBackground,
+          color: isDark ? Colors.white10 : AppColors.darkOnBackground,
         ),
       ),
       child: Row(

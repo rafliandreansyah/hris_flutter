@@ -694,7 +694,7 @@ class _ActivityDetailView extends StatelessWidget {
                                         'Foto siap diunggah',
                                         style: AppTypography.labelSmall
                                             .copyWith(
-                                              color: const AppColors.success,
+                                              color: AppColors.success,
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
@@ -1243,7 +1243,7 @@ class _ActivityDetailView extends StatelessWidget {
                                         style: AppTypography.labelSmall.copyWith(
                                           color: isCompressingPhoto
                                               ? AppColors.brandTeal
-                                              : const AppColors.success,
+                                              : AppColors.success,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -1377,7 +1377,7 @@ class _ActivityDetailView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.15)
-                      : const AppColors.primaryContainer,
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

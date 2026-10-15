@@ -8,11 +8,16 @@ class ApiException implements Exception {
   final dynamic data;
   final DioExceptionType? type;
 
+  /// Kode error dari server (field `code` pada respons error), mis. `SESSION_CLOSED`.
+  /// Null bila server tidak mengirimnya.
+  final String? code;
+
   const ApiException({
     required this.message,
     this.statusCode,
     this.data,
     this.type,
+    this.code,
   });
 
   /// Factory untuk memetakan DioException ke ApiException dengan pesan yang ramah pengguna.
@@ -50,8 +55,13 @@ class ApiException implements Exception {
         final statusCode = error.response?.statusCode;
         final responseData = error.response?.data;
         String errorMessage = '';
+        String? serverCode;
 
         if (responseData is Map<String, dynamic>) {
+          final rawCode = responseData['code'];
+          if (rawCode is String && rawCode.isNotEmpty) {
+            serverCode = rawCode;
+          }
           if (responseData.containsKey('message') &&
               responseData['message'] != null) {
             errorMessage = responseData['message'].toString();
@@ -68,6 +78,7 @@ class ApiException implements Exception {
               statusCode: 400,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
           case 401:
             final path = error.requestOptions.path;
@@ -84,6 +95,7 @@ class ApiException implements Exception {
               statusCode: 401,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
           case 403:
             return ApiException(
@@ -91,6 +103,7 @@ class ApiException implements Exception {
               statusCode: 403,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
           case 404:
             return ApiException(
@@ -98,6 +111,17 @@ class ApiException implements Exception {
               statusCode: 404,
               data: responseData,
               type: error.type,
+              code: serverCode,
+            );
+          case 409:
+            return ApiException(
+              message: errorMessage.isNotEmpty
+                  ? errorMessage
+                  : 'Data sudah diproses atau berubah. Muat ulang lalu coba lagi.',
+              statusCode: 409,
+              data: responseData,
+              type: error.type,
+              code: serverCode,
             );
           case 422:
             return ApiException(
@@ -105,6 +129,7 @@ class ApiException implements Exception {
               statusCode: 422,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
           case 500:
           case 502:
@@ -114,6 +139,7 @@ class ApiException implements Exception {
               statusCode: statusCode,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
           default:
             return ApiException(
@@ -123,6 +149,7 @@ class ApiException implements Exception {
               statusCode: statusCode,
               data: responseData,
               type: error.type,
+              code: serverCode,
             );
         }
 

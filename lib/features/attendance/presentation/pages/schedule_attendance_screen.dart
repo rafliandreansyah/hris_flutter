@@ -157,7 +157,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
     required double longitude,
   }) {
     return Container(
-      color: isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
+      color: isDark ? AppColors.darkSurfaceBright : const Color(0xFFF1F5F9),
       child: Center(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -491,11 +491,11 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
 
     return BlocConsumer<ScheduleAttendanceBloc, ScheduleAttendanceState>(
       listenWhen: (previous, current) {
@@ -736,7 +736,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
             color: isSelected
                 ? (isDark
                     ? AppColors.brandTeal.withValues(alpha: 0.25)
-                    : const AppColors.primaryContainer)
+                    : AppColors.primaryContainer)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             border: isSelected
@@ -809,7 +809,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.darkSurfaceContainerLow
-                    : const AppColors.backgroundSubtle,
+                    : AppColors.backgroundSubtle,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: borderCol, width: 1),
               ),
@@ -857,7 +857,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                       decoration: BoxDecoration(
                         color: isDark
                             ? AppColors.darkSurfaceContainerLow
-                            : const AppColors.backgroundSubtle,
+                            : AppColors.backgroundSubtle,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: borderCol, width: 1),
                       ),
@@ -923,7 +923,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                       decoration: BoxDecoration(
                         color: isDark
                             ? AppColors.darkSurfaceContainerLow
-                            : const AppColors.backgroundSubtle,
+                            : AppColors.backgroundSubtle,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: borderCol, width: 1),
                       ),
@@ -1034,8 +1034,8 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const AppColors.darkOnPrimary.withValues(alpha: 0.5)
-                      : const AppColors.primaryContainer,
+                      ? AppColors.darkOnPrimary.withValues(alpha: 0.5)
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -1122,7 +1122,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               address: state.addressIn,
               latitude: state.inLatitude,
               longitude: state.longitudeIn,
-              iconColor: const AppColors.success,
+              iconColor: AppColors.success,
               onPickLocation: () => _pickLocation(isIn: true),
               pickButtonKey: const Key('schedule-pick-in-location-button'),
               isDark: isDark,
@@ -1180,7 +1180,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
       decoration: BoxDecoration(
         color: isDark
             ? AppColors.darkSurfaceContainerLow
-            : const AppColors.backgroundSubtle,
+            : AppColors.backgroundSubtle,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderCol, width: 1),
       ),
@@ -1230,7 +1230,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkSurfaceContainerHigh
-                        : const AppColors.darkOnBackground,
+                        : AppColors.darkOnBackground,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -1300,7 +1300,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                 decoration: BoxDecoration(
                   border: Border.all(color: borderCol, width: 1),
                   color: isDark
-                      ? const AppColors.darkSurfaceBright
+                      ? AppColors.darkSurfaceBright
                       : const Color(0xFFF1F5F9),
                 ),
                 child: Stack(
@@ -1361,12 +1361,12 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.1)
-                      : const AppColors.primaryContainer,
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isDark
                         ? AppColors.brandTeal.withValues(alpha: 0.25)
-                        : const AppColors.accentTealLight,
+                        : AppColors.accentTealLight,
                     width: 1,
                   ),
                 ),
@@ -1480,7 +1480,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.brandTeal.withValues(alpha: 0.12)
-                    : const AppColors.primaryContainer,
+                    : AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: AppColors.brandTeal.withValues(alpha: 0.3),
@@ -1573,7 +1573,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.brandTeal.withValues(alpha: 0.12)
-                    : const AppColors.primaryContainer,
+                    : AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: AppColors.brandTeal.withValues(alpha: 0.3),
@@ -1685,7 +1685,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.08)
-                      : const AppColors.primaryContainer,
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: isCompressing
@@ -1739,7 +1739,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.darkSurfaceContainerLow
-                  : const AppColors.backgroundSubtle,
+                  : AppColors.backgroundSubtle,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: borderCol, width: 1),
             ),

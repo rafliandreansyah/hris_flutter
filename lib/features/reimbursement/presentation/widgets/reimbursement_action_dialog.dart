@@ -66,7 +66,7 @@ class _ReimbursementActionDialogState extends State<ReimbursementActionDialog> {
 
     final primaryActionColor = widget.isApproved
         ? (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-        : const AppColors.errorRed;
+        : AppColors.errorRed;
 
     final titleText = widget.title ??
         (widget.isApproved ? 'Setujui Pengajuan' : 'Tolak Pengajuan');

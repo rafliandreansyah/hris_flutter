@@ -177,7 +177,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
-                        color: isSelected ? const AppColors.brandTeal : null,
+                        color: isSelected ? AppColors.brandTeal : null,
                       ),
                     ),
                     subtitle: type.code != null && type.code!.isNotEmpty
@@ -273,7 +273,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const AppColors.errorRed,
+        backgroundColor: AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -341,7 +341,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                   ),
                 ],
               ),
-              backgroundColor: const AppColors.errorRed,
+              backgroundColor: AppColors.errorRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),

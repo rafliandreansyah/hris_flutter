@@ -469,7 +469,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const AppColors.errorRed,
+        backgroundColor: AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -541,7 +541,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                   ),
                 ],
               ),
-              backgroundColor: const AppColors.errorRed,
+              backgroundColor: AppColors.errorRed,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -602,12 +602,12 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? const AppColors.darkSurfaceBright
+                          ? AppColors.darkSurfaceBright
                           : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isDark
-                            ? const AppColors.darkSurfaceContainerHigh
+                            ? AppColors.darkSurfaceContainerHigh
                             : const Color(0xFFCBD5E1),
                       ),
                     ),
@@ -641,7 +641,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const AppColors.brandTeal,
+                                      color: AppColors.brandTeal,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: const Text(

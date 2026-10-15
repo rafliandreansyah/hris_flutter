@@ -96,7 +96,7 @@ class BeneficiaryAccountCard extends StatelessWidget {
               : const Color(0xFFFFFBEB),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? const AppColors.onWarningContainer : const Color(0xFFFDE68A),
+            color: isDark ? AppColors.onWarningContainer : const Color(0xFFFDE68A),
           ),
         ),
         child: Row(
@@ -108,7 +108,7 @@ class BeneficiaryAccountCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDark
                     ? const Color(0xFF78350F).withValues(alpha: 0.5)
-                    : const AppColors.warningContainer,
+                    : AppColors.warningContainer,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
@@ -126,7 +126,7 @@ class BeneficiaryAccountCard extends StatelessWidget {
                     'Rekening Bank Belum Terdaftar',
                     style: AppTypography.titleSmall.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFFFDE68A) : const AppColors.onWarningContainer,
+                      color: isDark ? const Color(0xFFFDE68A) : AppColors.onWarningContainer,
                       fontSize: 14,
                     ),
                   ),
@@ -350,7 +350,7 @@ class BeneficiaryAccountCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.black.withValues(alpha: 0.15)
-                  : const AppColors.backgroundSubtle,
+                  : AppColors.backgroundSubtle,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(15),
                 bottomRight: Radius.circular(15),
@@ -437,7 +437,7 @@ class BeneficiaryAccountCard extends StatelessWidget {
       }
       return _BankBadgeInfo(
         shortLabel: label,
-        backgroundColor: const AppColors.brandTeal,
+        backgroundColor: AppColors.brandTeal,
         textColor: Colors.white,
       );
     }

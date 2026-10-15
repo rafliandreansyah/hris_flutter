@@ -1034,10 +1034,10 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   Widget _buildShimmerLoading(bool isDark) {
     final baseColor = isDark
         ? AppColors.darkSurfaceContainer
-        : const AppColors.darkOnBackground;
+        : AppColors.darkOnBackground;
     final highlightColor = isDark
         ? AppColors.darkSurfaceContainerHigh
-        : const AppColors.backgroundSubtle;
+        : AppColors.backgroundSubtle;
 
     return Shimmer.fromColors(
       baseColor: baseColor,

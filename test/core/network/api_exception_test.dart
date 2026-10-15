@@ -118,5 +118,51 @@ void main() {
 
       expect(exception.message, contains('timeout'));
     });
+
+    DioException badResponse(int status, dynamic data) {
+      final requestOptions = RequestOptions(
+        path: '/leave-request/1/approve',
+        baseUrl: 'https://apidev.hroasish.com/api/v1',
+      );
+      return DioException(
+        requestOptions: requestOptions,
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: status,
+          data: data,
+        ),
+      );
+    }
+
+    test('maps 409 to the backend message and exposes the server code', () {
+      final exception = ApiException.fromDioException(
+        badResponse(409, {
+          'message': 'Pengajuan sudah diproses.',
+          'code': 'ALREADY_PROCESSED',
+        }),
+      );
+
+      expect(exception.statusCode, equals(409));
+      expect(exception.message, equals('Pengajuan sudah diproses.'));
+      expect(exception.code, equals('ALREADY_PROCESSED'));
+    });
+
+    test('uses a friendly fallback message on 409 without backend message', () {
+      final exception = ApiException.fromDioException(badResponse(409, null));
+
+      expect(exception.statusCode, equals(409));
+      expect(exception.message, contains('sudah diproses'));
+      expect(exception.code, isNull);
+    });
+
+    test('code is null when the backend does not send a string code', () {
+      final exception = ApiException.fromDioException(
+        badResponse(400, {'message': 'Input salah', 'code': 123}),
+      );
+
+      expect(exception.code, isNull);
+      expect(exception.message, equals('Input salah'));
+    });
   });
 }

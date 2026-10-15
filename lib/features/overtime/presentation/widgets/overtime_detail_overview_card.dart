@@ -122,7 +122,7 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkSurfaceContainerHigh
-                      : const AppColors.surfaceContainerHigh,
+                      : AppColors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -132,7 +132,7 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: isDark
                         ? AppColors.darkOnSurface
-                        : const AppColors.onBackground,
+                        : AppColors.onBackground,
                   ),
                 ),
               ),
@@ -329,7 +329,7 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: const AppColors.warningContainer),
+        border: Border.all(color: AppColors.warningContainer),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,

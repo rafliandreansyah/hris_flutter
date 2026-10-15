@@ -187,11 +187,11 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDark
                         ? const Color(0xFF3B280E)
-                        : const AppColors.warningContainer,
+                        : AppColors.warningContainer,
                     borderRadius: BorderRadius.circular(100),
                     border: Border.all(
                       color: isDark
-                          ? const AppColors.onWarningContainer.withValues(alpha: 0.5)
+                          ? AppColors.onWarningContainer.withValues(alpha: 0.5)
                           : const Color(0xFFFDE68A),
                     ),
                   ),
@@ -203,7 +203,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                         size: 13,
                         color: isDark
                             ? const Color(0xFFFBBF24)
-                            : const AppColors.onWarningContainer,
+                            : AppColors.onWarningContainer,
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -212,7 +212,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isDark
                               ? const Color(0xFFFBBF24)
-                              : const AppColors.onWarningContainer,
+                              : AppColors.onWarningContainer,
                         ),
                       ),
                     ],

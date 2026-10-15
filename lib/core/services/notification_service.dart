@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -27,6 +28,18 @@ class NotificationService {
   factory NotificationService() => _instance;
 
   NotificationService._internal();
+
+  StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<RemoteMessage>? _onOpenedSub;
+
+  /// Membatalkan listener FCM. Aman dipanggil berulang; initialize() bisa dipanggil lagi sesudahnya.
+  Future<void> dispose() async {
+    await _onMessageSub?.cancel();
+    await _onOpenedSub?.cancel();
+    _onMessageSub = null;
+    _onOpenedSub = null;
+    _isInitialized = false;
+  }
 
   FirebaseMessaging? get _fcm {
     try {
@@ -135,16 +148,18 @@ class NotificationService {
         sound: true,
       );
 
-      // Listener FCM di bawah ini hidup seumur aplikasi: service adalah singleton dan
-      // initialize() dijaga _isInitialized, jadi tidak ada listener ganda.
+      // Subscription disimpan agar bisa dibatalkan lewat dispose(); initialize() dijaga _isInitialized,
+      // jadi tidak ada listener ganda.
       // Listener: Pesan diterima saat aplikasi aktif (Foreground)
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      await _onMessageSub?.cancel();
+      _onMessageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('📩 [FCM Foreground Message]: ${message.notification?.title}');
         _showForegroundNotification(message);
       });
 
       // Listener: Pengguna menekan notifikasi saat aplikasi di background
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      await _onOpenedSub?.cancel();
+      _onOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         debugPrint('👆 [FCM Notification Clicked]: ${message.data}');
         onNotificationOpened?.call(message);
       });
@@ -194,7 +209,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
-      color: const AppColors.brandTeal,
+      color: AppColors.brandTeal,
     );
 
     const iosDetails = DarwinNotificationDetails(

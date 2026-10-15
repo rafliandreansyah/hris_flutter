@@ -229,7 +229,7 @@ class _AssetRejectBottomSheetState extends State<AssetRejectBottomSheet> {
                             child: RichText(
                               text: TextSpan(
                                 style: AppTypography.bodySmall.copyWith(
-                                  color: const AppColors.onWarningContainer,
+                                  color: AppColors.onWarningContainer,
                                   height: 1.45,
                                 ),
                                 children: [

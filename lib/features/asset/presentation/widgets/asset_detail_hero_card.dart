@@ -57,7 +57,7 @@ class AssetDetailHeroCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const AppColors.brandTeal.withValues(alpha: 0.25),
+                      color: AppColors.brandTeal.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -160,9 +160,9 @@ class AssetDetailHeroCard extends StatelessWidget {
         label = 'Tersedia di Gudang';
         break;
       case 'ASSIGNED':
-        bg = const AppColors.primaryContainer;
+        bg = AppColors.primaryContainer;
         border = const Color(0xFF99F6E4);
-        text = const AppColors.primaryHover;
+        text = AppColors.primaryHover;
         label = 'Sedang Digunakan';
         break;
       case 'MAINTENANCE':
@@ -179,8 +179,8 @@ class AssetDetailHeroCard extends StatelessWidget {
         break;
       default:
         bg = const Color(0xFFF1F5F9);
-        border = const AppColors.darkOnBackground;
-        text = const AppColors.darkSurfaceContainerHighest;
+        border = AppColors.darkOnBackground;
+        text = AppColors.darkSurfaceContainerHighest;
         label = status;
     }
 
@@ -219,8 +219,8 @@ class AssetDetailHeroCard extends StatelessWidget {
         label = 'Kondisi: Baik';
         break;
       case 'FAIR':
-        bg = const AppColors.warningContainer;
-        text = const AppColors.onWarningContainer;
+        bg = AppColors.warningContainer;
+        text = AppColors.onWarningContainer;
         label = 'Kondisi: Cukup';
         break;
       case 'DAMAGED':
@@ -230,7 +230,7 @@ class AssetDetailHeroCard extends StatelessWidget {
         break;
       default:
         bg = const Color(0xFFF1F5F9);
-        text = const AppColors.darkSurfaceContainerHighest;
+        text = AppColors.darkSurfaceContainerHighest;
         label = 'Kondisi: $condition';
     }
 

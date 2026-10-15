@@ -228,7 +228,7 @@ class LiveEmployeeBottomCard extends StatelessWidget {
     }
     return _buildChip(
       label: 'Presensi Aktif',
-      color: const AppColors.success,
+      color: AppColors.success,
       icon: LucideIcons.fingerprint,
     );
   }

@@ -323,7 +323,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                 size: 54,
                 color: is404
                     ? AppColors.onSurfaceVariant
-                    : const AppColors.errorRed,
+                    : AppColors.errorRed,
               ),
               const SizedBox(height: 16),
               Text(
@@ -476,8 +476,8 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
               leadingIcon: isRejecting ? null : LucideIcons.x,
               isLoading: isRejecting,
               variant: AppButtonVariant.outlined,
-              foregroundColor: const AppColors.errorRed,
-              borderColor: const AppColors.errorRed,
+              foregroundColor: AppColors.errorRed,
+              borderColor: AppColors.errorRed,
               height: 48,
               borderRadius: 100,
               onPressed:

@@ -506,11 +506,11 @@ class _ExpensesFilterBottomSheetState extends State<ExpensesFilterBottomSheet> {
             final chipBg = isSelected
                 ? (isDark
                     ? brandColor.withValues(alpha: 0.18)
-                    : const AppColors.primaryContainer)
+                    : AppColors.primaryContainer)
                 : fieldBg;
             final chipBorder = isSelected ? brandColor : borderCol;
             final chipTextCol = isSelected
-                ? (isDark ? brandColor : const AppColors.brandTeal)
+                ? (isDark ? brandColor : AppColors.brandTeal)
                 : labelCol;
 
             return InkWell(

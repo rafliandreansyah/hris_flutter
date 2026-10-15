@@ -75,7 +75,7 @@ class ActivityTimelineSection extends StatelessWidget {
 
     final isPhase1 = phase.phaseNumber == 1;
     final nodeColor =
-        isPhase1 ? const AppColors.brandTeal : const AppColors.success;
+        isPhase1 ? AppColors.brandTeal : AppColors.success;
     final nodeIcon = isPhase1 ? LucideIcons.play : LucideIcons.check;
 
     return IntrinsicHeight(

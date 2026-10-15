@@ -419,7 +419,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final now = DateTime.now();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final onPrimaryCol = isDark ? const AppColors.darkOnPrimary : Colors.white;
+    final onPrimaryCol = isDark ? AppColors.darkOnPrimary : Colors.white;
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -457,8 +457,8 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
                     onPrimary: onPrimaryCol,
                     surface: surfaceCol,
                     onSurface: textCol,
-                    surfaceContainerHighest: const AppColors.darkOnBackground,
-                    onSurfaceVariant: const AppColors.surfaceVariant,
+                    surfaceContainerHighest: AppColors.darkOnBackground,
+                    onSurfaceVariant: AppColors.surfaceVariant,
                     outline: borderCol,
                   ),
             datePickerTheme: DatePickerThemeData(
@@ -498,6 +498,7 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
       },
     );
 
+    if (!mounted) return;
     if (picked != null) {
       setState(() {
         _selectedDateRange = picked;
@@ -836,11 +837,11 @@ class _ActivityFilterBottomSheetState extends State<ActivityFilterBottomSheet> {
     final chipBg = isSelected
         ? (isDark
               ? brandColor.withValues(alpha: 0.18)
-              : const AppColors.primaryContainer)
+              : AppColors.primaryContainer)
         : fieldBg;
     final chipBorder = isSelected ? brandColor : borderCol;
     final chipTextCol = isSelected
-        ? (isDark ? brandColor : const AppColors.brandTeal)
+        ? (isDark ? brandColor : AppColors.brandTeal)
         : labelCol;
 
     return InkWell(

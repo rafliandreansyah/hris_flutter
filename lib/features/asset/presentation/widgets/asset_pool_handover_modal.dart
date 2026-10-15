@@ -254,7 +254,7 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? AppColors.darkBackgroundSubtle
-                              : const AppColors.backgroundSubtle,
+                              : AppColors.backgroundSubtle,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _selectedEmployee == null
@@ -488,9 +488,9 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
           setState(() => _condition = value);
         }
       },
-      selectedColor: const AppColors.accentTealLight,
+      selectedColor: AppColors.accentTealLight,
       labelStyle: AppTypography.labelSmall.copyWith(
-        color: isSelected ? const AppColors.primaryHover : null,
+        color: isSelected ? AppColors.primaryHover : null,
         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
       ),
     );

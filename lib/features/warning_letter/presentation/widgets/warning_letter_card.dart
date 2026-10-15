@@ -26,7 +26,7 @@ class WarningLetterCard extends StatelessWidget {
 
     switch (item.warningLetterType.level) {
       case 1:
-        bg = isDark ? const Color(0xFF451A03) : const AppColors.warningContainer;
+        bg = isDark ? const Color(0xFF451A03) : AppColors.warningContainer;
         text = isDark ? const Color(0xFFFBBF24) : const Color(0xFFB45309);
         break;
       case 2:
@@ -63,13 +63,13 @@ class WarningLetterCard extends StatelessWidget {
     final isActive = item.isActive;
     final bg = isActive
         ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5))
-        : (isDark ? const AppColors.darkSurfaceBright : const Color(0xFFF1F5F9));
+        : (isDark ? AppColors.darkSurfaceBright : const Color(0xFFF1F5F9));
     final text = isActive
         ? (isDark ? const Color(0xFF34D399) : const Color(0xFF059669))
-        : (isDark ? const AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant);
+        : (isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant);
     final dot = isActive
-        ? const AppColors.success
-        : const AppColors.darkOnSurfaceVariant;
+        ? AppColors.success
+        : AppColors.darkOnSurfaceVariant;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
@@ -112,13 +112,13 @@ class WarningLetterCard extends StatelessWidget {
     final subtleCol = isDark
         ? AppColors.darkSurfaceContainer
         : AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final brandColor =
-        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     final employee = item.employee;
 

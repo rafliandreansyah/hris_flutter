@@ -158,7 +158,7 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),
-                backgroundColor: const AppColors.errorRed,
+                backgroundColor: AppColors.errorRed,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -212,7 +212,7 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: const AppColors.success
+                              color: AppColors.success
                                   .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),

@@ -254,7 +254,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: const AppColors.errorRed,
+        backgroundColor: AppColors.errorRed,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 3),
@@ -404,7 +404,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const AppColors.brandTeal),
+        Icon(icon, size: 16, color: AppColors.brandTeal),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -568,7 +568,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 Text(
                                   'PERIODE & JADWAL LEMBUR',
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: const AppColors.brandTeal,
+                                    color: AppColors.brandTeal,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.5,
                                   ),
@@ -667,7 +667,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 Text(
                                   'Ubah',
                                   style: AppTypography.labelSmall.copyWith(
-                                    color: const AppColors.brandTeal,
+                                    color: AppColors.brandTeal,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -724,7 +724,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                       : LucideIcons.calendarCheck,
                                   color: state.isEndTimeLocked
                                       ? subtitleCol
-                                      : const AppColors.brandTeal,
+                                      : AppColors.brandTeal,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 10),
@@ -763,7 +763,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                   Text(
                                     'Ubah',
                                     style: AppTypography.labelSmall.copyWith(
-                                      color: const AppColors.brandTeal,
+                                      color: AppColors.brandTeal,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -777,7 +777,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             child: Text(
                               '*Terkunci otomatis dari jam check-out kehadiran',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const AppColors.brandTeal,
+                                color: AppColors.brandTeal,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -789,10 +789,10 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const AppColors.primaryContainer,
+                            color: AppColors.primaryContainer,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: const AppColors.brandTeal
+                              color: AppColors.brandTeal
                                   .withValues(alpha: 0.2),
                             ),
                           ),
@@ -808,7 +808,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                                 child: Text(
                                   'Total Durasi Lembur: ${state.durationLabel}',
                                   style: AppTypography.bodySmall.copyWith(
-                                    color: const AppColors.primaryHover,
+                                    color: AppColors.primaryHover,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -843,7 +843,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                             Text(
                               'ALASAN / CATATAN',
                               style: AppTypography.labelSmall.copyWith(
-                                color: const AppColors.brandTeal,
+                                color: AppColors.brandTeal,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -1052,7 +1052,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
             ? const Color(0xFF451A03).withValues(alpha: 0.6)
             : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const AppColors.warning, width: 1),
+        border: Border.all(color: AppColors.warning, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1078,7 +1078,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark
                         ? const Color(0xFFFDE68A)
-                        : const AppColors.onWarningContainer,
+                        : AppColors.onWarningContainer,
                     fontSize: 12,
                     height: 1.4,
                   ),

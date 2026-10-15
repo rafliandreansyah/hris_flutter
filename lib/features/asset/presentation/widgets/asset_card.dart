@@ -70,7 +70,7 @@ class AssetCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const AppColors.warningContainer.withValues(alpha: 0.8),
+                  color: AppColors.warningContainer.withValues(alpha: 0.8),
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFFDE68A)),
                 ),
@@ -223,7 +223,7 @@ class AssetCard extends StatelessWidget {
                     icon: const Icon(LucideIcons.check, size: 16),
                     label: const Text('Terima'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const AppColors.brandTeal,
+                      backgroundColor: AppColors.brandTeal,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(

@@ -156,17 +156,17 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBg =
-        isDark ? AppColors.darkBackground : const AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : const AppColors.darkBackgroundSubtle;
+        isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
     final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : const AppColors.surfaceVariant;
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final brandColor =
-        isDark ? AppColors.inversePrimary : const AppColors.brandTeal;
+        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final borderCol =
-        isDark ? AppColors.darkOutlineMuted : const AppColors.darkOnBackground;
+        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -331,12 +331,12 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
       decoration: BoxDecoration(
         color: isDark
             ? brandColor.withValues(alpha: 0.15)
-            : const AppColors.primaryContainer,
+            : AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
               ? brandColor.withValues(alpha: 0.3)
-              : const AppColors.accentTealLight,
+              : AppColors.accentTealLight,
         ),
       ),
       child: Row(
@@ -348,7 +348,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
             decoration: BoxDecoration(
               color: isDark
                   ? brandColor.withValues(alpha: 0.25)
-                  : const AppColors.accentTealLight,
+                  : AppColors.accentTealLight,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -366,7 +366,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                   'Ketentuan Pengajuan Kasbon',
                   style: AppTypography.labelMedium.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.inversePrimary : const AppColors.onPrimaryContainer,
+                    color: isDark ? AppColors.inversePrimary : AppColors.onPrimaryContainer,
                     fontSize: 13,
                   ),
                 ),
@@ -376,7 +376,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                   style: AppTypography.bodySmall.copyWith(
                     color: isDark
                         ? AppColors.inversePrimary.withValues(alpha: 0.85)
-                        : const AppColors.primaryHover,
+                        : AppColors.primaryHover,
                     fontSize: 11.5,
                     height: 1.35,
                   ),
@@ -458,7 +458,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.04) : const AppColors.backgroundSubtle,
+              color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.backgroundSubtle,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: _amountError != null
@@ -694,7 +694,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const AppColors.warningContainer,
+                  color: AppColors.warningContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -727,7 +727,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
               height: 48,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.04) : const AppColors.backgroundSubtle,
+                color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.backgroundSubtle,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: borderCol),
               ),
@@ -821,7 +821,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                 height: 1.4,
               ),
               filled: true,
-              fillColor: isDark ? Colors.white.withValues(alpha: 0.04) : const AppColors.backgroundSubtle,
+              fillColor: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.backgroundSubtle,
               contentPadding: const EdgeInsets.all(12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),

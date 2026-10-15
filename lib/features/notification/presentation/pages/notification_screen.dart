@@ -265,7 +265,7 @@ class _NotificationViewState extends State<_NotificationView> {
                     Expanded(child: Text(state.actionMessage!)),
                   ],
                 ),
-                backgroundColor: const AppColors.primaryHover,
+                backgroundColor: AppColors.primaryHover,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -477,7 +477,7 @@ class _FilterChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final selectedBg = isDark
         ? AppColors.brandTeal.withValues(alpha: 0.2)
-        : const AppColors.accentTealLight;
+        : AppColors.accentTealLight;
     final unselectedBg = isDark
         ? AppColors.darkSurfaceContainer
         : const Color(0xFFF1F5F9);

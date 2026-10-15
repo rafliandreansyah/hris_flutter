@@ -46,7 +46,7 @@ extension ExpenseStatusExtension on ExpenseStatus {
       case ExpenseStatus.requested:
         return const Color(0xFFB45309); // Amber 700
       case ExpenseStatus.approved:
-        return const AppColors.primaryHover; // Teal 700
+        return AppColors.primaryHover; // Teal 700
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFF166534); // Green 800
@@ -60,9 +60,9 @@ extension ExpenseStatusExtension on ExpenseStatus {
   Color get backgroundColor {
     switch (this) {
       case ExpenseStatus.requested:
-        return const AppColors.warningContainer; // Amber 100
+        return AppColors.warningContainer; // Amber 100
       case ExpenseStatus.approved:
-        return const AppColors.accentTealLight; // Teal 100
+        return AppColors.accentTealLight; // Teal 100
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFFDCFCE7); // Green 100
@@ -76,16 +76,16 @@ extension ExpenseStatusExtension on ExpenseStatus {
   Color get dotColor {
     switch (this) {
       case ExpenseStatus.requested:
-        return const AppColors.warning;
+        return AppColors.warning;
       case ExpenseStatus.approved:
-        return const AppColors.brandTealSecondary;
+        return AppColors.brandTealSecondary;
       case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
         return const Color(0xFF16A34A);
       case ExpenseStatus.settlementInProgress:
         return const Color(0xFF6366F1);
       case ExpenseStatus.rejected:
-        return const AppColors.errorRed;
+        return AppColors.errorRed;
     }
   }
 }

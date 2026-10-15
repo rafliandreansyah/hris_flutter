@@ -296,7 +296,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const AppColors.brandTeal.withValues(alpha: 0.92),
+                      color: AppColors.brandTeal.withValues(alpha: 0.92),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
