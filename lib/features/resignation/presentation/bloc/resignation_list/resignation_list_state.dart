@@ -18,6 +18,12 @@ class ResignationListState extends Equatable {
   final AppRequestFilterData filterData;
   final bool isCancelling;
   final bool cancelSuccess;
+
+  /// Sedang mengirim aksi (approve/reject/exit interview).
+  final bool isActionSubmitting;
+
+  /// Pesan sukses aksi terakhir (untuk dialog sukses); `null` bila tidak ada.
+  final String? actionSuccessMessage;
   final String? errorMessage;
   final bool canViewSubordinates;
 
@@ -36,6 +42,8 @@ class ResignationListState extends Equatable {
     this.filterData = const AppRequestFilterData(),
     this.isCancelling = false,
     this.cancelSuccess = false,
+    this.isActionSubmitting = false,
+    this.actionSuccessMessage,
     this.errorMessage,
     this.canViewSubordinates = false,
   });
@@ -62,6 +70,9 @@ class ResignationListState extends Equatable {
     AppRequestFilterData? filterData,
     bool? isCancelling,
     bool? cancelSuccess,
+    bool? isActionSubmitting,
+    String? actionSuccessMessage,
+    bool clearActionSuccessMessage = false,
     String? errorMessage,
     bool clearErrorMessage = false,
     bool? canViewSubordinates,
@@ -85,6 +96,10 @@ class ResignationListState extends Equatable {
       filterData: filterData ?? this.filterData,
       isCancelling: isCancelling ?? this.isCancelling,
       cancelSuccess: cancelSuccess ?? this.cancelSuccess,
+      isActionSubmitting: isActionSubmitting ?? this.isActionSubmitting,
+      actionSuccessMessage: clearActionSuccessMessage
+          ? null
+          : (actionSuccessMessage ?? this.actionSuccessMessage),
       errorMessage:
           clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       canViewSubordinates: canViewSubordinates ?? this.canViewSubordinates,
@@ -107,6 +122,8 @@ class ResignationListState extends Equatable {
         filterData,
         isCancelling,
         cancelSuccess,
+        isActionSubmitting,
+        actionSuccessMessage,
         errorMessage,
         canViewSubordinates,
       ];

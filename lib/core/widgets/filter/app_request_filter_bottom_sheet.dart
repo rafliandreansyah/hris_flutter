@@ -11,7 +11,6 @@ import 'package:hris_flutter/core/widgets/filter/filter_status_segmented_row.dar
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:flutter/foundation.dart';
 
 /// Model data kriteria filter seragam untuk seluruh modul pengajuan (Presensi, Cuti, Lembur).
 class AppRequestFilterData extends Equatable {

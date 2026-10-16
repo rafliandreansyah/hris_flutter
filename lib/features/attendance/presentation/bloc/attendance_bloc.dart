@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -23,7 +24,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     on<AttendanceWorkLocationChanged>(_onWorkLocationChanged);
     on<AttendanceClockInSubmitted>(_onClockInSubmitted);
     on<AttendanceClockOutSubmitted>(_onClockOutSubmitted);
-    on<AttendanceBreakToggled>(_onBreakToggled);
+    on<AttendanceBreakStarted>(_onBreakStarted);
+    on<AttendanceBreakEnded>(_onBreakEnded);
 
     if (autoStartClock) {
       _startClockTimer();
@@ -179,6 +181,25 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           LocationTrackingService.instance.startAttendanceTracking(
             attendanceId: data.attendanceId!,
           );
+        }
+      }
+
+      // Muat status & riwayat istirahat hari ini (non-fatal bila gagal)
+      if (data.isClockedIn && !data.isClockedOut) {
+        try {
+          final breakStatus = await repository.getBreakStatus();
+          if (state is AttendanceLoaded) {
+            emit(
+              (state as AttendanceLoaded).copyWith(
+                breakStatus: breakStatus,
+                data: (state as AttendanceLoaded).data.copyWith(
+                  isOnBreak: breakStatus.isOnBreak,
+                ),
+              ),
+            );
+          }
+        } catch (silentError) {
+          debugPrint('[diabaikan] $silentError');
         }
       }
     } on ApiException catch (e) {
@@ -627,36 +648,81 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     }
   }
 
-  Future<void> _onBreakToggled(
-    AttendanceBreakToggled event,
+  Future<void> _onBreakStarted(
+    AttendanceBreakStarted event,
     Emitter<AttendanceState> emit,
-  ) async {
-    if (state is AttendanceLoaded) {
-      final current = state as AttendanceLoaded;
-      emit(current.copyWith(isSubmittingAction: true));
+  ) => _submitBreak(isStart: true, note: event.note, emit: emit);
 
-      try {
-        final updatedData = await repository.toggleBreak();
-        final message = updatedData.isOnBreak
-            ? 'Istirahat dimulai (Break Out)'
-            : 'Selesai istirahat (Break In)';
+  Future<void> _onBreakEnded(
+    AttendanceBreakEnded event,
+    Emitter<AttendanceState> emit,
+  ) => _submitBreak(isStart: false, note: event.note, emit: emit);
 
-        emit(
-          _buildLoadedWithActiveLocation(
-            current: current,
-            updatedData: updatedData,
-            actionMessage: message,
-            isSubmittingAction: false,
-          ),
-        );
-      } catch (e) {
-        emit(
-          current.copyWith(
-            isSubmittingAction: false,
-            errorMessage: 'Gagal memperbarui status break: ${_extractErrorMessage(e)}',
-          ),
-        );
-      }
+  Future<void> _submitBreak({
+    required bool isStart,
+    required String? note,
+    required Emitter<AttendanceState> emit,
+  }) async {
+    if (state is! AttendanceLoaded) return;
+    final current = state as AttendanceLoaded;
+    if (current.isSubmittingAction) return;
+
+    final attendanceId = current.data.attendanceId;
+    final lat = current.userLatitude;
+    final lng = current.userLongitude;
+
+    if (attendanceId == null || attendanceId.isEmpty) {
+      emit(
+        current.copyWith(
+          errorMessage: 'Sesi presensi tidak ditemukan. Lakukan clock-in terlebih dahulu.',
+        ),
+      );
+      return;
+    }
+    if (!current.isGpsAcquired || lat == null || lng == null) {
+      emit(
+        current.copyWith(
+          errorMessage: 'Lokasi GPS belum terdeteksi. Aktifkan GPS lalu coba lagi.',
+        ),
+      );
+      return;
+    }
+
+    emit(current.copyWith(isSubmittingAction: true));
+
+    try {
+      final workLocationId = current.data.selectedWorkLocation?.id;
+      final status = isStart
+          ? await repository.startBreak(
+              attendanceId: attendanceId,
+              latitude: lat,
+              longitude: lng,
+              note: note,
+              workLocationId: workLocationId,
+            )
+          : await repository.endBreak(
+              attendanceId: attendanceId,
+              latitude: lat,
+              longitude: lng,
+              note: note,
+              workLocationId: workLocationId,
+            );
+
+      emit(
+        current.copyWith(
+          isSubmittingAction: false,
+          breakStatus: status,
+          data: current.data.copyWith(isOnBreak: status.isOnBreak),
+          actionMessage: isStart ? 'Istirahat dimulai' : 'Istirahat selesai',
+        ),
+      );
+    } catch (e) {
+      emit(
+        current.copyWith(
+          isSubmittingAction: false,
+          errorMessage: _extractErrorMessage(e),
+        ),
+      );
     }
   }
 

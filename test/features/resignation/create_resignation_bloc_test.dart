@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
@@ -75,6 +76,23 @@ class _MockResignationRepository implements ResignationRepository {
     throw UnimplementedError();
   }
 
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) async =>
+      throw UnimplementedError();
 }
 
 void main() {

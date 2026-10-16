@@ -1,9 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/features/auth/data/repositories/password_reset_repository.dart';
 import 'package:hris_flutter/features/auth/presentation/pages/reset_password_screen.dart';
+
+class _FakePasswordResetRepository implements PasswordResetRepository {
+  final String result;
+  final ApiException? error;
+  final Completer<String>? pending;
+  final List<String> requestedEmails = [];
+
+  _FakePasswordResetRepository({
+    this.result = 'OK',
+    this.error,
+    this.pending,
+  });
+
+  @override
+  Future<String> requestPasswordReset(String email) async {
+    requestedEmails.add(email);
+    if (error != null) throw error!;
+    if (pending != null) return pending!.future;
+    return result;
+  }
+}
 
 void main() {
   group('ResetPasswordScreen Widget Tests', () {
@@ -49,29 +74,63 @@ void main() {
       expect(find.text('Format email tidak valid'), findsOneWidget);
     });
 
-    testWidgets('submits valid email, displays loading and shows success SnackBar', (tester) async {
+    testWidgets('submit email valid memanggil API dan menampilkan dialog sukses berisi pesan backend', (tester) async {
+      final repo = _FakePasswordResetRepository(
+        result: 'Link reset sudah dikirim ke user@example.com',
+      );
       await tester.pumpWidget(
-        const MaterialApp(
-          home: ResetPasswordScreen(),
-        ),
+        MaterialApp(home: ResetPasswordScreen(repository: repo)),
+      );
+
+      await tester.enterText(find.byType(TextField), '  user@example.com ');
+      await tester.tap(find.text('Send Reset Link'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(repo.requestedEmails, ['  user@example.com ']);
+      expect(find.text('Link reset sudah dikirim ke user@example.com'), findsOneWidget);
+    });
+
+    testWidgets('tombol menampilkan loading dan mengabaikan tap ganda selama request', (tester) async {
+      final completer = Completer<String>();
+      final repo = _FakePasswordResetRepository(pending: completer);
+      await tester.pumpWidget(
+        MaterialApp(home: ResetPasswordScreen(repository: repo)),
       );
 
       await tester.enterText(find.byType(TextField), 'user@example.com');
       await tester.tap(find.text('Send Reset Link'));
-      await tester.pump(); // Start async process
+      await tester.pump();
 
-      // Verify button shows loading
-      final appButton = tester.widget<AppButton>(find.byType(AppButton));
-      expect(appButton.isLoading, isTrue);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.tap(find.byType(AppButton), warnIfMissed: false);
+      await tester.pump();
+      expect(repo.requestedEmails, hasLength(1));
 
-      // Advance clock past the 1-second simulated delay
-      await tester.pump(const Duration(seconds: 1));
-      await tester.pumpAndSettle();
+      completer.complete('OK');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
 
-      expect(
-        find.text('Tautan reset kata sandi telah dikirim ke email Anda!'),
-        findsOneWidget,
+    testWidgets('error API menampilkan pesan dari backend pada dialog error', (tester) async {
+      final repo = _FakePasswordResetRepository(
+        error: const ApiException(
+          message: 'Terlalu banyak percobaan, coba lagi nanti',
+          statusCode: 429,
+        ),
       );
+      await tester.pumpWidget(
+        MaterialApp(home: ResetPasswordScreen(repository: repo)),
+      );
+
+      await tester.enterText(find.byType(TextField), 'user@example.com');
+      await tester.tap(find.text('Send Reset Link'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('Terlalu banyak percobaan, coba lagi nanti'), findsOneWidget);
+      expect(find.text('Link reset sudah dikirim'), findsNothing);
     });
 
     testWidgets('tapping Back to Login pops back to previous route', (tester) async {

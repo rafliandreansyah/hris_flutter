@@ -44,7 +44,8 @@ void main() {
 
       // Resignation
       expect(AppPermissions.resignationView, 'resignation.view');
-      expect(AppPermissions.approvalResignationManager, 'approval.resignation.manager');
+      expect(AppPermissions.approvalResignationManager, 'resignation.approve_manager');
+      expect(AppPermissions.approvalResignationHr, 'resignation.hr_action');
     });
   });
 }

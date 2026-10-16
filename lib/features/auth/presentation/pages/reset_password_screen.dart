@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
+import 'package:hris_flutter/features/auth/data/repositories/password_reset_repository.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Reset Password Oasish HRIS menggunakan Global Widgets (AppTextField & AppButton)
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key});
+  /// Dapat di-inject untuk test; default memanggil backend.
+  final PasswordResetRepository? repository;
+
+  const ResetPasswordScreen({super.key, this.repository});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -20,6 +26,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
+  late final PasswordResetRepository _repository =
+      widget.repository ?? PasswordResetRepositoryImpl();
 
   @override
   void dispose() {
@@ -27,24 +35,36 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  void _handleSendResetLink() async {
+  Future<void> _handleSendResetLink() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    // Simulasi pengiriman reset link
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) return;
-
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tautan reset kata sandi telah dikirim ke email Anda!'),
-        backgroundColor: AppColors.brandTeal,
-      ),
-    );
+    try {
+      final message = await _repository.requestPasswordReset(
+        _emailController.text,
+      );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      await AppDialogUtil.showSuccess(
+        context,
+        title: 'Tautan Terkirim',
+        message: message,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      await AppDialogUtil.showError(context, message: e.message);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      await AppDialogUtil.showError(
+        context,
+        message: 'Terjadi kesalahan pada sistem. Silakan coba lagi.',
+      );
+    }
   }
 
   @override

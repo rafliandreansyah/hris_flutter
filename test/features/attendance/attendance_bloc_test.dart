@@ -4,6 +4,7 @@ import 'package:hris_flutter/features/attendance/data/models/attendance_detail_m
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_bloc.dart';
@@ -83,16 +84,83 @@ class MockAttendanceRepository implements AttendanceRepository {
     return currentData;
   }
 
+  AttendanceBreakStatus breakStatus = AttendanceBreakStatus.empty;
+  ApiException? breakError;
+  final List<Map<String, Object?>> breakCalls = [];
+
   @override
-  Future<AttendanceTodayData> toggleBreak() async {
-    if (shouldThrow) throw Exception('Break Error');
-    final nextBreakState = !currentData.isOnBreak;
-    currentData = currentData.copyWith(
-      isOnBreak: nextBreakState,
-      breakOutTime: nextBreakState ? '12:30' : currentData.breakOutTime,
-      breakInTime: !nextBreakState ? '13:30' : currentData.breakInTime,
+  Future<AttendanceBreakStatus> getBreakStatus() async {
+    if (shouldThrow) throw Exception('Break Status Error');
+    return breakStatus;
+  }
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    breakCalls.add({
+      'action': 'start',
+      'attendanceId': attendanceId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'note': note,
+      'workLocationId': workLocationId,
+    });
+    if (breakError != null) throw breakError!;
+    final active = AttendanceBreakItem(
+      id: 'b-1',
+      attendanceId: attendanceId,
+      startTime: DateTime.utc(2026, 8, 27, 5, 30),
+      note: note,
     );
-    return currentData;
+    breakStatus = AttendanceBreakStatus(
+      attendanceId: attendanceId,
+      isOnBreak: true,
+      activeBreak: active,
+      allocatedBreakMinutes: 60,
+      breaks: [active],
+    );
+    return breakStatus;
+  }
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    breakCalls.add({
+      'action': 'end',
+      'attendanceId': attendanceId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'note': note,
+      'workLocationId': workLocationId,
+    });
+    if (breakError != null) throw breakError!;
+    breakStatus = AttendanceBreakStatus(
+      attendanceId: attendanceId,
+      totalBreakMinutes: 40,
+      allocatedBreakMinutes: 60,
+      breaks: [
+        AttendanceBreakItem(
+          id: 'b-1',
+          attendanceId: attendanceId,
+          startTime: DateTime.utc(2026, 8, 27, 5, 30),
+          endTime: DateTime.utc(2026, 8, 27, 6, 10),
+          durationMinutes: 40,
+        ),
+      ],
+    );
+    return breakStatus;
   }
 
   @override
@@ -222,32 +290,145 @@ void main() {
       await bloc.close();
     });
 
-    test('AttendanceBreakToggled toggles break on and off', () async {
-      final repo = MockAttendanceRepository();
-      final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+    group('Istirahat (break)', () {
+      AttendanceTodayData workingData() => AttendanceTodayData(
+            serverTime: DateTime(2026, 8, 27, 12, 0),
+            attendanceId: 'att-1',
+            inTime: '08:45',
+            selectedWorkLocation: const WorkLocationItem(id: 'wl-1', name: 'HQ'),
+          );
 
-      bloc.add(const AttendanceFetchRequested());
-      await Future.delayed(const Duration(milliseconds: 50));
+      Future<AttendanceBloc> loadedBloc(
+        MockAttendanceRepository repo, {
+        bool withGps = true,
+      }) async {
+        final bloc = AttendanceBloc(repository: repo, autoStartClock: false);
+        bloc.add(const AttendanceFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (withGps) {
+          bloc.add(const AttendanceLocationUpdated(
+            latitude: -6.2,
+            longitude: 106.8,
+            accuracy: 5,
+            isInsideGeofence: true,
+          ));
+          await Future.delayed(const Duration(milliseconds: 50));
+        }
+        return bloc;
+      }
 
-      // Start break
-      bloc.add(const AttendanceBreakToggled());
-      await Future.delayed(const Duration(milliseconds: 50));
+      test('fetch saat sudah clock-in ikut memuat status istirahat', () async {
+        final repo = MockAttendanceRepository(initialData: workingData());
+        repo.breakStatus = const AttendanceBreakStatus(
+          isOnBreak: true,
+          allocatedBreakMinutes: 60,
+        );
+        final bloc = await loadedBloc(repo);
 
-      var loaded = bloc.state as AttendanceLoaded;
-      expect(loaded.data.isOnBreak, isTrue);
-      expect(loaded.data.breakOutTime, '12:30');
-      expect(loaded.actionMessage, 'Istirahat dimulai (Break Out)');
+        final loaded = bloc.state as AttendanceLoaded;
+        expect(loaded.breakStatus?.allocatedBreakMinutes, 60);
+        expect(loaded.data.isOnBreak, isTrue);
 
-      // End break
-      bloc.add(const AttendanceBreakToggled());
-      await Future.delayed(const Duration(milliseconds: 50));
+        await bloc.close();
+      });
 
-      loaded = bloc.state as AttendanceLoaded;
-      expect(loaded.data.isOnBreak, isFalse);
-      expect(loaded.data.breakInTime, '13:30');
-      expect(loaded.actionMessage, 'Selesai istirahat (Break In)');
+      test('AttendanceBreakStarted memanggil API dengan koordinat, id, dan catatan', () async {
+        final repo = MockAttendanceRepository(initialData: workingData());
+        final bloc = await loadedBloc(repo);
 
-      await bloc.close();
+        bloc.add(const AttendanceBreakStarted(note: 'makan siang'));
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(repo.breakCalls, [
+          {
+            'action': 'start',
+            'attendanceId': 'att-1',
+            'latitude': -6.2,
+            'longitude': 106.8,
+            'note': 'makan siang',
+            'workLocationId': 'wl-1',
+          },
+        ]);
+        final loaded = bloc.state as AttendanceLoaded;
+        expect(loaded.data.isOnBreak, isTrue);
+        expect(loaded.breakStatus?.activeBreak?.id, 'b-1');
+        expect(loaded.actionMessage, 'Istirahat dimulai');
+        expect(loaded.isSubmittingAction, isFalse);
+
+        await bloc.close();
+      });
+
+      test('AttendanceBreakEnded mengakhiri istirahat dan menyimpan riwayat sesi', () async {
+        final repo = MockAttendanceRepository(initialData: workingData());
+        final bloc = await loadedBloc(repo);
+
+        bloc.add(const AttendanceBreakStarted());
+        await Future.delayed(const Duration(milliseconds: 50));
+        bloc.add(const AttendanceBreakEnded());
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        final loaded = bloc.state as AttendanceLoaded;
+        expect(loaded.data.isOnBreak, isFalse);
+        expect(loaded.breakStatus?.breaks, hasLength(1));
+        expect(loaded.breakStatus?.totalBreakMinutes, 40);
+        expect(loaded.actionMessage, 'Istirahat selesai');
+        expect(repo.breakCalls.map((c) => c['action']), ['start', 'end']);
+
+        await bloc.close();
+      });
+
+      test('tanpa GPS: tidak memanggil API dan menampilkan pesan', () async {
+        final repo = MockAttendanceRepository(initialData: workingData());
+        final bloc = await loadedBloc(repo, withGps: false);
+
+        bloc.add(const AttendanceBreakStarted());
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(repo.breakCalls, isEmpty);
+        expect(
+          (bloc.state as AttendanceLoaded).errorMessage,
+          contains('GPS'),
+        );
+
+        await bloc.close();
+      });
+
+      test('tanpa sesi presensi (belum clock-in): tidak memanggil API', () async {
+        final repo = MockAttendanceRepository(
+          initialData: AttendanceTodayData(serverTime: DateTime(2026, 8, 27, 8, 0)),
+        );
+        final bloc = await loadedBloc(repo);
+
+        bloc.add(const AttendanceBreakStarted());
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(repo.breakCalls, isEmpty);
+        expect(
+          (bloc.state as AttendanceLoaded).errorMessage,
+          contains('clock-in'),
+        );
+
+        await bloc.close();
+      });
+
+      test('error API: pesan backend diteruskan apa adanya', () async {
+        final repo = MockAttendanceRepository(initialData: workingData())
+          ..breakError = const ApiException(
+            message: 'Anda sudah dalam sesi istirahat',
+            statusCode: 400,
+          );
+        final bloc = await loadedBloc(repo);
+
+        bloc.add(const AttendanceBreakStarted());
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        final loaded = bloc.state as AttendanceLoaded;
+        expect(loaded.errorMessage, 'Anda sudah dalam sesi istirahat');
+        expect(loaded.isSubmittingAction, isFalse);
+        expect(loaded.data.isOnBreak, isFalse);
+
+        await bloc.close();
+      });
     });
 
     test('AttendanceClockOutSubmitted updates outTime', () async {

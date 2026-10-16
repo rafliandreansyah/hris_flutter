@@ -7,7 +7,6 @@ import 'package:hris_flutter/features/employee/data/models/organization_filter_m
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:flutter/foundation.dart';
 
 /// Kriteria filter untuk daftar log aktivitas kerja Oasish HRIS.
 class ActivityFilterCriteria {

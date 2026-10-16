@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_state.dart';
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -86,6 +88,39 @@ class _MockResignationRepository implements ResignationRepository {
     if (shouldThrowError) {
       throw ApiException(message: errorMessage);
     }
+  }
+
+  final List<Map<String, Object?>> reviewCalls = [];
+  ExitInterviewRequestModel? lastExitInterview;
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) async {
+    reviewCalls.add({
+      'action': 'approve',
+      'id': id,
+      'notes': managerNotes,
+      'approveEarlyNotice': approveEarlyNotice,
+    });
+    if (shouldThrowError) throw ApiException(message: errorMessage);
+  }
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) async {
+    reviewCalls.add({'action': 'reject', 'id': id, 'notes': rejectionReason});
+    if (shouldThrowError) throw ApiException(message: errorMessage);
+  }
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) async {
+    lastExitInterview = request;
+    if (shouldThrowError) throw ApiException(message: errorMessage);
   }
 }
 
@@ -311,6 +346,153 @@ void main() {
       expect(customBloc.state.canViewSubordinates, isFalse);
       customBloc.close();
       SecureStorageService.instance.setPermissionsInMemory([]);
+    });
+  });
+
+  group('ResignationListBloc - review atasan & exit interview', () {
+    test('menyetujui: memanggil API approve dengan catatan & early notice, lalu sukses', () async {
+      bloc.add(const ResignationListSubordinateReviewed(
+        id: 'sub-1',
+        isApproved: true,
+        notes: 'Sudah dibahas 1-on-1',
+        approveEarlyNotice: false,
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<ResignationListState>((s) => s.isActionSubmitting),
+          predicate<ResignationListState>(
+            (s) =>
+                !s.isActionSubmitting &&
+                s.actionSuccessMessage == 'Pengajuan resign disetujui.',
+          ),
+        ]),
+      );
+
+      expect(repository.reviewCalls, [
+        {
+          'action': 'approve',
+          'id': 'sub-1',
+          'notes': 'Sudah dibahas 1-on-1',
+          'approveEarlyNotice': false,
+        },
+      ]);
+    });
+
+    test('menolak: memanggil API reject dengan alasan', () async {
+      bloc.add(const ResignationListSubordinateReviewed(
+        id: 'sub-2',
+        isApproved: false,
+        notes: 'Masih ada proyek kritis',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          predicate<ResignationListState>(
+            (s) => s.actionSuccessMessage == 'Pengajuan resign ditolak.',
+          ),
+        ),
+      );
+
+      expect(repository.reviewCalls.single['action'], 'reject');
+      expect(repository.reviewCalls.single['notes'], 'Masih ada proyek kritis');
+    });
+
+    test('setelah review sukses daftar bawahan dimuat ulang', () async {
+      repository.mockSubordinates = const SubordinateResignationResponseModel(
+        success: true,
+        message: 'OK',
+        data: [
+          SubordinateResignationItemModel(
+            id: 'sub-1',
+            companyId: 'c',
+            employeeId: 'e',
+            employeeName: 'Dimas',
+            status: 'manager_approved',
+          ),
+        ],
+        meta: ResignationPaginationMeta(page: 1, size: 10, total: 1, totalPages: 1),
+      );
+
+      bloc.add(const ResignationListSubordinateReviewed(
+        id: 'sub-1',
+        isApproved: true,
+        notes: 'Disetujui',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          predicate<ResignationListState>(
+            (s) => s.subordinates.length == 1 && !s.isSubordinatesLoading,
+          ),
+        ),
+      );
+    });
+
+    test('error API: pesan backend diteruskan dan tidak ada pesan sukses', () async {
+      repository.shouldThrowError = true;
+      repository.errorMessage = 'Pengajuan sudah diproses';
+
+      bloc.add(const ResignationListSubordinateReviewed(
+        id: 'sub-1',
+        isApproved: true,
+        notes: 'Setuju',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<ResignationListState>((s) => s.isActionSubmitting),
+          predicate<ResignationListState>(
+            (s) =>
+                !s.isActionSubmitting &&
+                s.errorMessage == 'Pengajuan sudah diproses' &&
+                s.actionSuccessMessage == null,
+          ),
+        ]),
+      );
+    });
+
+    test('exit interview: mengirim payload lalu memuat ulang status saya', () async {
+      const request = ExitInterviewRequestModel(
+        satisfactionCulture: 4,
+        reasonFeedback: 'Ingin pindah kota',
+        isAnonymous: true,
+      );
+
+      bloc.add(const ResignationListExitInterviewSubmitted(request));
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          predicate<ResignationListState>(
+            (s) =>
+                s.actionSuccessMessage ==
+                'Terima kasih, kuesioner exit interview telah dikirim.',
+          ),
+        ),
+      );
+      expect(repository.lastExitInterview, request);
+    });
+
+    test('exit interview dilewati menampilkan pesan khusus', () async {
+      bloc.add(
+        const ResignationListExitInterviewSubmitted(
+          ExitInterviewRequestModel.skipped(),
+        ),
+      );
+
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+          predicate<ResignationListState>(
+            (s) => s.actionSuccessMessage == 'Exit interview dilewati.',
+          ),
+        ),
+      );
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
@@ -85,5 +86,38 @@ class MockResignationRepository implements ResignationRepository {
       throw ApiException(message: errorMessage);
     }
     lastSubmittedRequest = request;
+  }
+
+  final List<Map<String, Object?>> reviewCalls = [];
+  ExitInterviewRequestModel? lastExitInterview;
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) async {
+    reviewCalls.add({
+      'action': 'approve',
+      'id': id,
+      'notes': managerNotes,
+      'approveEarlyNotice': approveEarlyNotice,
+    });
+    if (shouldThrowError) throw ApiException(message: errorMessage);
+  }
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) async {
+    reviewCalls.add({'action': 'reject', 'id': id, 'notes': rejectionReason});
+    if (shouldThrowError) throw ApiException(message: errorMessage);
+  }
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) async {
+    lastExitInterview = request;
+    if (shouldThrowError) throw ApiException(message: errorMessage);
   }
 }

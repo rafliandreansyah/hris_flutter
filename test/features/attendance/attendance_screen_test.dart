@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
@@ -87,14 +89,64 @@ class TestAttendanceRepository implements AttendanceRepository {
     return data;
   }
 
+  AttendanceBreakStatus breakStatus = AttendanceBreakStatus.empty;
+  final List<String> breakActions = [];
+
   @override
-  Future<AttendanceTodayData> toggleBreak() async {
-    data = data.copyWith(
-      isOnBreak: !data.isOnBreak,
-      breakOutTime: !data.isOnBreak ? '12:00' : data.breakOutTime,
-      breakInTime: data.isOnBreak ? '13:00' : data.breakInTime,
+  Future<AttendanceBreakStatus> getBreakStatus() async => breakStatus;
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    breakActions.add('start:${note ?? ''}');
+    final active = AttendanceBreakItem(
+      id: 'b-1',
+      attendanceId: attendanceId,
+      startTime: DateTime.now(),
     );
-    return data;
+    breakStatus = AttendanceBreakStatus(
+      attendanceId: attendanceId,
+      isOnBreak: true,
+      activeBreak: active,
+      allocatedBreakMinutes: 60,
+      breaks: [active],
+    );
+    data = data.copyWith(isOnBreak: true);
+    return breakStatus;
+  }
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    breakActions.add('end:${note ?? ''}');
+    breakStatus = AttendanceBreakStatus(
+      attendanceId: attendanceId,
+      totalBreakMinutes: 30,
+      allocatedBreakMinutes: 60,
+      breaks: [
+        AttendanceBreakItem(
+          id: 'b-1',
+          attendanceId: attendanceId,
+          startTime: DateTime.now().subtract(const Duration(minutes: 30)),
+          endTime: DateTime.now(),
+          durationMinutes: 30,
+        ),
+      ],
+    );
+    data = data.copyWith(isOnBreak: false);
+    return breakStatus;
   }
 
   @override
@@ -852,6 +904,141 @@ void main() {
       expect(find.byKey(const ValueKey('attendance_success_dialog_ok_button')), findsOneWidget);
     });
   });
+
+  group('AttendanceScreen - Istirahat', () {
+    AttendanceTodayData workingData({bool onBreak = false}) => AttendanceTodayData(
+          serverTime: DateTime(2026, 8, 27, 12, 0, 0),
+          attendanceId: 'att-1',
+          inTime: '08:45',
+          isOnBreak: onBreak,
+          attendanceMethod: 'photo',
+          availableWorkLocations: const [
+            WorkLocationItem(
+              id: 'default-office',
+              name: 'Jakarta HQ Office',
+              address: 'HQ Office',
+              radius: 50.0,
+              latitude: -6.2253,
+              longitude: 106.8097,
+              isDefault: true,
+            ),
+          ],
+          selectedWorkLocation: const WorkLocationItem(
+            id: 'default-office',
+            name: 'Jakarta HQ Office',
+            address: 'HQ Office',
+            radius: 50.0,
+            latitude: -6.2253,
+            longitude: 106.8097,
+            isDefault: true,
+          ),
+        );
+
+    Future<void> pumpScreen(WidgetTester tester, TestAttendanceRepository repo) async {
+      tester.view.physicalSize = const Size(800, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(
+        createTestApp(AttendanceScreen(repository: repo, autoStartClock: false)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('sudah clock-in: tombol "Mulai Istirahat" dan kartu Istirahat tampil', (tester) async {
+      final repo = TestAttendanceRepository(initialData: workingData());
+      await pumpScreen(tester, repo);
+
+      expect(find.text('Mulai Istirahat'), findsOneWidget);
+      expect(find.text('Start Break'), findsNothing);
+      expect(find.byKey(const ValueKey('attendance_break_sessions_card')), findsOneWidget);
+      expect(find.text('Belum ada istirahat hari ini'), findsOneWidget);
+    });
+
+    testWidgets('belum clock-in: tombol istirahat tidak tampil', (tester) async {
+      final repo = TestAttendanceRepository();
+      await pumpScreen(tester, repo);
+
+      expect(find.text('Mulai Istirahat'), findsNothing);
+      expect(find.text('Selesai Istirahat'), findsNothing);
+    });
+
+    testWidgets('menekan Mulai Istirahat membuka bottom sheet konfirmasi', (tester) async {
+      final repo = TestAttendanceRepository(initialData: workingData());
+      await pumpScreen(tester, repo);
+
+      await tester.ensureVisible(find.text('Mulai Istirahat'));
+      await tester.tap(find.text('Mulai Istirahat'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Catatan (opsional)'), findsOneWidget);
+      expect(find.widgetWithText(AppButton, 'Batal'), findsOneWidget);
+      // Tidak ada request ke API sebelum dikonfirmasi.
+      expect(repo.breakActions, isEmpty);
+
+      await tester.tap(find.widgetWithText(AppButton, 'Batal'));
+      await tester.pumpAndSettle();
+      expect(find.text('Catatan (opsional)'), findsNothing);
+      expect(repo.breakActions, isEmpty);
+    });
+
+    testWidgets('sedang istirahat: tombol berubah "Selesai Istirahat" + timer tampil', (tester) async {
+      final repo = TestAttendanceRepository(initialData: workingData(onBreak: true));
+      final active = AttendanceBreakItem(
+        id: 'b-1',
+        attendanceId: 'att-1',
+        startTime: DateTime.now().subtract(const Duration(minutes: 12)),
+      );
+      repo.breakStatus = AttendanceBreakStatus(
+        attendanceId: 'att-1',
+        isOnBreak: true,
+        activeBreak: active,
+        allocatedBreakMinutes: 60,
+        breaks: [active],
+      );
+      await pumpScreen(tester, repo);
+
+      expect(find.text('Selesai Istirahat'), findsOneWidget);
+      expect(find.text('Mulai Istirahat'), findsNothing);
+      expect(find.byKey(const ValueKey('attendance_break_timer')), findsOneWidget);
+      expect(find.text('Sedang istirahat'), findsOneWidget);
+      expect(find.text('Sisa jatah 48 menit'), findsOneWidget);
+    });
+
+    testWidgets('riwayat istirahat hari ini menampilkan beberapa sesi', (tester) async {
+      final repo = TestAttendanceRepository(initialData: workingData());
+      final start = DateTime.now().subtract(const Duration(hours: 3));
+      repo.breakStatus = AttendanceBreakStatus(
+        attendanceId: 'att-1',
+        totalBreakMinutes: 50,
+        allocatedBreakMinutes: 60,
+        breaks: [
+          AttendanceBreakItem(
+            id: 'b-1',
+            attendanceId: 'att-1',
+            startTime: start,
+            endTime: start.add(const Duration(minutes: 20)),
+            durationMinutes: 20,
+          ),
+          AttendanceBreakItem(
+            id: 'b-2',
+            attendanceId: 'att-1',
+            startTime: start.add(const Duration(hours: 1)),
+            endTime: start.add(const Duration(hours: 1, minutes: 30)),
+            durationMinutes: 30,
+          ),
+        ],
+      );
+      await pumpScreen(tester, repo);
+
+      expect(find.text('Selesai'), findsOneWidget);
+      expect(find.text('20 mnt'), findsOneWidget);
+      expect(find.text('30 mnt'), findsOneWidget);
+      expect(find.text('Total 50 dari 60 menit'), findsOneWidget);
+    });
+  });
 }
 
 class Test404AttendanceRepository implements AttendanceRepository {
@@ -898,7 +1085,27 @@ class Test404AttendanceRepository implements AttendanceRepository {
   }) async => throw UnimplementedError();
 
   @override
-  Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
+  Future<AttendanceBreakStatus> getBreakStatus() async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
 
   @override
   Future<AttendanceLogListResponse> getAttendanceLogs({

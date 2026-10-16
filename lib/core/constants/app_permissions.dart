@@ -59,6 +59,6 @@ abstract class AppPermissions {
   // --- Modul Resign (Resignation) ---
   static const String resignationView = 'resignation.view';
   static const String resignationCreate = 'resignation.create';
-  static const String approvalResignationManager = 'approval.resignation.manager';
-  static const String approvalResignationHr = 'approval.resignation.hr';
+  static const String approvalResignationManager = 'resignation.approve_manager';
+  static const String approvalResignationHr = 'resignation.hr_action';
 }

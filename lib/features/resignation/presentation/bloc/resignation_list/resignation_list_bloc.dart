@@ -30,6 +30,8 @@ class ResignationListBloc
     on<ResignationListFilterApplied>(_onFilterApplied);
     on<ResignationListFilterReset>(_onFilterReset);
     on<ResignationListCancelRequested>(_onCancelRequested);
+    on<ResignationListSubordinateReviewed>(_onSubordinateReviewed);
+    on<ResignationListExitInterviewSubmitted>(_onExitInterviewSubmitted);
   }
 
   void _onStarted(
@@ -212,6 +214,73 @@ class ResignationListBloc
       emit(state.copyWith(
         isCancelling: false,
         errorMessage: msg,
+      ));
+    }
+  }
+
+  Future<void> _onSubordinateReviewed(
+    ResignationListSubordinateReviewed event,
+    Emitter<ResignationListState> emit,
+  ) async {
+    if (state.isActionSubmitting) return;
+    emit(state.copyWith(
+      isActionSubmitting: true,
+      clearActionSuccessMessage: true,
+      clearErrorMessage: true,
+    ));
+
+    try {
+      if (event.isApproved) {
+        await _repository.approveSubordinateResignation(
+          event.id,
+          managerNotes: event.notes,
+          approveEarlyNotice: event.approveEarlyNotice,
+        );
+      } else {
+        await _repository.rejectSubordinateResignation(
+          event.id,
+          rejectionReason: event.notes,
+        );
+      }
+      emit(state.copyWith(
+        isActionSubmitting: false,
+        actionSuccessMessage: event.isApproved
+            ? 'Pengajuan resign disetujui.'
+            : 'Pengajuan resign ditolak.',
+      ));
+      add(const ResignationListSubordinatesRequested(isRefresh: true));
+    } catch (e) {
+      emit(state.copyWith(
+        isActionSubmitting: false,
+        errorMessage: e is ApiException ? e.message : e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onExitInterviewSubmitted(
+    ResignationListExitInterviewSubmitted event,
+    Emitter<ResignationListState> emit,
+  ) async {
+    if (state.isActionSubmitting) return;
+    emit(state.copyWith(
+      isActionSubmitting: true,
+      clearActionSuccessMessage: true,
+      clearErrorMessage: true,
+    ));
+
+    try {
+      await _repository.submitExitInterview(event.request);
+      emit(state.copyWith(
+        isActionSubmitting: false,
+        actionSuccessMessage: event.request.isSkipped
+            ? 'Exit interview dilewati.'
+            : 'Terima kasih, kuesioner exit interview telah dikirim.',
+      ));
+      add(const ResignationListMyStatusRequested(isRefresh: true));
+    } catch (e) {
+      emit(state.copyWith(
+        isActionSubmitting: false,
+        errorMessage: e is ApiException ? e.message : e.toString(),
       ));
     }
   }

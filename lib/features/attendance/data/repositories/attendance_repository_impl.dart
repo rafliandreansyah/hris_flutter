@@ -6,6 +6,7 @@ import 'package:hris_flutter/features/attendance/data/models/attendance_detail_m
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -325,24 +326,82 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceTodayData> toggleBreak() async {
-    final current = _cachedData ?? await getTodayAttendance();
-    final nowTime = DateFormat('HH:mm').format(DateTime.now());
-
-    if (!current.isOnBreak) {
-      // Start break
-      _cachedData = current.copyWith(
-        isOnBreak: true,
-        breakOutTime: nowTime,
-      );
-    } else {
-      // End break
-      _cachedData = current.copyWith(
-        isOnBreak: false,
-        breakInTime: nowTime,
-      );
+  Future<AttendanceBreakStatus> getBreakStatus() async {
+    final json = await remoteDataSource.fetchBreakToday();
+    final data = json['data'];
+    if (data is! Map<String, dynamic>) {
+      return AttendanceBreakStatus.empty;
     }
-    return _cachedData!;
+    return AttendanceBreakStatus.fromJson(data);
+  }
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    await remoteDataSource.submitBreak(
+      isStart: true,
+      payload: _breakPayload(
+        attendanceId: attendanceId,
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
+        note: note,
+        workLocationId: workLocationId,
+      ),
+    );
+    return getBreakStatus();
+  }
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async {
+    await remoteDataSource.submitBreak(
+      isStart: false,
+      payload: _breakPayload(
+        attendanceId: attendanceId,
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
+        note: note,
+        workLocationId: workLocationId,
+      ),
+    );
+    return getBreakStatus();
+  }
+
+  Map<String, dynamic> _breakPayload({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) {
+    String? clean(String? v) {
+      final t = v?.trim();
+      return (t == null || t.isEmpty) ? null : t;
+    }
+
+    return {
+      'attendanceId': attendanceId,
+      'latitude': latitude,
+      'longitude': longitude,
+      if (clean(address) != null) 'address': clean(address),
+      if (clean(note) != null) 'note': clean(note),
+      if (clean(workLocationId) != null) 'workLocationId': clean(workLocationId),
+    };
   }
 
   @override

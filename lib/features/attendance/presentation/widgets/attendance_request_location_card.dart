@@ -6,7 +6,6 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/config/maps_config.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:flutter/foundation.dart';
 
 /// Card 2: Geo-Location Card (Lokasi Absensi)
 /// Sesuai spesifikasi Google Stitch Screen ID: `c0c581134c61461a8585cf77a66f1dd7`.

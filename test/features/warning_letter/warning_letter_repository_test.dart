@@ -75,7 +75,7 @@ void main() {
     });
 
     test('getWarningLetters delegates to remote data source and returns result', () async {
-      mockRemoteDataSource.mockLettersResult = WarningLetterListResponse.fromJson({
+      mockRemoteDataSource.mockLettersResult = WarningLetterListResponse.fromJson(const {
         'success': true,
         'message': 'OK',
         'data': [
@@ -122,7 +122,7 @@ void main() {
     });
 
     test('getLastWarningLetter delegates to remote data source', () async {
-      mockRemoteDataSource.mockLastLetterResult = LastWarningLetterModel.fromJson({
+      mockRemoteDataSource.mockLastLetterResult = LastWarningLetterModel.fromJson(const {
         'id': 'wl-prev-1',
         'referenceNumber': 'SP/001',
         'issuedDate': '2026-05-01',
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('getWarningLetterDetail delegates to remote data source', () async {
-      mockRemoteDataSource.mockDetailResult = WarningLetterDetail.fromJson({
+      mockRemoteDataSource.mockDetailResult = WarningLetterDetail.fromJson(const {
         'id': 'wl-1',
         'referenceNumber': 'SP/001',
         'infractionReason': 'Terlambat',

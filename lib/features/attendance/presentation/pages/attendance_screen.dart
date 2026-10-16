@@ -22,6 +22,7 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_ev
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_action_buttons.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_break_sheet.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_employee_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_geofence_map_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_server_clock_card.dart';
@@ -32,7 +33,6 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter/foundation.dart';
 
 class AttendanceScreen extends StatelessWidget {
   final AttendanceRepository? repository;
@@ -262,6 +262,28 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   }
 
 
+  /// Mulai / selesai istirahat: konfirmasi via bottom sheet (catatan opsional),
+  /// lalu kirim event ke bloc yang memanggil API.
+  Future<void> _handleBreakAction(
+    BuildContext context, {
+    required AttendanceLoaded state,
+  }) async {
+    final isEnding = state.data.isOnBreak;
+    final note = await showAttendanceBreakSheet(
+      context,
+      isEnding: isEnding,
+      isGpsReady: state.isGpsAcquired,
+      status: state.breakStatus,
+    );
+    if (note == null || !context.mounted) return;
+
+    context.read<AttendanceBloc>().add(
+      isEnding
+          ? AttendanceBreakEnded(note: note)
+          : AttendanceBreakStarted(note: note),
+    );
+  }
+
   Future<void> _handleClockAction(
     BuildContext context, {
     required AttendanceLoaded state,
@@ -279,6 +301,20 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         ),
       );
       return;
+    }
+
+    // 1b. Istirahat masih berjalan: server menutupnya otomatis saat clock-out
+    if (data.isClockedIn && !data.isClockedOut && data.isOnBreak) {
+      var confirmed = false;
+      await AppDialogUtil.showWarning(
+        context,
+        title: 'Istirahat Masih Berjalan',
+        message:
+            'Istirahat Anda akan diselesaikan otomatis saat Clock Out. Lanjutkan?',
+        confirmText: 'Lanjut Clock Out',
+        onConfirm: () => confirmed = true,
+      );
+      if (!confirmed || !context.mounted) return;
     }
 
     // 2. Validasi metode presensi dari server
@@ -882,6 +918,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                           breakInTime: data.breakInTime,
                           isClockedIn: data.isClockedIn,
                           isClockedOut: data.isClockedOut,
+                          breakStatus: loaded.breakStatus,
                         ),
                         const SizedBox(height: 20),
 
@@ -899,11 +936,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                             context,
                             state: loaded,
                           ),
-                          onBreakPressed: () {
-                            context.read<AttendanceBloc>().add(
-                              const AttendanceBreakToggled(),
-                            );
-                          },
+                          onBreakPressed: () =>
+                              _handleBreakAction(context, state: loaded),
                         ),
                         const SizedBox(height: 24),
                       ]),

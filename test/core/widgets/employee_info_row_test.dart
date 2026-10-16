@@ -44,7 +44,7 @@ void main() {
     });
 
     testWidgets('renders correctly using EmployeeDirectoryItem model', (tester) async {
-      final item = EmployeeDirectoryItem(
+      const item = EmployeeDirectoryItem(
         id: 'uuid-1234',
         employeeNumber: 'NIP-8888',
         name: 'John Doe',
@@ -59,7 +59,7 @@ void main() {
 
       await tester.pumpWidget(
         buildTestableWidget(
-          child: EmployeeInfoRow(
+          child: const EmployeeInfoRow(
             employee: item,
             avatarSize: 40,
           ),
@@ -89,7 +89,7 @@ void main() {
 
     testWidgets('uses employee id fallback when employeeNumber is null or empty in model',
         (tester) async {
-      final item = EmployeeDirectoryItem(
+      const item = EmployeeDirectoryItem(
         id: 'ID-ONLY-99',
         employeeNumber: '',
         name: 'Alex Mercer',
@@ -102,7 +102,7 @@ void main() {
 
       await tester.pumpWidget(
         buildTestableWidget(
-          child: EmployeeInfoRow(employee: item),
+          child: const EmployeeInfoRow(employee: item),
         ),
       );
 

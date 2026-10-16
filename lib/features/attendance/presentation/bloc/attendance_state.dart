@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 
 abstract class AttendanceState extends Equatable {
@@ -65,6 +66,9 @@ class AttendanceLoaded extends AttendanceState {
   /// Data sukses presensi (clock in / clock out) untuk memicu dialog sukses.
   final AttendanceSuccessInfo? attendanceSuccess;
 
+  /// Status & daftar istirahat hari ini; `null` bila belum dimuat / belum clock-in.
+  final AttendanceBreakStatus? breakStatus;
+
   const AttendanceLoaded({
     required this.data,
     required this.currentClockTime,
@@ -77,6 +81,7 @@ class AttendanceLoaded extends AttendanceState {
     this.isInsideGeofence = true,
     this.isGpsAcquired = false,
     this.attendanceSuccess,
+    this.breakStatus,
   });
 
   /// Format waktu jam:menit:detik tanpa 'WIB' karena timezone sudah ditampilkan secara terpisah di chip.
@@ -96,6 +101,7 @@ class AttendanceLoaded extends AttendanceState {
     bool? isGpsAcquired,
     AttendanceSuccessInfo? attendanceSuccess,
     bool clearAttendanceSuccess = false,
+    AttendanceBreakStatus? breakStatus,
   }) {
     return AttendanceLoaded(
       data: data ?? this.data,
@@ -109,6 +115,7 @@ class AttendanceLoaded extends AttendanceState {
       isInsideGeofence: isInsideGeofence ?? this.isInsideGeofence,
       isGpsAcquired: isGpsAcquired ?? this.isGpsAcquired,
       attendanceSuccess: clearAttendanceSuccess ? null : attendanceSuccess,
+      breakStatus: breakStatus ?? this.breakStatus,
     );
   }
 
@@ -125,6 +132,7 @@ class AttendanceLoaded extends AttendanceState {
         isInsideGeofence,
         isGpsAcquired,
         attendanceSuccess,
+        breakStatus,
       ];
 }
 

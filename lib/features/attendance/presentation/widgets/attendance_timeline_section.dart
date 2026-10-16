@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_break_sessions_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AttendanceTimelineSection extends StatelessWidget {
@@ -12,6 +14,9 @@ class AttendanceTimelineSection extends StatelessWidget {
   final bool isClockedIn;
   final bool isClockedOut;
 
+  /// Status & daftar istirahat hari ini dari API; bila `null` tampil ringkasan lama.
+  final AttendanceBreakStatus? breakStatus;
+
   const AttendanceTimelineSection({
     super.key,
     this.inTime,
@@ -20,6 +25,7 @@ class AttendanceTimelineSection extends StatelessWidget {
     this.breakInTime,
     this.isClockedIn = false,
     this.isClockedOut = false,
+    this.breakStatus,
   });
 
   static String _formatTimeHHmm(String? timeStr) {
@@ -116,113 +122,116 @@ class AttendanceTimelineSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // 2. Break Session Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        // 2. Break Session Card (detail multi-sesi bila data API tersedia)
+        if (breakStatus != null)
+          AttendanceBreakSessionsCard(status: breakStatus!)
+        else
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: iconBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.coffee,
+                        size: 20,
+                        color: iconColor,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Text(
+                      'Break Session',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: textPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: borderColor,
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Break Out',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            breakOutTime != null && breakOutTime!.isNotEmpty
+                                ? _formatTimeHHmm(breakOutTime)
+                                : '--:--',
+                            style: AppTypography.bodyLarge.copyWith(
+                              color: textPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Break In',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            breakInTime != null && breakInTime!.isNotEmpty
+                                ? _formatTimeHHmm(breakInTime)
+                                : '--:--',
+                            style: AppTypography.bodyLarge.copyWith(
+                              color: textPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: iconBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.coffee,
-                      size: 20,
-                      color: iconColor,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text(
-                    'Break Session',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textPrimary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Container(
-                width: double.infinity,
-                height: 1,
-                color: borderColor,
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Break Out',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          breakOutTime != null && breakOutTime!.isNotEmpty
-                              ? _formatTimeHHmm(breakOutTime)
-                              : '--:--',
-                          style: AppTypography.bodyLarge.copyWith(
-                            color: textPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Break In',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          breakInTime != null && breakInTime!.isNotEmpty
-                              ? _formatTimeHHmm(breakInTime)
-                              : '--:--',
-                          style: AppTypography.bodyLarge.copyWith(
-                            color: textPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 12),
 
         // 3. Clock Out Card

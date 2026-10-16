@@ -29,7 +29,7 @@ void main() {
     });
 
     test('getWorkSchedule delegates to remote data source and returns result', () async {
-      mockRemoteDataSource.mockResult = WorkScheduleResponse.fromJson({
+      mockRemoteDataSource.mockResult = WorkScheduleResponse.fromJson(const {
         'success': true,
         'message': 'OK',
         'data': {

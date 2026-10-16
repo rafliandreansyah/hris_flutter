@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/fake_lifecycle_repository.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
@@ -265,6 +266,7 @@ void main() {
           home: EmployeeDetailScreen(
             employee: item,
             repository: mockRepo,
+            lifecycleRepository: FakeLifecycleRepository(),
           ),
         ),
       );
@@ -294,6 +296,7 @@ void main() {
         MaterialApp(
           home: EmployeeDetailScreen(
             repository: mockRepo,
+            lifecycleRepository: FakeLifecycleRepository(),
           ),
         ),
       );
@@ -324,6 +327,7 @@ void main() {
           home: EmployeeDetailScreen(
             employeeId: '123e4567-e89b-12d3-a456-426614174000',
             repository: mockRepo,
+            lifecycleRepository: FakeLifecycleRepository(),
           ),
         ),
       );

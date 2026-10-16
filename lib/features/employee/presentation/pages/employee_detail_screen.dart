@@ -19,6 +19,7 @@ import 'package:hris_flutter/features/employee/presentation/widgets/metrics_stri
 import 'package:hris_flutter/features/employee/presentation/widgets/profile_hero_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/team_coworkers_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/work_location_card.dart';
+import 'package:hris_flutter/features/lifecycle/domain/repositories/lifecycle_repository.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/widgets/lifecycle_profile_section.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -31,6 +32,9 @@ class EmployeeDetailScreen extends StatelessWidget {
   final EmployeeDetailBloc? employeeDetailBloc;
   final bool? isFromDirectory;
 
+  /// Repository lifecycle (kontrak & riwayat karier); dapat di-inject untuk test.
+  final LifecycleRepository? lifecycleRepository;
+
   const EmployeeDetailScreen({
     super.key,
     this.employee,
@@ -38,6 +42,7 @@ class EmployeeDetailScreen extends StatelessWidget {
     this.repository,
     this.employeeDetailBloc,
     this.isFromDirectory,
+    this.lifecycleRepository,
   });
 
   @override
@@ -49,6 +54,7 @@ class EmployeeDetailScreen extends StatelessWidget {
           employee: employee,
           employeeId: employeeId,
           isFromDirectory: isFromDirectory,
+          lifecycleRepository: lifecycleRepository,
         ),
       );
     }
@@ -63,6 +69,7 @@ class EmployeeDetailScreen extends StatelessWidget {
         employee: employee,
         employeeId: employeeId,
         isFromDirectory: isFromDirectory,
+        lifecycleRepository: lifecycleRepository,
       ),
     );
   }
@@ -72,11 +79,13 @@ class _EmployeeDetailView extends StatelessWidget {
   final EmployeeDirectoryItem? employee;
   final String? employeeId;
   final bool? isFromDirectory;
+  final LifecycleRepository? lifecycleRepository;
 
   const _EmployeeDetailView({
     this.employee,
     this.employeeId,
     this.isFromDirectory,
+    this.lifecycleRepository,
   });
 
   String _formatDate(String? raw) {
@@ -393,7 +402,7 @@ class _EmployeeDetailView extends StatelessWidget {
 
                 // 6b. Kontrak & Riwayat Karier (hanya profil sendiri; tanpa gaji)
                 if (!effectiveIsFromDirectory) ...[
-                  const LifecycleProfileSection(),
+                  LifecycleProfileSection(repository: lifecycleRepository),
                   const SizedBox(height: 16),
                 ],
 

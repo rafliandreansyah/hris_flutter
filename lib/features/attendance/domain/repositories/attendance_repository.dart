@@ -2,6 +2,7 @@ import 'package:hris_flutter/features/attendance/data/models/attendance_detail_m
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/create_attendance_response.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,8 +36,28 @@ abstract class AttendanceRepository {
     XFile? photoFile,
   });
 
-  /// Melakukan Start/End Break kehadiran.
-  Future<AttendanceTodayData> toggleBreak();
+  /// Status & daftar istirahat hari ini (`GET /attendances/break/today`).
+  Future<AttendanceBreakStatus> getBreakStatus();
+
+  /// Memulai istirahat (`POST /attendances/break/start`). Mengembalikan status terbaru.
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  });
+
+  /// Mengakhiri istirahat (`POST /attendances/break/end`). Mengembalikan status terbaru.
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  });
 
   Future<AttendanceLogListResponse> getAttendanceLogs({
     String? employeeId,

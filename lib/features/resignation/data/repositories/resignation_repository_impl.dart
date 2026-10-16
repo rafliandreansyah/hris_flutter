@@ -1,4 +1,5 @@
 import 'package:hris_flutter/features/resignation/data/datasources/resignation_remote_datasource.dart';
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/submit_resignation_request_model.dart';
@@ -56,6 +57,35 @@ class ResignationRepositoryImpl implements ResignationRepository {
   @override
   Future<void> submitResignation(SubmitResignationRequestModel request) {
     return _remoteDataSource.submitResignation(request);
+  }
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) {
+    return _remoteDataSource.approveSubordinateResignation(
+      id,
+      managerNotes: managerNotes,
+      approveEarlyNotice: approveEarlyNotice,
+    );
+  }
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) {
+    return _remoteDataSource.rejectSubordinateResignation(
+      id,
+      rejectionReason: rejectionReason,
+    );
+  }
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) {
+    return _remoteDataSource.submitExitInterview(request);
   }
 }
 

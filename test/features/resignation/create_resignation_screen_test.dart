@@ -16,11 +16,11 @@ void main() {
   // Tanggal relatif agar test tidak kedaluwarsa terhadap DateTime.now().
   final suggestedDate = DateTime.now().add(const Duration(days: 60));
   final sampleInitialForm = ResignationInitialFormModel(
-    companyPolicy: ResignationCompanyPolicyModel(
+    companyPolicy: const ResignationCompanyPolicyModel(
       defaultNoticePeriodDays: 30,
       allowEarlyNoticeWaiver: true,
     ),
-    employee: ResignationFormEmployeeModel(
+    employee: const ResignationFormEmployeeModel(
       id: 'emp-101',
       name: 'Budi Santoso',
       departmentName: 'Engineering',
@@ -28,7 +28,7 @@ void main() {
     ),
     minSuggestedDate:
         '${suggestedDate.year.toString().padLeft(4, '0')}-${suggestedDate.month.toString().padLeft(2, '0')}-${suggestedDate.day.toString().padLeft(2, '0')}',
-    colleagues: [],
+    colleagues: const [],
   );
 
   Widget buildTestableWidget({required ResignationRepository repository}) {

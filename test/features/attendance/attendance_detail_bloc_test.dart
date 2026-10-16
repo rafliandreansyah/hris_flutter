@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
@@ -76,7 +77,27 @@ class MockAttendanceDetailRepository implements AttendanceRepository {
       throw UnimplementedError();
 
   @override
-  Future<AttendanceTodayData> toggleBreak() async => throw UnimplementedError();
+  Future<AttendanceBreakStatus> getBreakStatus() async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
 
   @override
   Future<AttendanceLogListResponse> getAttendanceLogs({

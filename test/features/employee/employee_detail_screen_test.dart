@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/fake_lifecycle_repository.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
@@ -98,6 +99,7 @@ void main() {
         repository: repository,
         employeeId: employeeId,
         employee: employee,
+        lifecycleRepository: FakeLifecycleRepository(),
       ),
     );
   }

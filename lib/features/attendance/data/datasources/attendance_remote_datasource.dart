@@ -12,6 +12,15 @@ import 'package:hris_flutter/core/network/multipart_file_helper.dart';
 abstract class AttendanceRemoteDataSource {
   Future<Map<String, dynamic>> fetchAttendanceInfo();
   Future<Map<String, dynamic>> fetchDashboardAttendance();
+
+  /// `GET /attendances/break/today` — status & daftar istirahat hari ini.
+  Future<Map<String, dynamic>> fetchBreakToday();
+
+  /// `POST /attendances/break/start` / `POST /attendances/break/end`.
+  Future<Map<String, dynamic>> submitBreak({
+    required bool isStart,
+    required Map<String, dynamic> payload,
+  });
   Future<CreateAttendanceResponse> recordAttendance(CreateAttendanceRequest request);
 
   Future<AttendanceLogListResponse> getAttendanceLogs({
@@ -49,6 +58,28 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchBreakToday() async {
+    final response = await apiClient.get(ApiEndpoints.attendanceBreakToday);
+    final raw = response.data;
+    return raw is Map<String, dynamic> ? raw : {};
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitBreak({
+    required bool isStart,
+    required Map<String, dynamic> payload,
+  }) async {
+    final response = await apiClient.post(
+      isStart
+          ? ApiEndpoints.attendanceBreakStart
+          : ApiEndpoints.attendanceBreakEnd,
+      data: payload,
+    );
+    final raw = response.data;
+    return raw is Map<String, dynamic> ? raw : {};
   }
 
   @override

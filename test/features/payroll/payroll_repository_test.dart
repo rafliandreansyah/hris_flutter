@@ -105,7 +105,7 @@ void main() {
     });
 
     test('getMyPayslips delegates to remote data source and returns result', () async {
-      mockRemoteDataSource.mockMyPayslipsResult = PayrollListResponseModel.fromJson({
+      mockRemoteDataSource.mockMyPayslipsResult = PayrollListResponseModel.fromJson(const {
         'data': [
           {
             'id': 'slip-1',
@@ -127,7 +127,7 @@ void main() {
     });
 
     test('getPayrolls delegates to remote data source', () async {
-      mockRemoteDataSource.mockPayrollsResult = PayrollListResponseModel.fromJson({
+      mockRemoteDataSource.mockPayrollsResult = PayrollListResponseModel.fromJson(const {
         'data': [
           {
             'id': 'slip-2',
@@ -153,7 +153,7 @@ void main() {
     });
 
     test('getPayrollEmployees delegates to remote data source', () async {
-      mockRemoteDataSource.mockEmployeesResult = PayrollEmployeeListResponseModel.fromJson({
+      mockRemoteDataSource.mockEmployeesResult = PayrollEmployeeListResponseModel.fromJson(const {
         'data': [
           {
             'id': 'emp-101',
@@ -177,7 +177,7 @@ void main() {
 
     test('getPayrollPeriods delegates to remote data source', () async {
       mockRemoteDataSource.mockPeriodsResult = [
-        PayrollPeriodModel.fromJson({
+        PayrollPeriodModel.fromJson(const {
           'id': 'prd-1',
           'month': 10,
           'year': 2026,
@@ -197,7 +197,7 @@ void main() {
     });
 
     test('getPayrollDetail delegates to remote data source', () async {
-      mockRemoteDataSource.mockDetailResult = PayrollDetailModel.fromJson({
+      mockRemoteDataSource.mockDetailResult = PayrollDetailModel.fromJson(const {
         'id': 'slip-1',
         'grossSalary': 10000000.0,
         'deductions': 1000000.0,

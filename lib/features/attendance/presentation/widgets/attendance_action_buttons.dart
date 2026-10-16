@@ -111,15 +111,11 @@ class AttendanceActionButtons extends StatelessWidget {
       primaryAction = null;
     }
 
-    // Conditional break button visibility
-    final bool hasBreakStarted =
-        breakOutTime != null &&
-        breakOutTime!.isNotEmpty &&
-        breakOutTime != '--:--';
-    final bool showBreakButton =
-        isClockedIn && !isClockedOut && (!hasBreakStarted || isOnBreak);
+    // Istirahat dapat dilakukan berkali-kali selama sudah clock-in dan belum clock-out
+    final bool showBreakButton = isClockedIn && !isClockedOut;
 
-    final String breakButtonText = isOnBreak ? 'End Break' : 'Start Break';
+    final String breakButtonText =
+        isOnBreak ? 'Selesai Istirahat' : 'Mulai Istirahat';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

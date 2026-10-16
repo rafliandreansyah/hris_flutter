@@ -122,7 +122,23 @@ class AttendanceClockOutSubmitted extends AttendanceEvent {
       ];
 }
 
-class AttendanceBreakToggled extends AttendanceEvent {
-  const AttendanceBreakToggled();
+/// Memulai istirahat (`POST /attendances/break/start`) memakai lokasi GPS terakhir.
+class AttendanceBreakStarted extends AttendanceEvent {
+  final String? note;
+
+  const AttendanceBreakStarted({this.note});
+
+  @override
+  List<Object?> get props => [note];
+}
+
+/// Mengakhiri istirahat yang sedang berjalan (`POST /attendances/break/end`).
+class AttendanceBreakEnded extends AttendanceEvent {
+  final String? note;
+
+  const AttendanceBreakEnded({this.note});
+
+  @override
+  List<Object?> get props => [note];
 }
 

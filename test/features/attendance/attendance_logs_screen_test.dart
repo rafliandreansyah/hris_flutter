@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
@@ -112,8 +113,27 @@ class TestLogsRepository implements AttendanceRepository {
   }) async => throw UnimplementedError();
 
   @override
-  Future<AttendanceTodayData> toggleBreak() async =>
-      throw UnimplementedError();
+  Future<AttendanceBreakStatus> getBreakStatus() async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> startBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<AttendanceBreakStatus> endBreak({
+    required String attendanceId,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? note,
+    String? workLocationId,
+  }) async => throw UnimplementedError();
 
   @override
   Future<AttendanceDetailModel> getAttendanceDetail(String id) async {

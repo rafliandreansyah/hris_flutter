@@ -1,6 +1,7 @@
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 
@@ -28,6 +29,19 @@ abstract class ResignationRemoteDataSource {
   Future<ResignationInitialFormModel> getInitialFormData();
 
   Future<void> submitResignation(SubmitResignationRequestModel request);
+
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  });
+
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  });
+
+  Future<void> submitExitInterview(ExitInterviewRequestModel request);
 }
 
 class ResignationRemoteDataSourceImpl implements ResignationRemoteDataSource {
@@ -144,6 +158,49 @@ class ResignationRemoteDataSourceImpl implements ResignationRemoteDataSource {
         message: rawData['message']?.toString() ??
             'Gagal mengirimkan pengajuan pengunduran diri.',
       );
+    }
+  }
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.subordinateResignationApprove(id),
+      data: {
+        'managerNotes': managerNotes.trim(),
+        'approveEarlyNotice': approveEarlyNotice,
+      },
+    );
+    _ensureSuccess(response.data, 'Gagal menyetujui pengajuan resign.');
+  }
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.subordinateResignationReject(id),
+      data: {'rejectionReason': rejectionReason.trim()},
+    );
+    _ensureSuccess(response.data, 'Gagal menolak pengajuan resign.');
+  }
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.resignationExitInterview,
+      data: request.toJson(),
+    );
+    _ensureSuccess(response.data, 'Gagal mengirim kuesioner exit interview.');
+  }
+
+  void _ensureSuccess(dynamic raw, String fallbackMessage) {
+    if (raw is Map<String, dynamic> && raw['success'] == false) {
+      throw ApiException(message: raw['message']?.toString() ?? fallbackMessage);
     }
   }
 }

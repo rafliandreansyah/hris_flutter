@@ -17,6 +17,8 @@ class _MockAttendanceRemoteDataSource implements AttendanceRemoteDataSource {
   List<EmployeeDirectoryItem>? mockEmployees;
   AttendanceDetailModel? mockDetail;
   Map<String, dynamic>? mockDefaultWorkLocationResponse;
+  Map<String, dynamic>? mockBreakToday;
+  final List<({bool isStart, Map<String, dynamic> payload})> breakSubmissions = [];
 
   CreateAttendanceRequest? lastRecordedRequest;
   bool shouldThrow = false;
@@ -26,6 +28,22 @@ class _MockAttendanceRemoteDataSource implements AttendanceRemoteDataSource {
   Future<Map<String, dynamic>> fetchAttendanceInfo() async {
     if (shouldThrow) throw errorToThrow ?? const ApiException(message: 'Error');
     return mockAttendanceInfo ?? {};
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchBreakToday() async {
+    if (shouldThrow) throw errorToThrow ?? const ApiException(message: 'Error');
+    return mockBreakToday ?? {};
+  }
+
+  @override
+  Future<Map<String, dynamic>> submitBreak({
+    required bool isStart,
+    required Map<String, dynamic> payload,
+  }) async {
+    breakSubmissions.add((isStart: isStart, payload: payload));
+    if (shouldThrow) throw errorToThrow ?? const ApiException(message: 'Error');
+    return {'success': true};
   }
 
   @override
@@ -270,26 +288,127 @@ void main() {
       expect(mockDataSource.lastRecordedRequest?.attendanceType, equals('out'));
     });
 
-    test('toggleBreak toggles break state and updates break times', () async {
-      mockDataSource.mockAttendanceInfo = {
+    group('istirahat (break)', () {
+      const todayJson = {
         'success': true,
         'data': {
-          'firstName': 'Budi',
-          'attendanceSummary': {
-            'todayAttendance': {
-              'isOnBreak': false,
-            },
+          'attendanceId': 'att-1',
+          'isOnBreak': true,
+          'activeBreak': {
+            'id': 'b-2',
+            'attendanceId': 'att-1',
+            'startTime': '2026-10-15T12:30:00+07:00',
+            'endTime': null,
+            'durationMinutes': null,
           },
+          'totalBreakMinutes': 20,
+          'overbreakMinutes': 0,
+          'allocatedBreakMinutes': 60,
+          'isFlexibleBreak': false,
+          'breaks': [
+            {
+              'id': 'b-1',
+              'attendanceId': 'att-1',
+              'startTime': '2026-10-15T10:00:00+07:00',
+              'endTime': '2026-10-15T10:20:00+07:00',
+              'durationMinutes': 20,
+              'note': 'ngopi',
+            },
+            {
+              'id': 'b-2',
+              'attendanceId': 'att-1',
+              'startTime': '2026-10-15T12:30:00+07:00',
+              'endTime': null,
+              'durationMinutes': null,
+            },
+          ],
         },
       };
 
-      final startBreak = await repository.toggleBreak();
-      expect(startBreak.isOnBreak, isTrue);
-      expect(startBreak.breakOutTime, isNotNull);
+      test('getBreakStatus mem-parse sesi, jatah, dan sesi aktif', () async {
+        mockDataSource.mockBreakToday = Map<String, dynamic>.from(todayJson);
 
-      final endBreak = await repository.toggleBreak();
-      expect(endBreak.isOnBreak, isFalse);
-      expect(endBreak.breakInTime, isNotNull);
+        final status = await repository.getBreakStatus();
+
+        expect(status.attendanceId, 'att-1');
+        expect(status.isOnBreak, isTrue);
+        expect(status.activeBreak?.id, 'b-2');
+        expect(status.activeBreak?.isOngoing, isTrue);
+        expect(status.allocatedBreakMinutes, 60);
+        expect(status.totalBreakMinutes, 20);
+        expect(status.breaks, hasLength(2));
+        expect(status.breaks.first.note, 'ngopi');
+        expect(status.breaks.first.durationMinutes, 20);
+      });
+
+      test('getBreakStatus tanpa data mengembalikan status kosong', () async {
+        mockDataSource.mockBreakToday = {'success': true, 'data': null};
+
+        final status = await repository.getBreakStatus();
+
+        expect(status.isOnBreak, isFalse);
+        expect(status.breaks, isEmpty);
+      });
+
+      test('startBreak mengirim payload bersih lalu mengembalikan status terbaru', () async {
+        mockDataSource.mockBreakToday = Map<String, dynamic>.from(todayJson);
+
+        final status = await repository.startBreak(
+          attendanceId: 'att-1',
+          latitude: -6.2,
+          longitude: 106.8,
+          note: '  makan siang ',
+          address: '   ',
+          workLocationId: 'wl-1',
+        );
+
+        final sent = mockDataSource.breakSubmissions.single;
+        expect(sent.isStart, isTrue);
+        expect(sent.payload, {
+          'attendanceId': 'att-1',
+          'latitude': -6.2,
+          'longitude': 106.8,
+          'note': 'makan siang',
+          'workLocationId': 'wl-1',
+        });
+        expect(status.isOnBreak, isTrue);
+      });
+
+      test('endBreak memanggil endpoint selesai dan tidak mengirim field kosong', () async {
+        mockDataSource.mockBreakToday = {
+          'success': true,
+          'data': {'isOnBreak': false, 'totalBreakMinutes': 45},
+        };
+
+        final status = await repository.endBreak(
+          attendanceId: 'att-1',
+          latitude: -6.2,
+          longitude: 106.8,
+        );
+
+        final sent = mockDataSource.breakSubmissions.single;
+        expect(sent.isStart, isFalse);
+        expect(sent.payload.keys, unorderedEquals(['attendanceId', 'latitude', 'longitude']));
+        expect(status.isOnBreak, isFalse);
+        expect(status.totalBreakMinutes, 45);
+      });
+
+      test('ApiException (pesan + statusCode) diteruskan saat start gagal', () async {
+        mockDataSource.shouldThrow = true;
+        mockDataSource.errorToThrow = const ApiException(
+          message: 'Anda sudah dalam sesi istirahat',
+          statusCode: 400,
+        );
+
+        await expectLater(
+          repository.startBreak(attendanceId: 'att-1', latitude: 1, longitude: 2),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', 400)
+                .having((e) => e.message, 'message', 'Anda sudah dalam sesi istirahat'),
+          ),
+        );
+      });
     });
 
     test('getAttendanceLogs enriches missing timezones with fallback', () async {

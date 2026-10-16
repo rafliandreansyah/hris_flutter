@@ -74,7 +74,7 @@ void main() {
     });
 
     test('getUnreadCount delegates to remote data source and returns result', () async {
-      mockRemoteDataSource.mockUnreadCountResult = NotificationUnreadCountResponse.fromJson({
+      mockRemoteDataSource.mockUnreadCountResult = NotificationUnreadCountResponse.fromJson(const {
         'success': true,
         'data': {'unreadCount': 3},
       });
@@ -86,7 +86,7 @@ void main() {
     });
 
     test('getNotifications delegates to remote data source', () async {
-      mockRemoteDataSource.mockNotificationsResult = NotificationListResponse.fromJson({
+      mockRemoteDataSource.mockNotificationsResult = NotificationListResponse.fromJson(const {
         'success': true,
         'data': [
           {
@@ -108,7 +108,7 @@ void main() {
     });
 
     test('markAllAsRead delegates to remote data source', () async {
-      mockRemoteDataSource.mockMarkReadAllResult = NotificationMarkReadAllResponse.fromJson({
+      mockRemoteDataSource.mockMarkReadAllResult = NotificationMarkReadAllResponse.fromJson(const {
         'success': true,
         'message': 'Semua telah dibaca',
       });
@@ -120,7 +120,7 @@ void main() {
     });
 
     test('markAsRead delegates to remote data source', () async {
-      mockRemoteDataSource.mockMarkReadResult = NotificationMarkReadResponse.fromJson({
+      mockRemoteDataSource.mockMarkReadResult = NotificationMarkReadResponse.fromJson(const {
         'success': true,
         'message': 'Dibaca',
       });
@@ -132,7 +132,7 @@ void main() {
     });
 
     test('getNotificationSettings delegates to remote data source', () async {
-      mockRemoteDataSource.mockSettingsResult = NotificationSettingsResponse.fromJson({
+      mockRemoteDataSource.mockSettingsResult = NotificationSettingsResponse.fromJson(const {
         'success': true,
         'data': {
           'id': 'ns-1',
@@ -148,7 +148,7 @@ void main() {
     });
 
     test('updateNotificationSettings delegates to remote data source', () async {
-      mockRemoteDataSource.mockUpdateSettingsResult = NotificationSettingsResponse.fromJson({
+      mockRemoteDataSource.mockUpdateSettingsResult = NotificationSettingsResponse.fromJson(const {
         'success': true,
         'data': {
           'id': 'ns-1',

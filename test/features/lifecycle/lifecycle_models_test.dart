@@ -7,7 +7,7 @@ import 'package:hris_flutter/features/resignation/data/models/my_resignation_sta
 void main() {
   group('EvaluationAssignedPage', () {
     test('parse item + meta paginasi', () {
-      final page = EvaluationAssignedPage.fromJson({
+      final page = EvaluationAssignedPage.fromJson(const {
         'data': [
           {
             'id': 'e1',
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('tahan terhadap data kosong', () {
-      final page = EvaluationAssignedPage.fromJson({'data': null});
+      final page = EvaluationAssignedPage.fromJson(const {'data': null});
       expect(page.items, isEmpty);
       expect(page.totalPages, 1);
     });
@@ -42,7 +42,7 @@ void main() {
 
   group('EvaluationForm', () {
     test('parse template dinamis, jawaban, metrik', () {
-      final f = EvaluationForm.fromJson({
+      final f = EvaluationForm.fromJson(const {
         'id': 'e1',
         'referenceNumber': 'EVK-1',
         'evaluationType': 'contract_renewal',
@@ -84,7 +84,7 @@ void main() {
 
   group('MyEvaluationDetail', () {
     test('parse hasil + kontrak baru + acknowledge', () {
-      final d = MyEvaluationDetail.fromJson({
+      final d = MyEvaluationDetail.fromJson(const {
         'id': 'e9',
         'referenceNumber': 'EVK-9',
         'evaluationType': 'contract_renewal',
@@ -106,7 +106,7 @@ void main() {
 
   group('Kontrak & karier', () {
     test('ContractOverviewModel tanpa kontrak aktif', () {
-      final c = ContractOverviewModel.fromJson({
+      final c = ContractOverviewModel.fromJson(const {
         'activeContract': null,
         'contracts': [],
         'pkwtSummary': {'totalPkwtMonths': 30, 'maxContractMonths': 60, 'pkwtMonthsRemaining': 30},
@@ -116,7 +116,7 @@ void main() {
     });
 
     test('ContractOverviewModel dengan kontrak aktif', () {
-      final c = ContractOverviewModel.fromJson({
+      final c = ContractOverviewModel.fromJson(const {
         'activeContract': {
           'id': 'c1', 'contractNumber': 'PKWT-1', 'type': 'pkwt', 'startDate': '2026-01-01',
           'endDate': '2026-11-05', 'probationEndDate': null, 'daysUntilExpiry': 20, 'isNearExpiry': true,
@@ -132,7 +132,7 @@ void main() {
     });
 
     test('CareerHistoryItem', () {
-      final h = CareerHistoryItem.fromJson({
+      final h = CareerHistoryItem.fromJson(const {
         'id': 'h1', 'changeType': 'promotion', 'effectiveDate': '2026-03-01',
         'companyName': 'PT A', 'departmentName': 'IT', 'positionName': 'Lead', 'levelName': null,
         'prevCompanyName': 'PT A', 'prevDepartmentName': 'IT', 'prevPositionName': 'Staff',
@@ -164,13 +164,13 @@ void main() {
       final o = OnboardingProgressModel.fromJson({
         'id': 'ob1', 'referenceNumber': 'ONB-1', 'status': 'in_progress', 'joinDate': '2026-10-01',
         'isRehire': false,
-        'progress': {'done': 2, 'total': 5, 'requiredDone': 2, 'requiredTotal': 4},
+        'progress': const {'done': 2, 'total': 5, 'requiredDone': 2, 'requiredTotal': 4},
         'myTasks': [task()],
       });
       expect(o.hasOpenWork, true);
       expect(o.progress.total, 5);
       expect(o.myTasks, hasLength(1));
-      final done = OnboardingProgressModel.fromJson({
+      final done = OnboardingProgressModel.fromJson(const {
         'id': 'ob1', 'referenceNumber': 'x', 'status': 'in_progress',
         'progress': {'done': 5, 'total': 5, 'requiredDone': 4, 'requiredTotal': 4}, 'myTasks': [],
       });
@@ -181,9 +181,9 @@ void main() {
       final o = OffboardingStatusModel.fromJson({
         'id': 'off1', 'referenceNumber': 'OFB-1', 'exitType': 'resignation', 'status': 'settled',
         'lastWorkingDate': '2026-10-30', 'effectiveExitDate': '2026-10-31', 'accessRevokedAt': null,
-        'progress': {'done': 1, 'total': 1, 'requiredDone': 1, 'requiredTotal': 1},
+        'progress': const {'done': 1, 'total': 1, 'requiredDone': 1, 'requiredTotal': 1},
         'tasks': [task(status: 'done')],
-        'paklaring': {'issued': true, 'number': 'PKL-1', 'url': 'https://f/p.pdf', 'issuedAt': '2026-11-02T00:00:00.000Z'},
+        'paklaring': const {'issued': true, 'number': 'PKL-1', 'url': 'https://f/p.pdf', 'issuedAt': '2026-11-02T00:00:00.000Z'},
       });
       expect(o.paklaring.issued, true);
       expect(o.paklaring.number, 'PKL-1');
@@ -194,14 +194,14 @@ void main() {
 
   group('MyResignationStatusModel — blok offboarding aditif', () {
     test('kompatibel bila blok offboarding tidak ada / null', () {
-      final a = MyResignationStatusModel.fromJson({'hasActiveResignation': false});
+      final a = MyResignationStatusModel.fromJson(const {'hasActiveResignation': false});
       expect(a.offboarding, isNull);
-      final b = MyResignationStatusModel.fromJson({'hasActiveResignation': true, 'offboarding': null});
+      final b = MyResignationStatusModel.fromJson(const {'hasActiveResignation': true, 'offboarding': null});
       expect(b.offboarding, isNull);
     });
 
     test('mem-parse blok offboarding bila ada', () {
-      final m = MyResignationStatusModel.fromJson({
+      final m = MyResignationStatusModel.fromJson(const {
         'hasActiveResignation': true,
         'offboarding': {
           'id': 'off1', 'referenceNumber': 'OFB-1', 'exitType': 'resignation', 'status': 'in_progress',

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/resignation/data/models/exit_interview_request_model.dart';
 import 'package:hris_flutter/features/resignation/data/datasources/resignation_remote_datasource.dart';
 import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
@@ -56,6 +57,34 @@ class _MockResignationRemoteDataSource implements ResignationRemoteDataSource {
   Future<void> submitResignation(SubmitResignationRequestModel request) async {
     submitResignationCallCount++;
   }
+
+  final List<String> calls = [];
+  Map<String, Object?> lastArgs = {};
+
+  @override
+  Future<void> approveSubordinateResignation(
+    String id, {
+    required String managerNotes,
+    bool approveEarlyNotice = true,
+  }) async {
+    calls.add('approve');
+    lastArgs = {'id': id, 'notes': managerNotes, 'early': approveEarlyNotice};
+  }
+
+  @override
+  Future<void> rejectSubordinateResignation(
+    String id, {
+    required String rejectionReason,
+  }) async {
+    calls.add('reject');
+    lastArgs = {'id': id, 'notes': rejectionReason};
+  }
+
+  @override
+  Future<void> submitExitInterview(ExitInterviewRequestModel request) async {
+    calls.add('exit');
+    lastArgs = {'request': request};
+  }
 }
 
 void main() {
@@ -71,7 +100,7 @@ void main() {
     });
 
     test('getMyResignationStatus delegates to remote data source and returns result', () async {
-      mockRemoteDataSource.mockMyStatusResult = MyResignationStatusModel.fromJson({
+      mockRemoteDataSource.mockMyStatusResult = MyResignationStatusModel.fromJson(const {
         'hasActiveResignation': true,
         'daysRemaining': 15,
         'canCancel': true,
@@ -92,7 +121,7 @@ void main() {
     });
 
     test('getSubordinateResignations delegates to remote data source', () async {
-      mockRemoteDataSource.mockSubordinatesResult = SubordinateResignationResponseModel.fromJson({
+      mockRemoteDataSource.mockSubordinatesResult = SubordinateResignationResponseModel.fromJson(const {
         'success': true,
         'message': 'OK',
         'data': [
@@ -126,7 +155,7 @@ void main() {
 
 
     test('getInitialFormData delegates to remote data source', () async {
-      mockRemoteDataSource.mockInitialFormResult = ResignationInitialFormModel.fromJson({
+      mockRemoteDataSource.mockInitialFormResult = ResignationInitialFormModel.fromJson(const {
         'companyPolicy': {
           'defaultNoticePeriodDays': 30,
         },

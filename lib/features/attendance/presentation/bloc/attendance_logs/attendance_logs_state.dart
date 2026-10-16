@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_filter_bottom_sheet.dart';
 

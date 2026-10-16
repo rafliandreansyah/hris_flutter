@@ -6,6 +6,9 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
+import 'package:hris_flutter/features/resignation/presentation/widgets/exit_interview_sheet.dart';
+import 'package:hris_flutter/features/resignation/presentation/widgets/resignation_review_sheet.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
@@ -146,26 +149,17 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     }
   }
 
-  void _handleViewDetail() {
-    FocusManager.instance.primaryFocus?.unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Halaman Detail Pengunduran Diri segera hadir.'),
-      ),
-    );
-  }
-
   void _handleExitInterview() {
     FocusManager.instance.primaryFocus?.unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Kuesioner Exit Interview segera hadir.')),
-    );
+    showExitInterviewSheet(context, bloc: context.read<ResignationListBloc>());
   }
 
-  void _handleReviewSubordinate(String id) {
+  void _handleReviewSubordinate(SubordinateResignationItemModel item) {
     FocusManager.instance.primaryFocus?.unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Review 1-on-1 Atasan segera hadir.')),
+    showResignationReviewSheet(
+      context,
+      bloc: context.read<ResignationListBloc>(),
+      item: item,
     );
   }
 
@@ -190,9 +184,21 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return BlocConsumer<ResignationListBloc, ResignationListState>(
+      listenWhen: (p, c) =>
+          p.errorMessage != c.errorMessage ||
+          p.cancelSuccess != c.cancelSuccess ||
+          p.actionSuccessMessage != c.actionSuccessMessage,
       listener: (context, state) {
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
           AppDialogUtil.showError(context, message: state.errorMessage!);
+        }
+        final successMessage = state.actionSuccessMessage;
+        if (successMessage != null && successMessage.isNotEmpty) {
+          AppDialogUtil.showSuccess(
+            context,
+            title: 'Berhasil',
+            message: successMessage,
+          );
         }
         if (state.cancelSuccess) {
           AppDialogUtil.showSuccess(
@@ -605,16 +611,7 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
             const SizedBox(height: 10),
           ],
 
-          AppButton(
-            text: 'Lihat Detail Berkas & Timeline',
-            leadingIcon: LucideIcons.folderOpen,
-            variant: AppButtonVariant.outlined,
-            height: 48,
-            onPressed: _handleViewDetail,
-          ),
-
-          if (myStatus.canCancel) ...[
-            const SizedBox(height: 10),
+          if (myStatus.canCancel)
             AppButton(
               text: 'Batalkan Pengajuan',
               leadingIcon: LucideIcons.xCircle,
@@ -623,7 +620,6 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
               height: 48,
               onPressed: _handleCancelMyResignation,
             ),
-          ],
         ],
       ),
     );
@@ -720,8 +716,8 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
         final item = state.subordinates[index];
         return SubordinateResignationCard(
           item: item,
-          onReviewPressed: () => _handleReviewSubordinate(item.id),
-          onDetailPressed: _handleViewDetail,
+          onReviewPressed: () => _handleReviewSubordinate(item),
+          onDetailPressed: () => _handleReviewSubordinate(item),
         );
       },
     );
