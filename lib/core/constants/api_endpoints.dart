@@ -168,6 +168,23 @@ abstract class ApiEndpoints {
   static String resignationClearance(String id) => '/resignations/$id/clearance';
 
   // ==========================================
+  // --- 🔄 EMPLOYEE LIFECYCLE ---
+  // ==========================================
+  static const String lifecycleEvaluationsAssigned = '/lifecycle/evaluations/assigned';
+  static const String lifecycleEvaluationsMy = '/lifecycle/evaluations/my';
+  static String lifecycleEvaluationMyDetail(String id) => '/lifecycle/evaluations/my/$id';
+  static String lifecycleEvaluation(String id) => '/lifecycle/evaluations/$id';
+  static String lifecycleEvaluationAnswers(String id) => '/lifecycle/evaluations/$id/answers';
+  static String lifecycleEvaluationSubmit(String id) => '/lifecycle/evaluations/$id/submit';
+  static String lifecycleEvaluationAcknowledge(String id) => '/lifecycle/evaluations/$id/acknowledge';
+  static const String lifecycleContractsMy = '/lifecycle/contracts/my';
+  static const String lifecycleCareerHistoryMy = '/lifecycle/career-history/my';
+  static const String lifecycleOffboardingMy = '/lifecycle/offboarding/my';
+  static const String lifecycleOnboardingMy = '/lifecycle/onboarding/my';
+  static const String lifecycleTasksMy = '/lifecycle/tasks/my';
+  static String lifecycleTaskComplete(String id) => '/lifecycle/tasks/$id/complete';
+
+  // ==========================================
   // --- 📍 LOCATION TRACKING ENDPOINTS ---
   // ==========================================
   static const String trackingConfig = '/tracking/config';

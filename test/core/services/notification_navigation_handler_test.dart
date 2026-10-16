@@ -344,5 +344,89 @@ void main() {
       final handled = handler.handlePayload(context, {'type': 'unknown_type'});
       expect(handled, isFalse);
     });
+
+    group('Siklus Karyawan (lifecycle_*)', () {
+      Future<(bool, List<String>, List<Object?>)> run(
+        WidgetTester tester,
+        Map<String, dynamic> payload,
+      ) async {
+        final routes = <String>[];
+        final extras = <Object?>[];
+        GoRoute stub(String path) => GoRoute(
+              path: path,
+              builder: (context, state) {
+                routes.add(path);
+                extras.add(state.extra);
+                return const Scaffold(body: Text('Stub'));
+              },
+            );
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(path: '/', builder: (c, s) => const Scaffold(body: Text('Home'))),
+            stub(Routes.LIFECYCLE_EVALUATION_FORM),
+            stub(Routes.LIFECYCLE_EVALUATIONS),
+            stub(Routes.LIFECYCLE_TASKS),
+            stub(Routes.RESIGNATION),
+          ],
+        );
+        await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+        final context = tester.element(find.text('Home'));
+        final handled = handler.handlePayload(context, payload);
+        await tester.pumpAndSettle();
+        return (handled, routes, extras);
+      }
+
+      testWidgets('lifecycle_evaluation → form dengan fallback ke hasil', (tester) async {
+        final (handled, routes, extras) = await run(tester, {
+          'type': 'lifecycle_evaluation',
+          'id': 'ev-1',
+          'module': 'LIFECYCLE',
+          'actionUrl': '/lifecycle/evaluation/ev-1',
+        });
+        expect(handled, isTrue);
+        expect(routes, [Routes.LIFECYCLE_EVALUATION_FORM]);
+        expect(extras.single, {'id': 'ev-1', 'fallbackToResult': true});
+      });
+
+      testWidgets('lifecycle_evaluation tanpa id → daftar penilaian', (tester) async {
+        final (handled, routes, _) = await run(tester, {'type': 'lifecycle_evaluation'});
+        expect(handled, isTrue);
+        expect(routes, [Routes.LIFECYCLE_EVALUATIONS]);
+      });
+
+      testWidgets('lifecycle_offboarding → layar resign', (tester) async {
+        final (handled, routes, _) =
+            await run(tester, {'type': 'lifecycle_offboarding', 'id': 'off-1'});
+        expect(handled, isTrue);
+        expect(routes, [Routes.RESIGNATION]);
+      });
+
+      testWidgets('lifecycle_task & lifecycle_onboarding → daftar tugas', (tester) async {
+        for (final t in ['lifecycle_task', 'lifecycle_onboarding']) {
+          final (handled, routes, _) = await run(tester, {'type': t, 'id': 'x'});
+          expect(handled, isTrue, reason: t);
+          expect(routes, [Routes.LIFECYCLE_TASKS], reason: t);
+        }
+      });
+
+      testWidgets('lifecycle_movement & lifecycle_contract → fallback modal (tidak ditangani)', (tester) async {
+        for (final t in ['lifecycle_movement', 'lifecycle_contract']) {
+          final (handled, routes, _) = await run(tester, {'type': t, 'id': 'x', 'module': 'LIFECYCLE'});
+          expect(handled, isFalse, reason: t);
+          expect(routes, isEmpty, reason: t);
+        }
+      });
+
+      testWidgets('module LIFECYCLE tanpa type spesifik tidak jatuh ke modul lain', (tester) async {
+        final (handled, routes, _) = await run(tester, {
+          'type': 'lifecycle_offboarding',
+          'module': 'LIFECYCLE',
+          'actionUrl': '/approval/leaves/abc',
+        });
+        expect(handled, isTrue);
+        expect(routes, [Routes.RESIGNATION]);
+      });
+    });
   });
 }

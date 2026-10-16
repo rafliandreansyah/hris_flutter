@@ -1,3 +1,4 @@
+import 'package:hris_flutter/features/lifecycle/presentation/widgets/onboarding_progress_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -589,6 +590,9 @@ class _DashboardViewState extends State<_DashboardView> {
                         },
                       ),
                       const SizedBox(height: 24),
+
+                      // 1b. Kartu onboarding (hanya tampil bila ada onboarding aktif)
+                      const OnboardingProgressCard(),
 
                       // 2. Section: Quick Access Bento Grid (Dinamis dari /auth/menus)
                       QuickAccessGrid(menus: menus),

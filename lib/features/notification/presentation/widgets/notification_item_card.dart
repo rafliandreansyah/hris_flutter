@@ -33,6 +33,15 @@ class NotificationItemCard extends StatelessWidget {
   }
 
   IconData _getTypeIcon(String type) {
+    if (type.toLowerCase().startsWith('lifecycle')) {
+      return switch (type.toLowerCase()) {
+        'lifecycle_evaluation' => LucideIcons.clipboardCheck,
+        'lifecycle_offboarding' => LucideIcons.userMinus,
+        'lifecycle_contract' => LucideIcons.fileText,
+        'lifecycle_movement' => LucideIcons.arrowRightLeft,
+        _ => LucideIcons.listChecks,
+      };
+    }
     switch (type.toLowerCase()) {
       case 'attendance_request':
       case 'attendance':
@@ -74,6 +83,9 @@ class NotificationItemCard extends StatelessWidget {
   }
 
   Color _getTypeColor(String type) {
+    if (type.toLowerCase().startsWith('lifecycle')) {
+      return const Color(0xFF0D9488); // Teal (Siklus Karyawan)
+    }
     switch (type.toLowerCase()) {
       case 'attendance_request':
       case 'attendance':
@@ -115,6 +127,16 @@ class NotificationItemCard extends StatelessWidget {
   }
 
   String _getTypeLabel(String type) {
+    if (type.toLowerCase().startsWith('lifecycle')) {
+      return switch (type.toLowerCase()) {
+        'lifecycle_evaluation' => 'Evaluasi',
+        'lifecycle_offboarding' => 'Offboarding',
+        'lifecycle_contract' => 'Kontrak',
+        'lifecycle_movement' => 'Mutasi',
+        'lifecycle_onboarding' => 'Onboarding',
+        _ => 'Tugas',
+      };
+    }
     switch (type.toLowerCase()) {
       case 'attendance_request':
       case 'attendance':

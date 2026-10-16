@@ -10,6 +10,7 @@ import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/widgets/offboarding_status_card.dart';
 import 'package:hris_flutter/features/resignation/domain/repositories/resignation_repository.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_bloc.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_event.dart';
@@ -576,6 +577,17 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
           // 2. Tahapan Proses Resign (5-Stage Visual Stepper)
           ResignationStepperCard(resignation: resignation),
           const SizedBox(height: 14),
+
+          // 2b. Status offboarding & clearance (Employee Lifecycle) — hanya bila server mengirim blok ini
+          if (myStatus.offboarding != null) ...[
+            OffboardingStatusCard(
+              offboarding: myStatus.offboarding!,
+              onTaskChanged: () => context.read<ResignationListBloc>().add(
+                const ResignationListMyStatusRequested(isRefresh: true),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
 
           // 3. Diagnosa Live Clearance 4 Pos
           ResignationClearanceSnapshotCard(resignation: resignation),

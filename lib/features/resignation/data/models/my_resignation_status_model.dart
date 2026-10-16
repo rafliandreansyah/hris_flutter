@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_task_models.dart';
 
 class MyResignationStatusModel extends Equatable {
   final bool hasActiveResignation;
@@ -8,6 +9,9 @@ class MyResignationStatusModel extends Equatable {
   final bool canSubmitExitInterview;
   final bool hasSubmittedExitInterview;
 
+  /// Status offboarding (Employee Lifecycle). Null bila server belum mengirim blok ini atau belum ada case.
+  final OffboardingStatusModel? offboarding;
+
   const MyResignationStatusModel({
     required this.hasActiveResignation,
     this.daysRemaining = 0,
@@ -15,6 +19,7 @@ class MyResignationStatusModel extends Equatable {
     this.canCancel = false,
     this.canSubmitExitInterview = false,
     this.hasSubmittedExitInterview = false,
+    this.offboarding,
   });
 
   factory MyResignationStatusModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +36,11 @@ class MyResignationStatusModel extends Equatable {
           json['canSubmitExitInterview'] as bool? ?? false,
       hasSubmittedExitInterview:
           json['hasSubmittedExitInterview'] as bool? ?? false,
+      offboarding: json['offboarding'] is Map<String, dynamic>
+          ? OffboardingStatusModel.fromJson(
+              json['offboarding'] as Map<String, dynamic>,
+            )
+          : null,
     );
   }
 
@@ -42,6 +52,7 @@ class MyResignationStatusModel extends Equatable {
         canCancel,
         canSubmitExitInterview,
         hasSubmittedExitInterview,
+        offboarding,
       ];
 }
 

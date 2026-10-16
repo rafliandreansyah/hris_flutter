@@ -115,6 +115,11 @@ class NotificationNavigationHandler {
 
       debugPrint('🧭 [NotificationNavigationHandler] Parsing route -> type: "$type", module: "$module", id: "$id", isApprover: $isApprover, actionUrl: "$actionUrl"');
 
+      // 0. Siklus Karyawan (lifecycle_*) — ditangani lebih dulu agar tidak tertangkap kata kunci modul lain.
+      if (type.startsWith('lifecycle') || module == 'lifecycle') {
+        return _handleLifecycle(context, type, id);
+      }
+
       // 1. Cek Cuti & Izin (Leave)
       if (type.contains('leave') || module == 'leave' || actionUrl.contains('/approval/leaves')) {
         final resolvedId = id.isNotEmpty ? id : _extractIdFromUrl(actionUrl);
@@ -250,6 +255,33 @@ class NotificationNavigationHandler {
     } catch (e) {
       debugPrint('⚠️ [NotificationNavigationHandler] Gagal menavigasikan payload notifikasi: $e');
       return false;
+    }
+  }
+
+  /// Pemetaan notifikasi Siklus Karyawan. Mengembalikan `false` untuk tipe yang belum punya layar
+  /// (movement/contract) sehingga pemanggil memakai fallback modal detail.
+  bool _handleLifecycle(BuildContext context, String type, String id) {
+    switch (type) {
+      case 'lifecycle_evaluation':
+        if (id.isEmpty) {
+          context.push(Routes.LIFECYCLE_EVALUATIONS);
+        } else {
+          // Notifikasi yang sama dikirim ke penilai (form) dan karyawan (hasil): coba form, 404 → hasil.
+          context.push(
+            Routes.LIFECYCLE_EVALUATION_FORM,
+            extra: {'id': id, 'fallbackToResult': true},
+          );
+        }
+        return true;
+      case 'lifecycle_offboarding':
+        context.push(Routes.RESIGNATION);
+        return true;
+      case 'lifecycle_task':
+      case 'lifecycle_onboarding':
+        context.push(Routes.LIFECYCLE_TASKS);
+        return true;
+      default:
+        return false;
     }
   }
 

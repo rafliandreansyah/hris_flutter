@@ -48,6 +48,11 @@ abstract class Routes {
   static const String CREATE_ASSET = '/create-asset';
   static const String RESIGNATION = '/resignation';
   static const String CREATE_RESIGNATION = '/create-resignation';
+  static const String LIFECYCLE_EVALUATIONS = '/lifecycle/evaluations';
+  static const String LIFECYCLE_EVALUATION_FORM = '/lifecycle/evaluation-form';
+  static const String LIFECYCLE_MY_EVALUATIONS = '/lifecycle/my-evaluations';
+  static const String LIFECYCLE_MY_EVALUATION_DETAIL = '/lifecycle/my-evaluation-detail';
+  static const String LIFECYCLE_TASKS = '/lifecycle/tasks';
   static const String LIVE_TRACKING = '/live-tracking';
   static const String PAYROLL = '/payroll';
   static const String PAYROLL_EMPLOYEE_SLIPS = '/payroll/employee-slips';

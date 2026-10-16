@@ -58,6 +58,11 @@ import 'package:hris_flutter/features/asset/presentation/pages/asset_list_screen
 import 'package:hris_flutter/features/asset/presentation/pages/asset_detail_screen.dart';
 import 'package:hris_flutter/features/asset/presentation/pages/create_asset_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/create_resignation_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/evaluation_assigned_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/evaluation_form_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/lifecycle_tasks_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluation_detail_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluations_screen.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_bloc.dart';
@@ -672,6 +677,43 @@ class AppRouter {
         path: Routes.CREATE_RESIGNATION,
         name: Routes.CREATE_RESIGNATION,
         builder: (context, state) => const CreateResignationScreen(),
+      ),
+
+      // 37b. Employee Lifecycle: penilaian tim, hasil evaluasi saya, tugas saya
+      GoRoute(
+        path: Routes.LIFECYCLE_EVALUATIONS,
+        name: Routes.LIFECYCLE_EVALUATIONS,
+        builder: (context, state) => const EvaluationAssignedScreen(),
+      ),
+      GoRoute(
+        path: Routes.LIFECYCLE_EVALUATION_FORM,
+        name: Routes.LIFECYCLE_EVALUATION_FORM,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is Map) {
+            return EvaluationFormScreen(
+              evaluationId: extra['id']?.toString() ?? '',
+              fallbackToResult: extra['fallbackToResult'] == true,
+            );
+          }
+          return EvaluationFormScreen(evaluationId: extra as String? ?? '');
+        },
+      ),
+      GoRoute(
+        path: Routes.LIFECYCLE_MY_EVALUATIONS,
+        name: Routes.LIFECYCLE_MY_EVALUATIONS,
+        builder: (context, state) => const MyEvaluationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.LIFECYCLE_MY_EVALUATION_DETAIL,
+        name: Routes.LIFECYCLE_MY_EVALUATION_DETAIL,
+        builder: (context, state) =>
+            MyEvaluationDetailScreen(evaluationId: state.extra as String? ?? ''),
+      ),
+      GoRoute(
+        path: Routes.LIFECYCLE_TASKS,
+        name: Routes.LIFECYCLE_TASKS,
+        builder: (context, state) => const LifecycleTasksScreen(),
       ),
 
 

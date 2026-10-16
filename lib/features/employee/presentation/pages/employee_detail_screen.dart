@@ -19,6 +19,7 @@ import 'package:hris_flutter/features/employee/presentation/widgets/metrics_stri
 import 'package:hris_flutter/features/employee/presentation/widgets/profile_hero_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/team_coworkers_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/work_location_card.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/widgets/lifecycle_profile_section.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Detail Pegawai Oasish HRIS (Enhanced Leave View) sesuai Google Stitch.
@@ -389,6 +390,12 @@ class _EmployeeDetailView extends StatelessWidget {
                       true,
                 ),
                 const SizedBox(height: 16),
+
+                // 6b. Kontrak & Riwayat Karier (hanya profil sendiri; tanpa gaji)
+                if (!effectiveIsFromDirectory) ...[
+                  const LifecycleProfileSection(),
+                  const SizedBox(height: 16),
+                ],
 
                 // 7. Team Coworkers Preview (Hanya tampil saat melihat profil diri sendiri)
                 if (!effectiveIsFromDirectory) ...[
