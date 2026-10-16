@@ -9,6 +9,7 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/network/interceptors/auth_interceptor.dart';
 import 'package:hris_flutter/core/network/interceptors/logging_interceptor.dart';
 import 'package:hris_flutter/core/network/interceptors/retry_interceptor.dart';
+import 'package:hris_flutter/core/network/token_refresher.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -17,6 +18,7 @@ import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 class ApiClient {
   late final Dio _dio;
   late final AuthInterceptor _authInterceptor;
+  late final TokenRefresher _tokenRefresher;
 
   /// Singleton pattern
   static final ApiClient _instance = ApiClient._internal();
@@ -37,8 +39,11 @@ class ApiClient {
     );
 
     _dio = Dio(baseOptions);
+    _tokenRefresher = TokenRefresher(onTokenRefreshed: setAuthToken);
     _authInterceptor = AuthInterceptor(
       onUnauthorized: _handleGlobalUnauthorized,
+      tokenRefresher: _tokenRefresher,
+      dioProvider: () => _dio,
     );
 
     _dio.interceptors.add(_authInterceptor);
@@ -126,6 +131,10 @@ class ApiClient {
 
   /// Apakah sesi sedang memiliki token aktif di memori
   bool get hasAuthToken => _authInterceptor.hasToken;
+
+  /// Memperbarui access token memakai refresh token tersimpan (rotasi).
+  /// Pemanggilan bersamaan berbagi satu proses refresh.
+  Future<RefreshResult> refreshAccessToken() => _tokenRefresher.refresh();
 
   // ==========================================
   // --- 🌐 HTTP METHODS WRAPPERS ---

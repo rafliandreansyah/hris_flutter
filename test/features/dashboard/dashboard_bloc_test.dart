@@ -45,7 +45,10 @@ class MockAuthRepository implements AuthRepository {
   bool logoutCalled = false;
 
   @override
-  Future<void> logout() async {
+  Future<String?> refreshSession() async => null;
+
+  @override
+  Future<void> logout({bool notifyServer = false}) async {
     logoutCalled = true;
   }
 }

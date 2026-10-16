@@ -46,7 +46,10 @@ class _MockAuthRepository implements AuthRepository {
   Future<bool> hasActiveSession() async => savedToken != null && savedToken!.isNotEmpty;
 
   @override
-  Future<void> logout() async {
+  Future<String?> refreshSession() async => null;
+
+  @override
+  Future<void> logout({bool notifyServer = false}) async {
     logoutCalled = true;
     if (shouldThrowLogout) {
       throw Exception('Logout network failure');

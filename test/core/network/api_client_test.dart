@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/constants/app_constants.dart';
@@ -33,6 +34,7 @@ void main() {
     late HttpClientAdapter originalAdapter;
 
     setUp(() {
+      FlutterSecureStorage.setMockInitialValues({});
       apiClient = ApiClient.instance;
       originalAdapter = apiClient.dio.httpClientAdapter;
     });

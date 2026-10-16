@@ -36,6 +36,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (token != null && token.isNotEmpty) {
         // Token JWT yang sudah lewat masa berlakunya dibersihkan sekarang, bukan setelah 401 dari server.
         if (_isJwtExpired(token)) {
+          // Access token habis: coba perpanjang dengan refresh token sebelum memaksa login ulang.
+          final refreshed = await _authRepository.refreshSession();
+          if (refreshed != null && refreshed.isNotEmpty) {
+            emit(AuthSuccess(token: refreshed, message: 'Sesi diperbarui'));
+            return;
+          }
           await _authRepository.logout();
           emit(const AuthInitial());
           return;
@@ -113,7 +119,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
-      await _authRepository.logout();
+      await _authRepository.logout(notifyServer: true);
     } catch (silentError) {
       debugPrint('[diabaikan] $silentError');
     }

@@ -22,7 +22,10 @@ class _MockAuthRepoForScreen implements AuthRepository {
   @override
   Future<bool> hasActiveSession() async => false;
   @override
-  Future<void> logout() async {}
+  Future<String?> refreshSession() async => null;
+
+  @override
+  Future<void> logout({bool notifyServer = false}) async {}
   @override
   Future<UserProfileData> getProfile() async => throw UnimplementedError();
   @override

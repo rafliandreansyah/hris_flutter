@@ -628,7 +628,7 @@ class AccountSettingsBottomSheet extends StatelessWidget {
 
     if (confirmed && context.mounted) {
       Navigator.of(context).pop(); // Tutup bottom sheet
-      await (authRepository ?? AuthRepositoryImpl()).logout();
+      await (authRepository ?? AuthRepositoryImpl()).logout(notifyServer: true);
       if (context.mounted && GoRouter.maybeOf(context) != null) {
         context.go(Routes.LOGIN);
       }

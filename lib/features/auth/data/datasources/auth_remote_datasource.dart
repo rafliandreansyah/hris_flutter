@@ -9,6 +9,9 @@ abstract class AuthRemoteDataSource {
   Future<ApiResponse<LoginResponseData>> login(LoginRequestModel request);
   Future<ApiResponse<UserProfileData>> getProfile();
   Future<ApiResponse<Map<String, dynamic>>> updateLanguage(String language);
+
+  /// `POST /auth/logout` — menghapus pendaftaran perangkat & mencabut refresh token di server.
+  Future<void> logout();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -51,5 +54,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       response.data as Map<String, dynamic>,
       (json) => (json as Map<String, dynamic>?) ?? {},
     );
+  }
+
+  @override
+  Future<void> logout() async {
+    await _apiClient.post(ApiEndpoints.logout);
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/network/token_refresher.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
@@ -56,6 +57,12 @@ class AuthRepositoryImpl implements AuthRepository {
       // 1. Simpan token secara aman ke iOS Keychain / Android Encrypted KeyStore
       await _localDataSource.saveToken(token);
 
+      // 1b. Simpan refresh token (jika server menyediakannya) untuk perpanjangan sesi otomatis
+      final refreshToken = response.data!.refreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _localDataSource.saveRefreshToken(refreshToken);
+      }
+
       // 2. Ekstrak & simpan Employee ID jika tersedia di payload JWT
       final empId = _extractEmployeeIdFromJwt(token);
       if (empId != null && empId.isNotEmpty) {
@@ -95,7 +102,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {
+  Future<String?> refreshSession() async {
+    final result = await _apiClient.refreshAccessToken();
+    if (result != RefreshResult.success) return null;
+    return _localDataSource.getToken();
+  }
+
+  @override
+  Future<void> logout({bool notifyServer = false}) async {
+    // 0. Logout oleh pengguna: beritahu server (best-effort, tidak boleh menghambat logout lokal)
+    if (notifyServer) {
+      try {
+        await _remoteDataSource.logout().timeout(const Duration(seconds: 5));
+      } catch (silentError) {
+        debugPrint('[diabaikan] $silentError');
+      }
+    }
+
     // 1. Hapus token dari secure storage
     await _localDataSource.clearToken();
 

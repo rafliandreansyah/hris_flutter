@@ -14,11 +14,17 @@ import 'package:hris_flutter/features/auth/data/repositories/auth_repository_imp
 
 class _MockLocalDataSource implements AuthLocalDataSource {
   String? savedToken;
+  String? savedRefreshToken;
   String? savedEmployeeId;
 
   @override
   Future<void> saveToken(String token) async {
     savedToken = token;
+  }
+
+  @override
+  Future<void> saveRefreshToken(String token) async {
+    savedRefreshToken = token;
   }
 
   @override
@@ -35,6 +41,7 @@ class _MockLocalDataSource implements AuthLocalDataSource {
   @override
   Future<void> clearToken() async {
     savedToken = null;
+    savedRefreshToken = null;
     savedEmployeeId = null;
   }
 
@@ -46,6 +53,8 @@ class _MockRemoteDataSource implements AuthRemoteDataSource {
   ApiResponse<LoginResponseData>? mockLoginResponse;
   ApiResponse<UserProfileData>? mockProfileResponse;
   ApiResponse<Map<String, dynamic>>? mockLanguageResponse;
+  int logoutCalls = 0;
+  Object? logoutError;
 
   @override
   Future<ApiResponse<LoginResponseData>> login(LoginRequestModel request) async {
@@ -61,6 +70,12 @@ class _MockRemoteDataSource implements AuthRemoteDataSource {
       throw const ApiException(message: 'Profile fetch failed');
     }
     return mockProfileResponse!;
+  }
+
+  @override
+  Future<void> logout() async {
+    logoutCalls++;
+    if (logoutError != null) throw logoutError!;
   }
 
   @override
