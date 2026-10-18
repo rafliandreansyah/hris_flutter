@@ -1,194 +1,210 @@
-# 🚀 Muratech HRIS (Oasish) - Developer Onboarding Guide
+# Panduan Memulai (Developer Onboarding Guide) — OASISH HRIS Mobile App (Flutter)
 
-Selamat datang di project **Muratech HRIS Mobile (Oasish)**!  
-Panduan ini dirancang untuk membantu developer baru memahami setup lingkungan kerja, arsitektur aplikasi, standar penulisan kode, serta alur pengembangan fitur.
-
----
-
-## 📋 Daftar Isi
-1. [Tentang Project](#-tentang-project)
-2. [Prasyarat Sistem (Prerequisites)](#-prasyarat-sistem-prerequisites)
-3. [Langkah Awal & Setup (Getting Started)](#-langkah-awal--setup-getting-started)
-4. [Koneksi ke Backend](#-koneksi-ke-backend)
-5. [Struktur Folder & Arsitektur](#-struktur-folder--arsitektur)
-6. [Design System & Styling](#-design-system--styling)
-7. [Perintah Penting (Essential Commands)](#-perintah-penting-essential-commands)
-8. [Standar & Best Practices](#-standar--best-practices)
+> **Cakupan**: panduan langkah-demi-langkah bagi pengembang baru untuk menyiapkan lingkungan lokal (*local setup*), menginstal dependensi Flutter & Dart, mengonfigurasi Android Studio & Xcode, menghubungkan aplikasi ke backend server lokal (`muratech_hris_server`), menjalankan generator kode (`build_runner`), melakukan debugging dengan Alice HTTP Inspector, serta konvensi penambahan fitur baru.
+> **Terakhir diverifikasi terhadap kode**: Oktober 2026 (Flutter 3.x, Dart 3.x, Java JDK 17).
 
 ---
 
-## 📱 Tentang Project
+## Daftar Isi
 
-* **Nama Aplikasi:** Oasish (Muratech HRIS)
-* **Framework:** Flutter (Dart 3+)
-* **Routing:** `go_router`
-* **Styling & Icons:** Custom Design System (Theme, Colors, Typography), `google_fonts`, `lucide_icons_flutter`
-* **Asset Management:** `flutter_gen`
+1. [Spesifikasi Teknis & Prasyarat Sistem](#1-spesifikasi-teknis--prasyarat-sistem)
+2. [Setup Lingkungan Kerja Lokal](#2-setup-lingkungan-kerja-lokal)
+3. [Koneksi ke Backend Server Lokal](#3-koneksi-ke-backend-server-lokal)
+4. [Menjalankan Aplikasi di Emulator & Perangkat Fisik](#4-menjalankan-aplikasi-di-emulator--perangkat-fisik)
+5. [Generasi Kode & Pengelolaan Aset (`build_runner`)](#5-generasi-kode--pengelolaan-aset-build_runner)
+6. [Debugging, HTTP Logging & Alice Inspector](#6-debugging-http-logging--alice-inspector)
+7. [Panduan Langkah-demi-Langkah Menambah Fitur Baru](#7-panduan-langkah-demi-langkah-menambah-fitur-baru)
+8. [Perintah Esensial & Shortcut Produktivitas](#8-perintah-esensial--shortcut-produktivitas)
 
 ---
 
-## 💻 Prasyarat Sistem (Prerequisites)
+## 1. Spesifikasi Teknis & Prasyarat Sistem
 
-Pastikan lingkungan lokal Anda telah terinstal:
-* **Flutter SDK:** >= 3.24.0 (disarankan channel `stable`)
-* **Dart SDK:** >= 3.5.0 (sesuai SDK constraint `^3.12.2`)
-* **Xcode** (untuk macOS / iOS Simulator & Device) & **CocoaPods**
-* **Android Studio** & **Android SDK / Emulator** (untuk Android)
-* **VS Code** atau **Cursor / Antigravity IDE** dengan ekstensi Dart & Flutter
+Sebelum memulai, pastikan perangkat keras dan perangkat lunak Anda memenuhi prasyarat minimum:
 
-Jalankan perintah berikut untuk memeriksa kelengkapan environment:
+- **Sistem Operasi**: macOS Sonoma/Sequoia (disarankan untuk build iOS + Android), Ubuntu 22.04+, atau Windows 11.
+- **Flutter SDK**: `v3.29.x` atau lebih baru (Channel `stable`).
+- **Dart SDK**: `v3.7.x` atau lebih baru (termasuk di dalam Flutter SDK).
+- **Java JDK**: **JDK 17** (wajib untuk Android Gradle Plugin 8+; disarankan Azul Zulu JDK 17).
+- **Android Studio**: Ladybug / Koala dengan Android SDK, Command-line Tools, dan Emulator Android 14/15.
+- **Xcode (Khusus macOS)**: Xcode 15.4 / 16.x dengan iOS 17/18 Simulator dan **CocoaPods** `v1.14.0+`.
+
+Periksa kesiapan komputer Anda:
 ```bash
 flutter doctor -v
 ```
+Pastikan seluruh tanda centang berwarna hijau (Android toolchain, Xcode, VS Code/Android Studio).
 
 ---
 
-## 🛠️ Langkah Awal & Setup (Getting Started)
+## 2. Setup Lingkungan Kerja Lokal
 
-### 1. Masuk ke Direktori Project
+### 1. Kloning Repositori & Masuk ke Folder Project
 ```bash
-cd hris_flutter
+cd /Users/username/Documents/Dev/muratech-hris/hris_flutter
 ```
 
-### 2. Download Dependensi
+### 2. Unduh Paket Dependensi
 ```bash
 flutter pub get
 ```
 
-### 3. Generate Assets (jika ada penambahan file di `assets/`)
-Project ini menggunakan `flutter_gen_runner` untuk auto-generate class aset yang aman (type-safe):
+### 3. Setup CocoaPods (Khusus Pengguna macOS untuk Target iOS)
+```bash
+cd ios
+pod install --repo-update
+cd ..
+```
+
+---
+
+## 3. Koneksi ke Backend Server Lokal
+
+Aplikasi mobile berkomunikasi dengan REST API `muratech_hris_server`. Karena simulator/emulator memiliki arsitektur loopback jaringan yang berbeda dengan laptop host, perhatikan aturan URL di bawah ini:
+
+| Target Menjalankan Aplikasi | Host Base URL yang Digunakan | Penjelasan |
+|---|---|---|
+| **iOS Simulator** | `http://localhost:8000/api/v1` | Berbagi jaringan loopback yang sama dengan macOS host |
+| **Android Emulator** | `http://10.0.2.2:8000/api/v1` | IP virtual Android Emulator untuk mengakses `localhost` komputer host |
+| **Perangkat Fisik (Wi-Fi)** | `http://192.168.1.xxx:8000/api/v1` | IP LAN komputer host (HP dan laptop wajib berada di jaringan Wi-Fi yang sama) |
+| **Server Dev Cloud (Default)** | `https://apidev.hroasish.com/api/v1` | Server cloud development aktif tanpa perlu menyalakan API lokal |
+
+Jalankan aplikasi dengan mengoper URL backend lokal:
+```bash
+# Menghubungkan Android Emulator ke API server lokal
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+
+# Menghubungkan iOS Simulator ke API server lokal
+flutter run -d "iPhone 16" --dart-define=API_BASE_URL=http://localhost:8000/api/v1
+```
+
+---
+
+## 4. Menjalankan Aplikasi di Emulator & Perangkat Fisik
+
+### 1. Melihat Perangkat yang Terhubung
+```bash
+flutter devices
+```
+
+### 2. Menjalankan Aplikasi (Mode Debug)
+```bash
+flutter run
+```
+
+### 3. Tombol Pintas Saat Aplikasi Berjalan (Flutter Hot Reload):
+- Ketik **`r`** di terminal: **Hot Reload** (memperbarui perubahan UI tanpa me-reset state aplikasi).
+- Ketik **`R`** di terminal: **Hot Restart** (me-reset seluruh state BLoC dan mengulang dari SplashScreen).
+- Ketik **`p`** di terminal: Menampilkan overlay visual panduan layout (*Display RenderBox*).
+- Ketik **`q`** di terminal: Menghentikan aplikasi (*Quit*).
+
+---
+
+## 5. Generasi Kode & Pengelolaan Aset (`build_runner`)
+
+Project ini menggunakan `build_runner` dan `flutter_gen` untuk menghasilkan referensi aset statis (gambar, ikon SVG) yang aman terhadap tipe data (*type-safe*).
+
+Setiap kali Anda menambahkan berkas baru di folder `assets/images/` atau `assets/icons/`:
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 4. Menjalankan Aplikasi
-Pilih simulator/device target, lalu jalankan:
+> [!CAUTION]
+> Dilarang mengedit berkas di dalam direktori `lib/gen/` secara manual, karena berkas tersebut digenerate otomatis oleh sistem.
+
+---
+
+## 6. Debugging, HTTP Logging & Alice Inspector
+
+### 1. Pretty Dio Logger (Terminal Output)
+Pada mode debug, setiap request HTTP, query parameters, multipart data, headers, status code, dan respons JSON dicetak rapi dan berwarna di console terminal debug.
+
+### 2. Alice HTTP Inspector
+Aplikasi mobile telah terintegrasi dengan **Alice HTTP Inspector** (`lib/core/network/alice_service.dart`):
+- **Cara Membuka**: Cukup **goyangkan perangkat fisik (*shake gesture*)** atau ketuk notifikasi persisten Alice di notification shade Android.
+- **Kemampuan**: Melihat seluruh log pemanggilan API secara grafis di layar HP, menyaring respons error (4xx / 5xx), serta membagikan log cURL atau detail respons ke developer lain via tombol share.
+
+---
+
+## 7. Panduan Langkah-demi-Langkah Menambah Fitur Baru
+
+Untuk menjaga kepatuhan terhadap arsitektur **Feature-First Clean Architecture**, ikuti tahapan berikut saat membuat modul baru (misal: fitur `medical_claim`):
+
+### Langkah 1: Buat Struktur Direktori Modul
 ```bash
-# Debug mode
-flutter run
+mkdir -p lib/features/medical_claim/data/models \
+         lib/features/medical_claim/data/datasources \
+         lib/features/medical_claim/data/repositories \
+         lib/features/medical_claim/domain/repositories \
+         lib/features/medical_claim/presentation/bloc \
+         lib/features/medical_claim/presentation/pages \
+         lib/features/medical_claim/presentation/widgets
+```
 
-# Menentukan target device tertentu
-flutter run -d chrome # Web (jika diaktifkan)
-flutter run -d "iPhone 15" # iOS Simulator
-flutter run -d emulator-5554 # Android Emulator
+### Langkah 2: Buat Model DTO di `data/models/`
+Buat `medical_claim_model.dart` dengan factory `fromJson` dan method `toJson`.
+
+### Langkah 3: Buat Remote Datasource di `data/datasources/`
+Gunakan singleton `ApiClient.instance`:
+```dart
+class MedicalClaimRemoteDatasource {
+  Future<List<MedicalClaimModel>> getClaims() async {
+    final response = await ApiClient.instance.get(ApiEndpoints.medicalClaims);
+    final list = response.data['data'] as List;
+    return list.map((json) => MedicalClaimModel.fromJson(json)).toList();
+  }
+}
+```
+
+### Langkah 4: Buat Repository Interface & Implementation
+- Deklarasikan interface di `domain/repositories/medical_claim_repository.dart`.
+- Terapkan implementasi di `data/repositories/medical_claim_repository_impl.dart`. Tangkap error dengan `on ApiException catch (e)`.
+
+### Langkah 5: Buat BLoC di `presentation/bloc/`
+Buat `medical_claim_event.dart`, `medical_claim_state.dart`, dan `medical_claim_bloc.dart`. Pastikan semua state dan event memperluas `Equatable`.
+
+### Langkah 6: Buat Screen di `presentation/pages/`
+- Gunakan token desain dari `AppColors`, `AppTypography`, `AppSpacing`, dan `AppRadius`.
+- Gunakan komponen global: `AppButton` untuk tombol aksi, `EmployeeInfoRow` untuk identitas karyawan, `AppRequestFilterBottomSheet` untuk filter.
+
+### Langkah 7: Daftarkan Rute di `AppRouter`
+- Tambahkan konstanta di `lib/app/routes/route_name.dart`.
+- Daftarkan `GoRoute` di `lib/app/routes/app_router.dart`.
+
+### Langkah 8: Buat Unit & BLoC Test
+Tambahkan berkas tes di `test/features/medical_claim/presentation/bloc/medical_claim_bloc_test.dart`.
+
+---
+
+## 8. Perintah Esensial & Shortcut Produktivitas
+
+```bash
+# Mengunduh dependensi
+flutter pub get
+
+# Menjalankan pembersihan cache build
+flutter clean
+
+# Analisis kualitas kode (Linter)
+flutter analyze
+
+# Menjalankan seluruh pengujian unit
+flutter test
+
+# Format kode otomatis
+dart format lib test
+
+# Build APK Release
+flutter build apk --release
+
+# Build Android App Bundle (AAB) untuk Google Play Store
+flutter build appbundle --release
 ```
 
 ---
 
-## 🔌 Koneksi ke Backend
-
-Backend HRIS berjalan menggunakan **Bun** di direktori server (`muratech_hris_server`).
-
-* **Host Lokal:** `http://localhost:3000` (atau port yang dikonfigurasi)
-* **Android Emulator:** Gunakan `http://10.0.2.2:3000` untuk mengakses localhost laptop/PC dari emulator Android.
-* **iOS Simulator:** Dapat langsung mengakses `http://localhost:3000`.
-* **Real Device:** Gunakan IP LAN laptop Anda (misal `http://192.168.1.X:3000`) dan pastikan satu jaringan WiFi.
-
----
-
-## 🏗️ Struktur Folder & Arsitektur
-
-Project mengadopsi pola **Feature-First Clean Architecture**:
-
-```text
-lib/
-├── app/                             # Konfigurasi level aplikasi
-│   ├── config/                      # Tema, Palet Warna, Tipografi, Token Desain
-│   │   ├── app_colors.dart
-│   │   ├── app_design.dart
-│   │   ├── app_theme.dart
-│   │   └── app_typography.dart
-│   └── routes/                      # Navigasi & Routing (GoRouter)
-│       ├── app_router.dart
-│       └── route_name.dart
-│
-├── core/                            # Komponen global lintas fitur
-│   ├── constants/                   # Konstanta aplikasi & API endpoints
-│   ├── network/                     # HTTP Client, Error Interceptor, Token Handler
-│   ├── utils/                       # Helpers, Extensions, Validators
-│   └── widgets/                     # Shared UI Widgets (Reusable)
-│       └── app_name_version_text.dart
-│
-├── features/                        # Modul fitur mandiri (Feature-First)
-│   ├── splash/                      # Layar Splash & inisialisasi awal
-│   │   └── presentation/pages/splash_screen.dart
-│   ├── auth/                        # Fitur Autentikasi (Login, Reset Password, dll)
-│   │   ├── data/                    # Models, Data Sources, Repositories
-│   │   ├── domain/                  # Entities, Use Cases (opsional)
-│   │   └── presentation/
-│   │       ├── bloc/                # State Management (BLoC/Cubit/Notifier)
-│   │       ├── pages/
-│   │       │   ├── login_screen.dart
-│   │       │   └── reset_password_screen.dart
-│   │       └── widgets/             # Widget khusus halaman auth
-│   └── dashboard/                   # Fitur Beranda & Menu Utama
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
-│           ├── bloc/
-│           ├── pages/
-│           │   └── dashboard_screen.dart
-│           └── widgets/
-│
-├── gen/                             # Auto-generated code oleh build_runner (flutter_gen)
-│   └── assets.gen.dart
-│
-└── main.dart                        # Entry point aplikasi
-```
-
----
-
-## 🎨 Design System & Styling
-
-Semua nilai warna, typography, dan spacing wajib mengacu ke konfigurasi di `lib/app/config/`:
-
-* **`AppColors`**: Warna primer, sekunder, background, text, dan semantic colors (success, warning, error).
-* **`AppTypography`**: Definisi gaya font berbasis `GoogleFonts.plusJakartaSans` / `GoogleFonts.inter`.
-* **`AppTheme`**: Konfigurasi `ThemeData` Material 3 untuk light & dark theme.
-* **`AppDesign`**: Token padding, border radius, elevation, dan margin terstandar.
-* **Ikon:** Menggunakan library **`lucide_icons_flutter`** (contoh: `LucideIcons.mail`, `LucideIcons.lock`).
-
----
-
-## ⚡ Perintah Penting (Essential Commands)
-
-| Perintah | Deskripsi |
-|---|---|
-| `flutter pub get` | Mengunduh dependensi baru |
-| `dart analyze` | Memeriksa kepatuhan linter dan warning kode |
-| `dart fix --apply` | Memperbaiki isu linter otomatis yang aman |
-| `dart run build_runner build --delete-conflicting-outputs` | Regenerasi aset file `Assets.icons.*` dan model code-gen |
-| `flutter test` | Menjalankan seluruh unit & widget test |
-
----
-
-## 🔔 Setup Firebase & Push Notifications (FCM)
-
-Project ini telah dilengkapi dengan **`firebase_core`**, **`firebase_messaging`**, dan **`flutter_local_notifications`** (`lib/core/services/notification_service.dart`).
-
-### Langkah Menghubungkan ke Firebase Console:
-1. **Otomatis (Menggunakan FlutterFire CLI):**
-   ```bash
-   # Install FlutterFire CLI jika belum ada
-   dart pub global activate flutterfire_cli
-
-   # Hubungkan ke proyek Firebase
-   flutterfire configure
-   ```
-2. **Manual:**
-   * **Android:** Unduh file `google-services.json` dari Firebase Console dan letakkan di `android/app/google-services.json`.
-   * **iOS:** Unduh file `GoogleService-Info.plist` dan masukkan ke `ios/Runner/GoogleService-Info.plist` via Xcode.
-3. Token FCM perangkat otomatis diambil saat user melakukan Login dan diteruskan ke backend untuk notifikasi persetujuan cuti, lembur, dan absensi.
-
----
-
-## 🛡️ Standar & Best Practices
-
-1. **Gunakan Type-Safe Assets:**  
-   Gunakan `Assets.icons.logo.path` dari `package:hris_flutter/gen/assets.gen.dart`, hindari *hardcoded string* path seperti `'assets/icons/logo.png'`.
-2. **Pisahkan UI & Logic:**  
-   Jangan letakkan query API langsung di dalam method `build()` widget. Gunakan layer data & state management.
-3. **Responsive & Adaptive:**  
-   Gunakan layout dinamis (`Expanded`, `Flexible`, `SingleChildScrollView`, `LayoutBuilder`) untuk mencegah *RenderFlex overflow* pada berbagai ukuran layar.
-4. **Analisis Berkala:**  
-   Selalu jalankan `dart analyze` sebelum melakukan commit kode baru.
+> Dokumen terkait:
+> - Arsitektur aplikasi & BLoC: [ARCHITECTURE.md](./ARCHITECTURE.md)
+> - Panduan deploy mobile Android & iOS: [DEPLOYMENT.md](./DEPLOYMENT.md)
+> - Panduan pengujian sistem: [TESTING.md](./TESTING.md)
+> - Penjelasan fitur aplikasi: [FEATURES.md](./FEATURES.md)
