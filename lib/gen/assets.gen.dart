@@ -34,9 +34,7 @@ class $AssetsImagesGen {
   List<String> get values => [aGitkeep];
 }
 
-class Assets {
-  const Assets._();
-
+abstract final class Assets {
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
 }

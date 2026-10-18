@@ -252,18 +252,46 @@ Berkas output berada di:
 
 ### 4.5 Build Universal APK & Split-per-ABI (Direct Distribution)
 
-Untuk klien korporat yang membutuhkan instalasi langsung tanpa Play Store (Sideloading / MDM):
+Untuk instalasi langsung tanpa melalui Google Play Store (sideloading, internal testing tim QA, atau distribusi MDM ke perangkat operasional perusahaan):
 
+#### A. Build Split-per-ABI APK (Sangat Direkomendasikan ⭐)
+Menghasilkan file APK terpisah per arsitektur CPU dengan ukuran jauh lebih kecil dan hemat kuota (~15–25 MB per file):
 ```bash
-# Build APK terpisah per arsitektur CPU (ukuran sangat kecil: ~15-20 MB per APK)
 flutter build apk --release --split-per-abi \
   --dart-define=API_BASE_URL=https://api.hroasish.com/api/v1
 ```
 
-Output berkas:
-- `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` *(Mayoritas HP modern)*
-- `build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk` *(HP lama)*
-- `build/app/outputs/flutter-apk/app-x86_64-release.apk` *(Emulator)*
+Berkas output di `build/app/outputs/flutter-apk/`:
+- `app-arm64-v8a-release.apk` *(Untuk mayoritas smartphone Android modern 64-bit)*
+- `app-armeabi-v7a-release.apk` *(Untuk perangkat Android lawas 32-bit)*
+- `app-x86_64-release.apk` *(Untuk Android Emulator)*
+
+#### B. Build Universal APK (Satu File Semua Perangkat)
+Jika membutuhkan 1 file APK tunggal yang bisa diinstal di perangkat tipe apa saja:
+```bash
+flutter build apk --release \
+  --dart-define=API_BASE_URL=https://api.hroasish.com/api/v1
+```
+
+Berkas output di:
+`build/app/outputs/flutter-apk/app-release.apk`
+
+#### C. Build Debug APK (Pengujian Cepat Developer)
+```bash
+flutter build apk --debug
+```
+
+Berkas output di:
+`build/app/outputs/flutter-apk/app-debug.apk`
+
+#### D. Cara Pasang ke Perangkat via ADB
+```bash
+# Untuk perangkat fisik modern:
+adb install build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+
+# Untuk universal:
+adb install build/app/outputs/flutter-apk/app-release.apk
+```
 
 ### 4.6 Rilis ke Google Play Console
 
