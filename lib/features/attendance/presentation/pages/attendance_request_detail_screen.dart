@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -19,7 +20,6 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_overview_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_photo_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Halaman Detail Permohonan Presensi Luar Kantor
 /// Sesuai spesifikasi desain Google Stitch: "Oasish Outside Attendance Request Detail Screen" (M3 Teal Oasis).
@@ -117,9 +117,12 @@ class _AttendanceRequestDetailViewState
       ..writeln('Lokasi: ${detail.address ?? "-"}')
       ..writeln('Alasan: ${detail.reason ?? '-'}');
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: text.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.attendance,
+        requestId: detail.id,
+        summary: text.toString(),
         subject: 'Detail Presensi Luar Kantor: ${detail.employee.fullName}',
       ),
     );
@@ -279,6 +282,15 @@ class _AttendanceRequestDetailViewState
                 ],
               ),
               actions: [
+                if (detail != null)
+                  IconButton(
+                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
+                    tooltip: 'Salin Link',
+                    onPressed: () => ShareLinkUtil.copyLink(
+                      context,
+                      ShareLinkUtil.webUrl(ShareModule.attendance, detail.id),
+                    ),
+                  ),
                 if (detail != null)
                   IconButton(
                     icon: Icon(LucideIcons.share2, color: textCol, size: 20),

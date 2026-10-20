@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
@@ -29,9 +30,17 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       if (!mounted) return;
 
       final hasSession = results.first as bool;
+      final pendingLink = ShareLinkUtil.pendingLinkOf(context);
       AppRouter.sessionChecked = true;
       if (hasSession) {
-        context.replaceNamed(Routes.DASHBOARD);
+        final router = GoRouter.of(context);
+        router.replaceNamed(Routes.DASHBOARD);
+        if (pendingLink != null) router.push(pendingLink);
+      } else if (pendingLink != null) {
+        context.replaceNamed(
+          Routes.LOGIN,
+          queryParameters: {'from': pendingLink},
+        );
       } else {
         context.replaceNamed(Routes.LOGIN);
       }

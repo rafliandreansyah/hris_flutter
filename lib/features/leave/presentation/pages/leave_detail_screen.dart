@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -18,7 +19,6 @@ import 'package:hris_flutter/features/leave/presentation/widgets/leave_detail_do
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_detail_employee_card.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_detail_overview_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Halaman Detail Pengajuan Cuti / Izin (Leave Request Detail)
 /// Sesuai desain Google Stitch: "Oasish Leave Request Detail - Photo Proof Style".
@@ -95,9 +95,12 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
       ..writeln('Durasi: ${detail.durationLabel}')
       ..writeln('Alasan: ${detail.notes ?? '-'}');
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: text.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.leave,
+        requestId: detail.id,
+        summary: text.toString(),
         subject: 'Detail Pengajuan Cuti: ${detail.employee.fullName}',
       ),
     );
@@ -246,6 +249,15 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                 ],
               ),
               actions: [
+                if (detail != null)
+                  IconButton(
+                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
+                    tooltip: 'Salin Link',
+                    onPressed: () => ShareLinkUtil.copyLink(
+                      context,
+                      ShareLinkUtil.webUrl(ShareModule.leave, detail.id),
+                    ),
+                  ),
                 if (detail != null)
                   IconButton(
                     icon: Icon(LucideIcons.share2, color: textCol, size: 20),

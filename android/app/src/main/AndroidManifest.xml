@@ -63,6 +63,18 @@
                 <action android:name="FLUTTER_NOTIFICATION_CLICK"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
+            <!-- App Links: link share pengajuan dari hris-web. Host = ApiEndpoints.webBaseUrl.
+                 Wajib ada https://<host>/.well-known/assetlinks.json agar terverifikasi. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="app.hroasish.com"/>
+                <data android:host="dev.hroasish.com"/>
+                <data android:pathPrefix="/approval/"/>
+                <data android:pathPrefix="/report/activities/"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

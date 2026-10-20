@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
@@ -22,7 +23,6 @@ import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/reimbursement_action_dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Halaman Detail Reimbursement & Aksi Approval/Pencairan Kasir.
 class ReimbursementDetailScreen extends StatelessWidget {
@@ -69,9 +69,12 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
       ..writeln('Total Klaim: ${formatRupiah(detail.requestedAmount)}')
       ..writeln('Rekening: ${detail.bankName ?? '-'} - ${detail.bankAccountNumber ?? '-'} a.n ${detail.bankAccountHolder ?? '-'}');
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: text.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.reimbursement,
+        requestId: detail.id,
+        summary: text.toString(),
         subject: 'Reimbursement ${detail.claimNumber}',
       ),
     );
@@ -164,9 +167,23 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
             BlocBuilder<ReimbursementDetailBloc, ReimbursementDetailState>(
               builder: (context, state) {
                 if (state.detail == null) return const SizedBox();
-                return IconButton(
-                  icon: Icon(LucideIcons.share2, color: textCol),
-                  onPressed: () => _handleShare(state.detail!),
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(LucideIcons.link, color: textCol),
+                      tooltip: 'Salin Link',
+                      onPressed: () => ShareLinkUtil.copyLink(
+                        context,
+                        ShareLinkUtil.webUrl(ShareModule.reimbursement, state.detail!.id),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(LucideIcons.share2, color: textCol),
+                      tooltip: 'Bagikan',
+                      onPressed: () => _handleShare(state.detail!),
+                    ),
+                  ],
                 );
               },
             ),

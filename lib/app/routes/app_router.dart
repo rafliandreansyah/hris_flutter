@@ -64,6 +64,8 @@ import 'package:hris_flutter/features/lifecycle/presentation/pages/lifecycle_tas
 import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluation_detail_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluations_screen.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
+import 'package:hris_flutter/features/approver_share/presentation/pages/approver_share_screen.dart';
 import 'package:hris_flutter/features/resignation/presentation/pages/resignation_screen.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_bloc.dart';
 import 'package:hris_flutter/features/tracking/presentation/bloc/live_tracking_event.dart';
@@ -182,6 +184,10 @@ class AppRouter {
             return ActivityDetailScreen(activity: extra);
           } else if (extra is String) {
             return ActivityDetailScreen(activityId: extra);
+          }
+          final queryId = state.uri.queryParameters['id'];
+          if (queryId != null && queryId.isNotEmpty) {
+            return ActivityDetailScreen(activityId: queryId);
           }
           return const ActivityDetailScreen();
         },
@@ -753,12 +759,50 @@ class AppRouter {
           child: const LiveTrackingScreen(),
         ),
       ),
+
+      // Halaman daftar atasan untuk share link pengajuan
+      GoRoute(
+        path: Routes.APPROVER_SHARE,
+        name: Routes.APPROVER_SHARE,
+        builder: (context, state) =>
+            ApproverShareScreen(args: state.extra! as ApproverShareArgs),
+      ),
+
+      // Deep link (App Links / Universal Links) dari URL web pengajuan → route detail aplikasi.
+      // shortcut: link yang dibuka saat app sudah berjalan memakai `go`, jadi tumpukan halaman diganti;
+      // tombol back dari detail menutup app. Ubah ke push via listener bila perlu kembali ke halaman sebelumnya.
+      GoRoute(
+        path: '/approval/:module/:id',
+        redirect: (context, state) =>
+            ShareLinkUtil.toAppLocation(state.uri) ?? Routes.DASHBOARD,
+      ),
+      GoRoute(
+        path: '/report/activities/:id',
+        redirect: (context, state) =>
+            ShareLinkUtil.toAppLocation(state.uri) ?? Routes.DASHBOARD,
+      ),
     ],
     redirect: (context, state) {
-      if (!sessionChecked) return null;
+      if (!sessionChecked) {
+        // Cold start dari deep link: cek sesi dulu di splash, lalu lanjut ke link.
+        if (ShareLinkUtil.toAppLocation(state.uri) != null) {
+          return Uri(
+            path: Routes.SPLASH,
+            queryParameters: {'from': state.uri.path},
+          ).toString();
+        }
+        return null;
+      }
       final path = state.matchedLocation;
       final isPublic = _publicRoutes.contains(path);
       if (!isPublic && !ApiClient.instance.hasAuthToken) {
+        // Simpan tujuan deep link agar setelah login langsung dibuka.
+        if (ShareLinkUtil.toAppLocation(state.uri) != null) {
+          return Uri(
+            path: Routes.LOGIN,
+            queryParameters: {'from': state.uri.path},
+          ).toString();
+        }
         return Routes.LOGIN;
       }
       return null;

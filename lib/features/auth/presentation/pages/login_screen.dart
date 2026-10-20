@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
@@ -295,7 +296,12 @@ class _LoginFormViewState extends State<_LoginFormView> {
                                                     AppColors.brandTeal,
                                               ),
                                             );
-                                            context.go(Routes.DASHBOARD);
+                                            final pendingLink = ShareLinkUtil.pendingLinkOf(context);
+                                            final router = GoRouter.of(context);
+                                            router.go(Routes.DASHBOARD);
+                                            if (pendingLink != null) {
+                                              router.push(pendingLink);
+                                            }
                                           } else if (state is AuthFailure) {
                                             AppDialogUtil.showError(
                                               context,

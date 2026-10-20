@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
+import 'package:hris_flutter/features/resignation/data/models/my_resignation_status_model.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 import 'package:hris_flutter/features/resignation/presentation/widgets/exit_interview_sheet.dart';
@@ -163,6 +166,34 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     );
   }
 
+  void _handleShare(ResignationDetailModel resignation) {
+    final employee = resignation.employee;
+    final name =
+        [employee?.firstName, employee?.lastName].whereType<String>().join(' ');
+    final effectiveDate = resignation.effectiveDate;
+    final text = StringBuffer()
+      ..writeln('📋 PENGAJUAN PENGUNDURAN DIRI')
+      ..writeln('ID: ${resignation.id}')
+      ..writeln('Karyawan: ${name.isEmpty ? '-' : name}')
+      ..writeln('Departemen: ${employee?.departmentName ?? '-'}')
+      ..writeln('Status: ${resignation.status}')
+      ..writeln(
+        'Tanggal Efektif: ${effectiveDate == null ? '-' : AppDateUtil.formatDateMedium(effectiveDate)}',
+      )
+      ..writeln('Alasan: ${resignation.reason}');
+
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.resignation,
+        requestId: resignation.id,
+        summary: text.toString(),
+        subject:
+            'Pengajuan Pengunduran Diri: ${name.isEmpty ? resignation.id : name}',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -246,6 +277,24 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
               ],
             ),
             actions: [
+              if (state.myStatus?.resignation != null) ...[
+                IconButton(
+                  icon: Icon(LucideIcons.link, color: subtitleCol, size: 20),
+                  tooltip: 'Salin Link',
+                  onPressed: () => ShareLinkUtil.copyLink(
+                    context,
+                    ShareLinkUtil.webUrl(
+                      ShareModule.resignation,
+                      state.myStatus!.resignation!.id,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(LucideIcons.share2, color: subtitleCol, size: 20),
+                  tooltip: 'Bagikan ke Atasan',
+                  onPressed: () => _handleShare(state.myStatus!.resignation!),
+                ),
+              ],
               if (state.canViewSubordinates)
                 IconButton(
                   onPressed: _openFilterBottomSheet,

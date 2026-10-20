@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
@@ -20,7 +21,6 @@ import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/reimbursement_action_dialog.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Halaman Detail Permohonan Kasbon (Cash Advance) & Pengembalian Dana.
 class CashAdvanceDetailScreen extends StatelessWidget {
@@ -67,9 +67,12 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
       ..writeln('Nominal Diajukan: ${formatRupiah(detail.requestedAmount)}')
       ..writeln('Sisa Belum Selesai: ${formatRupiah(detail.remainingAmount)}');
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: text.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.cashAdvance,
+        requestId: detail.id,
+        summary: text.toString(),
         subject: 'Kasbon ${detail.advanceNumber}',
       ),
     );
@@ -177,9 +180,23 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
             BlocBuilder<CashAdvanceDetailBloc, CashAdvanceDetailState>(
               builder: (context, state) {
                 if (state.detail == null) return const SizedBox();
-                return IconButton(
-                  icon: Icon(LucideIcons.share2, color: textCol),
-                  onPressed: () => _handleShare(state.detail!),
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(LucideIcons.link, color: textCol),
+                      tooltip: 'Salin Link',
+                      onPressed: () => ShareLinkUtil.copyLink(
+                        context,
+                        ShareLinkUtil.webUrl(ShareModule.cashAdvance, state.detail!.id),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(LucideIcons.share2, color: textCol),
+                      tooltip: 'Bagikan',
+                      onPressed: () => _handleShare(state.detail!),
+                    ),
+                  ],
                 );
               },
             ),

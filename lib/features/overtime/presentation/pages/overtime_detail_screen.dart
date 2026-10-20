@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -18,7 +19,6 @@ import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_det
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_detail_evidence_card.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_detail_overview_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Halaman Detail Pengajuan Lembur (Overtime Request Detail)
 /// Sesuai spesifikasi desain Google Stitch: "Oasish Overtime Request Detail" (M3 Teal Oasis).
@@ -97,9 +97,12 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
       ..writeln('Durasi: ${detail.durationHoursLabel}')
       ..writeln('Catatan: ${detail.notes ?? '-'}');
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: text.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.overtime,
+        requestId: detail.id,
+        summary: text.toString(),
         subject: 'Detail Pengajuan Lembur: ${detail.employee.fullName}',
       ),
     );
@@ -253,6 +256,15 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
                 ],
               ),
               actions: [
+                if (detail != null)
+                  IconButton(
+                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
+                    tooltip: 'Salin Link',
+                    onPressed: () => ShareLinkUtil.copyLink(
+                      context,
+                      ShareLinkUtil.webUrl(ShareModule.overtime, detail.id),
+                    ),
+                  ),
                 if (detail != null)
                   IconButton(
                     icon: Icon(LucideIcons.share2, color: textCol, size: 20),

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/employee_info_row.dart';
@@ -16,7 +17,6 @@ import 'package:hris_flutter/features/activity/presentation/widgets/activity_tim
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_map_card.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
@@ -198,6 +198,14 @@ class _ActivityDetailView extends StatelessWidget {
                       ),
                     ),
                   ),
+                IconButton(
+                  icon: Icon(LucideIcons.link, color: textCol, size: 20),
+                  tooltip: 'Salin Link',
+                  onPressed: () => ShareLinkUtil.copyLink(
+                    context,
+                    ShareLinkUtil.webUrl(ShareModule.activity, item.id),
+                  ),
+                ),
                 IconButton(
                   icon: Icon(LucideIcons.share2, color: textCol, size: 20),
                   tooltip: 'Bagikan Aktivitas',
@@ -1502,9 +1510,12 @@ class _ActivityDetailView extends StatelessWidget {
       ..writeln('\nDeskripsi:')
       ..writeln(item.description);
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: shareContent.toString(),
+    ShareLinkUtil.openApproverShare(
+      context,
+      ApproverShareArgs(
+        module: ShareModule.activity,
+        requestId: item.id,
+        summary: shareContent.toString(),
         subject: 'Laporan Aktivitas: ${item.title} (${item.id})',
       ),
     );

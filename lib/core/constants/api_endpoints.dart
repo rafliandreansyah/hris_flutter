@@ -17,6 +17,17 @@ abstract class ApiEndpoints {
     return kReleaseMode ? _releaseApiBaseUrl : _devApiBaseUrl;
   }
 
+  /// Host web HRIS (hris-web). Dipakai untuk link share / deep link pengajuan.
+  /// Host ini juga harus terdaftar di AndroidManifest (App Links) & Runner.entitlements (Universal Links).
+  /// Override: `--dart-define=WEB_BASE_URL=https://app.namaklien.co.id`
+  static String get webBaseUrl {
+    const fromEnv = String.fromEnvironment('WEB_BASE_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return kReleaseMode
+        ? 'https://app.hroasish.com'
+        : 'https://dev.hroasish.com';
+  }
+
   /// Host untuk file statis/upload (tanpa prefix `/api/vX`), diturunkan dari [baseUrl].
   static String get fileBaseUrl {
     return baseUrl.replaceFirst(RegExp(r'/api/v\d+/?$'), '');
@@ -43,7 +54,8 @@ abstract class ApiEndpoints {
   static const String employeeProfile = '/employees/profile';
   static const String employeeDashboard = '/employee/dashboard';
   static const String employeeCoworkers = '/employee/coworkers';
-  static const String employeeDefaultWorkLocation = '/employee/default-work-location';
+  static const String employeeDefaultWorkLocation =
+      '/employee/default-work-location';
   static const String employeeUpdatePassword = '/employee/update-password';
   static const String employeeWorkSchedule = '/employee/work-schedule';
 
@@ -67,10 +79,13 @@ abstract class ApiEndpoints {
   static const String attendanceLogs = '/attendances';
   static const String attendanceRequests = '/attendances/requests';
   static const String attendanceLiveRequest = '/attendances/requests/live';
-  static const String attendanceScheduleRequest = '/attendances/requests/schedule';
+  static const String attendanceScheduleRequest =
+      '/attendances/requests/schedule';
   static String attendanceDetail(String id) => '/attendances/$id';
-  static String attendanceRequestDetail(String id) => '/attendances/requests/$id';
-  static String attendanceRequestApprove(String id) => '/attendances/requests/$id/approve';
+  static String attendanceRequestDetail(String id) =>
+      '/attendances/requests/$id';
+  static String attendanceRequestApprove(String id) =>
+      '/attendances/requests/$id/approve';
 
   // ==========================================
   // --- 🏖️ LEAVE & TIME-OFF ENDPOINTS ---
@@ -130,7 +145,8 @@ abstract class ApiEndpoints {
   static const String notificationsUnreadCount = '/notifications/unread-count';
   static const String notificationsReadAll = '/notifications/read-all';
   static String notificationRead(String id) => '/notifications/$id/read';
-  static const String employeeNotificationSettings = '/employee/notification-settings';
+  static const String employeeNotificationSettings =
+      '/employee/notification-settings';
 
   // ==========================================
   // --- 💰 EXPENSES, REIMBURSEMENT & KASBON ENDPOINTS ---
@@ -139,8 +155,10 @@ abstract class ApiEndpoints {
   static const String reimbursements = '/reimbursements';
   static const String reimbursementCategories = '/reimbursements/categories';
   static String reimbursementDetail(String id) => '/reimbursements/$id';
-  static String reimbursementApprove(String id) => '/reimbursements/$id/approve';
-  static String reimbursementDisburse(String id) => '/reimbursements/$id/disburse';
+  static String reimbursementApprove(String id) =>
+      '/reimbursements/$id/approve';
+  static String reimbursementDisburse(String id) =>
+      '/reimbursements/$id/disburse';
   static const String financeDisbursements = '/finance/disbursements';
   static String financeDisbursement(String id) => '/finance/disbursements/$id';
   static const String cashAdvances = '/cash-advances';
@@ -161,7 +179,7 @@ abstract class ApiEndpoints {
       '/assets/assignments/$assignmentId/approve';
   static String assetReject(String assignmentId) =>
       '/assets/assignments/$assignmentId/reject';
-  
+
   // ==========================================
   // --- 💻 RESIGNATION ---
   // ==========================================
@@ -169,29 +187,37 @@ abstract class ApiEndpoints {
   static const String myResignationStatus = '/resignations/my-status';
   static const String resignationInitialForm = '/resignations/initial-form';
   static const String subordinateResignations = '/resignations/subordinates';
-  static const String resignationExitInterview = '/resignations/my/exit-interview';
+  static const String resignationExitInterview =
+      '/resignations/my/exit-interview';
   static String subordinateResignationApprove(String id) =>
       '/resignations/subordinates/$id/approve';
   static String subordinateResignationReject(String id) =>
       '/resignations/subordinates/$id/reject';
-  static String resignationClearance(String id) => '/resignations/$id/clearance';
+  static String resignationClearance(String id) =>
+      '/resignations/$id/clearance';
 
   // ==========================================
   // --- 🔄 EMPLOYEE LIFECYCLE ---
   // ==========================================
-  static const String lifecycleEvaluationsAssigned = '/lifecycle/evaluations/assigned';
+  static const String lifecycleEvaluationsAssigned =
+      '/lifecycle/evaluations/assigned';
   static const String lifecycleEvaluationsMy = '/lifecycle/evaluations/my';
-  static String lifecycleEvaluationMyDetail(String id) => '/lifecycle/evaluations/my/$id';
+  static String lifecycleEvaluationMyDetail(String id) =>
+      '/lifecycle/evaluations/my/$id';
   static String lifecycleEvaluation(String id) => '/lifecycle/evaluations/$id';
-  static String lifecycleEvaluationAnswers(String id) => '/lifecycle/evaluations/$id/answers';
-  static String lifecycleEvaluationSubmit(String id) => '/lifecycle/evaluations/$id/submit';
-  static String lifecycleEvaluationAcknowledge(String id) => '/lifecycle/evaluations/$id/acknowledge';
+  static String lifecycleEvaluationAnswers(String id) =>
+      '/lifecycle/evaluations/$id/answers';
+  static String lifecycleEvaluationSubmit(String id) =>
+      '/lifecycle/evaluations/$id/submit';
+  static String lifecycleEvaluationAcknowledge(String id) =>
+      '/lifecycle/evaluations/$id/acknowledge';
   static const String lifecycleContractsMy = '/lifecycle/contracts/my';
   static const String lifecycleCareerHistoryMy = '/lifecycle/career-history/my';
   static const String lifecycleOffboardingMy = '/lifecycle/offboarding/my';
   static const String lifecycleOnboardingMy = '/lifecycle/onboarding/my';
   static const String lifecycleTasksMy = '/lifecycle/tasks/my';
-  static String lifecycleTaskComplete(String id) => '/lifecycle/tasks/$id/complete';
+  static String lifecycleTaskComplete(String id) =>
+      '/lifecycle/tasks/$id/complete';
 
   // ==========================================
   // --- 📍 LOCATION TRACKING ENDPOINTS ---
@@ -210,6 +236,10 @@ abstract class ApiEndpoints {
   static const String payrollEmployees = '/payrolls/employees';
   static String payrollDetail(String id) => '/payrolls/$id';
   static String payrollDownload(String id) => '/payrolls/$id/download';
+
+  // ==========================================
+  // --- 🔗 SHARE PENGAJUAN KE ATASAN ---
+  // ==========================================
+  /// Daftar atasan yang berhak approve satu pengajuan. Query: `module`, `id`.
+  static const String approvers = '/approvers';
 }
-
-
