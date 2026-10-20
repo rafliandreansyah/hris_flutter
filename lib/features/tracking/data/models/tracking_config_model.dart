@@ -4,18 +4,23 @@ import 'package:equatable/equatable.dart';
 class TrackingSessionPolicy extends Equatable {
   final bool enabled;
   final int intervalMinutes;
+  final int intervalSeconds;
   final String? activeSessionId;
 
   const TrackingSessionPolicy({
     required this.enabled,
     required this.intervalMinutes,
+    int? intervalSeconds,
     this.activeSessionId,
-  });
+  }) : intervalSeconds = intervalSeconds ?? (intervalMinutes * 60);
 
   factory TrackingSessionPolicy.fromJson(Map<String, dynamic> json) {
+    final mins = (json['intervalMinutes'] as num?)?.toInt() ?? 10;
+    final secs = (json['intervalSeconds'] as num?)?.toInt() ?? (mins * 60);
     return TrackingSessionPolicy(
       enabled: json['enabled'] == true,
-      intervalMinutes: (json['intervalMinutes'] as num?)?.toInt() ?? 10,
+      intervalMinutes: mins,
+      intervalSeconds: secs,
       activeSessionId: (json['activeAttendanceId'] ?? json['activeActivityId'] ?? json['activeSessionId'])?.toString(),
     );
   }
@@ -24,12 +29,13 @@ class TrackingSessionPolicy extends Equatable {
     return {
       'enabled': enabled,
       'intervalMinutes': intervalMinutes,
+      'intervalSeconds': intervalSeconds,
       'activeSessionId': activeSessionId,
     };
   }
 
   @override
-  List<Object?> get props => [enabled, intervalMinutes, activeSessionId];
+  List<Object?> get props => [enabled, intervalMinutes, intervalSeconds, activeSessionId];
 }
 
 /// Model Konfigurasi Pelacakan dari GET /tracking/config

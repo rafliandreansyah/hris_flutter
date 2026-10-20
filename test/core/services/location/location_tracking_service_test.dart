@@ -38,6 +38,7 @@ class FakeLocationService extends LocationService {
     required Position current,
     Position? previous,
     DateTime? previousTime,
+    int minIntervalSeconds = 600,
   }) {
     return false;
   }

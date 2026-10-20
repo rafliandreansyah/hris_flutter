@@ -151,6 +151,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         : AppColors.onSurfaceVariant;
 
     return BlocConsumer<LiveTrackingBloc, LiveTrackingState>(
+      listenWhen: (previous, current) =>
+          previous.selectedRouteLogs != current.selectedRouteLogs &&
+          current.selectedRouteLogs.isNotEmpty,
       listener: (context, state) {
         if (state.selectedRouteLogs.isNotEmpty && state.selectedEmployee != null) {
           TrackingRouteModal.show(

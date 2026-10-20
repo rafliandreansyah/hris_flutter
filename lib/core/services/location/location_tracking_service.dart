@@ -90,10 +90,17 @@ class LocationTrackingService {
 
   int _attendanceIntervalMinutes = 10;
   int _activityIntervalMinutes = 3;
+  int _attendanceIntervalSeconds = 600;
+  int _activityIntervalSeconds = 180;
+
+  int get activeIntervalSeconds => _state == TrackingState.onActivity
+      ? _activityIntervalSeconds
+      : _attendanceIntervalSeconds;
 
   StreamSubscription<Position>? _positionSubscription;
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   Timer? _flushTimer;
+  Timer? _fastIntervalTimer;
 
   Position? _lastRecordedPosition;
   DateTime? _lastRecordedTime;
@@ -103,10 +110,16 @@ class LocationTrackingService {
   void startAttendanceTracking({
     required String attendanceId,
     int? intervalMinutes,
+    int? intervalSeconds,
   }) {
     _activeAttendanceId = attendanceId;
     if (intervalMinutes != null && intervalMinutes > 0) {
       _attendanceIntervalMinutes = intervalMinutes;
+      _attendanceIntervalSeconds = intervalMinutes * 60;
+    }
+    if (intervalSeconds != null && intervalSeconds > 0) {
+      _attendanceIntervalSeconds = intervalSeconds;
+      _attendanceIntervalMinutes = (intervalSeconds / 60).ceil().clamp(1, 1440);
     }
 
     _transitionTo(TrackingState.inAttendance);
@@ -117,11 +130,17 @@ class LocationTrackingService {
     required String activityId,
     required String activityTitle,
     int? intervalMinutes,
+    int? intervalSeconds,
   }) {
     _activeActivityId = activityId;
     _activeActivityTitle = activityTitle;
     if (intervalMinutes != null && intervalMinutes > 0) {
       _activityIntervalMinutes = intervalMinutes;
+      _activityIntervalSeconds = intervalMinutes * 60;
+    }
+    if (intervalSeconds != null && intervalSeconds > 0) {
+      _activityIntervalSeconds = intervalSeconds;
+      _activityIntervalMinutes = (intervalSeconds / 60).ceil().clamp(1, 1440);
     }
 
     _transitionTo(TrackingState.onActivity);
@@ -167,7 +186,6 @@ class LocationTrackingService {
     _startGpsStatusListener();
     _startPeriodicFlush();
 
-    // Segera ambil dan kirim koordinat awal tanpa menunggu interval stream pasif
     unawaited(_recordInitialPosition());
   }
 
@@ -210,6 +228,8 @@ class LocationTrackingService {
     _positionSubscription = null;
     _serviceStatusSubscription?.cancel();
     _serviceStatusSubscription = null;
+    _fastIntervalTimer?.cancel();
+    _fastIntervalTimer = null;
   }
 
   bool get _isServicesBindingInitialized {
@@ -229,8 +249,8 @@ class LocationTrackingService {
     }
 
     final isActivity = _state == TrackingState.onActivity;
-    final intervalMinutes =
-        isActivity ? _activityIntervalMinutes : _attendanceIntervalMinutes;
+    final intervalSecs = activeIntervalSeconds;
+    final isFastTestingInterval = intervalSecs < 60;
 
     final String notificationText = isActivity
         ? 'HRIS memantau rute dinas: ${_activeActivityTitle ?? 'Tugas Lapangan'}'
@@ -240,9 +260,11 @@ class LocationTrackingService {
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       locationSettings = AndroidSettings(
-        accuracy: isActivity ? LocationAccuracy.high : LocationAccuracy.medium,
-        distanceFilter: 10,
-        intervalDuration: Duration(minutes: intervalMinutes),
+        accuracy: (isActivity || isFastTestingInterval)
+            ? LocationAccuracy.high
+            : LocationAccuracy.medium,
+        distanceFilter: isFastTestingInterval ? 0 : 10,
+        intervalDuration: Duration(seconds: intervalSecs),
         foregroundNotificationConfig: ForegroundNotificationConfig(
           notificationTitle: 'Pelacakan Lokasi Kerja Aktif',
           notificationText: notificationText,
@@ -252,16 +274,18 @@ class LocationTrackingService {
     } else if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
       locationSettings = AppleSettings(
-        accuracy: isActivity ? LocationAccuracy.high : LocationAccuracy.medium,
+        accuracy: (isActivity || isFastTestingInterval)
+            ? LocationAccuracy.high
+            : LocationAccuracy.medium,
         activityType: ActivityType.fitness,
         pauseLocationUpdatesAutomatically: false,
         showBackgroundLocationIndicator: true,
-        distanceFilter: 10,
+        distanceFilter: isFastTestingInterval ? 0 : 10,
       );
     } else {
-      locationSettings = const LocationSettings(
+      locationSettings = LocationSettings(
         accuracy: LocationAccuracy.medium,
-        distanceFilter: 10,
+        distanceFilter: isFastTestingInterval ? 0 : 10,
       );
     }
 
@@ -274,6 +298,18 @@ class LocationTrackingService {
           debugPrint('⚠️ [LocationTrackingService.getPositionStream] $error');
         },
       );
+
+      if (isFastTestingInterval) {
+        _fastIntervalTimer?.cancel();
+        _fastIntervalTimer = Timer.periodic(
+          Duration(seconds: intervalSecs),
+          (_) {
+            if (_state != TrackingState.idle) {
+              unawaited(_recordInitialPosition());
+            }
+          },
+        );
+      }
     } catch (e) {
       debugPrint('⚠️ [LocationTrackingService] Gagal memulai stream lokasi: $e');
     }
@@ -283,12 +319,12 @@ class LocationTrackingService {
   Future<void> _onPositionReceived(Position position, {bool force = false}) async {
     if (_state == TrackingState.idle) return;
 
-    // Evaluasi sensor throttling saat karyawan diam di meja kerja (dilewati jika force: true)
     if (!force) {
       final throttled = _locationService.shouldThrottle(
         current: position,
         previous: _lastRecordedPosition,
         previousTime: _lastRecordedTime,
+        minIntervalSeconds: activeIntervalSeconds,
       );
 
       if (throttled) {
@@ -446,7 +482,8 @@ class LocationTrackingService {
     _flushTimer?.cancel();
     _flushTimer = null;
     if (!enableNativeStream) return;
-    _flushTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+    final flushSecs = activeIntervalSeconds < 60 ? activeIntervalSeconds : 60;
+    _flushTimer = Timer.periodic(Duration(seconds: flushSecs), (_) {
       flushPendingQueue();
     });
   }
@@ -472,12 +509,10 @@ class LocationTrackingService {
         try {
           await _trackingRepository.uploadBatch(payload);
 
-          // Hapus titik yang sukses diterima oleh server (201 Created)
           final successIds = payload.locations.map((e) => e.id).toList();
           await _localStorage.removePoints(successIds);
         } on SessionClosedException catch (e) {
           debugPrint('🚨 [LocationTrackingService] SessionClosedException: ${e.message}');
-          // Protokol penanganan sesi ditutup di server
           await _localStorage.purgeQueueForReference(e.referenceId);
 
           if (e.sourceType == 'attendance') {
@@ -487,7 +522,6 @@ class LocationTrackingService {
           }
         } catch (e) {
           debugPrint('⚠️ [LocationTrackingService.flushPendingQueue] Upload gagal, ditahan di lokal: $e');
-          // Jangan hapus data lokal, tunggu flushing berikutnya
           break;
         }
       }
@@ -520,6 +554,8 @@ class LocationTrackingService {
 
       _attendanceIntervalMinutes = config.attendance.intervalMinutes;
       _activityIntervalMinutes = config.activity.intervalMinutes;
+      _attendanceIntervalSeconds = config.attendance.intervalSeconds;
+      _activityIntervalSeconds = config.activity.intervalSeconds;
 
       final activeAttId = config.attendance.activeSessionId;
       final activeActId = config.activity.activeSessionId;
@@ -530,11 +566,13 @@ class LocationTrackingService {
           activityId: activeActId,
           activityTitle: 'Tugas Lapangan Aktif',
           intervalMinutes: _activityIntervalMinutes,
+          intervalSeconds: _activityIntervalSeconds,
         );
       } else if (activeAttId != null && activeAttId.isNotEmpty) {
         startAttendanceTracking(
           attendanceId: activeAttId,
           intervalMinutes: _attendanceIntervalMinutes,
+          intervalSeconds: _attendanceIntervalSeconds,
         );
       } else if (_state != TrackingState.idle) {
         stopAllTracking();

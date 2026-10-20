@@ -69,13 +69,13 @@ class LocationService {
     required Position current,
     Position? previous,
     DateTime? previousTime,
+    int minIntervalSeconds = 600,
   }) {
     if (previous == null || previousTime == null) {
       return false;
     }
 
     final speed = current.speed;
-    // Jika kecepatan bergerak terdeteksi (> 1.0 m/s), jangan throttle
     if (speed >= 1.0) {
       return false;
     }
@@ -87,14 +87,12 @@ class LocationService {
       current.longitude,
     );
 
-    // Jika perpindahan signifikan (>= 20 meter), catat titik baru
     if (distanceMeters >= 20.0) {
       return false;
     }
 
-    // Jika diam di tempat (< 20 meter) dan belum lewat 10 menit, throttle (skip)
-    final elapsedMinutes = DateTime.now().difference(previousTime).inMinutes;
-    if (elapsedMinutes < 10) {
+    final elapsedSeconds = DateTime.now().difference(previousTime).inSeconds;
+    if (elapsedSeconds < minIntervalSeconds) {
       return true;
     }
 
