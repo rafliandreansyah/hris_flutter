@@ -25,6 +25,7 @@
    - 5.4 [Build Android App Bundle (AAB)](#54-build-android-app-bundle-aab)
    - 5.5 [Build Universal APK & Split-per-ABI (Direct Distribution)](#55-build-universal-apk--split-per-abi-direct-distribution)
    - 5.6 [Rilis ke Google Play Console (Internal, Closed, Production)](#56-rilis-ke-google-play-console-internal-closed-production)
+   - 5.7 [Build Klien Domain Custom & Deep Link (App Links)](#57-build-klien-domain-custom--deep-link-app-links)
 6. [Deployment iOS Production (App Store & TestFlight)](#6-deployment-ios-production-app-store--testflight)
    - 6.1 [Sertifikat & Provisioning Profile (Apple Developer)](#61-sertifikat--provisioning-profile-apple-developer)
    - 6.2 [Konfigurasi Runner & Capabilities di Xcode](#62-konfigurasi-runner--capabilities-di-xcode)
@@ -290,6 +291,13 @@ flutter build apk --release --split-per-abi \
   --build-name=1.0.0-dev \
   --build-number=101
 ```
+
+> [!IMPORTANT]
+> **Deep link (App Links) pada build release dev**: host App Links ditentukan manifest per build type
+> (`src/release` hanya berisi `app.hroasish.com` + `${customHost}`). Build release yang `WEB_BASE_URL`-nya
+> `dev.hroasish.com` **wajib** menyertakan `--android-project-arg=customHost=dev.hroasish.com`, kalau tidak link dev
+> tidak membuka app. Build debug/profile otomatis memakai `dev.hroasish.com`. Build klien domain custom: isi
+> `WEB_BASE_URL` dan `customHost` dengan host yang sama. Detail: [SHARE_DEEPLINK.md](SHARE_DEEPLINK.md).
 
 > [!TIP]
 > **Otomatisasi Signing pada Dev Build**:
@@ -599,6 +607,39 @@ adb install build/app/outputs/flutter-apk/app-release.apk
    - Promosikan rilis yang telah lolos pengujian ke trek **Production**.
    - Isi deskripsi pembaruan (*What's new* dalam bahasa Indonesia dan Inggris).
    - Kirim untuk ditinjau (*Send for review*). Review memakan waktu 1–3 hari kerja.
+
+---
+
+### 5.7 Build Klien Domain Custom & Deep Link (App Links)
+
+Link share pengajuan (`/approval/...`, `/report/activities/...`) membuka app lewat Android App Links. Host-nya ditetapkan **saat build**:
+`ApiEndpoints.webBaseUrl` (`--dart-define=WEB_BASE_URL`) harus sama dengan host di manifest.
+
+| Build | Host di manifest | Catatan |
+|---|---|---|
+| Debug / profile | `dev.hroasish.com` + `${customHost}` | `customHost` default `dev.hroasish.com` |
+| Release (Play Store bersama, semua tenant) | `app.hroasish.com` + `${customHost}` | `customHost` default `app.hroasish.com` |
+| Release diarahkan ke dev (APK QA) | `app.hroasish.com` + `dev.hroasish.com` | `--android-project-arg=customHost=dev.hroasish.com` |
+| Release klien domain custom | `app.hroasish.com` + host klien | `--android-project-arg=customHost=app.klien.co.id` |
+
+Domain custom = APK terpisah (host manifest tidak bisa ditambah setelah build). Isi `WEB_BASE_URL` dan `customHost` dengan host yang **sama**:
+
+```bash
+# Release klien
+flutter build apk --release --split-per-abi   --dart-define=API_BASE_URL=https://api-hris.namaklien.co.id/api/v1   --dart-define=WEB_BASE_URL=https://app.namaklien.co.id   --android-project-arg=customHost=app.namaklien.co.id
+
+# Tes cepat di debug
+flutter run   --dart-define=WEB_BASE_URL=https://app.namaklien.co.id   --android-project-arg=customHost=app.namaklien.co.id
+```
+
+**Checklist per klien**
+- [ ] `https://app.namaklien.co.id/.well-known/assetlinks.json` → `200 application/json` (hris-web menyajikannya otomatis bila domain mengarah ke deployment yang sama; pastikan Nginx tidak meneruskan `/.well-known/` ke SPA).
+- [ ] `sha256_cert_fingerprints` berisi SHA-256 keystore yang menandatangani APK klien itu.
+- [ ] iOS: tambahkan `applinks:app.namaklien.co.id` ke `ios/Runner/Runner.entitlements` (belum otomatis).
+- [ ] Android ≤ 11: **semua** host di merged manifest harus lolos (satu gagal = semua `ask`), termasuk `app.hroasish.com`. Install ulang app setelah memperbaiki file.
+- [ ] Verifikasi: `adb shell pm get-app-links com.hroasish.app` (Android 12+) atau `adb shell dumpsys package domain-preferred-apps` (≤ 11, harus `always`).
+
+Klien tanpa domain custom memakai APK Play Store bersama dan `app.hroasish.com`. Detail dan troubleshooting: [SHARE_DEEPLINK.md](SHARE_DEEPLINK.md).
 
 ---
 

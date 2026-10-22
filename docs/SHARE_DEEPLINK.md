@@ -34,22 +34,11 @@ Filter `autoVerify` **tidak** ada di `src/main/AndroidManifest.xml`. Filter ada 
 (status per paket, bukan per filter). Satu host tanpa `assetlinks.json` valid membuat semua host `ask`: link menampilkan dialog
 "Chrome atau aplikasi" dan memilih Chrome hanya membuka web (login). Android 12+ memverifikasi per domain, jadi tidak terpengaruh.
 Karena itu build debug tidak boleh memuat host prod, dan sebaliknya.
+Build **release yang diarahkan ke dev** (APK QA) wajib `--android-project-arg=customHost=dev.hroasish.com` (lihat [DEPLOYMENT.md §4.3](DEPLOYMENT.md#43-build-development-mobile-app-flutter-android)).
 
-**Klien dengan domain custom (white-label).** Host manifest harus ada saat build, jadi domain custom = APK terpisah.
-Isi `customHost` dan `WEB_BASE_URL` dengan host yang sama:
-
-```bash
-# build klien (release)
-flutter build apk --release --dart-define=WEB_BASE_URL=https://app.klien.co.id -- -PcustomHost=app.klien.co.id
-# tes di debug
-flutter run --dart-define=WEB_BASE_URL=https://app.klien.co.id -- -PcustomHost=app.klien.co.id
-```
-
-Syarat: `https://app.klien.co.id/.well-known/assetlinks.json` mengembalikan JSON dengan SHA-256 keystore yang menandatangani APK itu
-(hris-web otomatis menyajikannya bila domain mengarah ke deployment yang sama). iOS: tambahkan `applinks:app.klien.co.id`
-ke `Runner.entitlements` untuk build klien itu (belum otomatis).
-Klien tanpa domain custom memakai APK Play Store bersama dan `app.hroasish.com`. Wildcard `*.hroasish.com` sengaja tidak dipakai:
-host tidak per tenant dan wildcard butuh `assetlinks.json` di root `hroasish.com`.
+**Klien dengan domain custom (white-label)** dan build release yang diarahkan ke dev: perintah build ada di
+[DEPLOYMENT.md §5.7](DEPLOYMENT.md#57-build-klien-domain-custom--deep-link-app-links) dan §4.3.
+Wildcard `*.hroasish.com` sengaja tidak dipakai: host tidak per tenant dan wildcard butuh `assetlinks.json` di root `hroasish.com`.
 
 ## API (muratech_hris_server) — sudah dibuat
 
