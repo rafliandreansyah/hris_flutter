@@ -4,4 +4,27 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <application>
+        <activity android:name=".MainActivity">
+            <!-- App Links dev (ApiEndpoints.webBaseUrl non-release). Wajib ada https://<host>/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="dev.hroasish.com"/>
+                <data android:pathPrefix="/approval/"/>
+                <data android:pathPrefix="/report/activities/"/>
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="${customHost}"/>
+                <data android:pathPrefix="/approval/"/>
+                <data android:pathPrefix="/report/activities/"/>
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

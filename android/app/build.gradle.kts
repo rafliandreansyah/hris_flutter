@@ -28,6 +28,11 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
+        // Host App Links klien custom; default = host prod (duplikat tak berbahaya).
+        // Build klien: flutter build apk -- -PcustomHost=app.klien.co.id --dart-define=WEB_BASE_URL=https://app.klien.co.id
+        manifestPlaceholders["customHost"] =
+            (project.findProperty("customHost") as String?) ?: "app.hroasish.com"
+
         testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
@@ -38,6 +43,12 @@ android {
     }
 
     buildTypes {
+        // Non-release: default customHost = host dev (duplikat). Jangan app.hroasish.com, host belum
+        // terverifikasi menjatuhkan verifikasi seluruh paket di Android <=11.
+        for (name in listOf("debug", "profile")) {
+            getByName(name).manifestPlaceholders["customHost"] =
+                (project.findProperty("customHost") as String?) ?: "dev.hroasish.com"
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.

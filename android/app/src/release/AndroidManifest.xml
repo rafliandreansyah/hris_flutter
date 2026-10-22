@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".MainActivity">
+            <!-- App Links prod: app, klien custom (-PcustomHost=..., lihat build.gradle.kts). Wajib ada https://<host>/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="app.hroasish.com"/>
+                <data android:pathPrefix="/approval/"/>
+                <data android:pathPrefix="/report/activities/"/>
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"/>
+                <data android:host="${customHost}"/>
+                <data android:pathPrefix="/approval/"/>
+                <data android:pathPrefix="/report/activities/"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

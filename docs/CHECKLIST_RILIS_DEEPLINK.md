@@ -18,7 +18,7 @@ Detail teknis ada di [SHARE_DEEPLINK.md](SHARE_DEEPLINK.md).
 ## B. Sebelum build release
 
 - [ ] `ApiEndpoints.webBaseUrl` untuk release = `https://app.hroasish.com` (sudah benar di kode).
-- [ ] `AndroidManifest.xml`: host di intent-filter sama dengan domain produksi (`app.hroasish.com`).
+- [ ] `src/release/AndroidManifest.xml`: host `app.hroasish.com` (+ `${customHost}` bila build klien custom: `-PcustomHost=...` dan `WEB_BASE_URL` sama). Lihat SHARE_DEEPLINK.md.
 - [ ] `Runner.entitlements`: `applinks:app.hroasish.com` sudah ada (dev juga bila dipakai).
 - [ ] Naikkan `version` di `pubspec.yaml`.
 - [ ] Build AAB: `flutter build appbundle --release`.
@@ -55,7 +55,8 @@ File: `src/routes/[.]well-known/apple-app-site-association.ts`
 
 Domain lain:
 
-- [ ] Bila `dev.hroasish.com` dipakai untuk debug, deploy kedua file verifikasi ke sana juga.
+- [ ] Bila `dev.hroasish.com` dipakai untuk debug, deploy kedua file verifikasi ke sana juga (sudah live).
+- [ ] Host baru di manifest wajib punya `assetlinks.json` valid sebelum rilis; di Android ≤ 11 satu host gagal menjatuhkan semua.
 
 Halaman tujuan link (sudah dibuat, cek setelah deploy):
 
@@ -99,4 +100,5 @@ Halaman tujuan link (sudah dibuat, cek setelah deploy):
 | Keystore release | ❌ Belum dibuat |
 | `signingConfigs.release` | ❌ Belum dibuat |
 | SHA app signing key (Play) | ❌ Menunggu upload pertama |
-| Sinkronisasi domain dev di manifest | ⏳ Menunggu keputusan |
+| Host manifest dipisah per build type (dev di debug/profile, prod di release) + `customHost` | ✅ Selesai, dev terverifikasi di Android 10 |
+| `assetlinks.json` & AASA di `app.hroasish.com` | ⏳ Masih mengembalikan HTML, perlu deploy |

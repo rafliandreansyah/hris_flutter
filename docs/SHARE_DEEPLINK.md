@@ -18,7 +18,38 @@ Kalau tidak, link membuka web.
 | Aktivitas     | `/report/activities/{id}`                                                                             | `ACTIVITY_DETAIL?id=`                           |
 
 Kode mobile: `lib/core/utils/share_link_util.dart`, `lib/features/approver_share/`.
-Host web: `ApiEndpoints.webBaseUrl` (override `--dart-define=WEB_BASE_URL=...`), harus sama dengan host di `AndroidManifest.xml`.
+Host web: `ApiEndpoints.webBaseUrl` (override `--dart-define=WEB_BASE_URL=...`), harus sama dengan host di manifest Android
+(lihat bagian "Host App Links Android"). Host ditetapkan saat build, bukan per tenant: semua link dari satu build memakai host yang sama.
+
+## Host App Links Android (per build type)
+
+Filter `autoVerify` **tidak** ada di `src/main/AndroidManifest.xml`. Filter ada di manifest per build type, digabung otomatis oleh Gradle:
+
+| Build | File | Host |
+|---|---|---|
+| debug, profile | `android/app/src/{debug,profile}/AndroidManifest.xml` | `dev.hroasish.com` + `${customHost}` (default `dev.hroasish.com`) |
+| release | `android/app/src/release/AndroidManifest.xml` | `app.hroasish.com` + `${customHost}` (default `app.hroasish.com`) |
+
+**Kenapa dipisah per build type.** Android ≤ 11 menganggap paket terverifikasi hanya bila **semua** host ber-`autoVerify` lolos
+(status per paket, bukan per filter). Satu host tanpa `assetlinks.json` valid membuat semua host `ask`: link menampilkan dialog
+"Chrome atau aplikasi" dan memilih Chrome hanya membuka web (login). Android 12+ memverifikasi per domain, jadi tidak terpengaruh.
+Karena itu build debug tidak boleh memuat host prod, dan sebaliknya.
+
+**Klien dengan domain custom (white-label).** Host manifest harus ada saat build, jadi domain custom = APK terpisah.
+Isi `customHost` dan `WEB_BASE_URL` dengan host yang sama:
+
+```bash
+# build klien (release)
+flutter build apk --release --dart-define=WEB_BASE_URL=https://app.klien.co.id -- -PcustomHost=app.klien.co.id
+# tes di debug
+flutter run --dart-define=WEB_BASE_URL=https://app.klien.co.id -- -PcustomHost=app.klien.co.id
+```
+
+Syarat: `https://app.klien.co.id/.well-known/assetlinks.json` mengembalikan JSON dengan SHA-256 keystore yang menandatangani APK itu
+(hris-web otomatis menyajikannya bila domain mengarah ke deployment yang sama). iOS: tambahkan `applinks:app.klien.co.id`
+ke `Runner.entitlements` untuk build klien itu (belum otomatis).
+Klien tanpa domain custom memakai APK Play Store bersama dan `app.hroasish.com`. Wildcard `*.hroasish.com` sengaja tidak dipakai:
+host tidak per tenant dan wildcard butuh `assetlinks.json` di root `hroasish.com`.
 
 ## API (muratech_hris_server) — sudah dibuat
 
@@ -57,5 +88,13 @@ aktifkan Associated Domains di App ID `com.hroasish.app` lalu buat ulang provisi
 
 ```bash
 adb shell am start -a android.intent.action.VIEW -d "https://dev.hroasish.com/approval/leaves/<id>"
-adb shell pm get-app-links com.hroasish.app
+adb shell pm get-app-links com.hroasish.app            # Android 12+: harus verified
+adb shell dumpsys package domain-preferred-apps         # Android ≤ 11: Status harus "always", bukan "ask"
 ```
+
+Verifikasi berjalan saat **install**: setelah `assetlinks.json` diperbaiki/dideploy, uninstall lalu install ulang aplikasi.
+Tes cepat: perintah `am start` di atas harus langsung membuka `MainActivity` tanpa `ResolverActivity` (dialog pilihan).
+
+**Troubleshooting "pilih Chrome → stuck di web".** Dialog pilihan = link belum terverifikasi. Cek: (1) `curl -i https://<host>/.well-known/assetlinks.json`
+harus `200 application/json` (bukan HTML SPA); (2) di Android ≤ 11, semua host di merged manifest harus lolos;
+(3) SHA-256 keystore penanda APK ada di `sha256_cert_fingerprints`. Memilih Chrome secara sadar memang hanya membuka web.
