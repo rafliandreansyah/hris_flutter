@@ -29,10 +29,20 @@ class AssetFilterBottomSheet extends StatefulWidget {
     required List<AssetCategoryModel> categories,
     required ValueChanged<AssetFilterCriteria> onApply,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Samakan dengan filter modul lain: drag handle bawaan tema (showDragHandle), tanpa handle kustom.
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      showDragHandle: true,
+      useSafeArea: true,
+      backgroundColor: isDark
+          ? AppColors.darkSurfaceContainerLowest
+          : AppColors.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => AssetFilterBottomSheet(
         initialCriteria: initialCriteria,
         categories: categories,
@@ -170,11 +180,7 @@ class _AssetFilterBottomSheetState extends State<AssetFilterBottomSheet> {
       ),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+    return ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
@@ -182,32 +188,34 @@ class _AssetFilterBottomSheetState extends State<AssetFilterBottomSheet> {
         top: false,
         child: Column(
           children: [
-            // 1. Drag Handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 6),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: borderCol,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-
-            // 2. Header Filter Fasilitas
+            // 1. Header Filter Fasilitas (drag handle dari showDragHandle)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
-                vertical: AppSpacing.sm,
+                vertical: AppSpacing.xs,
               ),
               child: Row(
                 children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: primaryCol.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.slidersHorizontal,
+                      size: 18,
+                      color: primaryCol,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Text(
                     'Filter Fasilitas',
                     style: AppTypography.titleMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: textCol,
+                      fontSize: 16,
                     ),
                   ),
                   if (_activeCount > 0) ...[

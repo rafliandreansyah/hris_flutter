@@ -357,11 +357,11 @@ void main() {
       await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tidak Ada Hak Akses'), findsOneWidget);
+      expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
       expect(find.text('Tidak ada hak akses'), findsOneWidget);
       expect(find.byIcon(LucideIcons.shieldAlert), findsOneWidget);
-      expect(find.text('Kembali'), findsOneWidget);
-      expect(find.text('Coba Lagi'), findsNothing);
+      expect(find.text('Coba Lagi'), findsOneWidget);
+      expect(find.text('Log Saya'), findsOneWidget);
     });
 
     testWidgets('tapping team member card navigates to Employee Attendance Logs screen', (

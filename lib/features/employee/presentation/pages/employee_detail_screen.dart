@@ -177,6 +177,10 @@ class _EmployeeDetailView extends StatelessWidget {
     final effectiveIsFromDirectory =
         isFromDirectory ?? (employee != null);
 
+    // Gagal memuat (mis. 403/404): sembunyikan seluruh konten, tampilkan error di tengah halaman.
+    final hasError =
+        state.status == EmployeeDetailStatus.failure && detail == null;
+
     return Scaffold(
       backgroundColor: bgCol,
       appBar: AppBar(
@@ -210,6 +214,7 @@ class _EmployeeDetailView extends StatelessWidget {
           ],
         ),
         actions: [
+          if (!hasError)
           IconButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +223,7 @@ class _EmployeeDetailView extends StatelessWidget {
             },
             icon: Icon(LucideIcons.share2, size: 20, color: textCol),
           ),
-          if (!effectiveIsFromDirectory)
+          if (!effectiveIsFromDirectory && !hasError)
             IconButton(
               onPressed: () {
                 showAccountSettingsBottomSheet(
@@ -237,7 +242,45 @@ class _EmployeeDetailView extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
+        child: hasError
+            ? Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.errorRed),
+                      const SizedBox(height: 12),
+                      Text(
+                        state.errorMessage ?? 'Terjadi kesalahan pada sistem',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.bodyMedium.copyWith(color: labelCol),
+                      ),
+                      const SizedBox(height: 16),
+                      // 403/404: hanya "Kembali" (retry tidak akan mengubah hasil)
+                      if (state.errorStatusCode == 403 || state.errorStatusCode == 404)
+                        AppButton(
+                          text: 'Kembali',
+                          leadingIcon: LucideIcons.arrowLeft,
+                          width: 140,
+                          height: 42,
+                          onPressed: () => context.pop(),
+                        )
+                      else
+                        AppButton(
+                          text: 'Coba Lagi',
+                          leadingIcon: LucideIcons.rotateCcw,
+                          width: 140,
+                          height: 42,
+                          onPressed: () => context
+                              .read<EmployeeDetailBloc>()
+                              .add(const EmployeeDetailRefreshed()),
+                        ),
+                    ],
+                  ),
+                ),
+              )
+            : RefreshIndicator(
           onRefresh: () async {
             context
                 .read<EmployeeDetailBloc>()
@@ -257,43 +300,6 @@ class _EmployeeDetailView extends StatelessWidget {
                     child: LinearProgressIndicator(
                       backgroundColor: brandColor.withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                    ),
-                  ),
-
-                // Error state (pesan berasal dari API; 404 hanya "Kembali")
-                if (state.status == EmployeeDetailStatus.failure &&
-                    detail == null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Column(
-                      children: [
-                        const Icon(LucideIcons.circleAlert, size: 40, color: AppColors.errorRed),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.errorMessage ?? 'Terjadi kesalahan pada sistem',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodyMedium.copyWith(color: labelCol),
-                        ),
-                        const SizedBox(height: 12),
-                        if (state.errorStatusCode == 404)
-                          AppButton(
-                            text: 'Kembali',
-                            leadingIcon: LucideIcons.arrowLeft,
-                            width: 140,
-                            height: 42,
-                            onPressed: () => context.pop(),
-                          )
-                        else
-                          AppButton(
-                            text: 'Coba Lagi',
-                            leadingIcon: LucideIcons.rotateCcw,
-                            width: 140,
-                            height: 42,
-                            onPressed: () => context
-                                .read<EmployeeDetailBloc>()
-                                .add(const EmployeeDetailRefreshed()),
-                          ),
-                      ],
                     ),
                   ),
 

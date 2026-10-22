@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
@@ -483,6 +484,16 @@ class _EmployeeAttendanceLogsViewState
     VoidCallback? onSwitchToCurrentMonth,
     required VoidCallback onRetry,
   }) {
+    if (isForbidden) {
+      // Standar global 403 (sama dengan halaman Aktivitas)
+      return AppForbiddenState(
+        message: message,
+        onRetry: onRetry,
+        actionText: 'Kembali',
+        onAction: () => Navigator.of(context).maybePop(),
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol = isDark
@@ -495,11 +506,7 @@ class _EmployeeAttendanceLogsViewState
     final Color iconColor;
     final String errorTitle;
 
-    if (isForbidden) {
-      iconData = LucideIcons.shieldAlert;
-      iconColor = AppColors.errorRed;
-      errorTitle = 'Tidak Ada Hak Akses';
-    } else if (isNotFound) {
+    if (isNotFound) {
       iconData = LucideIcons.calendarX;
       iconColor = AppColors.warning;
       if (isLastMonth) {
@@ -579,7 +586,7 @@ class _EmployeeAttendanceLogsViewState
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
               ),
-            ] else if (isNotFound || isForbidden)
+            ] else if (isNotFound)
               ElevatedButton(
                 key: const ValueKey('employee_attendance_back_button'),
                 onPressed: () => Navigator.of(context).maybePop(),

@@ -199,5 +199,33 @@ void main() {
       expect(find.widgetWithText(AppButton, 'Coba Lagi'), findsOneWidget);
       expect(find.text('Kembali'), findsNothing);
     });
+
+    testWidgets('403 menyembunyikan konten profil dan menampilkan error di tengah', (tester) async {
+      final repo = _FakeEmployeeDetailRepo(shouldFail: true, failStatus: 403);
+      const previewEmp = EmployeeDirectoryItem(
+        id: 'emp-99',
+        name: 'Ahmad Dahlan',
+        role: 'Tech Lead',
+        department: 'Mobile Core',
+        email: 'ahmad@oasish.com',
+        initials: 'AD',
+        company: 'PT Contoh Abadi',
+      );
+
+      await tester.pumpWidget(buildTestableWidget(
+        repository: repo,
+        employeeId: 'emp-99',
+        employee: previewEmp,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Data pegawai tidak ditemukan'), findsOneWidget);
+      expect(find.widgetWithText(AppButton, 'Kembali'), findsOneWidget);
+      expect(find.text('Coba Lagi'), findsNothing);
+      // Konten halaman & aksi app bar disembunyikan
+      expect(find.text('Ahmad Dahlan'), findsNothing);
+      expect(find.byIcon(LucideIcons.share2), findsNothing);
+      expect(find.byType(RefreshIndicator), findsNothing);
+    });
   });
 }

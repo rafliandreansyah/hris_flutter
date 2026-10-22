@@ -84,6 +84,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
+      // 403 cukup ditampilkan in-screen, tanpa toast error
+      expect(find.byType(SnackBar), findsNothing);
     });
   });
 }

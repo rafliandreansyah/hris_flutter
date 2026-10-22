@@ -258,7 +258,7 @@ void main() {
       expect(find.text('Coba Lagi'), findsNothing);
     });
 
-    testWidgets('displays Tidak Ada Hak Akses and Kembali on 403 Forbidden error', (
+    testWidgets('displays Tidak Memiliki Hak Akses, Coba Lagi and Kembali on 403 Forbidden error', (
       tester,
     ) async {
       final repo = MockEmployeeLogsRepository(
@@ -271,11 +271,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Error state for 403
-      expect(find.text('Tidak Ada Hak Akses'), findsOneWidget);
+      expect(find.text('Tidak Memiliki Hak Akses'), findsOneWidget);
       expect(find.text('Tidak ada hak akses'), findsOneWidget);
       expect(find.byIcon(LucideIcons.shieldAlert), findsOneWidget);
       expect(find.text('Kembali'), findsOneWidget);
-      expect(find.text('Coba Lagi'), findsNothing);
+      expect(find.text('Coba Lagi'), findsOneWidget);
     });
 
     testWidgets('displays Gagal Memuat Data and Coba Lagi on 500 error', (

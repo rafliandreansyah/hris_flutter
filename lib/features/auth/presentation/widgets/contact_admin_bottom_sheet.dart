@@ -17,6 +17,8 @@ class ContactAdminBottomSheet extends StatelessWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      // Sheet ini menggambar drag handle sendiri; matikan handle bawaan tema agar tidak ganda
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) => const ContactAdminBottomSheet(),

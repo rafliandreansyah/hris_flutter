@@ -250,7 +250,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
         body['employeeWorkLocationId'] = employeeWorkLocationId.trim();
       }
 
-      final response = await apiClient.put(
+      final response = await apiClient.patch(
         ApiEndpoints.employeeDefaultWorkLocation,
         data: body,
       );

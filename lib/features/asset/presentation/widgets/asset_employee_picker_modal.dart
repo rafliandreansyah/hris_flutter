@@ -32,6 +32,8 @@ class AssetEmployeePickerModal extends StatefulWidget {
     return showModalBottomSheet<EmployeeDirectoryItem>(
       context: context,
       isScrollControlled: true,
+      // Sheet ini menggambar drag handle sendiri; matikan handle bawaan tema agar tidak ganda
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (context) => AssetEmployeePickerModal(
         title: title,

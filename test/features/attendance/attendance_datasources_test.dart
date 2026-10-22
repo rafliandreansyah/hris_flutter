@@ -64,7 +64,7 @@ class _MockApiClient implements ApiClient {
   }
 
   @override
-  Future<Response<T>> put<T>(
+  Future<Response<T>> patch<T>(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -72,7 +72,7 @@ class _MockApiClient implements ApiClient {
     CancelToken? cancelToken,
   }) async {
     lastPath = path;
-    lastMethod = 'PUT';
+    lastMethod = 'PATCH';
     lastData = data;
     lastQueryParams = queryParameters;
     if (apiErrorToThrow != null) {
@@ -238,7 +238,7 @@ void main() {
       expect(result.id, equals('att-detail-1'));
     });
 
-    test('setDefaultWorkLocation sends PUT request with workLocationId', () async {
+    test('setDefaultWorkLocation sends PATCH request with workLocationId', () async {
       mockApiClient.mockResponseData = {
         'success': true,
         'message': 'Lokasi kantor default berhasil disimpan',
@@ -250,6 +250,7 @@ void main() {
       );
 
       expect(mockApiClient.lastPath, equals(ApiEndpoints.employeeDefaultWorkLocation));
+      expect(mockApiClient.lastMethod, equals('PATCH'));
       expect(mockApiClient.lastData['workLocationId'], equals('loc-1'));
       expect(mockApiClient.lastData['employeeWorkLocationId'], equals('ewl-1'));
       expect(result['success'], isTrue);

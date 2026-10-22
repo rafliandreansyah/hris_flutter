@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
@@ -694,13 +695,16 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
 
     // 1. Penanganan Khusus HTTP 403 Forbidden
     if (isTeamForbidden) {
-      return _buildForbiddenState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
+      return RefreshIndicator(
+        onRefresh: () async => _loadTeamActivities(page: 1, isRefresh: true),
+        color: brandColor,
+        child: AppForbiddenState(
+          message:
+              'Anda tidak memiliki hak akses pada pegawai! Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
+          onRetry: () => _loadTeamActivities(page: 1, isRefresh: true),
+          actionText: 'Aktivitasku',
+          onAction: () => _tabController.animateTo(0),
+        ),
       );
     }
 
@@ -783,178 +787,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           }
           return const SizedBox(height: 16);
         },
-      ),
-    );
-  }
-
-  /// Tampilan Khusus jika terjadi Error 403 (Tidak Memiliki Hak Akses Pegawai)
-  Widget _buildForbiddenState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color borderCol,
-    required Color brandColor,
-  }) {
-    return RefreshIndicator(
-      onRefresh: () async => _loadTeamActivities(page: 1, isRefresh: true),
-      color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: surfaceCol,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.shieldAlert,
-                      color: Color(0xFFD97706),
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Tidak Memiliki Hak Akses',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Anda tidak memiliki hak akses pada pegawai! Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () =>
-                            _loadTeamActivities(page: 1, isRefresh: true),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textCol,
-                          side: BorderSide(color: borderCol),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          alignment: Alignment.center,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              LucideIcons.rotateCcw,
-                              size: 14,
-                              color: textCol,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Coba Lagi',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w600,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          _tabController.animateTo(0);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor: isDark
-                              ? AppColors.darkOnPrimary
-                              : Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          alignment: Alignment.center,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              LucideIcons.arrowLeft,
-                              size: 14,
-                              color: isDark
-                                  ? AppColors.darkOnPrimary
-                                  : Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Aktivitasku',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: isDark
-                                    ? AppColors.darkOnPrimary
-                                    : Colors.white,
-                                fontWeight: FontWeight.w700,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

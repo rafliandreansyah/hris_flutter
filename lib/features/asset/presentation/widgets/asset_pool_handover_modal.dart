@@ -31,6 +31,8 @@ class AssetPoolHandoverModal extends StatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      // Sheet ini menggambar drag handle sendiri; matikan handle bawaan tema agar tidak ganda
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (context) => Padding(
         padding: EdgeInsets.only(

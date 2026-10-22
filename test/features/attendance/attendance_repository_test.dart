@@ -259,6 +259,68 @@ void main() {
       expect(mockDataSource.lastRecordedRequest?.workLocationId, equals('loc-1'));
     });
 
+    group('alamat presensi mengikuti lokasi kerja', () {
+      Map<String, dynamic> infoWith(Map<String, dynamic> workLocation) => {
+            'success': true,
+            'data': {
+              'firstName': 'Budi',
+              'employeeWorkLocation': [
+                {'id': 'ewl-1', 'isDefault': true, 'workLocation': workLocation},
+              ],
+            },
+          };
+
+      test('mengirim alamat lokasi kerja bila tersedia', () async {
+        mockDataSource.mockAttendanceInfo = infoWith({
+          'id': 'loc-1',
+          'name': 'HQ',
+          'address': 'Jl. Sudirman No. 1',
+          'latitude': -6.2,
+          'longitude': 106.8,
+        });
+
+        await repository.clockIn(latitude: -6.2, longitude: 106.8, workLocationId: 'loc-1');
+
+        expect(mockDataSource.lastRecordedRequest?.address, 'Jl. Sudirman No. 1');
+      });
+
+      test('mengirim nama lokasi kerja bila alamat kosong', () async {
+        mockDataSource.mockAttendanceInfo = infoWith({
+          'id': 'loc-1',
+          'name': 'HQ',
+          'address': '',
+          'latitude': -6.2,
+          'longitude': 106.8,
+        });
+
+        await repository.clockOut(latitude: -6.2, longitude: 106.8, workLocationId: 'loc-1');
+
+        expect(mockDataSource.lastRecordedRequest?.address, 'HQ');
+      });
+
+      test('absen di mana saja memakai alamat hasil reverse geocoding (Mapbox)', () async {
+        double? geoLat;
+        repository = AttendanceRepositoryImpl(
+          remoteDataSource: mockDataSource,
+          addressFetcher: ({required latitude, required longitude}) async {
+            geoLat = latitude;
+            return 'Jl. Braga, Bandung';
+          },
+        );
+        mockDataSource.mockAttendanceInfo = infoWith({
+          'id': 'loc-any',
+          'name': 'Work From Anywhere',
+          'address': 'Fleksibel',
+          'isAnyWhere': true,
+        });
+
+        await repository.clockIn(latitude: -6.91, longitude: 107.6, workLocationId: 'loc-any');
+
+        expect(geoLat, -6.91);
+        expect(mockDataSource.lastRecordedRequest?.address, 'Jl. Braga, Bandung');
+      });
+    });
+
     test('clockOut records attendance with attendanceType out', () async {
       mockDataSource.mockAttendanceInfo = {
         'success': true,

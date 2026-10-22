@@ -7,6 +7,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
 import 'package:hris_flutter/features/attendance/domain/repositories/attendance_repository.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
@@ -744,6 +745,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                           : 'Gagal memuat data tim absensi.'),
                   isNotFound: state.isNotFound,
                   isForbidden: state.isForbidden,
+                  onBackToSelf: () => _tabController.animateTo(0),
                   onRetry: () => context.read<EmployeeListBloc>().add(
                     const EmployeeListRefreshed(isTeamAttendance: true),
                   ),
@@ -827,7 +829,18 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     bool isLastMonth = false,
     VoidCallback? onSwitchToCurrentMonth,
     required VoidCallback onRetry,
+    VoidCallback? onBackToSelf,
   }) {
+    if (isForbidden) {
+      // Standar global 403 (sama dengan halaman Aktivitas)
+      return AppForbiddenState(
+        message: message,
+        onRetry: onRetry,
+        actionText: onBackToSelf != null ? 'Log Saya' : null,
+        onAction: onBackToSelf,
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final subtitleCol = isDark
@@ -840,11 +853,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     final Color iconColor;
     final String errorTitle;
 
-    if (isForbidden) {
-      iconData = LucideIcons.shieldAlert;
-      iconColor = AppColors.errorRed;
-      errorTitle = 'Tidak Ada Hak Akses';
-    } else if (isNotFound) {
+    if (isNotFound) {
       iconData = LucideIcons.calendarX;
       iconColor = AppColors.warning;
       if (isLastMonth) {
@@ -922,7 +931,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
               ),
-            ] else if (isNotFound || isForbidden)
+            ] else if (isNotFound)
               ElevatedButton(
                 key: const ValueKey('attendance_logs_back_button'),
                 onPressed: () => Navigator.of(context).maybePop(),

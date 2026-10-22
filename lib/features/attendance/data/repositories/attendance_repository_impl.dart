@@ -1,6 +1,7 @@
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/core/utils/mapbox_geocoding_util.dart';
 import 'package:hris_flutter/features/attendance/data/datasources/attendance_remote_datasource.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_api_models.dart';
@@ -14,14 +15,47 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 
+/// Reverse geocoding koordinat GPS menjadi alamat (default: Mapbox).
+typedef AttendanceAddressFetcher = Future<String> Function({
+  required double latitude,
+  required double longitude,
+});
+
 class AttendanceRepositoryImpl implements AttendanceRepository {
   final AttendanceRemoteDataSource remoteDataSource;
+  final AttendanceAddressFetcher _addressFetcher;
 
   // In-memory state for offline/demo simulation if API endpoints are mock or backend is development
   AttendanceTodayData? _cachedData;
 
-  AttendanceRepositoryImpl({AttendanceRemoteDataSource? remoteDataSource})
-      : remoteDataSource = remoteDataSource ?? AttendanceRemoteDataSourceImpl();
+  AttendanceRepositoryImpl({
+    AttendanceRemoteDataSource? remoteDataSource,
+    AttendanceAddressFetcher? addressFetcher,
+  })  : remoteDataSource = remoteDataSource ?? AttendanceRemoteDataSourceImpl(),
+        _addressFetcher = addressFetcher ?? MapboxGeocodingUtil.getSafeAddress;
+
+  /// Alamat yang dikirim saat presensi/istirahat, mengikuti lokasi kerja:
+  /// - "Absen di mana saja" -> alamat posisi GPS via Mapbox.
+  /// - Lokasi kerja punya alamat -> alamat tersebut, jika kosong -> nama lokasi kerja.
+  /// Mengembalikan null bila lokasi kerja tidak diketahui (pakai fallback pemanggil).
+  Future<String?> _resolveAttendanceAddress({
+    required AttendanceTodayData? current,
+    required String? workLocationId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    if (current == null) return null;
+    final loc = current.availableWorkLocations
+            .where((l) => l.id == workLocationId)
+            .firstOrNull ??
+        current.selectedWorkLocation;
+    if (loc == null) return null;
+    if (loc.isAnyWhere) {
+      return _addressFetcher(latitude: latitude, longitude: longitude);
+    }
+    final address = loc.address.trim();
+    return address.isNotEmpty ? address : loc.name;
+  }
 
   @override
   Future<AttendanceTodayData> getTodayAttendance() async {
@@ -265,7 +299,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         latitude: latitude,
         longitude: longitude,
         attendanceType: 'in',
-        address: address ?? current.officeDetail,
+        address: await _resolveAttendanceAddress(
+              current: current,
+              workLocationId: effectiveLocationId,
+              latitude: latitude,
+              longitude: longitude,
+            ) ??
+            address,
         file: photoFile,
       ),
     );
@@ -307,7 +347,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         latitude: latitude,
         longitude: longitude,
         attendanceType: 'out',
-        address: address ?? current.officeDetail,
+        address: await _resolveAttendanceAddress(
+              current: current,
+              workLocationId: effectiveLocationId,
+              latitude: latitude,
+              longitude: longitude,
+            ) ??
+            address,
         file: photoFile,
       ),
     );
@@ -350,7 +396,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         attendanceId: attendanceId,
         latitude: latitude,
         longitude: longitude,
-        address: address,
+        address: await _resolveAttendanceAddress(
+              current: _cachedData,
+              workLocationId: workLocationId,
+              latitude: latitude,
+              longitude: longitude,
+            ) ??
+            address,
         note: note,
         workLocationId: workLocationId,
       ),
@@ -373,7 +425,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         attendanceId: attendanceId,
         latitude: latitude,
         longitude: longitude,
-        address: address,
+        address: await _resolveAttendanceAddress(
+              current: _cachedData,
+              workLocationId: workLocationId,
+              latitude: latitude,
+              longitude: longitude,
+            ) ??
+            address,
         note: note,
         workLocationId: workLocationId,
       ),
