@@ -117,7 +117,7 @@ Indeks lengkap dan alur belajar tersedia di [docs/README.md](docs/README.md).
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Feature-First Clean Architecture, BLoC, Dio client, silent refresh, storage, Stitch tokens |
 | [AUTHORIZATION.md](docs/AUTHORIZATION.md) | Otorisasi 3-lapis, visibilitas menu Bento Grid, wewenang aksi memori, katalog permission |
 | [FEATURES.md](docs/FEATURES.md) | Perilaku 17 modul domain: UI, alur bisnis, kamera & GPS geofencing, endpoint API |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | **Deploy Mobile**: Rilis Android Keystore & AAB, Google Play Console, iOS TestFlight & App Store |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | **Deploy & Rilis**: Build Docker backend dev (`muratech/oasish-api:dev`), APK/IPA Dev QA, Android Keystore & AAB, iOS TestFlight & App Store |
 | [TESTING.md](docs/TESTING.md) | Piramida pengujian mobile, BLoC test, Widget test, E2E Patrol, mocking, quality gate |
 | [ROADMAP.md](docs/ROADMAP.md) | Rencana masa depan: offline-first SQLite, integrasi smartwatch, widgets, BLE beacon |
 | [BUG_FIX_CHECKLIST.md](docs/BUG_FIX_CHECKLIST.md) | Audit kepatuhan hardware (GPS, Fake GPS, Kamera, Biometrik, Baterai, Izin OS) |
