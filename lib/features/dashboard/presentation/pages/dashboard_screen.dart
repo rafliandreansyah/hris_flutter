@@ -8,6 +8,7 @@ import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/services/notification_navigation_handler.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/app_route_observer.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
@@ -76,10 +77,45 @@ class _DashboardView extends StatefulWidget {
   State<_DashboardView> createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<_DashboardView> {
+class _DashboardViewState extends State<_DashboardView>
+    with RouteAware, WidgetsBindingObserver {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is ModalRoute<void>) appRouteObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Kembali ke dashboard dari halaman manapun -> muat ulang data (+ izin dari /auth/profile).
+  @override
+  void didPopNext() => _reload();
+
+  /// Aplikasi dibuka kembali dari background saat dashboard sedang di atas.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        (ModalRoute.of(context)?.isCurrent ?? false)) {
+      _reload();
+    }
+  }
+
+  void _reload() {
+    if (!mounted) return;
+    context.read<DashboardBloc>().add(const DashboardFetchRequested(isRefresh: true, silent: true));
+    context.read<NotificationCountBloc>().add(const NotificationCountFetchRequested());
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         NotificationNavigationHandler.instance.consumePendingPayload(context);
@@ -315,12 +351,8 @@ class _DashboardViewState extends State<_DashboardView> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () async {
+                          // Jumlah notifikasi dimuat ulang otomatis lewat didPopNext
                           await context.push(Routes.NOTIFICATIONS);
-                          if (context.mounted) {
-                            context.read<NotificationCountBloc>().add(
-                                  const NotificationCountFetchRequested(),
-                                );
-                          }
                         },
                         icon: Icon(
                           LucideIcons.bell,
@@ -581,12 +613,8 @@ class _DashboardViewState extends State<_DashboardView> {
                         isDayOff: isDayOff,
                         hasSchedule: hasSchedule,
                         onClockPressed: () async {
+                          // Reload otomatis lewat didPopNext
                           await context.push(Routes.ATTENDANCE);
-                          if (context.mounted) {
-                            context.read<DashboardBloc>().add(
-                              const DashboardFetchRequested(isRefresh: true),
-                            );
-                          }
                         },
                       ),
                       const SizedBox(height: 24),
@@ -602,15 +630,11 @@ class _DashboardViewState extends State<_DashboardView> {
                       UpdatesFeedCard(
                         announcements: data.latestAnnouncement,
                         onAnnouncementTap: (announcement) async {
+                          // Reload otomatis lewat didPopNext
                           await context.push(
                             Routes.ANNOUNCEMENT_DETAIL,
                             extra: announcement.id,
                           );
-                          if (context.mounted) {
-                            context.read<DashboardBloc>().add(
-                              const DashboardFetchRequested(isRefresh: true),
-                            );
-                          }
                         },
                       ),
                       const SizedBox(height: 32),

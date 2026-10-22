@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/leave/presentation/models/leave_request_it
 import 'package:hris_flutter/features/leave/presentation/pages/leave_screen.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_request_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Mock repository untuk widget test — menyediakan data tanpa network.
 class _MockLeaveRepository implements LeaveRepository {
@@ -119,6 +121,10 @@ final _testItems = [
 ];
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamLeave));
+
   Widget createTestWidget({bool teamForbidden = false}) {
     return MaterialApp(
       home: LeaveScreen(
@@ -164,6 +170,17 @@ void main() {
       expect(find.text('Pengajuan Saya'), findsOneWidget);
       expect(find.text('Persetujuan Tim'), findsOneWidget);
       expect(find.byType(TabBar), findsOneWidget);
+    });
+
+    testWidgets('tanpa izin tim: TabBar disembunyikan, hanya Pengajuan Saya', (
+      WidgetTester tester,
+    ) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TabBar), findsNothing);
+      expect(find.text('Persetujuan Tim'), findsNothing);
     });
 
     testWidgets('merender search bar di bawah TabBar', (

@@ -54,6 +54,9 @@ class EmployeeDetailData {
   // Lists & metrics
   final List<EmployeeWorkLocationItem> employeeWorkLocation;
   final List<DetailCoworker> coworkers;
+
+  /// Total rekan kerja satu departemen (API hanya mengirim pratinjau maks 5 di [coworkers]).
+  final int? coworkerTotal;
   final DetailWarningLetter? lastWarningLetter;
   final List<DetailLeaveBalance> leaveBalances;
   final num? totalOvertime;
@@ -108,6 +111,7 @@ class EmployeeDetailData {
     this.village,
     this.employeeWorkLocation = const [],
     this.coworkers = const [],
+    this.coworkerTotal,
     this.lastWarningLetter,
     this.leaveBalances = const [],
     this.totalOvertime,
@@ -211,6 +215,7 @@ class EmployeeDetailData {
               .map((e) => DetailCoworker.fromJson(e))
               .toList()
           : [],
+      coworkerTotal: (json['coworkerTotal'] as num?)?.toInt(),
       lastWarningLetter: json['lastWarningLetter'] is Map<String, dynamic>
           ? DetailWarningLetter.fromJson(json['lastWarningLetter'] as Map<String, dynamic>)
           : null,

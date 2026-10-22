@@ -9,6 +9,7 @@ import 'package:hris_flutter/features/employee/data/models/employee_detail_model
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_detail_shimmer_loading.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class _FakeEmployeeDetailRepo implements EmployeeRepository {
@@ -132,7 +133,7 @@ void main() {
       expect(find.byIcon(LucideIcons.share2), findsOneWidget);
     });
 
-    testWidgets('renders fallback employee directory item preview while loading', (tester) async {
+    testWidgets('menampilkan shimmer saat memuat detail lalu konten setelah selesai', (tester) async {
       final repo = _FakeEmployeeDetailRepo(delay: const Duration(seconds: 1));
       const previewEmp = EmployeeDirectoryItem(
         id: 'emp-99',
@@ -155,9 +156,12 @@ void main() {
       await tester.pump();
 
       expect(find.text('Employee Detail'), findsOneWidget);
-      expect(find.text('Ahmad Dahlan'), findsWidgets);
+      // Saat memuat: skeleton shimmer, bukan konten/loader linear
+      expect(find.byType(EmployeeDetailShimmerLoading), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
+      expect(find.byType(EmployeeDetailShimmerLoading), findsNothing);
     });
 
     testWidgets('shows snackbar when share icon is tapped', (tester) async {

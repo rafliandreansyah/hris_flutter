@@ -19,6 +19,8 @@ import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/expenses_filter_bottom_sheet.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Halaman utama daftar pengeluaran (Klaim Reimbursement & Kasbon).
 ///
@@ -61,6 +63,9 @@ class _ExpensesListView extends StatefulWidget {
 class _ExpensesListViewState extends State<_ExpensesListView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamExpenses);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -69,7 +74,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _canViewTeam ? 2 : 1, vsync: this);
     _tabController.addListener(_onTabChanged);
     _myScrollController.addListener(_onMyScroll);
     _teamScrollController.addListener(_onTeamScroll);
@@ -383,7 +388,9 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             },
           ),
         ],
-        bottom: PreferredSize(
+        bottom: !_canViewTeam
+            ? null
+            : PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -534,6 +541,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
                     _buildMyExpensesTab(state, isDark, brandColor),
 
                     // Tab 1: Bawahan
+                    if (_canViewTeam)
                     _buildTeamExpensesTab(state, isDark, brandColor),
                   ],
                 ),

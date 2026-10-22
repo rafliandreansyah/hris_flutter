@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum LivenessStatus {
   noFace,
-  outsideOval,
+  outsideCircle,
   moving,
   tooFar,
   tooClose,
@@ -21,6 +23,21 @@ enum LivenessStatus {
   multipleFaces,
   holding,
   success,
+}
+
+/// Lingkaran panduan wajah; dipakai bersama oleh deteksi dan painter.
+/// Ruang atas (header + instruksi) dan bawah (checklist) disisihkan agar tidak bertabrakan di HP kecil.
+Rect _circleRect(MediaQueryData mq) {
+  final top = mq.padding.top + 214;
+  final bottom = mq.size.height - mq.padding.bottom - 150;
+  final radius = math.max(
+    0.0,
+    math.min(mq.size.width * 0.39, (bottom - top) / 2),
+  );
+  return Rect.fromCircle(
+    center: Offset(mq.size.width / 2, (top + bottom) / 2),
+    radius: radius,
+  );
 }
 
 class LivenessCameraScreen extends StatefulWidget {
@@ -37,33 +54,40 @@ class LivenessCameraScreen extends StatefulWidget {
 
 class _LivenessCameraScreenState extends State<LivenessCameraScreen>
     with SingleTickerProviderStateMixin {
-  static const int _requiredHoldMs = 2000;
+  static const Duration _holdDuration = Duration(milliseconds: 1200);
 
   List<CameraDescription> _cameras = [];
   CameraController? _cameraController;
   int _cameraIndex = 0;
 
   late final FaceDetector _faceDetector;
+  late final AnimationController _holdController;
   bool _isProcessing = false;
   bool _isCaptured = false;
   bool _isProcessingCapture = false;
 
   LivenessStatus _status = LivenessStatus.noFace;
-  String _statusMessage = 'Posisikan wajah Anda di dalam bingkai oval';
-  double _distanceRatio = 0.5;
-  double _holdProgress = 0.0;
+  String _statusMessage = 'Posisikan wajah Anda di dalam lingkaran';
+  bool _faceOk = false;
+  bool _distanceOk = false;
+  bool _alignOk = false;
+  int _invalidStreak = 0;
 
-  DateTime? _validHoldStartTime;
   Offset? _prevFaceCenter;
   double? _prevYaw;
   double? _prevRoll;
   double? _prevFaceHeight;
 
   bool _flashVisible = false;
+  bool _reduceMotion = false;
+
+  bool get _isHolding =>
+      _status == LivenessStatus.holding || _status == LivenessStatus.success;
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _faceDetector = FaceDetector(
       options: FaceDetectorOptions(
         enableClassification: true,
@@ -72,6 +96,12 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
         minFaceSize: 0.15,
       ),
     );
+    _holdController = AnimationController(vsync: this, duration: _holdDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed && !_isCaptured) {
+          _triggerAutoCapture();
+        }
+      });
 
     _initCamera();
   }
@@ -81,10 +111,11 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Kamera tidak ditemukan di perangkat.')),
+          await AppDialogUtil.showError(
+            context,
+            message: 'Kamera tidak ditemukan di perangkat.',
           );
-          Navigator.of(context).pop();
+          if (mounted) Navigator.of(context).pop();
         }
         return;
       }
@@ -150,72 +181,42 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
   }
 
   void _evaluateFace(List<Face> faces, CameraImage image) {
-    if (faces.isEmpty) {
+    if (faces.isEmpty || faces.length > 1) {
       _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.noFace,
-        'Posisikan wajah Anda di dalam bingkai oval',
-        0.5,
-        shouldResetHold: true,
-      );
-      return;
-    }
-
-    if (faces.length > 1) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.multipleFaces,
-        'Hanya satu wajah yang diperbolehkan di kamera',
-        0.5,
-        shouldResetHold: true,
+      _applyResult(
+        faces.isEmpty ? LivenessStatus.noFace : LivenessStatus.multipleFaces,
+        faces.isEmpty
+            ? 'Posisikan wajah Anda di dalam lingkaran'
+            : 'Hanya satu wajah yang diperbolehkan',
+        faceOk: false,
+        distanceOk: false,
+        alignOk: false,
+        immediate: true,
       );
       return;
     }
 
     final face = faces.first;
-
     final yaw = face.headEulerAngleY ?? 0.0;
     final roll = face.headEulerAngleZ ?? 0.0;
-    if (yaw.abs() > 14.0) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.tilt,
-        'Tatap lurus ke depan (jangan menoleh)',
-        0.5,
-        shouldResetHold: true,
-      );
-      return;
-    }
-    if (roll.abs() > 14.0) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.tilt,
-        'Tegakkan posisi kepala Anda',
-        0.5,
-        shouldResetHold: true,
-      );
-      return;
-    }
 
-    final mediaQuery = MediaQuery.maybeOf(context);
-    final screenSize = mediaQuery?.size ?? const Size(390, 844);
-    final ovalWidth = screenSize.width * 0.72;
-    final ovalHeight = screenSize.width * 0.98;
-    final ovalCenter = Offset(screenSize.width / 2, screenSize.height * 0.44);
-    final ovalRect = Rect.fromCenter(
-      center: ovalCenter,
-      width: ovalWidth,
-      height: ovalHeight,
-    );
+    final mq =
+        MediaQuery.maybeOf(context) ??
+        const MediaQueryData(size: Size(390, 844));
+    final screenSize = mq.size;
+    final circle = _circleRect(mq);
 
     final camera = _cameras[_cameraIndex];
     final rotation = _getImageRotation(camera.sensorOrientation);
-    final bool isRotated = rotation == InputImageRotation.rotation90deg ||
+    final bool isRotated =
+        rotation == InputImageRotation.rotation90deg ||
         rotation == InputImageRotation.rotation270deg;
-    final double frameWidth =
-        isRotated ? image.height.toDouble() : image.width.toDouble();
-    final double frameHeight =
-        isRotated ? image.width.toDouble() : image.height.toDouble();
+    final double frameWidth = isRotated
+        ? image.height.toDouble()
+        : image.width.toDouble();
+    final double frameHeight = isRotated
+        ? image.width.toDouble()
+        : image.height.toDouble();
 
     final previewW = _cameraController?.value.previewSize?.height ?? frameWidth;
     final previewH = _cameraController?.value.previewSize?.width ?? frameHeight;
@@ -223,165 +224,131 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
       screenSize.width / previewW,
       screenSize.height / previewH,
     );
-    final scaledWidth = previewW * scale;
-    final scaledHeight = previewH * scale;
-    final offsetX = (screenSize.width - scaledWidth) / 2;
-    final offsetY = (screenSize.height - scaledHeight) / 2;
+    final offsetX = (screenSize.width - previewW * scale) / 2;
+    final offsetY = (screenSize.height - previewH * scale) / 2;
 
+    final box = face.boundingBox;
     final bool isFront = camera.lensDirection == CameraLensDirection.front;
-    final double screenFaceLeft;
-    final double screenFaceRight;
-    if (isFront) {
-      screenFaceLeft = screenSize.width - (face.boundingBox.right * scale + offsetX);
-      screenFaceRight = screenSize.width - (face.boundingBox.left * scale + offsetX);
-    } else {
-      screenFaceLeft = face.boundingBox.left * scale + offsetX;
-      screenFaceRight = face.boundingBox.right * scale + offsetX;
-    }
-    final double screenFaceTop = face.boundingBox.top * scale + offsetY;
-    final double screenFaceBottom = face.boundingBox.bottom * scale + offsetY;
-
-    final screenFaceCenter = Offset(
-      (screenFaceLeft + screenFaceRight) / 2,
-      (screenFaceTop + screenFaceBottom) / 2,
-    );
-    final screenFaceRect = Rect.fromLTRB(
-      screenFaceLeft,
-      screenFaceTop,
-      screenFaceRight,
-      screenFaceBottom,
+    final faceRect = Rect.fromLTRB(
+      isFront
+          ? screenSize.width - (box.right * scale + offsetX)
+          : box.left * scale + offsetX,
+      box.top * scale + offsetY,
+      isFront
+          ? screenSize.width - (box.left * scale + offsetX)
+          : box.right * scale + offsetX,
+      box.bottom * scale + offsetY,
     );
 
-    final effectiveFaceHeight = screenFaceRect.height;
-    final effectiveFaceWidth = screenFaceRect.width;
-    final faceSize = math.sqrt(effectiveFaceHeight * effectiveFaceWidth);
-    final ovalSize = math.sqrt(ovalHeight * ovalWidth);
-    final faceScaleRatio = faceSize / ovalSize;
+    final faceScaleRatio =
+        math.sqrt(faceRect.width * faceRect.height) / circle.width;
+    final bool tooFar = faceScaleRatio < 0.45;
+    final bool tooClose = faceScaleRatio > 0.85;
 
-    // Continuous dynamic gauge calculation (0.0 = Jauh, 0.5 = Optimal, 1.0 = Dekat)
-    final double targetGaugeRatio;
-    if (faceScaleRatio <= 0.60) {
-      targetGaugeRatio =
-          0.5 * ((faceScaleRatio - 0.28) / (0.60 - 0.28)).clamp(0.0, 1.0);
-    } else {
-      targetGaugeRatio = 0.5 +
-          0.5 * ((faceScaleRatio - 0.60) / (0.88 - 0.60)).clamp(0.0, 1.0);
-    }
-    _distanceRatio = (_distanceRatio * 0.70) + (targetGaugeRatio * 0.30);
+    final dx = (faceRect.center.dx - circle.center.dx) / (circle.width / 2);
+    final dy = (faceRect.center.dy - circle.center.dy) / (circle.height / 2);
+    final bool isCentered =
+        dx * dx + dy * dy <= 0.36 &&
+        circle.inflate(24).contains(faceRect.topLeft) &&
+        circle.inflate(24).contains(faceRect.bottomRight);
 
-    if (faceScaleRatio < 0.44) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.tooFar,
-        'Dekatkan wajah Anda ke kamera',
-        _distanceRatio,
-        shouldResetHold: true,
-      );
-      return;
-    }
+    final bool isStraight = yaw.abs() <= 14.0 && roll.abs() <= 14.0;
 
-    if (faceScaleRatio > 0.80) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.tooClose,
-        'Mundurkan wajah Anda sedikit',
-        _distanceRatio,
-        shouldResetHold: true,
-      );
-      return;
-    }
-
-    final rx = ovalWidth / 2;
-    final ry = ovalHeight / 2;
-    final dx = (screenFaceCenter.dx - ovalCenter.dx) / rx;
-    final dy = (screenFaceCenter.dy - ovalCenter.dy) / ry;
-    final centerDistSq = dx * dx + dy * dy;
-
-    final bool isCenterInside = centerDistSq <= 0.38;
-    final bool isBoundsInside = screenFaceRect.left >= ovalRect.left - 24 &&
-        screenFaceRect.right <= ovalRect.right + 24 &&
-        screenFaceRect.top >= ovalRect.top - 24 &&
-        screenFaceRect.bottom <= ovalRect.bottom + 24;
-
-    if (!isCenterInside || !isBoundsInside) {
-      _prevFaceCenter = null;
-      _updateStatus(
-        LivenessStatus.outsideOval,
-        'Posisikan wajah Anda pas di dalam bingkai oval',
-        _distanceRatio,
-        shouldResetHold: true,
-      );
-      return;
-    }
-
+    bool isSteady = true;
     if (_prevFaceCenter != null) {
-      final moveDistance = (screenFaceCenter - _prevFaceCenter!).distance;
+      final moveDistance = (faceRect.center - _prevFaceCenter!).distance;
       final yawDiff = (yaw - (_prevYaw ?? yaw)).abs();
       final rollDiff = (roll - (_prevRoll ?? roll)).abs();
-      final sizeDiff = ((screenFaceRect.height -
-                  (_prevFaceHeight ?? screenFaceRect.height)) /
-              ovalHeight)
-          .abs();
-
-      if (moveDistance > 16.0 ||
-          yawDiff > 5.5 ||
-          rollDiff > 5.5 ||
-          sizeDiff > 0.06) {
-        _prevFaceCenter = screenFaceCenter;
-        _prevYaw = yaw;
-        _prevRoll = roll;
-        _prevFaceHeight = screenFaceRect.height;
-        _updateStatus(
-          LivenessStatus.moving,
-          'Gerakan terdeteksi! Tahan posisi jangan bergerak...',
-          _distanceRatio,
-          shouldResetHold: true,
-        );
-        return;
-      }
+      final sizeDiff =
+          ((faceRect.height - (_prevFaceHeight ?? faceRect.height)) /
+                  circle.height)
+              .abs();
+      isSteady =
+          moveDistance <= 28.0 &&
+          yawDiff <= 8.0 &&
+          rollDiff <= 8.0 &&
+          sizeDiff <= 0.10;
     }
-
-    _prevFaceCenter = screenFaceCenter;
+    _prevFaceCenter = faceRect.center;
     _prevYaw = yaw;
     _prevRoll = roll;
-    _prevFaceHeight = screenFaceRect.height;
+    _prevFaceHeight = faceRect.height;
 
-    final now = DateTime.now();
-    _validHoldStartTime ??= now;
-    final elapsedMs = now.difference(_validHoldStartTime!).inMilliseconds;
-    _holdProgress = (elapsedMs / _requiredHoldMs).clamp(0.0, 1.0);
+    final distanceOk = !tooFar && !tooClose;
+    final alignOk = isCentered && isStraight && isSteady;
 
-    final remainingSec = math
-        .max(0.0, (_requiredHoldMs - elapsedMs) / 1000.0)
-        .toStringAsFixed(1);
-
-    _status = LivenessStatus.holding;
-    _statusMessage = 'Tahan posisi... ${remainingSec}s';
-
-    if (elapsedMs >= _requiredHoldMs && !_isCaptured) {
-      _status = LivenessStatus.success;
-      _statusMessage = 'Wajah Valid! Mengambil foto...';
-      _triggerAutoCapture();
+    final LivenessStatus status;
+    final String message;
+    if (tooFar) {
+      status = LivenessStatus.tooFar;
+      message = 'Dekatkan wajah Anda ke kamera';
+    } else if (tooClose) {
+      status = LivenessStatus.tooClose;
+      message = 'Mundurkan wajah Anda sedikit';
+    } else if (!isCentered) {
+      status = LivenessStatus.outsideCircle;
+      message = _directionHint(dx, dy);
+    } else if (yaw.abs() > 14.0) {
+      status = LivenessStatus.tilt;
+      message = 'Tatap lurus ke depan, jangan menoleh';
+    } else if (roll.abs() > 14.0) {
+      status = LivenessStatus.tilt;
+      message = 'Tegakkan posisi kepala Anda';
+    } else if (!isSteady) {
+      status = LivenessStatus.moving;
+      message = 'Tahan posisi, jangan bergerak';
+    } else {
+      status = LivenessStatus.holding;
+      message = 'Posisi pas! Tahan sebentar...';
     }
 
-    setState(() {});
+    _applyResult(
+      status,
+      message,
+      faceOk: true,
+      distanceOk: distanceOk,
+      alignOk: alignOk,
+    );
   }
 
-  void _updateStatus(
-    LivenessStatus status,
-    String message,
-    double distance, {
-    bool shouldResetHold = false,
-  }) {
-    _status = status;
-    _statusMessage = message;
-    _distanceRatio = distance;
-
-    if (shouldResetHold) {
-      _holdProgress = 0.0;
-      _validHoldStartTime = null;
+  String _directionHint(double dx, double dy) {
+    if (dx.abs() >= dy.abs()) {
+      return dx > 0 ? 'Geser wajah ke kiri' : 'Geser wajah ke kanan';
     }
-    setState(() {});
+    return dy > 0 ? 'Naikkan wajah sedikit' : 'Turunkan wajah sedikit';
+  }
+
+  /// Frame valid memajukan ring; frame gagal me-reset ring ke 0.
+  /// Kegagalan ringan perlu 2 frame berturut-turut agar getaran kecil tidak me-reset.
+  void _applyResult(
+    LivenessStatus status,
+    String message, {
+    required bool faceOk,
+    required bool distanceOk,
+    required bool alignOk,
+    bool immediate = false,
+  }) {
+    if (_isCaptured) return;
+
+    if (status == LivenessStatus.holding) {
+      _invalidStreak = 0;
+      if (!_isHolding) HapticFeedback.selectionClick();
+      if (!_holdController.isAnimating && _holdController.value < 1.0) {
+        _holdController.forward();
+      }
+    } else {
+      _invalidStreak++;
+      if (!immediate && _invalidStreak < 2) return;
+      _holdController.value = 0.0;
+    }
+
+    setState(() {
+      _status = status;
+      _statusMessage = message;
+      _faceOk = faceOk;
+      _distanceOk = distanceOk;
+      _alignOk = alignOk;
+    });
   }
 
   Future<void> _triggerAutoCapture() async {
@@ -389,7 +356,9 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
     HapticFeedback.heavyImpact();
 
     setState(() {
-      _flashVisible = true;
+      _status = LivenessStatus.success;
+      _statusMessage = 'Berhasil! Mengambil foto...';
+      _flashVisible = !_reduceMotion;
     });
 
     try {
@@ -426,7 +395,8 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
     final rotation = _getImageRotation(sensorOrientation);
     if (rotation == null) return null;
 
-    final format = InputImageFormatValue.fromRawValue(image.format.raw) ??
+    final format =
+        InputImageFormatValue.fromRawValue(image.format.raw) ??
         (Platform.isAndroid
             ? InputImageFormat.nv21
             : InputImageFormat.bgra8888);
@@ -478,26 +448,28 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
 
   @override
   void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    _holdController.dispose();
     _cameraController?.dispose();
     _faceDetector.close();
     super.dispose();
   }
 
-  Color _getBorderColor() {
+  Color _getStatusColor() {
     switch (_status) {
       case LivenessStatus.holding:
       case LivenessStatus.success:
         return AppColors.success;
       case LivenessStatus.tooFar:
       case LivenessStatus.tooClose:
-      case LivenessStatus.outsideOval:
+      case LivenessStatus.outsideCircle:
         return AppColors.warning;
       case LivenessStatus.moving:
       case LivenessStatus.tilt:
       case LivenessStatus.multipleFaces:
-        return const Color(0xFFEA580C);
+        return AppColors.errorRed;
       case LivenessStatus.noFace:
-        return Colors.white.withValues(alpha: 0.45);
+        return Colors.white;
     }
   }
 
@@ -505,17 +477,17 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
     switch (_status) {
       case LivenessStatus.holding:
       case LivenessStatus.success:
-        return LucideIcons.checkCircle2;
-      case LivenessStatus.outsideOval:
-        return LucideIcons.scan;
-      case LivenessStatus.moving:
+        return LucideIcons.circleCheck;
+      case LivenessStatus.outsideCircle:
         return LucideIcons.move;
+      case LivenessStatus.moving:
+        return LucideIcons.hand;
       case LivenessStatus.tooFar:
         return LucideIcons.zoomIn;
       case LivenessStatus.tooClose:
         return LucideIcons.zoomOut;
       case LivenessStatus.tilt:
-        return LucideIcons.smartphoneNfc;
+        return LucideIcons.rotateCcw;
       case LivenessStatus.multipleFaces:
         return LucideIcons.users;
       case LivenessStatus.noFace:
@@ -525,402 +497,380 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final ovalWidth = screenSize.width * 0.72;
-    final ovalHeight = screenSize.width * 0.98;
+    final mq = MediaQuery.of(context);
+    final screenSize = mq.size;
+    final circle = _circleRect(mq);
+    final statusColor = _getStatusColor();
+    _reduceMotion = mq.disableAnimations;
+    final fade = _reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 180);
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (_cameraController != null &&
-              _cameraController!.value.isInitialized)
-            SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _cameraController!.value.previewSize?.height ??
-                      screenSize.width,
-                  height: _cameraController!.value.previewSize?.width ??
-                      screenSize.height,
-                  child: CameraPreview(_cameraController!),
+      // Overlay text has fixed room around the circle; cap scaling so it never overlaps.
+      body: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.3,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_cameraController != null &&
+                _cameraController!.value.isInitialized)
+              SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width:
+                        _cameraController!.value.previewSize?.height ??
+                        screenSize.width,
+                    height:
+                        _cameraController!.value.previewSize?.width ??
+                        screenSize.height,
+                    child: CameraPreview(_cameraController!),
+                  ),
+                ),
+              )
+            else
+              const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
+
+            AnimatedBuilder(
+              animation: _holdController,
+              builder: (context, _) => Semantics(
+                label: 'Progres verifikasi wajah',
+                value: '${(_holdController.value * 100).round()}%',
+                child: CustomPaint(
+                  size: screenSize,
+                  painter: _CircleOverlayPainter(
+                    circle: circle,
+                    statusColor: statusColor,
+                    progress: _holdController.value,
+                    isHolding: _isHolding,
+                    showGlow: !_reduceMotion,
+                  ),
                 ),
               ),
-            )
-          else
-            const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
             ),
 
-          CustomPaint(
-            size: screenSize,
-            painter: _OvalOverlayPainter(
-              ovalWidth: ovalWidth,
-              ovalHeight: ovalHeight,
-              borderColor: _getBorderColor(),
-              progress: _holdProgress,
-              isHolding: _status == LivenessStatus.holding ||
-                  _status == LivenessStatus.success,
-            ),
-          ),
-
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(LucideIcons.x, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(null),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.black.withValues(alpha: 0.4),
+            // Header
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        tooltip: 'Tutup',
+                        icon: const Icon(LucideIcons.x, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(null),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black.withValues(alpha: 0.4),
+                        ),
                       ),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.xs + 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: AppRadius.borderFull,
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Text(
+                            widget.title,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelMedium.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.xxxl),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Status pill + instruction above the circle
+            Positioned(
+              left: AppSpacing.xl,
+              right: AppSpacing.xl,
+              bottom: screenSize.height - circle.top + AppSpacing.lg,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: fade,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md - 4,
+                      vertical: AppSpacing.xs + 2,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white24),
-                      ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.72),
+                      borderRadius: AppRadius.borderFull,
+                      border: Border.all(color: statusColor, width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(
+                            _getStatusIcon(),
+                            color: statusColor,
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs + 2),
+                        Text(
+                          _isHolding ? 'Posisi Pas' : 'Belum Pas',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm + 2),
+                  Semantics(
+                    liveRegion: true,
+                    child: AnimatedSwitcher(
+                      duration: fade,
                       child: Text(
-                        widget.title,
-                        style: AppTypography.labelMedium.copyWith(
+                        _statusMessage,
+                        key: ValueKey(_statusMessage),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.headlineMedium.copyWith(
                           color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          shadows: const [
+                            Shadow(color: Colors.black54, blurRadius: 8),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ),
 
-          SafeArea(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            // Requirement checklist below the circle
+            Positioned(
+              left: AppSpacing.xl,
+              right: AppSpacing.xl,
+              top: circle.bottom + AppSpacing.xl,
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.72),
+                  borderRadius: AppRadius.borderLg,
+                  border: Border.all(color: Colors.white24),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _DistanceGauge(ratio: _distanceRatio),
-                    const SizedBox(height: 12),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: _getBorderColor().withValues(alpha: 0.6),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _getBorderColor().withValues(alpha: 0.25),
-                            blurRadius: 16,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getStatusIcon(),
-                            color: _getBorderColor(),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              _statusMessage,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _RequirementItem(label: 'Wajah terdeteksi', ok: _faceOk),
+                    const SizedBox(height: AppSpacing.sm),
+                    _RequirementItem(label: 'Jarak pas', ok: _distanceOk),
+                    const SizedBox(height: AppSpacing.sm),
+                    _RequirementItem(label: 'Di tengah & lurus', ok: _alignOk),
                   ],
                 ),
               ),
             ),
-          ),
 
-          if (_flashVisible)
-            AnimatedOpacity(
-              opacity: _flashVisible ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 90),
-              child: Container(color: Colors.white),
-            ),
-
-          if (_isProcessingCapture)
-            Container(
-              color: Colors.black.withValues(alpha: 0.65),
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.brandTeal,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        'Memproses foto...',
-                        style: AppTypography.titleSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+            if (_status == LivenessStatus.success)
+              Positioned.fromRect(
+                rect: circle,
+                child: const Center(
+                  child: Icon(
+                    LucideIcons.circleCheck,
+                    color: AppColors.success,
+                    size: 72,
+                    semanticLabel: 'Wajah berhasil diverifikasi',
                   ),
                 ),
               ),
-            ),
-        ],
+
+            if (_flashVisible) Container(color: Colors.white),
+
+            if (_isProcessingCapture)
+              Container(
+                color: Colors.black.withValues(alpha: 0.65),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                      vertical: AppSpacing.md,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.8),
+                      borderRadius: AppRadius.borderLg,
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppColors.brandTeal,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md - 2),
+                        Text(
+                          'Memproses foto...',
+                          style: AppTypography.titleSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _DistanceGauge extends StatelessWidget {
-  final double ratio;
+class _RequirementItem extends StatelessWidget {
+  final String label;
+  final bool ok;
 
-  const _DistanceGauge({required this.ratio});
+  const _RequirementItem({required this.label, required this.ok});
 
   @override
   Widget build(BuildContext context) {
-    final clampedRatio = ratio.clamp(0.0, 1.0);
-    final isOptimal = clampedRatio >= 0.35 && clampedRatio <= 0.65;
-    final dotColor = isOptimal ? AppColors.success : AppColors.warning;
-
-    return Container(
-      width: 240,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isOptimal
-              ? AppColors.success.withValues(alpha: 0.35)
-              : Colors.white12,
+    return MergeSemantics(
+      child: Semantics(
+        label: '$label: ${ok ? 'terpenuhi' : 'belum terpenuhi'}',
+        excludeSemantics: true,
+        child: Row(
+          children: [
+            Icon(
+              ok ? LucideIcons.circleCheck : LucideIcons.circle,
+              color: ok ? AppColors.success : Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: AppSpacing.sm + 2),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTypography.bodySmall.copyWith(
+                  color: Colors.white,
+                  fontWeight: ok ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Jauh',
-                style: AppTypography.labelSmall.copyWith(
-                  color: clampedRatio < 0.35
-                      ? AppColors.warning
-                      : Colors.white60,
-                  fontSize: 10,
-                  fontWeight: clampedRatio < 0.35
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-              ),
-              Text(
-                'Optimal',
-                style: AppTypography.labelSmall.copyWith(
-                  color: isOptimal ? AppColors.success : Colors.white60,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Dekat',
-                style: AppTypography.labelSmall.copyWith(
-                  color: clampedRatio > 0.65
-                      ? AppColors.warning
-                      : Colors.white60,
-                  fontSize: 10,
-                  fontWeight: clampedRatio > 0.65
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              Container(
-                height: 5,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(3),
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.warning,
-                      AppColors.success,
-                      AppColors.warning,
-                    ],
-                    stops: [0.15, 0.50, 0.85],
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 2,
-                  height: 9,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-              ),
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 100),
-                alignment: Alignment(
-                  (clampedRatio * 2) - 1,
-                  0.0,
-                ),
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: dotColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: dotColor.withValues(alpha: 0.6),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
 }
 
-class _OvalOverlayPainter extends CustomPainter {
-  final double ovalWidth;
-  final double ovalHeight;
-  final Color borderColor;
+class _CircleOverlayPainter extends CustomPainter {
+  final Rect circle;
+  final Color statusColor;
   final double progress;
   final bool isHolding;
+  final bool showGlow;
 
-  _OvalOverlayPainter({
-    required this.ovalWidth,
-    required this.ovalHeight,
-    required this.borderColor,
+  _CircleOverlayPainter({
+    required this.circle,
+    required this.statusColor,
     required this.progress,
-    this.isHolding = false,
+    required this.isHolding,
+    required this.showGlow,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * 0.44);
-    final ovalRect = Rect.fromCenter(
-      center: center,
-      width: ovalWidth,
-      height: ovalHeight,
-    );
-
-    final backgroundPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final ovalPath = Path()..addOval(ovalRect);
     final cutoutPath = Path.combine(
       PathOperation.difference,
-      backgroundPath,
-      ovalPath,
+      Path()..addRect(Offset.zero & size),
+      Path()..addOval(circle),
+    );
+    canvas.drawPath(
+      cutoutPath,
+      Paint()..color = Colors.black.withValues(alpha: 0.65),
     );
 
-    final darkPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.60)
-      ..style = PaintingStyle.fill;
-    canvas.drawPath(cutoutPath, darkPaint);
-
-    final borderPaint = Paint()
-      ..color = borderColor.withValues(alpha: isHolding ? 0.35 : 0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    canvas.drawOval(ovalRect, borderPaint);
-
-    if (progress > 0.0) {
-      final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
-
-      final glowPaint = Paint()
-        ..color = AppColors.brandTeal.withValues(alpha: 0.35)
+    // Track
+    canvas.drawOval(
+      circle,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 10.0
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+        ..strokeWidth = 8,
+    );
+
+    // Status ring
+    canvas.drawOval(
+      circle,
+      Paint()
+        ..color = statusColor.withValues(alpha: isHolding ? 0.35 : 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+
+    if (progress <= 0.0) return;
+    final sweepAngle = 2 * math.pi * progress.clamp(0.0, 1.0);
+
+    if (showGlow) {
       canvas.drawArc(
-        ovalRect,
+        circle,
         -math.pi / 2,
         sweepAngle,
         false,
-        glowPaint,
-      );
-
-      final progressPaint = Paint()
-        ..shader = const SweepGradient(
-          startAngle: 0.0,
-          endAngle: 2 * math.pi,
-          colors: [
-            AppColors.brandTeal,
-            AppColors.success,
-            AppColors.brandTeal,
-          ],
-          transform: GradientRotation(-math.pi / 2),
-        ).createShader(ovalRect)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 5.5
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawArc(
-        ovalRect,
-        -math.pi / 2,
-        sweepAngle,
-        false,
-        progressPaint,
+        Paint()
+          ..color = AppColors.success.withValues(alpha: 0.45)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 14
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       );
     }
+
+    canvas.drawArc(
+      circle,
+      -math.pi / 2,
+      sweepAngle,
+      false,
+      Paint()
+        ..shader = const SweepGradient(
+          colors: [AppColors.brandTeal, AppColors.success, AppColors.brandTeal],
+          transform: GradientRotation(-math.pi / 2),
+        ).createShader(circle)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _OvalOverlayPainter oldDelegate) {
-    return oldDelegate.borderColor != borderColor ||
+  bool shouldRepaint(covariant _CircleOverlayPainter oldDelegate) {
+    return oldDelegate.circle != circle ||
+        oldDelegate.statusColor != statusColor ||
         oldDelegate.progress != progress ||
-        oldDelegate.isHolding != isHolding;
+        oldDelegate.isHolding != isHolding ||
+        oldDelegate.showGlow != showGlow;
   }
 }

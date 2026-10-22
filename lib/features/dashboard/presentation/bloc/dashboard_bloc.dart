@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
+import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/core/utils/device_info_util.dart';
 import 'package:hris_flutter/features/auth/data/models/user_profile_response_model.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
@@ -29,7 +30,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
        _getDeviceId = getDeviceId ??
            (() async => (await DeviceInfoUtil.getDeviceInfo()).deviceId),
        super(const DashboardInitial()) {
-    on<DashboardFetchRequested>(_onFetchRequested);
+    on<DashboardFetchRequested>(_onFetchRequested, transformer: restartable());
     on<DashboardTimerTicked>(_onTimerTicked);
   }
 
@@ -116,8 +117,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       // Sinkronisasi status pelacakan latar belakang dengan sesi aktif di server
       unawaited(LocationTrackingService.instance.syncWithServerConfig());
     } on ApiException catch (e) {
+      if (event.silent && state is DashboardLoaded) return;
       emit(DashboardError(message: e.message, statusCode: e.statusCode));
     } catch (e) {
+      if (event.silent && state is DashboardLoaded) return;
       emit(DashboardError(message: 'Terjadi kesalahan: $e'));
     }
   }

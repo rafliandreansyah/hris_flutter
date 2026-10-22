@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/utils/contact_launcher_util.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -12,6 +15,7 @@ import 'package:hris_flutter/features/employee/data/models/employee_directory_it
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/account_settings_bottom_sheet.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_detail_shimmer_loading.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employment_data_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/leave_balances_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/manager_info_card.dart';
@@ -60,11 +64,9 @@ class EmployeeDetailScreen extends StatelessWidget {
     }
 
     return BlocProvider<EmployeeDetailBloc>(
-      create: (ctx) => EmployeeDetailBloc(repository: repository)
-        ..add(EmployeeDetailStarted(
-          employeeId: employeeId,
-          employee: employee,
-        )),
+      create: (ctx) => EmployeeDetailBloc(
+        repository: repository,
+      )..add(EmployeeDetailStarted(employeeId: employeeId, employee: employee)),
       child: _EmployeeDetailView(
         employee: employee,
         employeeId: employeeId,
@@ -150,7 +152,6 @@ class _EmployeeDetailView extends StatelessWidget {
 
     final state = context.watch<EmployeeDetailBloc>().state;
     final detail = state.detail;
-    final isLoading = state.isLoading;
 
     final displayName = detail?.fullName.isNotEmpty == true
         ? detail!.fullName
@@ -174,12 +175,13 @@ class _EmployeeDetailView extends StatelessWidget {
 
     final displayAvatar = detail?.photoUrl ?? employee?.avatarUrl;
 
-    final effectiveIsFromDirectory =
-        isFromDirectory ?? (employee != null);
+    final effectiveIsFromDirectory = isFromDirectory ?? (employee != null);
 
     // Gagal memuat (mis. 403/404): sembunyikan seluruh konten, tampilkan error di tengah halaman.
     final hasError =
         state.status == EmployeeDetailStatus.failure && detail == null;
+    // Pemuatan awal (belum ada data & belum gagal): tampilkan skeleton shimmer.
+    final showSkeleton = detail == null && !hasError;
 
     return Scaffold(
       backgroundColor: bgCol,
@@ -215,14 +217,16 @@ class _EmployeeDetailView extends StatelessWidget {
         ),
         actions: [
           if (!hasError)
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Membagikan profil karyawan...')),
-              );
-            },
-            icon: Icon(LucideIcons.share2, size: 20, color: textCol),
-          ),
+            IconButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Membagikan profil karyawan...'),
+                  ),
+                );
+              },
+              icon: Icon(LucideIcons.share2, size: 20, color: textCol),
+            ),
           if (!effectiveIsFromDirectory && !hasError)
             IconButton(
               onPressed: () {
@@ -242,23 +246,32 @@ class _EmployeeDetailView extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: hasError
+        child: showSkeleton
+            ? const EmployeeDetailShimmerLoading()
+            : hasError
             ? Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.circleAlert, size: 48, color: AppColors.errorRed),
+                      const Icon(
+                        LucideIcons.circleAlert,
+                        size: 48,
+                        color: AppColors.errorRed,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         state.errorMessage ?? 'Terjadi kesalahan pada sistem',
                         textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium.copyWith(color: labelCol),
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: labelCol,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       // 403/404: hanya "Kembali" (retry tidak akan mengubah hasil)
-                      if (state.errorStatusCode == 403 || state.errorStatusCode == 404)
+                      if (state.errorStatusCode == 403 ||
+                          state.errorStatusCode == 404)
                         AppButton(
                           text: 'Kembali',
                           leadingIcon: LucideIcons.arrowLeft,
@@ -281,145 +294,140 @@ class _EmployeeDetailView extends StatelessWidget {
                 ),
               )
             : RefreshIndicator(
-          onRefresh: () async {
-            context
-                .read<EmployeeDetailBloc>()
-                .add(const EmployeeDetailRefreshed());
-          },
-          color: brandColor,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Loading banner if fetching in background
-                if (isLoading && detail == null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: LinearProgressIndicator(
-                      backgroundColor: brandColor.withValues(alpha: 0.1),
-                      valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                    ),
+                onRefresh: () async {
+                  context.read<EmployeeDetailBloc>().add(
+                    const EmployeeDetailRefreshed(),
+                  );
+                },
+                color: brandColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
-
-                // 1. Hero Profile Header
-                ProfileHeroCard(
-                  name: displayName,
-                  role: displayRole,
-                  level: detail?.level?.name ?? '-',
-                  department: displayDept,
-                  company: displayCompany,
-                  employmentStatus: detail != null
-                      ? (detail.status ? 'Active Employee' : 'Inactive')
-                      : '-',
-                  contractType: detail?.employmentType ?? '-',
-                  avatarUrl: displayAvatar,
-                  onCall: () {
-                    final ph = detail?.phone ?? employee?.phone;
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ph != null && ph.isNotEmpty
-                              ? 'Menghubungi $displayName ($ph)'
-                              : 'Nomor telepon belum tersedia',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. Hero Profile Header
+                      ProfileHeroCard(
+                        name: displayName,
+                        role: displayRole,
+                        level: detail?.level?.name ?? '-',
+                        department: displayDept,
+                        company: displayCompany,
+                        employmentStatus: detail != null
+                            ? (detail.status ? 'Active Employee' : 'Inactive')
+                            : '-',
+                        contractType: detail?.employmentType ?? '-',
+                        avatarUrl: displayAvatar,
+                        onCall: () => ContactLauncherUtil.showPhoneOptions(
+                          context,
+                          name: displayName,
+                          phone: detail?.phone ?? employee?.phone,
+                        ),
+                        onEmail: () => ContactLauncherUtil.composeEmail(
+                          context,
+                          name: displayName,
+                          email: detail?.email ?? employee?.email,
                         ),
                       ),
-                    );
-                  },
-                  onEmail: () {
-                    final em = detail?.email ?? employee?.email;
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Mengirim email ke $em')),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                // 2. Metrics Strip (Overtime & Leave Requests)
-                MetricsStripCard(
-                  overtimeFormatted: detail?.totalOvertime != null
-                      ? '${detail!.totalOvertime} Jam'
-                      : '-',
-                  overtimeTotalMinutes: detail?.totalOvertime != null
-                      ? (detail!.totalOvertime! * 60).toInt()
-                      : 0,
-                  leaveRequestCount: detail?.totalLeaveRequest?.toInt() ?? 0,
-                  leaveRequestStatus: 'Menunggu Approval',
-                ),
-                const SizedBox(height: 16),
+                      // 2. Metrics Strip (Overtime & Leave Requests)
+                      MetricsStripCard(
+                        overtimeFormatted: detail?.totalOvertime != null
+                            ? '${detail!.totalOvertime} Jam'
+                            : '-',
+                        overtimeTotalMinutes: detail?.totalOvertime != null
+                            ? (detail!.totalOvertime! * 60).toInt()
+                            : 0,
+                        leaveRequestCount:
+                            detail?.totalLeaveRequest?.toInt() ?? 0,
+                        leaveRequestStatus: 'Menunggu Approval',
+                      ),
+                      const SizedBox(height: 16),
 
-                // 3. Saldo & Kuota Cuti (Enhanced Leave Quota View)
-                const LeaveBalancesCard(),
-                const SizedBox(height: 16),
+                      // 3. Saldo & Kuota Cuti (Enhanced Leave Quota View)
+                      const LeaveBalancesCard(),
+                      const SizedBox(height: 16),
 
-                // 4. Direct Reporting Manager
-                ManagerInfoCard(
-                  name: detail?.manager?.fullName,
-                  role: null,
-                  department: displayDept,
-                  company: displayCompany,
-                  employeeId: detail?.manager?.employeeNumber,
-                  initials: detail?.manager?.initials,
-                  avatarUrl: detail?.manager?.photoUrl,
-                ),
-                const SizedBox(height: 16),
+                      // 4. Direct Reporting Manager
+                      ManagerInfoCard(
+                        name: detail?.manager?.fullName,
+                        role: null,
+                        department: displayDept,
+                        company: displayCompany,
+                        employeeId: detail?.manager?.employeeNumber,
+                        initials: detail?.manager?.initials,
+                        avatarUrl: detail?.manager?.photoUrl,
+                      ),
+                      const SizedBox(height: 16),
 
-                // 5. Employment & Personal Data
-                EmploymentDataCard(
-                  joinDate: detail?.joinDate != null ? _formatDate(detail!.joinDate) : '-',
-                  contractExpiry: detail?.contractExpiryDate != null
-                      ? _formatDate(detail!.contractExpiryDate)
-                      : (detail?.employmentType ?? '-'),
-                  employeeId: displayId,
-                  nik: detail?.idNumber ?? '-',
-                  placeDob:
-                      (detail?.placeOfBirth != null || detail?.dob != null)
-                      ? '${detail?.placeOfBirth ?? ""}, ${_formatDate(detail?.dob)}'
-                      : '-',
-                  gender: detail?.gender ?? '-',
-                  bloodType: detail?.bloodType ?? '-',
-                  bankName: detail?.bankName ?? '-',
-                  accountNumber:
-                      detail?.bankNumber ??
-                      (detail?.bankAccount ?? '-'),
-                  accountHolder: displayName,
-                ),
-                const SizedBox(height: 16),
+                      // 5. Employment & Personal Data
+                      EmploymentDataCard(
+                        joinDate: detail?.joinDate != null
+                            ? _formatDate(detail!.joinDate)
+                            : '-',
+                        contractExpiry: detail?.contractExpiryDate != null
+                            ? _formatDate(detail!.contractExpiryDate)
+                            : (detail?.employmentType ?? '-'),
+                        employeeId: displayId,
+                        nik: detail?.idNumber ?? '-',
+                        placeDob:
+                            (detail?.placeOfBirth != null ||
+                                detail?.dob != null)
+                            ? '${detail?.placeOfBirth ?? ""}, ${_formatDate(detail?.dob)}'
+                            : '-',
+                        gender: detail?.gender ?? '-',
+                        bloodType: detail?.bloodType ?? '-',
+                        bankName: detail?.bankName ?? '-',
+                        accountNumber:
+                            detail?.bankNumber ?? (detail?.bankAccount ?? '-'),
+                        accountHolder: displayName,
+                      ),
+                      const SizedBox(height: 16),
 
-                // 6. Residential Address & Assigned Work Location
-                WorkLocationCard(
-                  residentialAddress: _buildFullAddress(detail),
-                  officeName:
-                      detail?.employeeWorkLocation.firstOrNull?.name ?? '-',
-                  officeAddress:
-                      detail?.employeeWorkLocation.firstOrNull?.address ?? '-',
-                  radius:
-                      detail?.employeeWorkLocation.firstOrNull?.radius != null
-                      ? '${detail!.employeeWorkLocation.firstOrNull!.radius}m'
-                      : '-',
-                  isDefaultOffice:
-                      detail?.employeeWorkLocation.firstOrNull?.isDefault ??
-                      true,
-                ),
-                const SizedBox(height: 16),
+                      // 6. Residential Address & Assigned Work Location
+                      WorkLocationCard(
+                        residentialAddress: _buildFullAddress(detail),
+                        officeName:
+                            detail?.employeeWorkLocation.firstOrNull?.name ??
+                            '-',
+                        officeAddress:
+                            detail?.employeeWorkLocation.firstOrNull?.address ??
+                            '-',
+                        radius:
+                            detail?.employeeWorkLocation.firstOrNull?.radius !=
+                                null
+                            ? '${detail!.employeeWorkLocation.firstOrNull!.radius}m'
+                            : '-',
+                        isDefaultOffice:
+                            detail
+                                ?.employeeWorkLocation
+                                .firstOrNull
+                                ?.isDefault ??
+                            true,
+                      ),
+                      const SizedBox(height: 16),
 
-                // 6b. Kontrak & Riwayat Karier (hanya profil sendiri; tanpa gaji)
-                if (!effectiveIsFromDirectory) ...[
-                  LifecycleProfileSection(repository: lifecycleRepository),
-                  const SizedBox(height: 16),
-                ],
+                      // 6b. Kontrak & Riwayat Karier (hanya profil sendiri; tanpa gaji)
+                      if (!effectiveIsFromDirectory) ...[
+                        LifecycleProfileSection(
+                          repository: lifecycleRepository,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
-                // 7. Team Coworkers Preview (Hanya tampil saat melihat profil diri sendiri)
-                if (!effectiveIsFromDirectory) ...[
-                  Builder(
-                    builder: (context) {
-                      final List<EmployeeDirectoryItem> coworkerItems =
-                          state.coworkers ??
-                              (detail?.coworkers
-                                      .map((c) => EmployeeDirectoryItem(
+                      // 7. Team Coworkers Preview (Hanya tampil saat melihat profil diri sendiri)
+                      if (!effectiveIsFromDirectory) ...[
+                        Builder(
+                          builder: (context) {
+                            final List<EmployeeDirectoryItem> coworkerItems =
+                                state.coworkers ??
+                                (detail?.coworkers
+                                        .map(
+                                          (c) => EmployeeDirectoryItem(
                                             id: c.id,
                                             rawId: c.id,
                                             name: c.fullName,
@@ -434,55 +442,66 @@ class _EmployeeDetailView extends StatelessWidget {
                                             lastName: c.lastName,
                                             employeeNumber: c.employeeNumber,
                                             idNumber: c.idNumber,
-                                          ))
-                                      .toList() ??
-                                  const []);
+                                          ),
+                                        )
+                                        .toList() ??
+                                    const []);
 
-                      final coworkerCardList = coworkerItems
-                          .map((c) => CoworkerItem(
-                                id: c.id,
-                                name: c.name,
-                                role: c.role,
-                                initials: c.initials,
-                                phone: c.phone,
-                                avatarUrl: c.avatarUrl,
-                                directoryItem: c,
-                              ))
-                          .toList();
+                            final coworkerCardList = coworkerItems
+                                .map(
+                                  (c) => CoworkerItem(
+                                    id: c.id,
+                                    name: c.name,
+                                    role: c.role,
+                                    initials: c.initials,
+                                    phone: c.phone,
+                                    avatarUrl: c.avatarUrl,
+                                    directoryItem: c,
+                                  ),
+                                )
+                                .toList();
 
-                      return TeamCoworkersCard(
-                        coworkers: coworkerCardList,
-                        onCoworkerTap: (item) {
-                          if (item.directoryItem != null) {
-                            context.push(
-                              Routes.EMPLOYEE_DETAIL,
-                              extra: item.directoryItem,
+                            return TeamCoworkersCard(
+                              coworkers: coworkerCardList,
+                              totalCount: detail?.coworkerTotal,
+                              // Detail rekan kerja butuh izin employee.view
+                              onCoworkerTap:
+                                  !SecureStorageService.instance
+                                      .hasPermissionInMemory(
+                                        AppPermissions.employeeView,
+                                      )
+                                  ? null
+                                  : (item) {
+                                      if (item.directoryItem != null) {
+                                        context.push(
+                                          Routes.EMPLOYEE_DETAIL,
+                                          extra: item.directoryItem,
+                                        );
+                                      }
+                                    },
+                              onViewAll: () {
+                                context.push(
+                                  Routes.COWORKER_LIST,
+                                  // Tanpa initialCoworkers: halaman memuat daftar lengkap dari API
+                                  extra: CoworkerListArgs(
+                                    employeeName: displayName,
+                                    departmentName: displayDept,
+                                  ),
+                                );
+                              },
                             );
-                          }
-                        },
-                        onViewAll: () {
-                          context.push(
-                            Routes.COWORKER_LIST,
-                            extra: CoworkerListArgs(
-                              initialCoworkers: coworkerItems,
-                              employeeName: displayName,
-                              departmentName: displayDept,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                ],
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                      ],
 
-                // 8. Brand Version Footer
-                const Center(child: AppNameVersionText()),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
+                      // 8. Brand Version Footer
+                      const Center(child: AppNameVersionText()),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }

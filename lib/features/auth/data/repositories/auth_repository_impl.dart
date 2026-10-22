@@ -141,9 +141,8 @@ class AuthRepositoryImpl implements AuthRepository {
       if (profile.user.language != null && profile.user.language!.isNotEmpty) {
         await SecureStorageService.instance.saveUserLanguage(profile.user.language!);
       }
-      if (profile.permissions.isNotEmpty) {
-        await SecureStorageService.instance.saveUserPermissions(profile.permissions);
-      }
+      // Selalu simpan (termasuk list kosong) agar izin yang dicabut tidak tertinggal di cache
+      await SecureStorageService.instance.saveUserPermissions(profile.permissions);
       return profile;
     } else {
       throw ApiException(

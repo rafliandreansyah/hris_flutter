@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/warning_letter/domain/repositories/warning
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_bloc.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_event.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_list_state.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class _MockWarningLetterRepository implements WarningLetterRepository {
   final Future<WarningLetterListResponse> Function({
@@ -130,6 +132,10 @@ class _MockWarningLetterRepository implements WarningLetterRepository {
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamWarningLetter));
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final sampleItem = WarningLetterItem(

@@ -18,6 +18,8 @@ import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/e
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_filter_bottom_sheet.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class AttendanceLogsScreen extends StatelessWidget {
   final AttendanceRepository? attendanceRepository;
@@ -54,11 +56,20 @@ class AttendanceLogsScreen extends StatelessWidget {
         employeeListBloc != null
             ? BlocProvider<EmployeeListBloc>.value(value: employeeListBloc!)
             : BlocProvider<EmployeeListBloc>(
-                create: (context) => EmployeeListBloc(
-                  repository: employeeRepository,
-                  attendanceRepository: attendanceRepository,
-                  isTeamAttendance: true,
-                )..add(const EmployeeListStarted(isTeamAttendance: true)),
+                create: (context) {
+                  final bloc = EmployeeListBloc(
+                    repository: employeeRepository,
+                    attendanceRepository: attendanceRepository,
+                    isTeamAttendance: true,
+                  );
+                  // Data tim hanya dimuat bila berwenang (tab "Tim Saya" disembunyikan bila tidak)
+                  if (SecureStorageService.instance.hasAnyPermissionInMemory(
+                    AppPermissions.teamAttendanceLogs,
+                  )) {
+                    bloc.add(const EmployeeListStarted(isTeamAttendance: true));
+                  }
+                  return bloc;
+                },
               ),
       ],
       child: _AttendanceLogsView(
@@ -82,6 +93,9 @@ class _AttendanceLogsView extends StatefulWidget {
 class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamAttendanceLogs);
   final TextEditingController _teamSearchController = TextEditingController();
   final ScrollController _teamScrollController = ScrollController();
   Timer? _debounceTimer;
@@ -89,7 +103,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: _canViewTeam ? 2 : 1, vsync: this, initialIndex: 0);
     _tabController.addListener(_onTabChanged);
     _teamScrollController.addListener(_onTeamScroll);
   }
@@ -285,6 +299,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
       body: SafeArea(
         child: Column(
           children: [
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -376,6 +391,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 controller: _tabController,
                 children: [
                   _buildMyAttendanceTab(),
+                  if (_canViewTeam)
                   _buildTeamAttendanceTab(),
                 ],
               ),

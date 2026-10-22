@@ -9,6 +9,8 @@ import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/a
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_state.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class _MockActivityRepository implements ActivityRepository {
   final Future<ActivityListResponse> Function({
@@ -147,6 +149,10 @@ class _MockActivityRepository implements ActivityRepository {
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamActivity));
+
   group('ActivityListBloc Unit Tests', () {
     test('Initial state is correctly configured', () {
       final bloc = ActivityListBloc(repository: _MockActivityRepository());

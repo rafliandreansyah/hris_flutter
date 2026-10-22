@@ -20,6 +20,8 @@ import 'package:hris_flutter/features/employee/data/models/employee_directory_it
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class TestLogsRepository implements AttendanceRepository {
   final List<AttendanceLogItem> logs;
@@ -154,6 +156,10 @@ class TestLogsRepository implements AttendanceRepository {
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamAttendanceLogs));
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final testLogs = [

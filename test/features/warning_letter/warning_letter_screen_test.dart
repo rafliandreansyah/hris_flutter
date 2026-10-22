@@ -136,6 +136,7 @@ void main() {
     setUp(() {
       SecureStorageService.instance.setPermissionsInMemory([
         AppPermissions.warningLetterCreate,
+        AppPermissions.warningLetterView,
       ]);
     });
 
@@ -233,7 +234,8 @@ void main() {
 
     testWidgets('Tab 1 hides FAB when user lacks warning_letter.create permission',
         (tester) async {
-      SecureStorageService.instance.setPermissionsInMemory([]);
+      SecureStorageService.instance
+          .setPermissionsInMemory([AppPermissions.warningLetterView]);
 
       await tester.pumpWidget(createWidgetUnderTest(simulateForbiddenOnTeam: false));
       await tester.pump();

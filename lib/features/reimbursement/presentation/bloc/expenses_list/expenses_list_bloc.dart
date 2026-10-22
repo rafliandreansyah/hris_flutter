@@ -6,6 +6,8 @@ import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursem
 import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/expenses_list/expenses_list_event.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/expenses_list/expenses_list_state.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class ExpensesListBloc extends Bloc<ExpensesListEvent, ExpensesListState> {
   final ReimbursementRepository _repository;
@@ -26,6 +28,10 @@ class ExpensesListBloc extends Bloc<ExpensesListEvent, ExpensesListState> {
     on<ExpensesListFilterApplied>(_onFilterApplied);
     on<ExpensesListFilterReset>(_onFilterReset);
   }
+
+  /// Tab tim hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamExpenses);
 
   void _onStarted(
     ExpensesListStarted event,
@@ -96,6 +102,7 @@ class ExpensesListBloc extends Bloc<ExpensesListEvent, ExpensesListState> {
     ExpensesListFetchRequested event,
     Emitter<ExpensesListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;
@@ -203,6 +210,7 @@ class ExpensesListBloc extends Bloc<ExpensesListEvent, ExpensesListState> {
     ExpensesListLoadMoreRequested event,
     Emitter<ExpensesListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;

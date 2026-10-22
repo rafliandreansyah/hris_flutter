@@ -5,8 +5,14 @@ import 'package:hris_flutter/features/reimbursement/presentation/pages/expenses_
 import 'package:hris_flutter/features/reimbursement/presentation/widgets/expense_request_card.dart';
 
 import 'mock_reimbursement_repository.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamExpenses));
+
   late MockReimbursementRepository repository;
 
   const sampleItem = ExpenseFeedItemModel(
@@ -55,6 +61,22 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
       expect(find.byType(ExpenseRequestCard), findsOneWidget);
       expect(find.text('Klaim Bensin Dinas'), findsOneWidget);
+    });
+
+    testWidgets('tanpa izin tim: TabBar disembunyikan dan feed tim tidak dimuat', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+      repository.mockMyFeed = const ExpensesFeedResponseModel(
+        items: [sampleItem],
+        meta: ExpensesPaginationMeta(page: 1, limit: 10, total: 1, totalPages: 1),
+      );
+
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TabBar), findsNothing);
+      expect(find.text('Persetujuan Tim'), findsNothing);
+      expect(repository.lastFeedApprover, isFalse);
+      expect(find.byType(ExpenseRequestCard), findsOneWidget);
     });
 
     testWidgets('renders empty state when there are no expenses', (tester) async {

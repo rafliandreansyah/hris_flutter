@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -400,12 +402,18 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: EmployeeCard(
                             employee: coworker,
-                            onTap: () {
-                              context.push(
-                                Routes.EMPLOYEE_DETAIL,
-                                extra: coworker,
-                              );
-                            },
+                            // Detail rekan kerja butuh izin employee.view
+                            onTap: SecureStorageService.instance
+                                    .hasPermissionInMemory(
+                                      AppPermissions.employeeView,
+                                    )
+                                ? () {
+                                    context.push(
+                                      Routes.EMPLOYEE_DETAIL,
+                                      extra: coworker,
+                                    );
+                                  }
+                                : null,
                           ),
                         );
                       },

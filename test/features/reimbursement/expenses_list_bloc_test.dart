@@ -7,8 +7,14 @@ import 'package:hris_flutter/features/reimbursement/presentation/bloc/expenses_l
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/expenses_list/expenses_list_state.dart';
 
 import 'mock_reimbursement_repository.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamExpenses));
+
   late MockReimbursementRepository repository;
   late ExpensesListBloc bloc;
 

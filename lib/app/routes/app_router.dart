@@ -3,6 +3,7 @@ import 'package:hris_flutter/features/payroll/presentation/pages/payroll_detail_
 import 'package:hris_flutter/features/payroll/presentation/pages/payroll_employee_slips_screen.dart';
 import 'package:hris_flutter/features/payroll/presentation/pages/payroll_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/app_route_observer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/announcement/presentation/pages/announcement_detail_screen.dart';
@@ -88,6 +89,7 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
+    observers: [appRouteObserver],
     initialLocation: Routes.SPLASH,
     routes: [
       // 1. Splash Screen

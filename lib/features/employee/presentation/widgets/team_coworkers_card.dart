@@ -28,6 +28,9 @@ class CoworkerItem {
 /// Kartu Rekan Kerja Satu Tim (Team Coworkers)
 class TeamCoworkersCard extends StatelessWidget {
   final List<CoworkerItem> coworkers;
+
+  /// Total seluruh rekan kerja (daftar [coworkers] bisa berupa pratinjau saja).
+  final int? totalCount;
   final VoidCallback? onViewAll;
   final void Function(CoworkerItem item)? onCoworkerTap;
 
@@ -37,6 +40,7 @@ class TeamCoworkersCard extends StatelessWidget {
       CoworkerItem(name: 'Budi Santoso', role: 'UI/UX Designer', initials: 'BS'),
       CoworkerItem(name: 'Jessica Pranata', role: 'QA Engineer', initials: 'JP'),
     ],
+    this.totalCount,
     this.onViewAll,
     this.onCoworkerTap,
   });
@@ -50,13 +54,14 @@ class TeamCoworkersCard extends StatelessWidget {
     final labelCol = isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
 
     final hasCoworkers = coworkers.isNotEmpty;
+    final total = totalCount ?? coworkers.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           hasCoworkers
-              ? 'TEAM COWORKERS (${coworkers.length})'
+              ? 'TEAM COWORKERS ($total)'
               : 'TEAM COWORKERS (0)',
           style: AppTypography.labelSmall.copyWith(
             color: labelCol,
@@ -255,7 +260,7 @@ class TeamCoworkersCard extends StatelessWidget {
                   const Icon(LucideIcons.users, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    'Lihat Semua Rekan Kerja (${coworkers.length})',
+                    'Lihat Semua Rekan Kerja ($total)',
                     style: AppTypography.labelMedium.copyWith(
                       color: AppColors.brandTeal,
                       fontWeight: FontWeight.w700,

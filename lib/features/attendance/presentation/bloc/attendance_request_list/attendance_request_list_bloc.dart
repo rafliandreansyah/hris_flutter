@@ -8,6 +8,8 @@ import 'package:hris_flutter/features/attendance/data/repositories/attendance_re
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class AttendanceRequestListBloc
     extends Bloc<AttendanceRequestListEvent, AttendanceRequestListState> {
@@ -26,6 +28,10 @@ class AttendanceRequestListBloc
     on<AttendanceRequestListFilterApplied>(_onFilterApplied);
     on<AttendanceRequestListFilterReset>(_onFilterReset);
   }
+
+  /// Tab tim hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamAttendanceRequest);
 
   Future<void> _onStarted(
     AttendanceRequestListStarted event,
@@ -66,6 +72,11 @@ class AttendanceRequestListBloc
         isMyLoading: false,
         errorMessage: e is ApiException ? e.message : e.toString(),
       ));
+    }
+
+    if (!_canViewTeam) {
+      emit(state.copyWith(isTeamLoading: false));
+      return;
     }
 
     // Muat data Tab 1 (Persetujuan Tim)
@@ -120,6 +131,7 @@ class AttendanceRequestListBloc
     AttendanceRequestListFetchRequested event,
     Emitter<AttendanceRequestListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;
@@ -217,6 +229,7 @@ class AttendanceRequestListBloc
     AttendanceRequestListLoadMoreRequested event,
     Emitter<AttendanceRequestListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;

@@ -16,6 +16,8 @@ import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_fil
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_request_card.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Halaman "Overtime Requests" — slice dari desain Stitch
 /// (screen "Oasish Team Overtime Requests - List View", project
@@ -69,6 +71,9 @@ class _OvertimeScreenView extends StatefulWidget {
 class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamOvertime);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -82,7 +87,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: _canViewTeam ? 2 : 1,
       vsync: this,
       initialIndex: _initialTabIndex,
     );
@@ -330,6 +335,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
         child: Column(
           children: [
             // ── 3. Tab Bar (My Overtime & Team Overtime) ────────────────
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -542,6 +548,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                       borderCol: borderCol,
                       brandColor: brandColor,
                     ),
+                    if (_canViewTeam)
                     _buildTeamOvertimeTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,

@@ -214,7 +214,7 @@ void main() {
       bloc.close();
     });
 
-    test('Error during fetch falls back gracefully to sample data', () async {
+    test('Error during fetch emits failure tanpa data contoh palsu', () async {
       mockRepo.shouldThrow = true;
       final bloc = EmployeeListBloc(repository: mockRepo);
 
@@ -226,7 +226,8 @@ void main() {
           predicate<EmployeeListState>((s) =>
               s.isLoading == false &&
               s.status == EmployeeListStatus.failure &&
-              s.employees.isNotEmpty),
+              s.employees.isEmpty &&
+              s.errorMessage != null),
         ]),
       );
       bloc.close();

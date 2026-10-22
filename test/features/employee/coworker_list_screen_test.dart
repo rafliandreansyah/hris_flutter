@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -87,6 +89,28 @@ void main() {
   }
 
   group('CoworkerListScreen Widget Tests', () {
+    tearDown(() => SecureStorageService.instance.setPermissionsInMemory([]));
+
+    testWidgets('tanpa employee.view: kartu rekan kerja tidak bisa dibuka detailnya', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+      await tester.pumpWidget(createTestWidget(initialCoworkers: [coworker1, coworker2]));
+      await tester.pumpAndSettle();
+
+      final cards = tester.widgetList<EmployeeCard>(find.byType(EmployeeCard));
+      expect(cards.every((c) => c.onTap == null), isTrue);
+      expect(find.text('View Profile'), findsNothing);
+    });
+
+    testWidgets('dengan employee.view: kartu rekan kerja bisa dibuka detailnya', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory([AppPermissions.employeeView]);
+      await tester.pumpWidget(createTestWidget(initialCoworkers: [coworker1, coworker2]));
+      await tester.pumpAndSettle();
+
+      final cards = tester.widgetList<EmployeeCard>(find.byType(EmployeeCard));
+      expect(cards.every((c) => c.onTap != null), isTrue);
+      expect(find.text('View Profile'), findsNWidgets(2));
+    });
+
     testWidgets('Renders AppBar title and subtitle with employee and department info', (tester) async {
       await tester.pumpWidget(
         createTestWidget(

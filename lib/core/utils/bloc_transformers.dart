@@ -9,6 +9,12 @@ EventTransformer<Event> debounceRestartable<Event>([
   return (events, mapper) => events.debounce(duration).switchMap(mapper);
 }
 
+/// Event transformer yang membatalkan proses event sebelumnya bila event baru masuk
+/// (switchMap), agar pemuatan ulang beruntun tidak saling menimpa.
+EventTransformer<Event> restartable<Event>() {
+  return (events, mapper) => events.switchMap(mapper);
+}
+
 /// Event transformer untuk menunda (debounce) eksekusi event secara sekuensial (asyncExpand).
 EventTransformer<Event> debounceSequential<Event>([
   Duration duration = const Duration(milliseconds: 300),

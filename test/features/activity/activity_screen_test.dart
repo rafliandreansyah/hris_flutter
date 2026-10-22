@@ -10,8 +10,13 @@ import 'package:hris_flutter/features/activity/presentation/widgets/activity_fil
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamActivity));
+
   final testActivities = [
     ActivityItem(
       id: 'ACT-001',

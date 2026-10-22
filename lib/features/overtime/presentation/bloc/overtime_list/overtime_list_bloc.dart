@@ -6,6 +6,8 @@ import 'package:hris_flutter/features/overtime/domain/repositories/overtime_repo
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_event.dart';
 import 'package:hris_flutter/features/overtime/presentation/bloc/overtime_list/overtime_list_state.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// BLoC daftar permintaan lembur (Overtime Requests).
 ///
@@ -34,6 +36,10 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     on<OvertimeListFilterReset>(_onFilterReset);
   }
 
+  /// Tab tim hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamOvertime);
+
   void _onStarted(
     OvertimeListStarted event,
     Emitter<OvertimeListState> emit,
@@ -54,6 +60,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     OvertimeListFetchRequested event,
     Emitter<OvertimeListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;
@@ -155,6 +162,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
     OvertimeListLoadMoreRequested event,
     Emitter<OvertimeListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;

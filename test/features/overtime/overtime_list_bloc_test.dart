@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_fil
 import 'package:hris_flutter/features/overtime/data/models/overtime_create_models.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Mock repository mengikuti pola test proyek (manual mock, tanpa mocktail).
 class _MockOvertimeRepository implements OvertimeRepository {
@@ -155,6 +157,10 @@ OvertimeRequestListResponse _okResponse({
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamOvertime));
+
   group('OvertimeListBloc Unit Tests', () {
     test('initial state sesuai default', () {
       final bloc = OvertimeListBloc(repository: _MockOvertimeRepository());

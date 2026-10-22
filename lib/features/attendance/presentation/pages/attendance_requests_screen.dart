@@ -18,6 +18,8 @@ import 'package:hris_flutter/features/attendance/presentation/widgets/attendance
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_type_selection_bottom_sheet.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Halaman Presensi Luar Kantor / Pengajuan Kehadiran Luar Kantor.
 /// Sesuai desain Stitch:
@@ -58,6 +60,9 @@ class _AttendanceRequestsScreenViewState
     extends State<_AttendanceRequestsScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamAttendanceRequest);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -70,7 +75,7 @@ class _AttendanceRequestsScreenViewState
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: _canViewTeam ? 2 : 1,
       vsync: this,
       initialIndex: _initialTabIndex,
     );
@@ -324,6 +329,7 @@ class _AttendanceRequestsScreenViewState
         child: Column(
           children: [
             // ── 3. Tab Bar (Pengajuan Saya & Persetujuan Tim) ──────────
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -536,6 +542,7 @@ class _AttendanceRequestsScreenViewState
                     ),
 
                     // Tab 1: Persetujuan Tim (Pegawai Lain)
+                    if (_canViewTeam)
                     _buildTeamRequestsTab(
                       state: state,
                       isDark: isDark,

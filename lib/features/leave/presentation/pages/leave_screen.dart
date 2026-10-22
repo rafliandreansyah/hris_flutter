@@ -16,6 +16,8 @@ import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bo
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_request_card.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Halaman "Leave & Time Off" — slice dari desain Stitch
 /// (screen "Oasish Team Leave Requests - List View", project
@@ -64,6 +66,9 @@ class _LeaveScreenView extends StatefulWidget {
 class _LeaveScreenViewState extends State<_LeaveScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamLeave);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -77,7 +82,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: _canViewTeam ? 2 : 1,
       vsync: this,
       initialIndex: _initialTabIndex,
     );
@@ -321,6 +326,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
         child: Column(
           children: [
             // ── 2. Tab Bar (My Requests & Team Requests) ────────────────
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -533,6 +539,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                       borderCol: borderCol,
                       brandColor: brandColor,
                     ),
+                    if (_canViewTeam)
                     _buildTeamRequestsTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,

@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_l
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_state.dart';
 import 'package:hris_flutter/features/leave/presentation/models/leave_request_item.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Mock repository mengikuti pola test proyek (manual mock, tanpa mocktail).
 class _MockLeaveRepository implements LeaveRepository {
@@ -152,6 +154,10 @@ LeaveRequestListResponse _okResponse({
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamLeave));
+
   group('LeaveListBloc Unit Tests', () {
     test('initial state sesuai default', () {
       final bloc = LeaveListBloc(repository: _MockLeaveRepository());
@@ -198,6 +204,32 @@ void main() {
       expect(bloc.state.myRequests.length, 2);
       expect(bloc.state.isMyLoading, isFalse);
 
+      bloc.close();
+    });
+
+    test('tanpa izin tim: hanya My Requests yang dimuat (approver=true tidak dipanggil)', () async {
+      SecureStorageService.instance.setPermissionsInMemory([]);
+      final mockRepo = _MockLeaveRepository(
+        onGetLeaveRequests: ({
+          required int page,
+          required int size,
+          String? companyId,
+          String? departmentId,
+          String? positionId,
+          String? search,
+          String? statusApprove,
+          String? startDate,
+          String? endDate,
+          bool approver = false,
+        }) async =>
+            _okResponse(items: [_sampleItem('lv-1')]),
+      );
+
+      final bloc = LeaveListBloc(repository: mockRepo);
+      bloc.add(const LeaveListStarted());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(mockRepo.approverCalls, [false]);
       bloc.close();
     });
 

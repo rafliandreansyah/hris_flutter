@@ -356,15 +356,8 @@ class EmployeeListBloc extends Bloc<EmployeeListEvent, EmployeeListState> {
         statusCode: e.statusCode,
       ));
     } catch (e) {
-      // Graceful fallback ke sample data jika unauthenticated atau offline
-      final fallbackEmployees = state.employees.isEmpty
-          ? List<EmployeeDirectoryItem>.from(
-              EmployeeDirectoryItem.sampleEmployees,
-            )
-          : state.employees;
-
+      // Jangan tampilkan data contoh palsu saat gagal; biarkan state error tampil
       emit(state.copyWith(
-        employees: fallbackEmployees,
         isLoading: false,
         status: EmployeeListStatus.failure,
         errorMessage: e.toString(),

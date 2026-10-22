@@ -6,6 +6,8 @@ import 'package:hris_flutter/features/leave/domain/repositories/leave_repository
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_event.dart';
 import 'package:hris_flutter/features/leave/presentation/bloc/leave_list/leave_list_state.dart';
 import 'package:hris_flutter/features/leave/presentation/widgets/leave_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// BLoC daftar pengajuan cuti/izin (Leave & Time Off).
 ///
@@ -34,6 +36,10 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     on<LeaveListFilterReset>(_onFilterReset);
   }
 
+  /// Tab tim hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamLeave);
+
   void _onStarted(
     LeaveListStarted event,
     Emitter<LeaveListState> emit,
@@ -54,6 +60,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     LeaveListFetchRequested event,
     Emitter<LeaveListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;
@@ -151,6 +158,7 @@ class LeaveListBloc extends Bloc<LeaveListEvent, LeaveListState> {
     LeaveListLoadMoreRequested event,
     Emitter<LeaveListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     final search = state.searchQuery.trim().isNotEmpty
         ? state.searchQuery.trim()
         : null;

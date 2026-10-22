@@ -60,6 +60,9 @@ class _WarningLetterScreenView extends StatefulWidget {
 class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamWarningLetter);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -72,7 +75,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2,
+      length: _canViewTeam ? 2 : 1,
       vsync: this,
       initialIndex: _initialTabIndex,
     );
@@ -310,6 +313,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
         child: Column(
           children: [
             // ── 3. Tab Bar (Surat Diterima & Diterbitkan) ──────────────
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -524,6 +528,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
                     ),
 
                     // Tab 1: Diterbitkan (Pegawai Lain)
+                    if (_canViewTeam)
                     _buildTeamLettersTab(
                       state: state,
                       isDark: isDark,

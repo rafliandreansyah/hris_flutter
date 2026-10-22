@@ -14,6 +14,8 @@ import 'package:hris_flutter/features/attendance/presentation/pages/attendance_r
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_type_selection_bottom_sheet.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class _MockAttendanceRequestRepository implements AttendanceRequestRepository {
   final bool teamForbidden;
@@ -141,6 +143,10 @@ final _testItems = [
 ];
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamAttendanceRequest));
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   Widget buildTestWidget({required AttendanceRequestRepository repository}) {

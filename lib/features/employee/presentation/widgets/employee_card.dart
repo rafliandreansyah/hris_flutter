@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/utils/contact_launcher_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -9,12 +10,14 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// disinkronkan langsung dengan Google Stitch Design System.
 class EmployeeCard extends StatelessWidget {
   final EmployeeDirectoryItem employee;
-  final VoidCallback onTap;
+  /// Null = detail tidak boleh dibuka (mis. tanpa izin employee.view): kartu tidak bisa
+  /// diketuk dan "View Profile" disembunyikan.
+  final VoidCallback? onTap;
 
   const EmployeeCard({
     super.key,
     required this.employee,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
@@ -170,16 +173,11 @@ class EmployeeCard extends StatelessWidget {
                         bgCol: actionBtnBg,
                         fgCol: actionBtnFg,
                         tooltip: 'Telepon ${employee.name}',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Menghubungi ${employee.name} (${employee.phone ?? "Nomor belum tersedia"})',
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => ContactLauncherUtil.showPhoneOptions(
+                          context,
+                          name: employee.name,
+                          phone: employee.phone,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _buildQuickActionButton(
@@ -188,16 +186,11 @@ class EmployeeCard extends StatelessWidget {
                         bgCol: actionBtnBg,
                         fgCol: actionBtnFg,
                         tooltip: 'Kirim Email ke ${employee.name}',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Mengirim email ke ${employee.email}',
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => ContactLauncherUtil.composeEmail(
+                          context,
+                          name: employee.name,
+                          email: employee.email,
+                        ),
                       ),
                     ],
                   ),
@@ -239,6 +232,7 @@ class EmployeeCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (onTap != null)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

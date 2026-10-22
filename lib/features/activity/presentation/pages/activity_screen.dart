@@ -17,6 +17,8 @@ import 'package:hris_flutter/features/activity/presentation/widgets/activity_fil
 import 'package:hris_flutter/features/activity/presentation/widgets/create_activity_option_bottom_sheet.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Halaman Daftar Aktivitas (Activity Reports / Team Activity Feed) sesuai Clean Architecture & BLoC.
 /// State bisnis (pemuatan data, filtering, tabs, infinite scroll, 403 error) dikelola oleh [ActivityListBloc].
@@ -61,6 +63,9 @@ class _ActivityScreenView extends StatefulWidget {
 class _ActivityScreenViewState extends State<_ActivityScreenView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  /// Tab tim disembunyikan bila user tidak berwenang (tanpa memuat data tim).
+  late final bool _canViewTeam = SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamActivity);
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _myScrollController = ScrollController();
   final ScrollController _teamScrollController = ScrollController();
@@ -70,7 +75,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController = TabController(length: _canViewTeam ? 2 : 1, vsync: this, initialIndex: 0);
     _tabController.addListener(_onTabChanged);
     _myScrollController.addListener(_onMyScroll);
     _teamScrollController.addListener(_onTeamScroll);
@@ -349,6 +354,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
         child: Column(
           children: [
             // 3. TabBar (My Activities & Team Activities)
+            if (_canViewTeam)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Container(
@@ -560,6 +566,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                       borderCol: borderCol,
                       brandColor: brandColor,
                     ),
+                    if (_canViewTeam)
                     _buildTeamActivitiesTab(
                       isDark: isDark,
                       surfaceCol: surfaceCol,

@@ -2,14 +2,73 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
+import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_detail_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/pages/employee_directory_screen.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+class _FailingEmployeeRepo implements EmployeeRepository {
+  final int statusCode;
+  _FailingEmployeeRepo(this.statusCode);
+
+  @override
+  Future<EmployeeListResponse> getEmployees({
+    required int page,
+    int size = 30,
+    String? companyId,
+    String? departmentId,
+    String? positionId,
+    String? search,
+  }) async =>
+      throw ApiException(message: 'Pesan dari API', statusCode: statusCode);
+
+  @override
+  Future<EmployeeDetailData> getEmployeeDetail(String employeeId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<EmployeeDirectoryItem>> getCoworkers() =>
+      throw UnimplementedError();
+
+  @override
+  Future<String> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) =>
+      throw UnimplementedError();
+}
+
 void main() {
   group('Employee Directory Tests', () {
+    testWidgets('403 menampilkan AppForbiddenState dengan pesan API', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: EmployeeDirectoryScreen(employeeRepository: _FailingEmployeeRepo(403)),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppForbiddenState), findsOneWidget);
+      expect(find.text('Pesan dari API'), findsOneWidget);
+      expect(find.text('Belum Ada Data Pegawai'), findsNothing);
+    });
+
+    testWidgets('error non-403 menampilkan Gagal Memuat Data + Coba Lagi', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: EmployeeDirectoryScreen(employeeRepository: _FailingEmployeeRepo(500)),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppForbiddenState), findsNothing);
+      expect(find.text('Gagal Memuat Data'), findsOneWidget);
+      expect(find.text('Pesan dari API'), findsOneWidget);
+      expect(find.text('Coba Lagi'), findsOneWidget);
+    });
+
     const testEmployees = [
       EmployeeDirectoryItem(
         id: 'EMP-092',
@@ -174,7 +233,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('EmployeeCard quick action buttons show action notifications', (
+    testWidgets('EmployeeCard menampilkan aksi telepon & email tanpa memicu tap kartu', (
       WidgetTester tester,
     ) async {
       const sampleItem = EmployeeDirectoryItem(
@@ -207,22 +266,9 @@ void main() {
       expect(find.text('Software Architect'), findsOneWidget);
       expect(find.text('View Profile'), findsOneWidget);
 
-      // Tap Phone button
-      await tester.tap(find.byIcon(LucideIcons.phone));
-      await tester.pump();
-
-      expect(
-        find.text('Menghubungi Test Employee (+62 812-3456-7890)'),
-        findsOneWidget,
-      );
-      // Tapping phone should not trigger card tap
-      expect(cardTapped, isFalse);
-
-      // Tap Mail button
-      await tester.tap(find.byIcon(LucideIcons.mail));
-      await tester.pump();
-
-      expect(find.text('Mengirim email ke test@oasis.corp'), findsOneWidget);
+      // Tombol telepon & email tidak memicu tap kartu (aksi kontak diuji di contact_launcher_util_test)
+      expect(find.byIcon(LucideIcons.phone), findsOneWidget);
+      expect(find.byIcon(LucideIcons.mail), findsOneWidget);
       expect(cardTapped, isFalse);
 
       // Tap whole card
@@ -230,6 +276,26 @@ void main() {
       await tester.pump();
 
       expect(cardTapped, isTrue);
+    });
+
+    testWidgets('onTap null: View Profile disembunyikan dan kartu tidak bisa dibuka', (
+      WidgetTester tester,
+    ) async {
+      const item = EmployeeDirectoryItem(
+        id: 'EMP-009',
+        name: 'Tanpa Akses',
+        role: 'Staff',
+        department: 'Ops',
+        email: 'x@oasis.corp',
+        initials: 'TA',
+      );
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: EmployeeCard(employee: item))),
+      );
+      await tester.pump();
+
+      expect(find.text('View Profile'), findsNothing);
+      expect(find.byIcon(LucideIcons.phone), findsOneWidget);
     });
 
     testWidgets('Tapping employee card navigates to Employee Detail with employee data', (

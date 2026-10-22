@@ -61,4 +61,34 @@ abstract class AppPermissions {
   static const String resignationCreate = 'resignation.create';
   static const String approvalResignationManager = 'resignation.approve_manager';
   static const String approvalResignationHr = 'resignation.hr_action';
+
+  // --- Akses tab tim (any-of), mencerminkan guard API untuk list approver=true ---
+  static const List<String> teamLeave = [
+    approvalLeaveView,
+    approvalLeaveAction,
+    reportLeaveView,
+    leaveManage,
+  ];
+  static const List<String> teamOvertime = [
+    approvalOvertimeView,
+    approvalOvertimeAction,
+    reportOvertimeView,
+    overtimeManage,
+  ];
+  static const List<String> teamAttendanceRequest = [
+    approvalAttendanceView,
+    approvalAttendanceAction,
+    reportAttendanceView,
+    attendanceManage,
+  ];
+  // GET /attendances/employees dijaga requirePermission(report.attendance.view)
+  static const List<String> teamAttendanceLogs = [reportAttendanceView];
+  static const List<String> teamActivity = [reportActivityView, activityManage];
+  static const List<String> teamExpenses = [
+    reimbursementView,
+    reportReimbursementView,
+    approvalReimbursementManager,
+    approvalReimbursementFinance,
+  ];
+  static const List<String> teamWarningLetter = [warningLetterView];
 }

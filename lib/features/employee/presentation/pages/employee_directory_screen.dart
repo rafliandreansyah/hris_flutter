@@ -5,6 +5,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
@@ -547,8 +548,35 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                           ),
                         ),
 
+                      // Error dari API (403 / lainnya) di tengah halaman
+                      if (state.status == EmployeeListStatus.failure &&
+                          !state.isLoading &&
+                          state.employees.isEmpty)
+                        SliverFillRemaining(
+                          child: state.isForbidden
+                              ? AppForbiddenState(
+                                  message: state.errorMessage ??
+                                      'Anda tidak memiliki hak akses untuk melihat data pegawai.',
+                                  onRetry: () => context
+                                      .read<EmployeeListBloc>()
+                                      .add(const EmployeeListRefreshed()),
+                                  actionText: 'Kembali',
+                                  onAction: () => context.pop(),
+                                )
+                              : AppEmptyState(
+                                  icon: LucideIcons.circleAlert,
+                                  title: 'Gagal Memuat Data',
+                                  message: state.errorMessage ??
+                                      'Terjadi kesalahan pada sistem',
+                                  actionText: 'Coba Lagi',
+                                  actionIcon: LucideIcons.rotateCcw,
+                                  onAction: () => context
+                                      .read<EmployeeListBloc>()
+                                      .add(const EmployeeListRefreshed()),
+                                ),
+                        )
                       // Loading First Page Indicator
-                      if (state.isLoading && state.employees.isEmpty)
+                      else if (state.isLoading && state.employees.isEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 60),

@@ -111,6 +111,20 @@ class MockFailureDashboardRepository implements DashboardRepository {
   }
 }
 
+/// Sukses pada panggilan pertama, lalu gagal (simulasi jaringan putus saat reload).
+class _FlakyDashboardRepository extends MockSuccessDashboardRepository {
+  int calls = 0;
+
+  @override
+  Future<DashboardData> getDashboardData() {
+    calls++;
+    if (calls > 1) {
+      throw const ApiException(message: 'Network connection failed', statusCode: 500);
+    }
+    return super.getDashboardData();
+  }
+}
+
 void main() {
   group('DashboardBloc Tests', () {
     test('initial state is DashboardInitial', () {
@@ -268,6 +282,33 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
         await bloc.close();
         await expectation;
+      },
+    );
+
+    test(
+      'reload senyap: tanpa Loading, dan bila gagal konten Loaded dipertahankan',
+      () async {
+        final bloc = DashboardBloc(
+          dashboardRepository: _FlakyDashboardRepository(),
+          authRepository: MockAuthRepository(),
+          getDeviceId: () async => 'test_device_id',
+        );
+
+        bloc.add(const DashboardFetchRequested());
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(bloc.state, isA<DashboardLoaded>());
+
+        final emitted = <DashboardState>[];
+        final sub = bloc.stream.listen(emitted.add);
+        bloc.add(const DashboardFetchRequested(isRefresh: true, silent: true));
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        expect(emitted.whereType<DashboardLoading>(), isEmpty);
+        expect(emitted.whereType<DashboardError>(), isEmpty);
+        expect(bloc.state, isA<DashboardLoaded>());
+
+        await sub.cancel();
+        await bloc.close();
       },
     );
 

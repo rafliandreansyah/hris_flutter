@@ -9,6 +9,7 @@ import 'package:hris_flutter/features/activity/domain/repositories/activity_repo
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_event.dart';
 import 'package:hris_flutter/features/activity/presentation/bloc/activity_list/activity_list_state.dart';
 import 'package:hris_flutter/features/activity/presentation/widgets/activity_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
 
 class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
   final ActivityRepository _repository;
@@ -30,6 +31,10 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     on<ActivityListFilterApplied>(_onFilterApplied);
     on<ActivityListActivityAdded>(_onActivityAdded);
   }
+
+  /// Tab tim hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamActivity);
 
   void _onStarted(
     ActivityListStarted event,
@@ -96,6 +101,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     ActivityListFetchRequested event,
     Emitter<ActivityListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     // Jika menggunakan custom in-memory activities (mock / test)
     if (state.customActivities != null) {
       emit(state.copyWith(
@@ -216,6 +222,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
     ActivityListLoadMoreRequested event,
     Emitter<ActivityListState> emit,
   ) async {
+    if (event.isTeam && !_canViewTeam) return;
     if (state.customActivities != null) return;
 
     if (!event.isTeam) {

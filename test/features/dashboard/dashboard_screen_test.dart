@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/utils/app_route_observer.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/features/dashboard/data/models/dashboard_response_model.dart';
@@ -23,6 +24,21 @@ import 'package:hris_flutter/features/auth/data/models/user_profile_response_mod
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
+
+class _CountingDashboardRepository implements DashboardRepository {
+  final DashboardRepository _inner;
+  int dashboardCalls = 0;
+  _CountingDashboardRepository(this._inner);
+
+  @override
+  Future<DashboardData> getDashboardData() {
+    dashboardCalls++;
+    return _inner.getDashboardData();
+  }
+
+  @override
+  Future<List<MenuItemModel>> getMenus() => _inner.getMenus();
+}
 
 void main() {
   group('Dashboard Widgets Tests', () {
@@ -411,6 +427,73 @@ void main() {
         findsOneWidget,
       );
       expect(capturedExtraId, equals('ann-target-99'));
+    });
+
+    testWidgets('kembali ke Dashboard (pop) memuat ulang data dashboard', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const testData = DashboardData(
+        id: 'emp-101',
+        firstName: 'John',
+        email: 'john@example.com',
+        latestAnnouncement: [
+          AnnouncementItem(
+            id: 'ann-1',
+            title: 'Pengumuman Reload',
+            createdAt: '2026-09-18T10:00:00.000Z',
+          ),
+        ],
+      );
+      final repo = _CountingDashboardRepository(
+        MockSuccessDashboardRepository(data: testData),
+      );
+
+      final testRouter = GoRouter(
+        initialLocation: '/dashboard',
+        observers: [appRouteObserver],
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => DashboardScreen(
+              repository: repo,
+              authRepository: MockAuthRepository(),
+              getDeviceId: () async => 'unknown_device_id',
+            ),
+          ),
+          GoRoute(
+            path: Routes.ANNOUNCEMENT_DETAIL,
+            builder: (context, state) => Scaffold(
+              body: TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('Kembali ke Dashboard'),
+              ),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: testRouter));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(repo.dashboardCalls, 1);
+
+      await tester.tap(find.text('Pengumuman Reload'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Kembali ke Dashboard'), findsOneWidget);
+
+      await tester.tap(find.text('Kembali ke Dashboard'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(repo.dashboardCalls, 2);
     });
 
     testWidgets(

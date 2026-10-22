@@ -11,6 +11,8 @@ import 'package:hris_flutter/features/overtime/presentation/models/overtime_requ
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/widgets/overtime_request_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 /// Mock repository untuk widget test — menyediakan data tanpa network.
 class _MockOvertimeRepository implements OvertimeRepository {
@@ -129,6 +131,10 @@ final _testItems = [
 ];
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamOvertime));
+
   Widget createTestWidget({bool teamForbidden = false}) {
     return MaterialApp(
       home: OvertimeRequestsScreen(

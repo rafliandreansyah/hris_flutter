@@ -3,7 +3,6 @@ import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
-import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_event.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_state.dart';
 import 'package:flutter/foundation.dart';
@@ -78,29 +77,12 @@ class EmployeeDetailBloc
 
     if (targetId != null && targetId.isNotEmpty) {
       try {
+        // Pratinjau coworker (maks 5) sudah ikut di respons detail; daftar lengkap
+        // dimuat oleh halaman Coworker List sendiri via /employee/coworkers.
         final data = await _repository.getEmployeeDetail(targetId);
-        List<EmployeeDirectoryItem>? coworkers;
-
-        String? myEmployeeId;
-        try {
-          myEmployeeId = await SecureStorageService.instance.getEmployeeId();
-        } catch (silentError) {
-      debugPrint('[diabaikan] $silentError');
-    }
-        final isOwnProfile = (employeeId == null && employeeRawId == null) ||
-            (myEmployeeId != null && targetId == myEmployeeId);
-
-        if (isOwnProfile) {
-          try {
-            coworkers = await _repository.getCoworkers();
-          } catch (silentError) {
-      debugPrint('[diabaikan] $silentError');
-    }
-        }
 
         emit(state.copyWith(
           detail: data,
-          coworkers: coworkers,
           status: EmployeeDetailStatus.success,
         ));
         return;

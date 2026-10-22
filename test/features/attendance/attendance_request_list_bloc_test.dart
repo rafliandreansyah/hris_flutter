@@ -13,6 +13,8 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_re
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_request_list/attendance_request_list_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_request_filter_bottom_sheet.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
 class _MockAttendanceRequestRepository implements AttendanceRequestRepository {
   final Future<AttendanceRequestListResponse> Function({
@@ -122,6 +124,10 @@ class _MockAttendanceRequestRepository implements AttendanceRequestRepository {
 }
 
 void main() {
+  // Tab tim hanya tampil/dimuat bila user berwenang
+  setUp(() => SecureStorageService.instance
+      .setPermissionsInMemory(AppPermissions.teamAttendanceRequest));
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final dummyItem = AttendanceRequestItem(

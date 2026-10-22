@@ -38,6 +38,10 @@ class WarningLetterListBloc
     emit(state.copyWith(hasCreatePermission: event.hasCreatePermission));
   }
 
+  /// Tab "Diterbitkan" hanya dimuat bila user berwenang (izin dari /auth/profile di memori).
+  bool get _canViewTeam => SecureStorageService.instance
+      .hasAnyPermissionInMemory(AppPermissions.teamWarningLetter);
+
   Future<void> _onStarted(
     WarningLetterListStarted event,
     Emitter<WarningLetterListState> emit,
@@ -204,6 +208,10 @@ class WarningLetterListBloc
     required int page,
     required bool isRefresh,
   }) async {
+    if (!_canViewTeam) {
+      emit(state.copyWith(isTeamLoading: false, isTeamLoadingMore: false));
+      return;
+    }
     try {
       final search = state.searchQuery.trim().isNotEmpty
           ? state.searchQuery.trim()

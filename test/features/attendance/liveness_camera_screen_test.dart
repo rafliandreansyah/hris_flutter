@@ -29,7 +29,11 @@ void main() {
 
       expect(find.text('Verifikasi Wajah Liveness AI'), findsOneWidget);
       expect(find.byIcon(LucideIcons.x), findsOneWidget);
-      expect(find.text('Posisikan wajah Anda di dalam bingkai oval'), findsOneWidget);
+      expect(find.text('Posisikan wajah Anda di dalam lingkaran'), findsOneWidget);
+      expect(find.text('Belum Pas'), findsOneWidget);
+      expect(find.text('Wajah terdeteksi'), findsOneWidget);
+      expect(find.text('Jarak pas'), findsOneWidget);
+      expect(find.text('Di tengah & lurus'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
@@ -39,6 +43,36 @@ void main() {
 
       expect(find.text('Selfie Check-In Lapangan'), findsOneWidget);
       expect(find.byIcon(LucideIcons.x), findsOneWidget);
+    });
+
+    testWidgets('close button has accessible tooltip and instruction is a live region', (tester) async {
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pump();
+
+      expect(find.byTooltip('Tutup'), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.text('Posisikan wajah Anda di dalam lingkaran'),
+          matching: find.byWidgetPredicate(
+            (w) => w is Semantics && (w.properties.liveRegion ?? false),
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('lays out on a small phone with large text without overflow', (tester) async {
+      final view = tester.view;
+      view.physicalSize = const Size(375, 667);
+      view.devicePixelRatio = 1.0;
+      view.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(view.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpWidget(buildTestableWidget());
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Di tengah & lurus'), findsOneWidget);
     });
   });
 }

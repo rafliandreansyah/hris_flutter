@@ -11,10 +11,14 @@ abstract class DashboardEvent extends Equatable {
 class DashboardFetchRequested extends DashboardEvent {
   final bool isRefresh;
 
-  const DashboardFetchRequested({this.isRefresh = false});
+  /// Muat ulang senyap (kembali ke dashboard / app resume): tanpa shimmer, dan bila gagal
+  /// konten yang sudah tampil dipertahankan (tidak diganti layar error).
+  final bool silent;
+
+  const DashboardFetchRequested({this.isRefresh = false, this.silent = false});
 
   @override
-  List<Object?> get props => [isRefresh];
+  List<Object?> get props => [isRefresh, silent];
 }
 
 /// Event tick waktu realtime setiap detik berdasarkan sinkronisasi jam server
