@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/core/widgets/app_realtime_map_card.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class LiveAttendanceEvent extends Equatable {
@@ -52,6 +53,16 @@ class LiveAttendanceLocationUpdated extends LiveAttendanceEvent {
 
   @override
   List<Object?> get props => [latitude, longitude, accuracy];
+}
+
+/// Event saat peta gagal mendapatkan GPS (izin ditolak, GPS mati, timeout).
+class LiveAttendanceGpsIssueReported extends LiveAttendanceEvent {
+  final MapGpsIssue issue;
+
+  const LiveAttendanceGpsIssueReported(this.issue);
+
+  @override
+  List<Object?> get props => [issue];
 }
 
 /// Event saat teks alasan presensi luar kantor berubah.

@@ -12,6 +12,9 @@ class AppButton extends StatelessWidget {
   final bool isLoading;
   final AppButtonVariant variant;
   final IconData? leadingIcon;
+
+  /// Widget leading kustom (mis. logo brand); menggantikan [leadingIcon].
+  final Widget? leading;
   final IconData? trailingIcon;
   final double? width;
   final double height;
@@ -29,6 +32,7 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.variant = AppButtonVariant.primary,
     this.leadingIcon,
+    this.leading,
     this.trailingIcon,
     this.width = double.infinity,
     this.height = 52.0,
@@ -115,8 +119,8 @@ class AppButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (leadingIcon != null) ...[
-                Icon(leadingIcon, size: 18, color: defaultFg),
+              if (leading != null || leadingIcon != null) ...[
+                leading ?? Icon(leadingIcon, size: 18, color: defaultFg),
                 const SizedBox(width: 8),
               ],
               Flexible(

@@ -7,6 +7,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/whatsapp_icon.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
@@ -273,7 +274,7 @@ class _ApproverCard extends StatelessWidget {
                     child: AppButton(
                       text: 'WhatsApp',
                       height: 44,
-                      leadingIcon: LucideIcons.messageCircle,
+                      leading: const WhatsAppIcon(size: 18),
                       variant: AppButtonVariant.outlined,
                       onPressed: () => onWhatsApp(approver),
                     ),

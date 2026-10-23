@@ -22,6 +22,7 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendan
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/live_attendance_status_banner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -182,8 +183,8 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             _isCompressing = false;
           });
           context.read<LiveAttendanceBloc>().add(
-                LiveAttendancePhotoChanged(compressed.file),
-              );
+            LiveAttendancePhotoChanged(compressed.file),
+          );
         }
       }
     } catch (e) {
@@ -202,9 +203,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     setState(() {
       _compressResult = null;
     });
-    context
-        .read<LiveAttendanceBloc>()
-        .add(const LiveAttendancePhotoChanged(null));
+    context.read<LiveAttendanceBloc>().add(
+      const LiveAttendancePhotoChanged(null),
+    );
   }
 
   Future<void> _handleSubmission(
@@ -216,8 +217,17 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
       AppDialogUtil.showWarning(
         context,
         title: 'Lokasi Belum Terdeteksi',
-        message:
-            'Koordinat GPS belum ditemukan. Harap tunggu hingga GPS terkunci atau tekan tombol "Perbarui Koordinat GPS".',
+        message: switch (state.gpsIssue) {
+          MapGpsIssue.permissionDenied =>
+            'Izin lokasi belum diberikan, jadi titik presensi Anda belum bisa dicatat. Izinkan akses lokasi lalu coba lagi.',
+          MapGpsIssue.serviceDisabled =>
+            'GPS perangkat Anda mati. Aktifkan GPS/Lokasi lalu coba lagi.',
+          _ =>
+            'Koordinat GPS belum ditemukan. Tunggu hingga titik lokasi terkunci di peta atau pindah ke area terbuka.',
+        },
+        confirmText: 'Perbarui Lokasi',
+        cancelText: 'Kembali',
+        onConfirm: () => _mapCardKey.currentState?.refreshLocation(),
       );
       return;
     }
@@ -274,9 +284,8 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
 
       final File? capturedFile = await Navigator.of(context).push<File>(
         MaterialPageRoute(
-          builder: (_) => const LivenessCameraScreen(
-            title: 'Verifikasi Wajah Liveness AI',
-          ),
+          builder: (_) =>
+              const LivenessCameraScreen(title: 'Verifikasi Wajah Liveness AI'),
         ),
       );
 
@@ -307,16 +316,21 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgCol =
-        isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
+    final bgCol = isDark
+        ? AppColors.darkBackground
+        : AppColors.backgroundSubtle;
     final surfaceCol = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
+    final textCol = isDark
+        ? AppColors.darkOnSurface
+        : AppColors.darkBackgroundSubtle;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.surfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.darkOnBackground;
 
     return BlocConsumer<LiveAttendanceBloc, LiveAttendanceState>(
       listenWhen: (previous, current) {
@@ -333,7 +347,8 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             context,
             title: 'Presensi Live Berhasil',
             message:
-                state.successMessage ?? 'Presensi live berhasil dikirim ke server.',
+                state.successMessage ??
+                'Presensi live berhasil dikirim ke server.',
             buttonText: 'Selesai',
             onOk: () {
               if (context.mounted) {
@@ -360,10 +375,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(
-                LucideIcons.arrowLeft,
-                color: textCol,
-              ),
+              icon: Icon(LucideIcons.arrowLeft, color: textCol),
               onPressed: () => context.pop(),
             ),
             title: Column(
@@ -402,10 +414,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(
-                color: borderCol,
-                height: 1,
-              ),
+              child: Container(color: borderCol, height: 1),
             ),
           ),
           body: GestureDetector(
@@ -415,50 +424,59 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(16),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Card 1: Waktu Server & Pilihan Presensi ────────────
-                _buildTimeAndTypeCard(
-                  context: context,
-                  state: state,
-                  isDark: isDark,
-                  surfaceCol: surfaceCol,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                ),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Banner status: langkah berikutnya & kendala GPS ───
+                  LiveAttendanceStatusBanner(
+                    state: state,
+                    onRefreshLocation: () =>
+                        _mapCardKey.currentState?.refreshLocation(),
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // ── Card 2: Peta Lokasi GPS (Tanpa Alamat pada Map) ─────
-                _buildMapLocationCard(
-                  context: context,
-                  state: state,
-                  lat: lat,
-                  lng: lng,
-                  isDark: isDark,
-                  surfaceCol: surfaceCol,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                ),
+                  // ── Card 1: Waktu Server & Pilihan Presensi ────────────
+                  _buildTimeAndTypeCard(
+                    context: context,
+                    state: state,
+                    isDark: isDark,
+                    surfaceCol: surfaceCol,
+                    borderCol: borderCol,
+                    textCol: textCol,
+                    subtitleCol: subtitleCol,
+                  ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // ── Card 3: Form Alasan & Bukti Verifikasi ──────────────
-                _buildFormSectionCard(
-                  context: context,
-                  state: state,
-                  isDark: isDark,
-                  surfaceCol: surfaceCol,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                ),
-              ],
+                  // ── Card 2: Peta Lokasi GPS (Tanpa Alamat pada Map) ─────
+                  _buildMapLocationCard(
+                    context: context,
+                    state: state,
+                    lat: lat,
+                    lng: lng,
+                    isDark: isDark,
+                    surfaceCol: surfaceCol,
+                    borderCol: borderCol,
+                    textCol: textCol,
+                    subtitleCol: subtitleCol,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ── Card 3: Form Alasan & Bukti Verifikasi ──────────────
+                  _buildFormSectionCard(
+                    context: context,
+                    state: state,
+                    isDark: isDark,
+                    surfaceCol: surfaceCol,
+                    borderCol: borderCol,
+                    textCol: textCol,
+                    subtitleCol: subtitleCol,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
           bottomNavigationBar: _buildBottomActionBar(
             context: context,
             state: state,
@@ -576,9 +594,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                   child: InkWell(
                     key: const Key('live-attendance-type-in'),
                     onTap: () {
-                      context
-                          .read<LiveAttendanceBloc>()
-                          .add(const LiveAttendanceTypeChanged('in'));
+                      context.read<LiveAttendanceBloc>().add(
+                        const LiveAttendanceTypeChanged('in'),
+                      );
                     },
                     borderRadius: BorderRadius.circular(9),
                     child: AnimatedContainer(
@@ -588,21 +606,19 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                       decoration: BoxDecoration(
                         color: isClockIn
                             ? (isDark
-                                ? AppColors.brandTeal.withValues(alpha: 0.25)
-                                : AppColors.primaryContainer)
+                                  ? AppColors.brandTeal.withValues(alpha: 0.25)
+                                  : AppColors.primaryContainer)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                         border: isClockIn
-                            ? Border.all(
-                                color: AppColors.brandTeal,
-                                width: 1.5,
-                              )
+                            ? Border.all(color: AppColors.brandTeal, width: 1.5)
                             : Border.all(color: Colors.transparent, width: 1.5),
                         boxShadow: isClockIn
                             ? [
                                 BoxShadow(
-                                  color: AppColors.brandTeal
-                                      .withValues(alpha: 0.08),
+                                  color: AppColors.brandTeal.withValues(
+                                    alpha: 0.08,
+                                  ),
                                   blurRadius: 4,
                                 ),
                               ]
@@ -611,8 +627,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                       child: Text(
                         'Absen Masuk (In)',
                         style: AppTypography.labelMedium.copyWith(
-                          fontWeight:
-                              isClockIn ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: isClockIn
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: isClockIn ? AppColors.brandTeal : subtitleCol,
                           fontSize: 13,
                         ),
@@ -628,9 +645,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                   child: InkWell(
                     key: const Key('live-attendance-type-out'),
                     onTap: () {
-                      context
-                          .read<LiveAttendanceBloc>()
-                          .add(const LiveAttendanceTypeChanged('out'));
+                      context.read<LiveAttendanceBloc>().add(
+                        const LiveAttendanceTypeChanged('out'),
+                      );
                     },
                     borderRadius: BorderRadius.circular(9),
                     child: AnimatedContainer(
@@ -640,21 +657,19 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                       decoration: BoxDecoration(
                         color: !isClockIn
                             ? (isDark
-                                ? AppColors.brandTeal.withValues(alpha: 0.25)
-                                : AppColors.primaryContainer)
+                                  ? AppColors.brandTeal.withValues(alpha: 0.25)
+                                  : AppColors.primaryContainer)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(9),
                         border: !isClockIn
-                            ? Border.all(
-                                color: AppColors.brandTeal,
-                                width: 1.5,
-                              )
+                            ? Border.all(color: AppColors.brandTeal, width: 1.5)
                             : Border.all(color: Colors.transparent, width: 1.5),
                         boxShadow: !isClockIn
                             ? [
                                 BoxShadow(
-                                  color: AppColors.brandTeal
-                                      .withValues(alpha: 0.08),
+                                  color: AppColors.brandTeal.withValues(
+                                    alpha: 0.08,
+                                  ),
                                   blurRadius: 4,
                                 ),
                               ]
@@ -663,8 +678,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                       child: Text(
                         'Absen Pulang (Out)',
                         style: AppTypography.labelMedium.copyWith(
-                          fontWeight:
-                              !isClockIn ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: !isClockIn
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: !isClockIn ? AppColors.brandTeal : subtitleCol,
                           fontSize: 13,
                         ),
@@ -703,14 +719,17 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
           mapHeight: 150.0,
           enableTracking: true,
           showOpenInMaps: true,
+          onGpsIssue: (issue) => context.read<LiveAttendanceBloc>().add(
+            LiveAttendanceGpsIssueReported(issue),
+          ),
           onLocationChanged: (newLat, newLng, accuracy) {
             context.read<LiveAttendanceBloc>().add(
-                  LiveAttendanceLocationUpdated(
-                    latitude: newLat,
-                    longitude: newLng,
-                    accuracy: accuracy,
-                  ),
-                );
+              LiveAttendanceLocationUpdated(
+                latitude: newLat,
+                longitude: newLng,
+                accuracy: accuracy,
+              ),
+            );
           },
         ),
 
@@ -772,14 +791,15 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
             key: const Key('live-attendance-reason-input'),
             label: 'Alasan Presensi Luar Kantor *',
             controller: _reasonController,
-            hintText: 'Tuliskan alasan atau keterangan pekerjaan di lokasi ini...',
+            hintText:
+                'Tuliskan alasan atau keterangan pekerjaan di lokasi ini...',
             maxLines: 3,
             isRequired: true,
             prefixIcon: LucideIcons.fileText,
             onChanged: (val) {
-              context
-                  .read<LiveAttendanceBloc>()
-                  .add(LiveAttendanceReasonChanged(val));
+              context.read<LiveAttendanceBloc>().add(
+                LiveAttendanceReasonChanged(val),
+              );
             },
           ),
 
@@ -917,8 +937,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColors.brandTeal
-                                  .withValues(alpha: 0.12),
+                              color: AppColors.brandTeal.withValues(
+                                alpha: 0.12,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -993,8 +1014,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.brandTeal
-                                .withValues(alpha: 0.12),
+                            color: AppColors.brandTeal.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -1369,7 +1389,11 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(LucideIcons.trash2, size: 18, color: AppColors.errorRed),
+                  icon: const Icon(
+                    LucideIcons.trash2,
+                    size: 18,
+                    color: AppColors.errorRed,
+                  ),
                   onPressed: _clearPhoto,
                   tooltip: 'Hapus & Ambil Ulang',
                 ),
@@ -1414,7 +1438,9 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
         leadingIcon: LucideIcons.checkCircle,
         height: 52,
         isLoading: state.isSubmitting,
-        onPressed: state.isSubmitting ? null : () => _handleSubmission(context, state),
+        onPressed: state.isSubmitting
+            ? null
+            : () => _handleSubmission(context, state),
       ),
     );
   }

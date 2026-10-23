@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -263,57 +264,19 @@ class AssetListItem extends Equatable {
     }
   }
 
-  /// Warna badge background sesuai Stitch M3
-  Color get statusBadgeBgColor {
+  /// Nada chip status aset (dipakai [AppStatusChip]).
+  AppStatusTone get statusTone {
     switch (status.toUpperCase()) {
       case 'PENDING_ACCEPTANCE':
-        return AppColors.warningContainer; // Amber 100
+        return AppStatusTone.warning;
       case 'ACTIVE':
-        return const Color(0xFFECFDF5); // Emerald 50
-      case 'RETURNED':
-        return const Color(0xFFF1F5F9); // Slate 100
+        return AppStatusTone.success;
       case 'REJECTED':
-        return const Color(0xFFFEE2E2); // Red 100
+        return AppStatusTone.error;
       case 'AVAILABLE':
-        return const Color(0xFFEFF6FF); // Blue 50
+        return AppStatusTone.info;
       default:
-        return const Color(0xFFF1F5F9);
-    }
-  }
-
-  /// Warna teks status badge
-  Color get statusBadgeTextColor {
-    switch (status.toUpperCase()) {
-      case 'PENDING_ACCEPTANCE':
-        return AppColors.onWarningContainer; // Amber 800
-      case 'ACTIVE':
-        return const Color(0xFF047857); // Emerald 700
-      case 'RETURNED':
-        return AppColors.darkSurfaceContainerHighest; // Slate 600
-      case 'REJECTED':
-        return const Color(0xFFB91C1C); // Red 700
-      case 'AVAILABLE':
-        return const Color(0xFF1D4ED8); // Blue 700
-      default:
-        return AppColors.darkSurfaceContainerHighest;
-    }
-  }
-
-  /// Warna border badge
-  Color get statusBadgeBorderColor {
-    switch (status.toUpperCase()) {
-      case 'PENDING_ACCEPTANCE':
-        return const Color(0xFFFCD34D); // Amber 300
-      case 'ACTIVE':
-        return const Color(0xFFA7F3D0); // Emerald 200
-      case 'RETURNED':
-        return const Color(0xFFCBD5E1); // Slate 300
-      case 'REJECTED':
-        return const Color(0xFFFECACA); // Red 200
-      case 'AVAILABLE':
-        return const Color(0xFFBFDBFE); // Blue 200
-      default:
-        return const Color(0xFFCBD5E1);
+        return AppStatusTone.neutral;
     }
   }
 

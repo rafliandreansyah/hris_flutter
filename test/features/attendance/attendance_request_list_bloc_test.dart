@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -490,9 +491,9 @@ void main() {
       expect(AttendanceRequestStatus.approved.label, 'Disetujui');
       expect(AttendanceRequestStatus.rejected.label, 'Ditolak');
 
-      expect(AttendanceRequestStatus.requested.textColor, const Color(0xFFB45309));
-      expect(AttendanceRequestStatus.approved.textColor, const Color(0xFF047857));
-      expect(AttendanceRequestStatus.rejected.textColor, const Color(0xFFB91C1C));
+      expect(AttendanceRequestStatus.requested.tone, AppStatusTone.warning);
+      expect(AttendanceRequestStatus.approved.tone, AppStatusTone.success);
+      expect(AttendanceRequestStatus.rejected.tone, AppStatusTone.error);
     });
 
     test('AttendanceRequestFilterCriteria hasActiveFilter and date params', () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_detail_model.dart';
@@ -272,87 +273,14 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
 
   Widget _buildStatusPill(bool isDark) {
     if (detail.isApproved) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0FDF4),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: const Color(0xFFBBF7D0)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(LucideIcons.check, size: 13, color: Color(0xFF15803D)),
-            SizedBox(width: 4),
-            Text(
-              'Approved',
-              style: TextStyle(
-                color: Color(0xFF15803D),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const AppStatusChip(label: 'Approved', tone: AppStatusTone.success);
     }
-
     if (detail.isRejected) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: const Color(0xFFFECACA)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(LucideIcons.x, size: 13, color: Color(0xFFDC2626)),
-            SizedBox(width: 4),
-            Text(
-              'Rejected',
-              style: TextStyle(
-                color: Color(0xFFDC2626),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const AppStatusChip(label: 'Rejected', tone: AppStatusTone.error);
     }
-
-    // Default: Pending Approval (status 'requested')
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: AppColors.warningContainer),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '•',
-            style: TextStyle(
-              color: Color(0xFFB45309),
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(width: 4),
-          Text(
-            'Pending Approval',
-            style: TextStyle(
-              color: Color(0xFFB45309),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+    return const AppStatusChip(
+      label: 'Pending Approval',
+      tone: AppStatusTone.warning,
     );
   }
 }

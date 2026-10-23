@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/app/config/maps_config.dart';
+import 'package:hris_flutter/core/widgets/app_glass_container.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class AttendanceGeofenceMapCard extends StatefulWidget {
@@ -31,6 +34,19 @@ class AttendanceGeofenceMapCard extends StatefulWidget {
   /// Nama lokasi kerja kantor.
   final String officeName;
 
+  /// Jarak user ke kantor (meter); ditampilkan di pill saat di luar radius.
+  final double? distanceMeters;
+
+  /// Mode peta penuh: hanya area peta (tanpa bingkai kartu & footer) yang mengisi parent.
+  final bool fullscreen;
+
+  /// Padding peta agar kamera/logo tidak tertutup header & panel yang melayang.
+  final EdgeInsets mapPadding;
+
+  /// Tombol "Perbarui Lokasi" di peta penuh (ambil ulang GPS perangkat).
+  final VoidCallback? onRefreshLocation;
+  final bool isRefreshingLocation;
+
   const AttendanceGeofenceMapCard({
     super.key,
     required this.officeLatitude,
@@ -40,12 +56,17 @@ class AttendanceGeofenceMapCard extends StatefulWidget {
     this.geofenceRadiusMeters = 50.0,
     this.isInsideGeofence = true,
     this.gpsAccuracy = '±5m',
-    this.mapHeight = 220.0,
+    this.mapHeight = 180.0,
     this.onCenterPressed,
     this.isAnyWhere = false,
     this.hasWorkLocation = true,
     this.isGpsAcquired = true,
     this.officeName = '-',
+    this.distanceMeters,
+    this.fullscreen = false,
+    this.mapPadding = EdgeInsets.zero,
+    this.onRefreshLocation,
+    this.isRefreshingLocation = false,
   });
 
   @override
@@ -98,7 +119,8 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
   @override
   void didUpdateWidget(covariant AttendanceGeofenceMapCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final officeChanged = oldWidget.officeLatitude != widget.officeLatitude ||
+    final officeChanged =
+        oldWidget.officeLatitude != widget.officeLatitude ||
         oldWidget.officeLongitude != widget.officeLongitude ||
         oldWidget.officeName != widget.officeName;
 
@@ -134,15 +156,17 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
         return;
       }
 
-      final officeLatLng = LatLng(widget.officeLatitude, widget.officeLongitude);
+      final officeLatLng = LatLng(
+        widget.officeLatitude,
+        widget.officeLongitude,
+      );
 
-      if (forceOffice || widget.userLatitude == null || widget.userLongitude == null) {
+      if (forceOffice ||
+          widget.userLatitude == null ||
+          widget.userLongitude == null) {
         _mapController!.animateCamera(
           CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: officeLatLng,
-              zoom: 16.0,
-            ),
+            CameraPosition(target: officeLatLng, zoom: 16.0),
           ),
         );
         return;
@@ -172,7 +196,10 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
         return;
       }
 
-      final officeLatLng = LatLng(widget.officeLatitude, widget.officeLongitude);
+      final officeLatLng = LatLng(
+        widget.officeLatitude,
+        widget.officeLongitude,
+      );
 
       if (widget.userLatitude == null || widget.userLongitude == null) {
         _mapController!.animateCamera(
@@ -218,7 +245,10 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
             math.max(officeLatLng.latitude, userLatLng.latitude),
             math.max(officeLatLng.longitude, userLatLng.longitude),
           );
-          final bounds = LatLngBounds(southwest: southwest, northeast: northeast);
+          final bounds = LatLngBounds(
+            southwest: southwest,
+            northeast: northeast,
+          );
           _mapController!.animateCamera(
             CameraUpdate.newLatLngBounds(bounds, 65.0),
           );
@@ -232,7 +262,9 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
         }
       }
     } catch (e) {
-      debugPrint('[AttendanceGeofenceMapCard] _fitCameraBetweenLocations error: $e');
+      debugPrint(
+        '[AttendanceGeofenceMapCard] _fitCameraBetweenLocations error: $e',
+      );
     }
   }
 
@@ -246,10 +278,173 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg =
-        isDark ? AppColors.darkSurfaceContainerLowest : AppColors.surfaceContainerLowest;
-    final borderColor =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final cardBg = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final borderColor = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
+
+    final mapArea = SizedBox(
+      height: widget.fullscreen ? null : widget.mapHeight,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          _buildMapCanvas(),
+
+          // Visual Geofence Overlay & Pins (Active on Desktop/Test & Visual preview)
+          if (_isTestOrDesktop && widget.hasWorkLocation && !widget.isAnyWhere)
+            _buildVisualGeofenceOverlay(),
+
+          // isAnyWhere overlay badge
+          if (_isTestOrDesktop && widget.isAnyWhere) _buildAnyWhereOverlay(),
+
+          // No work location overlay
+          if (_isTestOrDesktop && !widget.hasWorkLocation)
+            _buildNoWorkLocationOverlay(),
+
+          // Live GPS Tracking Pill Badge (Top Right)
+          if (!widget.fullscreen)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.brandTeal.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    const Text(
+                      'Live GPS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Status radius/GPS sebagai legenda peta (mode peta penuh)
+          if (widget.fullscreen)
+            Positioned(
+              top: widget.mapPadding.top + 10,
+              left: 10,
+              child: _buildGeofenceStatusPill(isDark),
+            ),
+
+          // Tombol peta penuh: perbarui GPS & fokus kamera (kanan bawah)
+          if (widget.fullscreen)
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _buildMapActionButton(
+                    key: const ValueKey('attendance_map_focus'),
+                    isDark: isDark,
+                    borderColor: borderColor,
+                    icon: LucideIcons.scanSearch,
+                    label: 'Fokus Peta',
+                    onTap: () => _animateToSelectedLocation(),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMapActionButton(
+                    key: const ValueKey('attendance_map_refresh_gps'),
+                    isDark: isDark,
+                    borderColor: borderColor,
+                    icon: LucideIcons.locateFixed,
+                    label: 'Perbarui Lokasi',
+                    primary: true,
+                    isLoading: widget.isRefreshingLocation,
+                    onTap: widget.isRefreshingLocation
+                        ? null
+                        : widget.onRefreshLocation,
+                  ),
+                ],
+              ),
+            ),
+
+          // Floating Focus Quick-Button (Bottom Right)
+          if (!widget.fullscreen)
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _fitCameraBetweenLocations,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          (isDark
+                                  ? AppColors.darkSurfaceContainerLowest
+                                  : Colors.white)
+                              .withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: borderColor, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.focus,
+                          size: 14,
+                          color: AppColors.brandTeal,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Fokus Lokasi',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.brandTeal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (widget.fullscreen) return mapArea;
 
     return Container(
       decoration: BoxDecoration(
@@ -268,127 +463,14 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Map Display Area
-          SizedBox(
-            height: widget.mapHeight,
-            width: double.infinity,
-            child: Stack(
-              children: [
-                _buildMapCanvas(),
-
-                // Visual Geofence Overlay & Pins (Active on Desktop/Test & Visual preview)
-                if (_isTestOrDesktop && widget.hasWorkLocation && !widget.isAnyWhere)
-                  _buildVisualGeofenceOverlay(),
-
-                // isAnyWhere overlay badge
-                if (_isTestOrDesktop && widget.isAnyWhere)
-                  _buildAnyWhereOverlay(),
-
-                // No work location overlay
-                if (_isTestOrDesktop && !widget.hasWorkLocation)
-                  _buildNoWorkLocationOverlay(),
-
-                // Live GPS Tracking Pill Badge (Top Right)
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.brandTeal.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        const Text(
-                          'Live GPS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Floating Focus Quick-Button (Bottom Right)
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _fitCameraBetweenLocations,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: (isDark
-                                  ? AppColors.darkSurfaceContainerLowest
-                                  : Colors.white)
-                              .withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: borderColor, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(LucideIcons.focus,
-                                size: 14, color: AppColors.brandTeal),
-                            SizedBox(width: 4),
-                            Text(
-                              'Fokus Lokasi',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.brandTeal,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          mapArea,
 
           // Bottom Geofence Status Pill & Accuracy
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: cardBg,
-              border: Border(
-                top: BorderSide(color: borderColor),
-              ),
+              border: Border(top: BorderSide(color: borderColor)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -398,7 +480,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
 
                 // GPS Accuracy Label
                 Text(
-                  'GPS Accuracy: ${widget.gpsAccuracy}',
+                  'Akurasi GPS: ${widget.gpsAccuracy}',
                   style: AppTypography.labelSmall.copyWith(
                     color: isDark
                         ? AppColors.darkOnSurfaceVariant
@@ -417,9 +499,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
                 color: isDark
                     ? AppColors.darkPrimaryContainer.withValues(alpha: 0.25)
                     : AppColors.primaryContainer.withValues(alpha: 0.45),
-                border: Border(
-                  top: BorderSide(color: borderColor),
-                ),
+                border: Border(top: BorderSide(color: borderColor)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,9 +606,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF450A0A)
-              : const Color(0xFFFEF2F2),
+          color: isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2),
           borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
@@ -593,11 +671,9 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
       decoration: BoxDecoration(
         color: widget.isInsideGeofence
             ? (isDark
-                ? AppColors.darkPrimaryContainer
-                : AppColors.primaryContainer)
-            : (isDark
-                ? const Color(0xFF450A0A)
-                : const Color(0xFFFEF2F2)),
+                  ? AppColors.darkPrimaryContainer
+                  : AppColors.primaryContainer)
+            : (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2)),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
@@ -610,21 +686,23 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
             size: 15,
             color: widget.isInsideGeofence
                 ? (isDark
-                    ? AppColors.darkOnPrimaryContainer
-                    : AppColors.onPrimaryContainer)
+                      ? AppColors.darkOnPrimaryContainer
+                      : AppColors.onPrimaryContainer)
                 : AppColors.errorRed,
           ),
           const SizedBox(width: 6),
           Text(
             widget.isInsideGeofence
-                ? 'Inside Geofence Radius'
-                : 'Outside Geofence Radius',
+                ? 'Di Dalam Radius Kantor'
+                : widget.distanceMeters != null
+                ? 'Di Luar Radius · ±${widget.distanceMeters!.toStringAsFixed(0)} m'
+                : 'Di Luar Radius Kantor',
             style: AppTypography.labelSmall.copyWith(
               fontWeight: FontWeight.w600,
               color: widget.isInsideGeofence
                   ? (isDark
-                      ? AppColors.darkOnPrimaryContainer
-                      : AppColors.onPrimaryContainer)
+                        ? AppColors.darkOnPrimaryContainer
+                        : AppColors.onPrimaryContainer)
                   : AppColors.errorRed,
             ),
           ),
@@ -633,11 +711,69 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
     );
   }
 
+  /// Tombol pil berlabel di atas peta (lebih jelas dibanding ikon saja).
+  Widget _buildMapActionButton({
+    required Key key,
+    required bool isDark,
+    required Color borderColor,
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+    bool primary = false,
+    bool isLoading = false,
+  }) {
+    final fg = primary ? Colors.white : AppColors.brandTeal;
+    return AppGlassContainer(
+      key: key,
+      borderRadius: AppRadius.borderFull,
+      blur: 14,
+      // CTA tetap menonjol: kaca bernuansa teal; tombol lain kaca netral
+      tint: primary ? AppColors.brandTeal : null,
+      opacity: primary ? 0.82 : 0.6,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: fg,
+                    ),
+                  )
+                else
+                  Icon(icon, size: 16, color: fg),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: AppTypography.labelMedium.copyWith(
+                    color: fg,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMapCanvas() {
     if (_isTestOrDesktop) {
       // Clean modern top-down simulated street grid per Google Stitch specs
       return Container(
-        color: const Color(0xFFE5E7EB),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurfaceContainer
+            : const Color(0xFFE5E7EB),
         child: CustomPaint(
           painter: _MapGridPainter(),
           child: const SizedBox.expand(),
@@ -690,10 +826,11 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
     }
 
     return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: initialTarget,
-        zoom: 16.0,
-      ),
+      padding: widget.mapPadding,
+      style: Theme.of(context).brightness == Brightness.dark
+          ? MapsConfig.darkMapStyle
+          : null,
+      initialCameraPosition: CameraPosition(target: initialTarget, zoom: 16.0),
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
@@ -928,14 +1065,38 @@ class _MapGridPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     // Horizontal roads
-    canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), roadPaint);
-    canvas.drawLine(Offset(0, size.height * 0.55), Offset(size.width, size.height * 0.55), roadPaint);
-    canvas.drawLine(Offset(0, size.height * 0.8), Offset(size.width, size.height * 0.8), minorRoadPaint);
+    canvas.drawLine(
+      Offset(0, size.height * 0.25),
+      Offset(size.width, size.height * 0.25),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height * 0.55),
+      Offset(size.width, size.height * 0.55),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height * 0.8),
+      Offset(size.width, size.height * 0.8),
+      minorRoadPaint,
+    );
 
     // Vertical roads
-    canvas.drawLine(Offset(size.width * 0.2, 0), Offset(size.width * 0.2, size.height), minorRoadPaint);
-    canvas.drawLine(Offset(size.width * 0.5, 0), Offset(size.width * 0.5, size.height), roadPaint);
-    canvas.drawLine(Offset(size.width * 0.8, 0), Offset(size.width * 0.8, size.height), minorRoadPaint);
+    canvas.drawLine(
+      Offset(size.width * 0.2, 0),
+      Offset(size.width * 0.2, size.height),
+      minorRoadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.5, 0),
+      Offset(size.width * 0.5, size.height),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.8, 0),
+      Offset(size.width * 0.8, size.height),
+      minorRoadPaint,
+    );
   }
 
   @override

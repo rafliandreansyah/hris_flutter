@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -294,49 +295,12 @@ class PayrollSlipCard extends StatelessWidget {
   }
 
   Widget _buildStatusPill(bool isPaid, bool isApproved) {
-    Color bg;
-    Color fg;
-    String label;
-    IconData icon;
-
     if (isPaid) {
-      bg = AppColors.successContainer;
-      fg = AppColors.onSuccessContainer;
-      label = 'Dibayar';
-      icon = LucideIcons.checkCheck;
-    } else if (isApproved) {
-      bg = AppColors.primaryContainer;
-      fg = AppColors.onPrimaryContainer;
-      label = 'Disetujui';
-      icon = LucideIcons.badgeCheck;
-    } else {
-      bg = AppColors.surfaceContainer;
-      fg = AppColors.onSurfaceVariant;
-      label = slip.status.toUpperCase();
-      icon = LucideIcons.clock;
+      return const AppStatusChip(label: 'Dibayar', tone: AppStatusTone.success);
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppRadius.full),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: fg,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
-    );
+    if (isApproved) {
+      return const AppStatusChip(label: 'Disetujui', tone: AppStatusTone.info);
+    }
+    return AppStatusChip(label: slip.status.toUpperCase());
   }
 }

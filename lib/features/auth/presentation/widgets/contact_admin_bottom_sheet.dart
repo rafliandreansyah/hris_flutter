@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_icon_badge.dart';
+import 'package:hris_flutter/core/widgets/whatsapp_icon.dart';
 import 'package:flutter/services.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
@@ -184,10 +186,10 @@ class ContactAdminBottomSheet extends StatelessWidget {
                 title: 'WhatsApp Official',
                 subtitle: '+62 858-8816-4634',
                 tag: 'Respon Cepat',
-                tagColor: const Color(0xFF25D366),
+                tagColor: AppColors.whatsappGreen,
                 icon: LucideIcons.messageCircle,
-                iconColor: const Color(0xFF25D366),
-                iconBgColor: const Color(0xFF25D366).withValues(alpha: 0.12),
+                iconWidget: const WhatsAppIcon(size: 22),
+                iconColor: AppColors.whatsappGreen,
                 borderCol: borderCol,
                 surfaceColor: surfaceColor,
                 textCol: textCol,
@@ -208,7 +210,6 @@ class ContactAdminBottomSheet extends StatelessWidget {
                 tagColor: AppColors.brandTeal,
                 icon: LucideIcons.mail,
                 iconColor: AppColors.brandTeal,
-                iconBgColor: AppColors.brandTeal.withValues(alpha: 0.12),
                 borderCol: borderCol,
                 surfaceColor: surfaceColor,
                 textCol: textCol,
@@ -233,8 +234,8 @@ class ContactAdminBottomSheet extends StatelessWidget {
     required String tag,
     required Color tagColor,
     required IconData icon,
+    Widget? iconWidget,
     required Color iconColor,
-    required Color iconBgColor,
     required Color borderCol,
     required Color surfaceColor,
     required Color textCol,
@@ -263,14 +264,12 @@ class ContactAdminBottomSheet extends StatelessWidget {
           child: Row(
             children: [
               // Icon Badge
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: iconColor, size: 22),
+              AppIconBadge(
+                icon: icon,
+                color: iconColor,
+                size: 44,
+                iconSize: 22,
+                child: iconWidget,
               ),
               const SizedBox(width: AppSpacing.md),
 

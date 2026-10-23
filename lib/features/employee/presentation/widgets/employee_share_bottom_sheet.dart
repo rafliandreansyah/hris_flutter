@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_icon_badge.dart';
+import 'package:hris_flutter/core/widgets/whatsapp_icon.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -53,6 +55,7 @@ Future<void> showEmployeeShareBottomSheet(
 
   return showModalBottomSheet<void>(
     context: context,
+    isScrollControlled: true,
     showDragHandle: true,
     backgroundColor: surface,
     shape: const RoundedRectangleBorder(
@@ -152,25 +155,25 @@ class EmployeeShareBottomSheet extends StatelessWidget {
 
   void _shareOthers(BuildContext context) {
     Navigator.of(context).pop();
-    SharePlus.instance.share(
-      ShareParams(text: message, subject: subject),
-    );
+    SharePlus.instance.share(ShareParams(text: message, subject: subject));
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final linkCardBg = isDark
         ? AppColors.darkBackgroundSubtle
         : AppColors.backgroundSubtle;
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -183,14 +186,19 @@ class EmployeeShareBottomSheet extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-                        .withValues(alpha: 0.12),
+                    color:
+                        (isDark
+                                ? AppColors.inversePrimary
+                                : AppColors.brandTeal)
+                            .withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     LucideIcons.share2,
                     size: 18,
-                    color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                    color: isDark
+                        ? AppColors.inversePrimary
+                        : AppColors.brandTeal,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -242,7 +250,9 @@ class EmployeeShareBottomSheet extends StatelessWidget {
                   Icon(
                     LucideIcons.link,
                     size: 15,
-                    color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                    color: isDark
+                        ? AppColors.inversePrimary
+                        : AppColors.brandTeal,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -265,8 +275,8 @@ class EmployeeShareBottomSheet extends StatelessWidget {
             _ShareOptionTile(
               key: const ValueKey('employee_share_whatsapp'),
               icon: LucideIcons.messageCircle,
-              iconColor: const Color(0xFF15803D),
-              iconBgColor: const Color(0xFFDCFCE7),
+              iconWidget: const WhatsAppIcon(size: 20),
+              iconColor: AppColors.whatsappGreen,
               title: 'WhatsApp',
               subtitle: 'Kirim ringkasan & link profil ke WhatsApp',
               onTap: () => _shareWhatsApp(context),
@@ -275,8 +285,9 @@ class EmployeeShareBottomSheet extends StatelessWidget {
             _ShareOptionTile(
               key: const ValueKey('employee_share_email'),
               icon: LucideIcons.mail,
-              iconColor: const Color(0xFF1D4ED8),
-              iconBgColor: const Color(0xFFDBEAFE),
+              iconColor: isDark
+                  ? AppColors.inversePrimary
+                  : AppColors.brandTeal,
               title: 'Email',
               subtitle: 'Kirim detail profil via aplikasi email',
               onTap: () => _shareEmail(context),
@@ -285,9 +296,9 @@ class EmployeeShareBottomSheet extends StatelessWidget {
             _ShareOptionTile(
               key: const ValueKey('employee_share_copy'),
               icon: LucideIcons.copy,
-              iconColor: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
-              iconBgColor: (isDark ? AppColors.inversePrimary : AppColors.brandTeal)
-                  .withValues(alpha: 0.12),
+              iconColor: isDark
+                  ? AppColors.inversePrimary
+                  : AppColors.brandTeal,
               title: 'Salin Link',
               subtitle: 'Salin tautan deep link ke clipboard',
               onTap: () => _copyLink(context),
@@ -297,9 +308,6 @@ class EmployeeShareBottomSheet extends StatelessWidget {
               key: const ValueKey('employee_share_more'),
               icon: LucideIcons.share2,
               iconColor: textCol,
-              iconBgColor: isDark
-                  ? AppColors.darkSurfaceContainerHigh
-                  : AppColors.surfaceContainerHigh,
               title: 'Bagikan Lainnya',
               subtitle: 'Gunakan menu share bawaan perangkat',
               onTap: () => _shareOthers(context),
@@ -313,8 +321,10 @@ class EmployeeShareBottomSheet extends StatelessWidget {
 
 class _ShareOptionTile extends StatelessWidget {
   final IconData icon;
+
+  /// Widget ikon kustom (mis. logo brand); menggantikan [icon].
+  final Widget? iconWidget;
   final Color iconColor;
-  final Color iconBgColor;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -322,8 +332,8 @@ class _ShareOptionTile extends StatelessWidget {
   const _ShareOptionTile({
     super.key,
     required this.icon,
+    this.iconWidget,
     required this.iconColor,
-    required this.iconBgColor,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -333,10 +343,12 @@ class _ShareOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final subtitleCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -355,14 +367,10 @@ class _ShareOptionTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
+              AppIconBadge(
+                icon: icon,
+                color: iconColor,
+                child: iconWidget,
               ),
               const SizedBox(width: 14),
               Expanded(

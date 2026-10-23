@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -508,22 +509,7 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusEnum.backgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  statusEnum.label,
-                  style: TextStyle(
-                    color: statusEnum.textColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+              AppStatusChip(label: statusEnum.label, tone: statusEnum.tone),
             ],
           ),
           const SizedBox(height: 6),

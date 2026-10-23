@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_api_models.dart';
 import 'package:hris_flutter/features/leave/presentation/models/leave_request_item.dart';
@@ -229,9 +230,7 @@ void main() {
     test('LeaveStatusExtension token styling and labels', () {
       for (final s in LeaveStatus.values) {
         expect(s.label.isNotEmpty, true);
-        expect(s.textColor, isNotNull);
-        expect(s.backgroundColor, isNotNull);
-        expect(s.dotColor, isNotNull);
+        expect(s.tone, isA<AppStatusTone>());
       }
       expect(LeaveStatus.pending.label, 'Pending');
       expect(LeaveStatus.approved.label, 'Approved');

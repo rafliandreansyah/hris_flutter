@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/core/widgets/app_realtime_map_card.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_response.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,6 +19,9 @@ class LiveAttendanceState extends Equatable {
   final LiveAttendanceData? submissionResult;
   final String? errorMessage;
 
+  /// Kendala GPS terakhir dari peta; `null` bila tidak ada.
+  final MapGpsIssue? gpsIssue;
+
   const LiveAttendanceState({
     required this.currentClockTime,
     this.attendanceMethod = 'photo',
@@ -33,7 +37,12 @@ class LiveAttendanceState extends Equatable {
     this.successMessage,
     this.submissionResult,
     this.errorMessage,
+    this.gpsIssue,
   });
+
+  /// Akurasi GPS dalam meter (dari teks seperti "±12m"); `null` bila tidak terbaca.
+  double? get accuracyMeters =>
+      double.tryParse(RegExp(r'\d+(\.\d+)?').stringMatch(gpsAccuracy) ?? '');
 
   /// True jika metode presensi mengharuskan autentikasi sensor biometrik (Fingerprint / Face ID)
   bool get isBiometricMethod =>
@@ -76,6 +85,8 @@ class LiveAttendanceState extends Equatable {
     String? Function()? successMessage,
     LiveAttendanceData? Function()? submissionResult,
     String? Function()? errorMessage,
+    MapGpsIssue? gpsIssue,
+    bool clearGpsIssue = false,
   }) {
     return LiveAttendanceState(
       currentClockTime: currentClockTime ?? this.currentClockTime,
@@ -89,29 +100,33 @@ class LiveAttendanceState extends Equatable {
       photo: photo != null ? photo() : this.photo,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submissionSuccess: submissionSuccess ?? this.submissionSuccess,
-      successMessage:
-          successMessage != null ? successMessage() : this.successMessage,
-      submissionResult:
-          submissionResult != null ? submissionResult() : this.submissionResult,
+      successMessage: successMessage != null
+          ? successMessage()
+          : this.successMessage,
+      submissionResult: submissionResult != null
+          ? submissionResult()
+          : this.submissionResult,
       errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
+      gpsIssue: clearGpsIssue ? null : (gpsIssue ?? this.gpsIssue),
     );
   }
 
   @override
   List<Object?> get props => [
-        currentClockTime,
-        attendanceMethod,
-        attendanceType,
-        latitude,
-        longitude,
-        gpsAccuracy,
-        isLocating,
-        reason,
-        photo?.path,
-        isSubmitting,
-        submissionSuccess,
-        successMessage,
-        submissionResult,
-        errorMessage,
-      ];
+    currentClockTime,
+    attendanceMethod,
+    attendanceType,
+    latitude,
+    longitude,
+    gpsAccuracy,
+    isLocating,
+    reason,
+    photo?.path,
+    isSubmitting,
+    submissionSuccess,
+    successMessage,
+    submissionResult,
+    errorMessage,
+    gpsIssue,
+  ];
 }

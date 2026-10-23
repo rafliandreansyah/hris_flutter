@@ -1,87 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class QuickAccessItem {
-  final String title;
-  final String code;
-  final IconData icon;
-  final VoidCallback? onTap;
+/// Kelompok menu pada sheet "Lainnya".
+enum MenuGroup { attendance, requests, finance, employee }
 
-  const QuickAccessItem({
-    required this.title,
+class _MenuDef {
+  final String code;
+
+  /// Judul Indonesia yang stabil, hanya untuk pencocokan nama menu dari API.
+  final String matchTitle;
+  final IconData icon;
+  final MenuGroup group;
+  final String Function(AppLocalizations? l10n) title;
+
+  const _MenuDef({
     required this.code,
+    required this.matchTitle,
     required this.icon,
-    this.onTap,
+    required this.group,
+    required this.title,
   });
 }
 
-/// Bento Grid Quick Access untuk Dashboard (Teal Oasis).
-/// Menggunakan daftar menu standar proyek, dan menyembunyikan (hide) menu yang
-/// tidak terdapat di dalam respon API `/auth/menus`.
+/// Menu Akses Cepat Dashboard (Teal Oasis).
+///
+/// Menampilkan maksimal 7 menu utama + tile "Lainnya" (bottom sheet berisi semua
+/// menu per kelompok). Menu yang tidak ada di respon API `/auth/menus`
+/// disembunyikan. Judul mengikuti bahasa aplikasi lewat [AppLocalizations].
 class QuickAccessGrid extends StatelessWidget {
   final List<MenuItemModel>? menus;
 
   const QuickAccessGrid({super.key, this.menus});
 
-  /// Menu Standar Dashboard Oasish HRIS
-  /// Kode, nama, dan icon disinkronkan dengan entitas Menu di backend
-  static const List<({String code, String title, IconData icon})>
-  _defaultMenus = [
-    (
-      code: 'mobile_activity',
-      title: 'Aktivitas',
-      icon: LucideIcons.clipboardList,
-    ),
-    (code: 'mobile_overtime', title: 'Lembur', icon: LucideIcons.clockAlert),
-    (code: 'mobile_leave', title: 'Izin & Cuti', icon: LucideIcons.calendarOff),
-    (
-      code: 'mobile_attendance_request_live',
-      title: 'Absen Luar',
-      icon: LucideIcons.mapPin,
-    ),
-    (
+  /// Jumlah menu yang tampil langsung sebelum sisanya masuk ke "Lainnya".
+  static const int _maxPrimary = 7;
+
+  /// Bila total menu tersedia tidak lebih dari ini, semua ditampilkan langsung.
+  static const int _showAllThreshold = 8;
+
+  /// Urutan prioritas menu utama (paling sering dipakai).
+  static const List<String> _primaryOrder = [
+    'mobile_attendance',
+    'mobile_leave',
+    'mobile_overtime',
+    'mobile_attendance_request_live',
+    'mobile_activity',
+    'mobile_payroll',
+    'mobile_reimbursement',
+  ];
+
+  /// Daftar menu standar; kode disinkronkan dengan entitas Menu di backend.
+  static final List<_MenuDef> _defaultMenus = [
+    _MenuDef(
       code: 'mobile_attendance',
-      title: 'Presensi',
+      matchTitle: 'Presensi',
       icon: LucideIcons.fingerprint,
+      group: MenuGroup.attendance,
+      title: (l) => l?.menuAttendance ?? 'Presensi',
     ),
-    (code: 'mobile_employee', title: 'Pegawai', icon: LucideIcons.users),
-    (
-      code: 'mobile_warning_letter',
-      title: 'Surat Peringatan',
-      icon: LucideIcons.triangleAlert,
+    _MenuDef(
+      code: 'mobile_attendance_request_live',
+      matchTitle: 'Absen Luar',
+      icon: LucideIcons.mapPin,
+      group: MenuGroup.attendance,
+      title: (l) => l?.menuOutsideAttendance ?? 'Absen Luar',
     ),
-    (code: 'mobile_payroll', title: 'Slip Gaji', icon: LucideIcons.wallet),
-    (
+    _MenuDef(
       code: 'mobile_schedule',
-      title: 'Jadwal Kerja',
+      matchTitle: 'Jadwal Kerja',
       icon: LucideIcons.calendarClock,
+      group: MenuGroup.attendance,
+      title: (l) => l?.menuSchedule ?? 'Jadwal Kerja',
     ),
-    (
-      code: 'mobile_reimbursement',
-      title: 'Klaim & Kasbon',
-      icon: LucideIcons.receiptText,
-    ),
-    (
-      code: 'mobile_asset',
-      title: 'Asset',
-      icon: LucideIcons.packageCheck,
-    ),
-    (
-      code: 'mobile_resignation',
-      title: 'Resign',
-      icon: LucideIcons.doorOpen,
-    ),
-    (
+    _MenuDef(
       code: 'mobile_live_tracking',
-      title: 'Live Tracking',
+      matchTitle: 'Live Tracking',
       icon: LucideIcons.radar,
+      group: MenuGroup.attendance,
+      title: (l) => l?.menuLiveTracking ?? 'Live Tracking',
+    ),
+    _MenuDef(
+      code: 'mobile_leave',
+      matchTitle: 'Izin & Cuti',
+      icon: LucideIcons.calendarOff,
+      group: MenuGroup.requests,
+      title: (l) => l?.menuLeave ?? 'Izin & Cuti',
+    ),
+    _MenuDef(
+      code: 'mobile_overtime',
+      matchTitle: 'Lembur',
+      icon: LucideIcons.clockAlert,
+      group: MenuGroup.requests,
+      title: (l) => l?.menuOvertime ?? 'Lembur',
+    ),
+    _MenuDef(
+      code: 'mobile_activity',
+      matchTitle: 'Aktivitas',
+      icon: LucideIcons.clipboardList,
+      group: MenuGroup.requests,
+      title: (l) => l?.menuActivity ?? 'Aktivitas',
+    ),
+    _MenuDef(
+      code: 'mobile_payroll',
+      matchTitle: 'Slip Gaji',
+      icon: LucideIcons.wallet,
+      group: MenuGroup.finance,
+      title: (l) => l?.menuPayroll ?? 'Slip Gaji',
+    ),
+    _MenuDef(
+      code: 'mobile_reimbursement',
+      matchTitle: 'Klaim & Kasbon',
+      icon: LucideIcons.receiptText,
+      group: MenuGroup.finance,
+      title: (l) => l?.menuClaims ?? 'Klaim & Kasbon',
+    ),
+    _MenuDef(
+      code: 'mobile_employee',
+      matchTitle: 'Pegawai',
+      icon: LucideIcons.users,
+      group: MenuGroup.employee,
+      title: (l) => l?.menuEmployee ?? 'Pegawai',
+    ),
+    _MenuDef(
+      code: 'mobile_warning_letter',
+      matchTitle: 'Surat Peringatan',
+      icon: LucideIcons.triangleAlert,
+      group: MenuGroup.employee,
+      title: (l) => l?.menuWarningLetter ?? 'Surat Peringatan',
+    ),
+    _MenuDef(
+      code: 'mobile_asset',
+      matchTitle: 'Asset',
+      icon: LucideIcons.packageCheck,
+      group: MenuGroup.employee,
+      title: (l) => l?.menuAsset ?? 'Aset',
+    ),
+    _MenuDef(
+      code: 'mobile_resignation',
+      matchTitle: 'Resign',
+      icon: LucideIcons.doorOpen,
+      group: MenuGroup.employee,
+      title: (l) => l?.menuResignation ?? 'Pengunduran Diri',
     ),
   ];
+
+  static Color _groupColor(MenuGroup group) => switch (group) {
+    MenuGroup.attendance => AppColors.brandTeal,
+    MenuGroup.requests => AppColors.warning,
+    MenuGroup.finance => AppColors.success,
+    MenuGroup.employee => AppColors.tertiary,
+  };
+
+  static String _groupTitle(MenuGroup group, AppLocalizations? l) =>
+      switch (group) {
+        MenuGroup.attendance => l?.menuGroupAttendance ?? 'Kehadiran',
+        MenuGroup.requests => l?.menuGroupRequests ?? 'Pengajuan',
+        MenuGroup.finance => l?.menuGroupFinance ?? 'Keuangan',
+        MenuGroup.employee => l?.menuGroupEmployee ?? 'Karyawan',
+      };
 
   /// Memeriksa apakah menu tertentu ada di dalam daftar menu API `/auth/menus`
   static bool isMenuAvailable(
@@ -187,7 +270,7 @@ class QuickAccessGrid extends StatelessWidget {
               mName.contains('asset'))) {
         return true;
       }
-      
+
       if (targetCode == 'mobile_resignation' &&
           (mCode == 'mobile_resignation' ||
               mCode == 'approval_resignation' ||
@@ -248,100 +331,210 @@ class QuickAccessGrid extends StatelessWidget {
     }
   }
 
+  /// Menu yang tersedia (sesuai API) dalam urutan: utama dulu, lalu sisanya.
+  List<_MenuDef> _available() {
+    final list = menus == null
+        ? _defaultMenus
+        : _defaultMenus
+              .where((m) => isMenuAvailable(m.code, m.matchTitle, menus))
+              .toList();
+    int rank(_MenuDef m) {
+      final i = _primaryOrder.indexOf(m.code);
+      return i == -1 ? _primaryOrder.length : i;
+    }
+
+    // sort stabil: kelompokkan prioritas, pertahankan urutan default untuk sisanya
+    final indexed = list.asMap().entries.toList()
+      ..sort((a, b) {
+        final r = rank(a.value).compareTo(rank(b.value));
+        return r != 0 ? r : a.key.compareTo(b.key);
+      });
+    return indexed.map((e) => e.value).toList();
+  }
+
+  void _openMoreSheet(BuildContext context, List<_MenuDef> all) {
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: isDark
+          ? AppColors.darkSurfaceContainerLowest
+          : AppColors.surfaceContainerLowest,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final group in MenuGroup.values)
+                  if (all.any((m) => m.group == group)) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.sm,
+                        bottom: AppSpacing.sm,
+                      ),
+                      child: Text(
+                        _groupTitle(group, l10n).toUpperCase(),
+                        style: AppTypography.labelSmall.copyWith(
+                          color: isDark
+                              ? AppColors.darkOnSurfaceVariant
+                              : AppColors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    _MenuGrid(
+                      tiles: [
+                        for (final m in all.where((m) => m.group == group))
+                          _MenuTile(
+                            key: ValueKey('menu_${m.code}'),
+                            icon: m.icon,
+                            label: m.title(l10n),
+                            color: _groupColor(m.group),
+                            onTap: () {
+                              Navigator.of(sheetContext).pop();
+                              handleMenuTap(context, m.code, m.matchTitle);
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark
-        ? AppColors.darkPrimaryContainer
-        : AppColors.primaryContainer;
-    final iconCol = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final textCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
-    final sectionTitleCol = isDark
-        ? AppColors.darkOnSurface
-        : AppColors.onSurface;
+    final available = _available();
 
-    // Filter menu: hanya tampilkan menu yang ada di respon API
     // `menus == null` = belum dimuat/offline (tampilkan default). List kosong dari
     // API berarti semua menu dicabut, sehingga tidak boleh menampilkan default.
-    final displayMenus = menus != null
-        ? _defaultMenus
-              .where((item) => isMenuAvailable(item.code, item.title, menus))
-              .toList()
-        : _defaultMenus;
+    if (available.isEmpty) return const SizedBox.shrink();
 
-    if (displayMenus.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final showAll = available.length <= _showAllThreshold;
+    final primary = showAll ? available : available.take(_maxPrimary).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Access',
+          l10n?.quickAccess ?? 'Akses Cepat',
           style: AppTypography.titleMedium.copyWith(
-            color: sectionTitleCol,
+            color: isDark ? AppColors.darkOnSurface : AppColors.onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: displayMenus.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.95,
-          ),
-          itemBuilder: (context, index) {
-            final item = displayMenus[index];
-
-            return Material(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                onTap: () => handleMenuTap(context, item.code, item.title),
-                borderRadius: BorderRadius.circular(16),
-                splashColor: AppColors.brandTeal.withValues(alpha: 0.1),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.brandTeal.withValues(alpha: 0.18),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(item.icon, size: 26, color: iconCol),
-                      const SizedBox(height: 6),
-                      Text(
-                        item.title,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
+        _MenuGrid(
+          tiles: [
+            for (final m in primary)
+              _MenuTile(
+                key: ValueKey('menu_${m.code}'),
+                icon: m.icon,
+                label: m.title(l10n),
+                color: _groupColor(m.group),
+                onTap: () => handleMenuTap(context, m.code, m.matchTitle),
               ),
-            );
-          },
+            if (!showAll)
+              _MenuTile(
+                key: const ValueKey('quick_access_more'),
+                icon: LucideIcons.layoutGrid,
+                label: l10n?.menuMore ?? 'Lainnya',
+                color: isDark
+                    ? AppColors.darkOnSurfaceVariant
+                    : AppColors.onSurfaceVariant,
+                onTap: () => _openMoreSheet(context, available),
+              ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _MenuGrid extends StatelessWidget {
+  final List<Widget> tiles;
+  const _MenuGrid({required this.tiles});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 4,
+      crossAxisSpacing: AppSpacing.sm,
+      mainAxisSpacing: AppSpacing.sm + AppSpacing.xs,
+      childAspectRatio: 0.82,
+      children: tiles,
+    );
+  }
+}
+
+/// Tile menu bersih: ikon di squircle berwarna lembut + label di bawahnya.
+class _MenuTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _MenuTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.borderLg,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+              borderRadius: AppRadius.borderLg,
+            ),
+            child: Icon(icon, size: 24, color: color),
+          ),
+          const SizedBox(height: AppSpacing.xs + 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTypography.labelSmall.copyWith(
+              color: textCol,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              height: 1.15,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

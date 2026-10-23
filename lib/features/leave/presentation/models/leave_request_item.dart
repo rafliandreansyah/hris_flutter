@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 
 /// Status pengajuan cuti/izin pada Oasish HRIS.
 ///
@@ -22,43 +21,15 @@ extension LeaveStatusExtension on LeaveStatus {
     }
   }
 
-  /// Warna teks badge — sama persis dengan ActivityStatusExtension
-  /// (Amber 700 / Green 800 / Red 800).
-  Color get textColor {
+  AppStatusTone get tone {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return const Color(0xFFB45309); // Amber 700
+        return AppStatusTone.warning;
       case LeaveStatus.approved:
-        return const Color(0xFF166534); // Green 800
+        return AppStatusTone.success;
       case LeaveStatus.rejected:
-        return const Color(0xFF991B1B); // Red 800
-    }
-  }
-
-  /// Warna background badge (Amber 100 / Green 100 / Red 100).
-  Color get backgroundColor {
-    switch (this) {
-      case LeaveStatus.pending:
-      case LeaveStatus.requested:
-        return AppColors.warningContainer; // Amber 100
-      case LeaveStatus.approved:
-        return const Color(0xFFDCFCE7); // Green 100
-      case LeaveStatus.rejected:
-        return const Color(0xFFFEE2E2); // Red 100
-    }
-  }
-
-  /// Warna dot 6px di dalam badge (Amber 500 / Green 600 / Red 500).
-  Color get dotColor {
-    switch (this) {
-      case LeaveStatus.pending:
-      case LeaveStatus.requested:
-        return AppColors.warning;
-      case LeaveStatus.approved:
-        return const Color(0xFF16A34A);
-      case LeaveStatus.rejected:
-        return AppColors.errorRed;
+        return AppStatusTone.error;
     }
   }
 }

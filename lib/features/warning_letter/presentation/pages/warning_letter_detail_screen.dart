@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -202,52 +203,10 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
     );
   }
 
-  Widget _buildStatusBadge(WarningLetterDetail detail, bool isDark) {
-    final isActive = detail.isActive;
-    final bg = isActive
-        ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2))
-        : (isDark ? AppColors.darkSurfaceBright : const Color(0xFFF1F5F9));
-    final text = isActive
-        ? (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C))
-        : (isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant);
-    final dot = isActive
-        ? AppColors.errorRed
-        : AppColors.darkOnSurfaceVariant;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: dot,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              isActive ? 'Masih Berlaku' : 'Kadaluarsa',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: text,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildStatusBadge(WarningLetterDetail detail, bool isDark) =>
+      detail.isActive
+      ? const AppStatusChip(label: 'Masih Berlaku', tone: AppStatusTone.error)
+      : const AppStatusChip(label: 'Kadaluarsa');
 
   Widget _buildMainBannerCard(WarningLetterDetail detail, bool isDark) {
     final surfaceCol = isDark

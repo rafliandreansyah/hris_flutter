@@ -29,8 +29,8 @@ void main() {
 
       expect(find.text('Live GPS'), findsOneWidget);
       expect(find.text('Fokus Lokasi'), findsOneWidget);
-      expect(find.text('GPS Accuracy: ±5m'), findsOneWidget);
-      expect(find.text('Inside Geofence Radius'), findsOneWidget);
+      expect(find.text('Akurasi GPS: ±5m'), findsOneWidget);
+      expect(find.text('Di Dalam Radius Kantor'), findsOneWidget);
     });
 
     testWidgets('updates smoothly when office location changes', (tester) async {
@@ -55,7 +55,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      expect(find.text('Inside Geofence Radius'), findsOneWidget);
+      expect(find.text('Di Dalam Radius Kantor'), findsOneWidget);
 
       // Rebuild with new office location (e.g. user selected Bandung Hub)
       await tester.pumpWidget(
@@ -80,8 +80,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Outside Geofence Radius'), findsOneWidget);
-      expect(find.text('GPS Accuracy: ±8m'), findsOneWidget);
+      expect(find.text('Di Luar Radius Kantor'), findsOneWidget);
+      expect(find.text('Akurasi GPS: ±8m'), findsOneWidget);
     });
 
     testWidgets('displays isAnyWhere badge when enabled', (tester) async {

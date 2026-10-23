@@ -10,6 +10,25 @@ import 'package:url_launcher/url_launcher.dart';
 ///    - **iOS**: `ios/Runner/AppDelegate.swift`
 ///      `GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")`
 class MapsConfig {
+  /// Gaya peta gelap (dipakai saat tema aplikasi/sistem dalam mode gelap).
+  static const String darkMapStyle = '''
+[
+  {"elementType": "geometry", "stylers": [{"color": "#1d2330"}]},
+  {"elementType": "labels.text.fill", "stylers": [{"color": "#8a94a6"}]},
+  {"elementType": "labels.text.stroke", "stylers": [{"color": "#141922"}]},
+  {"featureType": "administrative", "elementType": "geometry", "stylers": [{"color": "#3a4252"}]},
+  {"featureType": "poi", "elementType": "geometry", "stylers": [{"color": "#232a38"}]},
+  {"featureType": "poi.park", "elementType": "geometry", "stylers": [{"color": "#1b2e2a"}]},
+  {"featureType": "road", "elementType": "geometry", "stylers": [{"color": "#2c3444"}]},
+  {"featureType": "road", "elementType": "geometry.stroke", "stylers": [{"color": "#1a1f2a"}]},
+  {"featureType": "road.highway", "elementType": "geometry", "stylers": [{"color": "#3b4558"}]},
+  {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#9aa3b2"}]},
+  {"featureType": "transit", "elementType": "geometry", "stylers": [{"color": "#252c3a"}]},
+  {"featureType": "water", "elementType": "geometry", "stylers": [{"color": "#0e1626"}]},
+  {"featureType": "water", "elementType": "labels.text.fill", "stylers": [{"color": "#4e6d8c"}]}
+]
+''';
+
   /// Masukkan Google Maps API Key Anda di sini
   /// Dapatkan API Key melalui Google Cloud Console:
   /// https://console.cloud.google.com/google/maps-apis/overview

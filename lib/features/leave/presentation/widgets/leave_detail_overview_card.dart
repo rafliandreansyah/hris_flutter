@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
@@ -16,57 +17,15 @@ class LeaveDetailOverviewCard extends StatelessWidget {
   const LeaveDetailOverviewCard({super.key, required this.detail});
 
   Widget _buildStatusBadge(BuildContext context) {
-    Color bg;
-    Color text;
-    Color dot;
-    String label;
-
     if (detail.isApproved) {
-      bg = const Color(0xFFDCFCE7); // Green 100
-      text = const Color(0xFF166534); // Green 800
-      dot = const Color(0xFF16A34A); // Green 600
-      label = 'Approved';
-    } else if (detail.isRejected) {
-      bg = const Color(0xFFFEE2E2); // Red 100
-      text = const Color(0xFF991B1B); // Red 800
-      dot = AppColors.errorRed; // Red 500
-      label = 'Rejected';
-    } else {
-      bg = AppColors.warningContainer; // Amber 100
-      text = const Color(0xFFD97706); // Amber 600
-      dot = const Color(0xFFD97706);
-      label = 'Pending Approval';
+      return const AppStatusChip(label: 'Approved', tone: AppStatusTone.success);
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: dot,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: text,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
+    if (detail.isRejected) {
+      return const AppStatusChip(label: 'Rejected', tone: AppStatusTone.error);
+    }
+    return const AppStatusChip(
+      label: 'Pending Approval',
+      tone: AppStatusTone.warning,
     );
   }
 

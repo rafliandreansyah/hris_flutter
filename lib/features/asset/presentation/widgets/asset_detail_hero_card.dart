@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -147,59 +148,30 @@ class AssetDetailHeroCard extends StatelessWidget {
   }
 
   Widget _buildStatusChip(String status) {
-    Color bg;
-    Color border;
-    Color text;
-    String label;
-
     switch (status) {
       case 'AVAILABLE':
-        bg = const Color(0xFFF0FDF4);
-        border = const Color(0xFFBBF7D0);
-        text = const Color(0xFF15803D);
-        label = 'Tersedia di Gudang';
-        break;
+        return const AppStatusChip(
+          label: 'Tersedia di Gudang',
+          tone: AppStatusTone.success,
+        );
       case 'ASSIGNED':
-        bg = AppColors.primaryContainer;
-        border = const Color(0xFF99F6E4);
-        text = AppColors.primaryHover;
-        label = 'Sedang Digunakan';
-        break;
+        return const AppStatusChip(
+          label: 'Sedang Digunakan',
+          tone: AppStatusTone.info,
+        );
       case 'MAINTENANCE':
-        bg = const Color(0xFFFFFBEB);
-        border = const Color(0xFFFDE68A);
-        text = const Color(0xFFB45309);
-        label = 'Dalam Perbaikan';
-        break;
+        return const AppStatusChip(
+          label: 'Dalam Perbaikan',
+          tone: AppStatusTone.warning,
+        );
       case 'DISPOSED':
-        bg = const Color(0xFFFEF2F2);
-        border = const Color(0xFFFECACA);
-        text = const Color(0xFFB91C1C);
-        label = 'Dihapuskan';
-        break;
+        return const AppStatusChip(
+          label: 'Dihapuskan',
+          tone: AppStatusTone.error,
+        );
       default:
-        bg = const Color(0xFFF1F5F9);
-        border = AppColors.darkOnBackground;
-        text = AppColors.darkSurfaceContainerHighest;
-        label = status;
+        return AppStatusChip(label: status);
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(
-          color: text,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-      ),
-    );
   }
 
   Widget _buildConditionChip(String condition) {

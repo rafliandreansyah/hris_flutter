@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/reimbursement/data/models/reimbursement_category_model.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/models/expense_item_view_model.dart';
@@ -61,9 +62,7 @@ void main() {
     test('ExpenseStatusExtension labels and colors', () {
       for (final st in ExpenseStatus.values) {
         expect(st.label.isNotEmpty, true);
-        expect(st.textColor, isNotNull);
-        expect(st.backgroundColor, isNotNull);
-        expect(st.dotColor, isNotNull);
+        expect(st.tone, isA<AppStatusTone>());
       }
       expect(ExpenseStatus.requested.label, 'Menunggu Persetujuan');
       expect(ExpenseStatus.approved.label, 'Disetujui');

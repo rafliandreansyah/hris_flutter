@@ -77,7 +77,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Quick Access'), findsOneWidget);
+      expect(find.text('Akses Cepat'), findsOneWidget);
 
       // Verify that available menus are displayed (in Indonesian as per current standard)
       expect(find.text('Pegawai'), findsOneWidget);
@@ -101,7 +101,7 @@ void main() {
       );
     });
 
-    testWidgets('QuickAccessGrid renders all 9 items when menus is null (offline/fallback)', (
+    testWidgets('QuickAccessGrid menampilkan 7 menu utama + Lainnya saat menus null (offline/fallback)', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -114,14 +114,33 @@ void main() {
         ),
       );
 
-      expect(find.text('Quick Access'), findsOneWidget);
-      expect(find.text('Aktivitas'), findsOneWidget);
+      expect(find.text('Akses Cepat'), findsOneWidget);
+      // 7 menu utama
+      for (final t in [
+        'Presensi',
+        'Izin & Cuti',
+        'Lembur',
+        'Absen Luar',
+        'Aktivitas',
+        'Slip Gaji',
+        'Klaim & Kasbon',
+      ]) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
+      expect(find.text('Lainnya'), findsOneWidget);
+      // sisanya hanya ada di sheet "Lainnya"
+      expect(find.text('Pegawai'), findsNothing);
+      expect(find.text('Surat Peringatan'), findsNothing);
+      expect(find.text('Jadwal Kerja'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('quick_access_more')));
+      await tester.pumpAndSettle();
+
+      // sheet memuat semua menu per kelompok
+      for (final t in ['KEHADIRAN', 'PENGAJUAN', 'KEUANGAN', 'KARYAWAN']) {
+        expect(find.text(t), findsOneWidget, reason: t);
+      }
       expect(find.text('Pegawai'), findsOneWidget);
-      expect(find.text('Slip Gaji'), findsOneWidget);
-      expect(find.text('Presensi'), findsOneWidget);
-      expect(find.text('Lembur'), findsOneWidget);
-      expect(find.text('Izin & Cuti'), findsOneWidget);
-      expect(find.text('Absen Luar'), findsOneWidget);
       expect(find.text('Surat Peringatan'), findsOneWidget);
       expect(find.text('Jadwal Kerja'), findsOneWidget);
     });
@@ -157,6 +176,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const ValueKey('quick_access_more')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Pegawai'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Pegawai'));
       await tester.pumpAndSettle();
 
@@ -194,6 +217,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const ValueKey('quick_access_more')));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Jadwal Kerja'));
       await tester.pumpAndSettle();
 
@@ -261,7 +286,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Updates'), findsOneWidget);
+      expect(find.text('Pembaruan'), findsOneWidget);
       expect(find.text('Tidak ada pengumuman'), findsOneWidget);
       expect(
         find.text('Saat ini belum ada pengumuman terbaru dari perusahaan'),
@@ -285,7 +310,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Updates'), findsOneWidget);
+      expect(find.text('Pembaruan'), findsOneWidget);
       expect(find.text('Townhall Meeting Scheduled'), findsOneWidget);
       expect(find.text('Hari ini · Pengumuman'), findsOneWidget);
       expect(find.text('Tidak ada pengumuman'), findsNothing);
@@ -316,8 +341,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Updates'), findsOneWidget);
-      expect(find.text('See All'), findsOneWidget);
+      expect(find.text('Pembaruan'), findsOneWidget);
+      expect(find.text('Lihat Semua'), findsOneWidget);
       for (int i = 0; i < 5; i++) {
         expect(find.text('Pengumuman Penting #$i'), findsOneWidget);
       }
@@ -793,7 +818,7 @@ void main() {
     });
 
     testWidgets(
-        'Tapping Quick Clock In button in AttendanceHeroCard navigates to Attendance screen', (
+        'Tapping Absen Masuk button in AttendanceHeroCard navigates to Attendance screen', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
@@ -840,17 +865,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Quick Clock In'), findsOneWidget);
+      expect(find.text('Absen Masuk'), findsOneWidget);
 
-      await tester.tap(find.text('Quick Clock In'));
+      await tester.tap(find.text('Absen Masuk'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Attendance Screen Destination'), findsOneWidget);
     });
 
-    testWidgets(
-        'Tapping Work Schedule button in header navigates to Work Schedule screen', (
+    testWidgets('App bar dashboard tidak lagi memuat tombol Jadwal Kerja (ada di menu)', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
@@ -860,14 +884,9 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      const testData = DashboardData(
-        id: 'emp-101',
-        firstName: 'John',
-        email: 'john@example.com',
+      final repo = MockSuccessDashboardRepository(
+        data: const DashboardData(id: 'emp-1', firstName: 'John', email: 'j@x.com'),
       );
-
-      final repo = MockSuccessDashboardRepository(data: testData);
-
       final testRouter = GoRouter(
         initialLocation: '/dashboard',
         routes: [
@@ -879,33 +898,14 @@ void main() {
               getDeviceId: () async => 'unknown_device_id',
             ),
           ),
-          GoRoute(
-            path: Routes.WORK_SCHEDULE,
-            builder: (context, state) => const Scaffold(
-              body: Text('Work Schedule Screen Destination'),
-            ),
-          ),
         ],
       );
-
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: testRouter,
-        ),
-      );
-
+      await tester.pumpWidget(MaterialApp.router(routerConfig: testRouter));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(
-        find.byKey(const ValueKey('dashboard_work_schedule_btn')),
-        findsOneWidget,
-      );
-      await tester.tap(find.byKey(const ValueKey('dashboard_work_schedule_btn')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(find.text('Work Schedule Screen Destination'), findsOneWidget);
+      expect(find.byKey(const ValueKey('dashboard_work_schedule_btn')), findsNothing);
+      expect(find.byKey(const ValueKey('dashboard_notification_btn')), findsOneWidget);
     });
 
     testWidgets(

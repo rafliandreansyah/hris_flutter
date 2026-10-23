@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/employee_info_row.dart';
@@ -59,49 +60,9 @@ class WarningLetterCard extends StatelessWidget {
   }
 
   /// Status badge aktif / tidak aktif
-  Widget _buildStatusBadge(bool isDark) {
-    final isActive = item.isActive;
-    final bg = isActive
-        ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFECFDF5))
-        : (isDark ? AppColors.darkSurfaceBright : const Color(0xFFF1F5F9));
-    final text = isActive
-        ? (isDark ? const Color(0xFF34D399) : const Color(0xFF059669))
-        : (isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant);
-    final dot = isActive
-        ? AppColors.success
-        : AppColors.darkOnSurfaceVariant;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: dot,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            isActive ? 'Aktif' : 'Tidak Aktif',
-            style: TextStyle(
-              color: text,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildStatusBadge(bool isDark) => item.isActive
+      ? const AppStatusChip(label: 'Aktif', tone: AppStatusTone.success)
+      : const AppStatusChip(label: 'Tidak Aktif');
 
   @override
   Widget build(BuildContext context) {

@@ -14,13 +14,12 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   final AttendanceRepository repository;
   Timer? _clockTimer;
 
-  AttendanceBloc({
-    required this.repository,
-    bool autoStartClock = true,
-  }) : super(const AttendanceInitial()) {
+  AttendanceBloc({required this.repository, bool autoStartClock = true})
+    : super(const AttendanceInitial()) {
     on<AttendanceFetchRequested>(_onFetchRequested);
     on<AttendanceClockTicked>(_onClockTicked);
     on<AttendanceLocationUpdated>(_onLocationUpdated);
+    on<AttendanceGpsIssueReported>(_onGpsIssueReported);
     on<AttendanceWorkLocationChanged>(_onWorkLocationChanged);
     on<AttendanceClockInSubmitted>(_onClockInSubmitted);
     on<AttendanceClockOutSubmitted>(_onClockOutSubmitted);
@@ -72,6 +71,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   }
 
   AttendanceLocationUpdated? _lastLocationEvent;
+
+  /// Kendala GPS yang dilaporkan sebelum data presensi selesai dimuat.
+  AttendanceGpsIssue? _pendingGpsIssue;
 
   Future<void> _onFetchRequested(
     AttendanceFetchRequested event,
@@ -149,8 +151,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
               selectedWorkLocation: activeLocation,
             )
           : (activeLocation?.isAnyWhere ?? false
-              ? true
-              : data.isInsideGeofence);
+                ? true
+                : data.isInsideGeofence);
 
       emit(
         AttendanceLoaded(
@@ -164,7 +166,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
             userLatitude: lat,
             userLongitude: lng,
             isInsideGeofence: isInside,
-            gpsAccuracy: isGpsAcquired ? '±${accuracy.toStringAsFixed(0)}m' : '±5m',
+            gpsAccuracy: isGpsAcquired
+                ? '±${accuracy.toStringAsFixed(0)}m'
+                : '±5m',
           ),
           currentClockTime: clockTime,
           userLatitude: lat,
@@ -172,6 +176,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           gpsAccuracyMeters: accuracy,
           isInsideGeofence: isInside,
           isGpsAcquired: isGpsAcquired,
+          gpsIssue: isGpsAcquired ? null : _pendingGpsIssue,
         ),
       );
 
@@ -226,11 +231,22 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     }
   }
 
+  void _onGpsIssueReported(
+    AttendanceGpsIssueReported event,
+    Emitter<AttendanceState> emit,
+  ) {
+    _pendingGpsIssue = event.issue;
+    if (state is AttendanceLoaded) {
+      emit((state as AttendanceLoaded).copyWith(gpsIssue: event.issue));
+    }
+  }
+
   void _onLocationUpdated(
     AttendanceLocationUpdated event,
     Emitter<AttendanceState> emit,
   ) {
     _lastLocationEvent = event;
+    _pendingGpsIssue = null;
     if (state is AttendanceLoaded) {
       final current = state as AttendanceLoaded;
 
@@ -249,6 +265,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           gpsAccuracyMeters: event.accuracy,
           isInsideGeofence: isInside,
           isGpsAcquired: true,
+          clearGpsIssue: true,
           data: current.data.copyWith(
             userLatitude: event.latitude,
             userLongitude: event.longitude,
@@ -271,8 +288,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
       // Tentukan parameter lokasi kantor baru
       final String officeName = loc.name;
-      final String officeDetail =
-          loc.address.isNotEmpty ? loc.address : '-';
+      final String officeDetail = loc.address.isNotEmpty ? loc.address : '-';
       final double officeLat = loc.latitude ?? 0;
       final double officeLng = loc.longitude ?? 0;
       final double geofenceRadius = loc.isAnyWhere
@@ -316,7 +332,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         );
 
         // Perbarui isDefault: item terpilih = true, lainnya = false
-        final updatedLocations = current.data.availableWorkLocations.map((item) {
+        final updatedLocations = current.data.availableWorkLocations.map((
+          item,
+        ) {
           return item.copyWith(isDefault: item.id == loc.id);
         }).toList();
         final updatedLoc = loc.copyWith(isDefault: true);
@@ -437,17 +455,18 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     // 3. Koordinat GPS user & perhitungan ulang geofence
     final userLat = current.userLatitude ?? updatedData.userLatitude;
     final userLng = current.userLongitude ?? updatedData.userLongitude;
-    final isGpsAcquired = current.isGpsAcquired || (userLat != null && userLng != null);
+    final isGpsAcquired =
+        current.isGpsAcquired || (userLat != null && userLng != null);
 
     final isInside = (activeLocation?.isAnyWhere ?? false)
         ? true
         : ((userLat != null && userLng != null)
-            ? _calculateIsInsideGeofence(
-                userLat: userLat,
-                userLng: userLng,
-                selectedWorkLocation: activeLocation,
-              )
-            : updatedData.isInsideGeofence);
+              ? _calculateIsInsideGeofence(
+                  userLat: userLat,
+                  userLng: userLng,
+                  selectedWorkLocation: activeLocation,
+                )
+              : updatedData.isInsideGeofence);
 
     return current.copyWith(
       isInsideGeofence: isInside,
@@ -484,7 +503,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final isAnyWhere = loc?.isAnyWhere ?? false;
       final effectiveUserLat = current.userLatitude ?? event.latitude;
       final effectiveUserLng = current.userLongitude ?? event.longitude;
-      final isInside = isAnyWhere ||
+      final isInside =
+          isAnyWhere ||
           current.isInsideGeofence ||
           (loc != null &&
               _calculateIsInsideGeofence(
@@ -496,7 +516,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         emit(
           current.copyWith(
             isSubmittingAction: false,
-            errorMessage: 'Tidak dapat melakukan presensi di luar radius kantor.',
+            errorMessage:
+                'Tidak dapat melakukan presensi di luar radius kantor.',
           ),
         );
         return;
@@ -515,12 +536,19 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
           photoFile: event.photoFile,
         );
 
-        final activeLoc = current.data.selectedWorkLocation ?? updatedData.selectedWorkLocation;
+        final activeLoc =
+            current.data.selectedWorkLocation ??
+            updatedData.selectedWorkLocation;
         final officeName = (activeLoc != null && activeLoc.name.isNotEmpty)
             ? activeLoc.name
             : updatedData.officeName;
-        final recordTime = updatedData.inTime ?? AppDateUtil.formatDateTimeHHmm(DateTime.now());
-        final formattedDate = AppDateUtil.formatDateFull(updatedData.serverTime, locale: 'id');
+        final recordTime =
+            updatedData.inTime ??
+            AppDateUtil.formatDateTimeHHmm(DateTime.now());
+        final formattedDate = AppDateUtil.formatDateFull(
+          updatedData.serverTime,
+          locale: 'id',
+        );
         final effectiveTz = _resolveTimezone(updatedData.timezone);
 
         final successInfo = AttendanceSuccessInfo(
@@ -573,7 +601,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       final isAnyWhere = loc?.isAnyWhere ?? false;
       final effectiveUserLat = current.userLatitude ?? event.latitude;
       final effectiveUserLng = current.userLongitude ?? event.longitude;
-      final isInside = isAnyWhere ||
+      final isInside =
+          isAnyWhere ||
           current.isInsideGeofence ||
           (loc != null &&
               _calculateIsInsideGeofence(
@@ -585,7 +614,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         emit(
           current.copyWith(
             isSubmittingAction: false,
-            errorMessage: 'Tidak dapat melakukan presensi di luar radius kantor.',
+            errorMessage:
+                'Tidak dapat melakukan presensi di luar radius kantor.',
           ),
         );
         return;
@@ -607,12 +637,19 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         // Hentikan pelacakan saat Clock-Out berhasil
         LocationTrackingService.instance.stopAllTracking();
 
-        final activeLoc = current.data.selectedWorkLocation ?? updatedData.selectedWorkLocation;
+        final activeLoc =
+            current.data.selectedWorkLocation ??
+            updatedData.selectedWorkLocation;
         final officeName = (activeLoc != null && activeLoc.name.isNotEmpty)
             ? activeLoc.name
             : updatedData.officeName;
-        final recordTime = updatedData.outTime ?? AppDateUtil.formatDateTimeHHmm(DateTime.now());
-        final formattedDate = AppDateUtil.formatDateFull(updatedData.serverTime, locale: 'id');
+        final recordTime =
+            updatedData.outTime ??
+            AppDateUtil.formatDateTimeHHmm(DateTime.now());
+        final formattedDate = AppDateUtil.formatDateFull(
+          updatedData.serverTime,
+          locale: 'id',
+        );
         final effectiveTz = _resolveTimezone(updatedData.timezone);
 
         final successInfo = AttendanceSuccessInfo(
@@ -674,7 +711,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     if (attendanceId == null || attendanceId.isEmpty) {
       emit(
         current.copyWith(
-          errorMessage: 'Sesi presensi tidak ditemukan. Lakukan clock-in terlebih dahulu.',
+          errorMessage:
+              'Sesi presensi tidak ditemukan. Lakukan clock-in terlebih dahulu.',
         ),
       );
       return;
@@ -682,7 +720,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     if (!current.isGpsAcquired || lat == null || lng == null) {
       emit(
         current.copyWith(
-          errorMessage: 'Lokasi GPS belum terdeteksi. Aktifkan GPS lalu coba lagi.',
+          errorMessage:
+              'Lokasi GPS belum terdeteksi. Aktifkan GPS lalu coba lagi.',
         ),
       );
       return;
@@ -738,4 +777,3 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     return super.close();
   }
 }
-

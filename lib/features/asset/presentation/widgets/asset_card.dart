@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -164,25 +165,7 @@ class AssetCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               // Badge Menunggu
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: asset.statusBadgeBgColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: asset.statusBadgeBorderColor),
-                ),
-                child: Text(
-                  asset.statusLabel,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: asset.statusBadgeTextColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
+              AppStatusChip(label: asset.statusLabel, tone: asset.statusTone),
             ],
           ),
 
@@ -353,25 +336,7 @@ class AssetCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: asset.statusBadgeBgColor,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: asset.statusBadgeBorderColor),
-                      ),
-                      child: Text(
-                        asset.statusLabel,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: asset.statusBadgeTextColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
+                    AppStatusChip(label: asset.statusLabel, tone: asset.statusTone, size: AppStatusChipSize.small),
                     const SizedBox(width: 4),
                     Icon(
                       LucideIcons.chevronRight,

@@ -203,6 +203,23 @@ Widget createTestApp(Widget child) {
   );
 }
 
+/// Menyuntik posisi GPS user ke bloc (GPS dibutuhkan sebelum presensi di lokasi non-anywhere).
+Future<void> setUserLocation(
+  WidgetTester tester, {
+  double lat = -6.2253,
+  double lng = 106.8097,
+}) async {
+  BlocProvider.of<AttendanceBloc>(tester.element(find.byType(Scaffold).first)).add(
+    AttendanceLocationUpdated(
+      latitude: lat,
+      longitude: lng,
+      accuracy: 5,
+      isInsideGeofence: true,
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -225,47 +242,38 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // 1. Header (SliverAppBar with Back & Update Lokasi icons only)
-      expect(find.text('Attendance & Check-In'), findsOneWidget);
-      expect(find.text('Oasish Global Tech • Design & Product'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
-      expect(find.byIcon(LucideIcons.locateFixed), findsOneWidget);
-
-      // 2. Geofence Map Card & Blue Current Location Dot
-      expect(
-        find.text('Mendeteksi lokasi...').evaluate().isNotEmpty ||
-            find.text('Inside Geofence Radius').evaluate().isNotEmpty,
-        isTrue,
-      );
-      expect(find.text('GPS Accuracy: ±5m'), findsOneWidget);
+      // 1. Header ringkas tanpa tombol kembali/reload; GPS & fokus ada di peta
+      expect(find.byKey(const ValueKey('attendance_compact_header')), findsOneWidget);
+      expect(find.byIcon(LucideIcons.arrowLeft), findsNothing);
+      expect(find.byKey(const ValueKey('attendance_map_refresh_gps')), findsOneWidget);
+      expect(find.byKey(const ValueKey('attendance_map_focus')), findsOneWidget);
+      expect(find.text('Perbarui Lokasi'), findsOneWidget);
       expect(find.text('Jakarta HQ Office'), findsWidgets);
 
-      // 3. Work Location Card (From employeeWorkLocation, default: isDefault true)
-      expect(find.text('Lokasi Kerja'), findsOneWidget);
-      expect(find.text('Utama'), findsOneWidget);
+      // 2. Peta penuh dengan legenda status
+      expect(
+        find.text('Mendeteksi lokasi...').evaluate().isNotEmpty ||
+            find.text('Di Dalam Radius Kantor').evaluate().isNotEmpty,
+        isTrue,
+      );
 
-      // 4. Server Clock Card (Without WIB)
-      expect(find.text('Asia/Jakarta'), findsOneWidget);
-      expect(find.text('08:45:20'), findsOneWidget); // Without WIB per user instruction
-      expect(find.textContaining('WIB'), findsNothing); // Ensure WIB is removed
+      // 3. Jam server (tanpa WIB) dan shift di header
+      expect(find.textContaining('Asia/Jakarta'), findsOneWidget);
+      expect(find.text('08:45:20'), findsOneWidget);
+      expect(find.textContaining('WIB'), findsNothing);
       expect(find.text('Regular Shift (09:00 - 18:00)'), findsOneWidget);
 
-      // 5. Employee Card
-      expect(find.text('Alex Rivera'), findsOneWidget);
-      expect(find.text('Senior Product Designer • ID: 8829'), findsOneWidget);
+      // 4. Ringkasan Masuk / Istirahat / Pulang
+      expect(find.text('Masuk'), findsOneWidget);
+      expect(find.text('Istirahat'), findsOneWidget);
+      expect(find.text('Pulang'), findsOneWidget);
 
-      // 6. Timeline 3 Cards
-      expect(find.text('Clock In'), findsOneWidget);
-      expect(find.text('Break Session'), findsOneWidget);
-      expect(find.text('Break Out'), findsOneWidget);
-      expect(find.text('Break In'), findsOneWidget);
-      expect(find.text('Clock Out'), findsOneWidget);
-      expect(find.text('Not started'), findsOneWidget);
-      expect(find.text('Pending'), findsOneWidget);
+      // 5. Status strip memandu langkah berikutnya
+      expect(find.byKey(const ValueKey('attendance_status_strip')), findsOneWidget);
 
       // 7. Action Buttons (No manual selector; method badge and button adapt automatically)
-      expect(find.text('Metode Presensi: Foto Selfie'), findsOneWidget);
-      expect(find.text('Clock In Now'), findsOneWidget);
+      expect(find.text('Verifikasi: Foto Selfie'), findsOneWidget);
+      expect(find.text('Absen Masuk'), findsOneWidget);
       expect(find.text('Start Break'), findsNothing);
       expect(find.text('Report Location Issue'), findsNothing);
     });
@@ -317,8 +325,8 @@ void main() {
       expect(find.text('Foto Selfie'), findsNothing);
 
       // Automatic badge and primary button adapted to biometric
-      expect(find.text('Metode Presensi: Biometrik'), findsOneWidget);
-      expect(find.text('Clock In via Biometrik'), findsOneWidget);
+      expect(find.text('Verifikasi: Sidik Jari / Face ID'), findsOneWidget);
+      expect(find.text('Absen Masuk'), findsOneWidget);
     });
 
     testWidgets('attendanceMethod liveness renders Liveness AI button label and badge automatically', (tester) async {
@@ -364,8 +372,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Metode Presensi: Liveness AI'), findsOneWidget);
-      expect(find.text('Clock In via Liveness AI'), findsOneWidget);
+      expect(find.text('Verifikasi: Liveness AI'), findsOneWidget);
+      expect(find.text('Absen Masuk'), findsOneWidget);
     });
 
     testWidgets('empty attendanceMethod displays dialog explaining user cannot perform attendance', (tester) async {
@@ -454,10 +462,8 @@ void main() {
 
       // Initially shows HQ Office Sudirman and Utama badge
       expect(find.text('HQ Office Sudirman'), findsWidgets);
-      expect(find.text('Ganti Lokasi'), findsOneWidget);
-
-      // Tap Ganti Lokasi button to open bottom sheet
-      await tester.tap(find.text('Ganti Lokasi'));
+      // Ketuk nama lokasi di header untuk membuka bottom sheet
+      await tester.tap(find.byKey(const ValueKey('attendance_header_location')));
       await tester.pumpAndSettle();
 
       // Bottom sheet is visible with choices
@@ -472,7 +478,7 @@ void main() {
       expect(find.text('Bandung Hub'), findsWidgets);
     });
 
-    testWidgets('tapping Clock In Now triggers clock in', (tester) async {
+    testWidgets('tapping Absen Masuk triggers clock in', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -489,23 +495,23 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+      await setUserLocation(tester);
 
       // Ensure button is visible before tapping
-      await tester.ensureVisible(find.text('Clock In Now'));
+      await tester.ensureVisible(find.text('Absen Masuk'));
       await tester.pumpAndSettle();
 
-      // Tap Clock In Now button
-      await tester.tap(find.text('Clock In Now'));
+      // Tap Absen Masuk button
+      await tester.tap(find.text('Absen Masuk'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      // Status should now be Clock Out Now and recorded
-      expect(find.text('Clock Out Now'), findsOneWidget);
-      expect(find.text('Recorded'), findsOneWidget);
+      // Status should now be Absen Pulang and recorded
+      expect(find.text('Absen Pulang'), findsOneWidget);
     });
 
 
-    testWidgets('tapping Update Lokasi icon in app bar triggers GPS update feedback', (tester) async {
+    testWidgets('tapping Perbarui Lokasi on map triggers GPS update', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -523,50 +529,36 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final updateLocationButton = find.byIcon(LucideIcons.locateFixed);
+      final updateLocationButton = find.byKey(const ValueKey('attendance_map_refresh_gps'));
       expect(updateLocationButton, findsOneWidget);
 
       await tester.tap(updateLocationButton);
-      await tester.pump(); // Start snackbar
+      await tester.pump();
 
-      expect(find.textContaining('Memperbarui lokasi GPS'), findsOneWidget);
+      expect(find.byKey(const ValueKey('attendance_status_strip')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 500));
     });
 
-    testWidgets('SliverAppBar hides on scroll down and reveals on scroll up', (tester) async {
-      tester.view.physicalSize = const Size(800, 600);
+    testWidgets('halaman tanpa scroll: peta penuh dan header ringkas', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
 
-      final repo = TestAttendanceRepository();
-
       await tester.pumpWidget(
         createTestApp(
-          AttendanceScreen(repository: repo, autoStartClock: false),
+          AttendanceScreen(repository: TestAttendanceRepository(), autoStartClock: false),
         ),
       );
-
       await tester.pumpAndSettle();
 
-      // App bar is initially visible
-      expect(find.text('Attendance & Check-In'), findsOneWidget);
-
-      // Scroll down (drag up)
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -350));
-      await tester.pumpAndSettle();
-
-      // App bar has scrolled out of view
-      expect(find.text('Attendance & Check-In'), findsNothing);
-
-      // Scroll up (drag down) to snap app bar back into view
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, 150));
-      await tester.pumpAndSettle();
-
-      // App bar immediately snapped back into view!
-      expect(find.text('Attendance & Check-In'), findsOneWidget);
+      expect(find.byType(CustomScrollView), findsNothing);
+      expect(find.byType(SingleChildScrollView), findsNothing);
+      expect(find.byKey(const ValueKey('attendance_compact_header')), findsOneWidget);
+      expect(find.text('Absen Masuk'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('displays API error message and Kembali button when 404 error occurs with English message', (tester) async {
@@ -629,7 +621,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
     });
 
-    testWidgets('tapping Clock In Now when outside geofence radius and isAnyWhere is false displays Di Luar Radius Kantor dialog', (tester) async {
+    testWidgets('tapping Absen Masuk when outside geofence radius and isAnyWhere is false displays Di Luar Radius Kantor dialog', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -664,15 +656,20 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+      await setUserLocation(tester, lat: -6.3, lng: 106.9);
 
-      await tester.ensureVisible(find.text('Clock In Now'));
+      // Banner langsung memberi tahu user di luar radius, lengkap dengan jarak
+      expect(find.text('Anda di luar radius kantor'), findsOneWidget);
+      expect(find.textContaining('dari Jakarta HQ Office'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Absen Masuk'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Clock In Now'));
+      await tester.tap(find.text('Absen Masuk'));
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('Di Luar Radius Kantor'), findsOneWidget);
-      expect(find.textContaining('Anda berada di luar radius lokasi kerja'), findsOneWidget);
+      expect(find.text('Anda Di Luar Radius Kantor'), findsOneWidget);
+      expect(find.textContaining('Presensi hanya bisa dilakukan dalam radius'), findsOneWidget);
       expect(find.text('Laporkan Kendala'), findsNothing);
       expect(find.text('Kembali'), findsOneWidget);
 
@@ -680,7 +677,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
     });
 
-    testWidgets('tapping Clock In Now when isAnyWhere is true succeeds even if isInsideGeofence is false', (tester) async {
+    testWidgets('tapping Absen Masuk when isAnyWhere is true succeeds even if isInsideGeofence is false', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -712,15 +709,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Clock In Now'));
+      await tester.ensureVisible(find.text('Absen Masuk'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Clock In Now'));
+      await tester.tap(find.text('Absen Masuk'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('Clock Out Now'), findsOneWidget);
-      expect(find.text('Recorded'), findsOneWidget);
+      expect(find.text('Absen Pulang'), findsOneWidget);
     });
 
     testWidgets('renders isAnyWhere informative banner when selected work location isAnyWhere is true', (tester) async {
@@ -755,7 +751,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Bisa Absen di Mana Saja'), findsWidgets);
-      expect(find.textContaining('Lokasi kerja fleksibel tanpa batasan radius kantor'), findsOneWidget);
+      expect(find.textContaining('Anda bisa absen dari mana saja'), findsOneWidget);
     });
 
     testWidgets('renders Day Off banner, Libur Kerja shift, and action button badge when isDayOff is true', (tester) async {
@@ -795,16 +791,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Day Off Banner is rendered
-      expect(find.text('Jadwal Libur Kerja'), findsOneWidget);
-      expect(find.textContaining('Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).'), findsOneWidget);
+      expect(find.text('Hari ini jadwal libur kerja'), findsOneWidget);
+      expect(find.textContaining('Anda tidak memiliki jadwal kerja aktif hari ini.'), findsOneWidget);
 
-      // Server Clock Card shows Libur Kerja and calendarOff icon and Libur pill
+      // Header menampilkan chip Libur Kerja
       expect(find.text('Libur Kerja'), findsOneWidget);
-      expect(find.text('Libur'), findsOneWidget);
       expect(find.byIcon(LucideIcons.calendarOff), findsWidgets);
 
-      // Action buttons show Hari Ini Jadwal Libur Kerja
-      expect(find.text('Hari Ini Jadwal Libur Kerja'), findsOneWidget);
     });
 
     testWidgets('renders No Schedule banner and calendarX icon when hasSchedule is false', (tester) async {
@@ -844,8 +837,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // No Schedule Banner is rendered
-      expect(find.text('Pemberitahuan Jadwal'), findsOneWidget);
-      expect(find.text('Tidak Ada Jadwal Kerja'), findsWidgets);
+      expect(find.text('Tidak ada jadwal kerja'), findsWidgets);
+      expect(find.text('Tanpa Jadwal'), findsOneWidget);
       expect(find.byIcon(LucideIcons.calendarX), findsWidgets);
     });
 
@@ -880,8 +873,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Clock In Now'));
-      await tester.tap(find.text('Clock In Now'));
+      await tester.ensureVisible(find.text('Absen Masuk'));
+      await tester.tap(find.text('Absen Masuk'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
@@ -947,12 +940,15 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('sudah clock-in: tombol "Mulai Istirahat" dan kartu Istirahat tampil', (tester) async {
+    testWidgets('sudah clock-in: tombol "Mulai Istirahat" dan riwayat istirahat lewat header', (tester) async {
       final repo = TestAttendanceRepository(initialData: workingData());
       await pumpScreen(tester, repo);
 
       expect(find.text('Mulai Istirahat'), findsOneWidget);
       expect(find.text('Start Break'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('attendance_header_break')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('attendance_break_sessions_card')), findsOneWidget);
       expect(find.text('Belum ada istirahat hari ini'), findsOneWidget);
     });
@@ -999,12 +995,17 @@ void main() {
         breaks: [active],
       );
       await pumpScreen(tester, repo);
+      await setUserLocation(tester);
 
       expect(find.text('Selesai Istirahat'), findsOneWidget);
       expect(find.text('Mulai Istirahat'), findsNothing);
-      expect(find.byKey(const ValueKey('attendance_break_timer')), findsOneWidget);
       expect(find.text('Sedang istirahat'), findsOneWidget);
-      expect(find.text('Sisa jatah 48 menit'), findsOneWidget);
+      expect(find.textContaining('Sisa jatah 48 menit'), findsOneWidget);
+
+      // Timer berjalan ada di riwayat istirahat (bottom sheet dari header)
+      await tester.tap(find.byKey(const ValueKey('attendance_header_break')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('attendance_break_timer')), findsOneWidget);
     });
 
     testWidgets('riwayat istirahat hari ini menampilkan beberapa sesi', (tester) async {
@@ -1032,6 +1033,9 @@ void main() {
         ],
       );
       await pumpScreen(tester, repo);
+
+      await tester.tap(find.byKey(const ValueKey('attendance_header_break')));
+      await tester.pumpAndSettle();
 
       expect(find.text('Selesai'), findsOneWidget);
       expect(find.text('20 mnt'), findsOneWidget);

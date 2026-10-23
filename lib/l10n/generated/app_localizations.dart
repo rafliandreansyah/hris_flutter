@@ -661,6 +661,150 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Diterbitkan'**
   String get tabWarningIssued;
+
+  /// No description provided for @menuAttendance.
+  ///
+  /// In id, this message translates to:
+  /// **'Presensi'**
+  String get menuAttendance;
+
+  /// No description provided for @menuOutsideAttendance.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen Luar'**
+  String get menuOutsideAttendance;
+
+  /// No description provided for @menuSchedule.
+  ///
+  /// In id, this message translates to:
+  /// **'Jadwal Kerja'**
+  String get menuSchedule;
+
+  /// No description provided for @menuLiveTracking.
+  ///
+  /// In id, this message translates to:
+  /// **'Live Tracking'**
+  String get menuLiveTracking;
+
+  /// No description provided for @menuLeave.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin & Cuti'**
+  String get menuLeave;
+
+  /// No description provided for @menuOvertime.
+  ///
+  /// In id, this message translates to:
+  /// **'Lembur'**
+  String get menuOvertime;
+
+  /// No description provided for @menuActivity.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktivitas'**
+  String get menuActivity;
+
+  /// No description provided for @menuPayroll.
+  ///
+  /// In id, this message translates to:
+  /// **'Slip Gaji'**
+  String get menuPayroll;
+
+  /// No description provided for @menuClaims.
+  ///
+  /// In id, this message translates to:
+  /// **'Klaim & Kasbon'**
+  String get menuClaims;
+
+  /// No description provided for @menuEmployee.
+  ///
+  /// In id, this message translates to:
+  /// **'Pegawai'**
+  String get menuEmployee;
+
+  /// No description provided for @menuWarningLetter.
+  ///
+  /// In id, this message translates to:
+  /// **'Surat Peringatan'**
+  String get menuWarningLetter;
+
+  /// No description provided for @menuAsset.
+  ///
+  /// In id, this message translates to:
+  /// **'Aset'**
+  String get menuAsset;
+
+  /// No description provided for @menuResignation.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengunduran Diri'**
+  String get menuResignation;
+
+  /// No description provided for @menuMore.
+  ///
+  /// In id, this message translates to:
+  /// **'Lainnya'**
+  String get menuMore;
+
+  /// No description provided for @menuGroupAttendance.
+  ///
+  /// In id, this message translates to:
+  /// **'Kehadiran'**
+  String get menuGroupAttendance;
+
+  /// No description provided for @menuGroupRequests.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengajuan'**
+  String get menuGroupRequests;
+
+  /// No description provided for @menuGroupFinance.
+  ///
+  /// In id, this message translates to:
+  /// **'Keuangan'**
+  String get menuGroupFinance;
+
+  /// No description provided for @menuGroupEmployee.
+  ///
+  /// In id, this message translates to:
+  /// **'Karyawan'**
+  String get menuGroupEmployee;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Semua'**
+  String get seeAll;
+
+  /// No description provided for @clockInAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen Masuk'**
+  String get clockInAction;
+
+  /// No description provided for @clockOutAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen Pulang'**
+  String get clockOutAction;
+
+  /// No description provided for @clockInShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk'**
+  String get clockInShort;
+
+  /// No description provided for @clockOutShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Pulang'**
+  String get clockOutShort;
+
+  /// No description provided for @latestCompanyAnnouncement.
+  ///
+  /// In id, this message translates to:
+  /// **'Terbaru · Pengumuman Perusahaan'**
+  String get latestCompanyAnnouncement;
 }
 
 class _AppLocalizationsDelegate

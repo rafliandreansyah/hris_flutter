@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/permission_util.dart';
+import 'package:hris_flutter/core/widgets/app_realtime_map_card.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_response.dart';
@@ -344,6 +345,58 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Presensi Luar (Live)'), findsOneWidget);
+    });
+
+    testWidgets('banner menjelaskan izin lokasi ditolak saat GPS belum didapat', (tester) async {
+      final bloc = LiveAttendanceBloc(
+        repository: _FakeAttendanceRequestRepo(),
+        autoStartTimer: false,
+      );
+      bloc.add(const LiveAttendanceGpsIssueReported(MapGpsIssue.permissionDenied));
+
+      await tester.pumpWidget(_wrapWidget(LiveAttendanceScreen(bloc: bloc)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const ValueKey('attendance_status_banner')), findsOneWidget);
+      expect(find.text('Izin lokasi dibutuhkan'), findsOneWidget);
+      expect(find.text('Izinkan Akses Lokasi'), findsOneWidget);
+
+      bloc.close();
+    });
+
+    testWidgets('banner memandu mengisi alasan lalu siap kirim', (tester) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final bloc = LiveAttendanceBloc(
+        repository: _FakeAttendanceRequestRepo(),
+        autoStartTimer: false,
+      );
+      bloc.add(const LiveAttendanceStarted(initialMethod: 'biometric'));
+      bloc.add(const LiveAttendanceLocationUpdated(
+        latitude: -6.2297,
+        longitude: 106.8166,
+        accuracy: '±5m',
+      ));
+
+      await tester.pumpWidget(_wrapWidget(LiveAttendanceScreen(bloc: bloc)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Isi alasan presensi'), findsOneWidget);
+
+      bloc.add(const LiveAttendanceReasonChanged('Kunjungan klien'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Siap kirim presensi Masuk'), findsOneWidget);
+
+      bloc.close();
     });
   });
 }

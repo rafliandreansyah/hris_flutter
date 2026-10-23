@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
@@ -404,58 +405,15 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
   }
 
   Widget _buildStatusPill(bool isDark) {
-    Color bg;
-    Color fg;
-    String text;
-
     if (detail.isApproved) {
-      bg = isDark
-          ? AppColors.primaryHover.withValues(alpha: 0.25)
-          : AppColors.accentTealLight;
-      fg = isDark ? const Color(0xFF5EEAD4) : AppColors.primaryHover;
-      text = 'Disetujui';
-    } else if (detail.isRejected) {
-      bg = isDark
-          ? const Color(0xFF991B1B).withValues(alpha: 0.25)
-          : const Color(0xFFFEE2E2);
-      fg = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C);
-      text = 'Ditolak';
-    } else {
-      bg = isDark
-          ? const Color(0xFF78350F).withValues(alpha: 0.25)
-          : AppColors.warningContainer;
-      fg = isDark ? const Color(0xFFFCD34D) : AppColors.onWarningContainer;
-      text = 'Menunggu Persetujuan';
+      return const AppStatusChip(label: 'Disetujui', tone: AppStatusTone.success);
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: fg,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: AppTypography.labelSmall.copyWith(
-              color: fg,
-              fontWeight: FontWeight.w600,
-              fontSize: 11.5,
-            ),
-          ),
-        ],
-      ),
+    if (detail.isRejected) {
+      return const AppStatusChip(label: 'Ditolak', tone: AppStatusTone.error);
+    }
+    return const AppStatusChip(
+      label: 'Menunggu Persetujuan',
+      tone: AppStatusTone.warning,
     );
   }
 }

@@ -10,7 +10,7 @@ class AttendanceWorkLocationCard extends StatelessWidget {
   final WorkLocationItem? selectedLocation;
   final List<WorkLocationItem> availableLocations;
   final void Function(WorkLocationItem location, {bool setAsDefault})?
-      onLocationChanged;
+  onLocationChanged;
 
   const AttendanceWorkLocationCard({
     super.key,
@@ -21,7 +21,8 @@ class AttendanceWorkLocationCard extends StatelessWidget {
 
   bool get _canSwitch => availableLocations.length > 1;
 
-  void _showLocationSelectionBottomSheet(BuildContext context) {
+  /// Membuka sheet pemilih lokasi kerja (juga dipakai header ringkas).
+  void showPicker(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final sheetBg = isDark
         ? AppColors.darkSurfaceContainerLowest
@@ -141,7 +142,7 @@ class AttendanceWorkLocationCard extends StatelessWidget {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _showLocationSelectionBottomSheet(context),
+                    onTap: () => showPicker(context),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -341,7 +342,8 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
     }
   }
 
-  bool get _isSelectedAlreadyDefault => _tempSelectedLocation?.isDefault == true;
+  bool get _isSelectedAlreadyDefault =>
+      _tempSelectedLocation?.isDefault == true;
 
   @override
   Widget build(BuildContext context) {
@@ -472,10 +474,12 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.brandTeal
-                                              .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(100),
+                                          color: AppColors.brandTeal.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            100,
+                                          ),
                                         ),
                                         child: const Text(
                                           'Default',
@@ -513,8 +517,9 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
                                           color: const Color(
                                             0xFF3B82F6,
                                           ).withValues(alpha: 0.12),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -547,8 +552,9 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
                                               ? AppColors
                                                     .darkSurfaceContainerHigh
                                               : const Color(0xFFF1F5F9),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -559,8 +565,7 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
                                               color: isDark
                                                   ? AppColors
                                                         .darkOnSurfaceVariant
-                                                  : AppColors
-                                                        .surfaceVariant,
+                                                  : AppColors.surfaceVariant,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
@@ -571,8 +576,7 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
                                                 color: isDark
                                                     ? AppColors
                                                           .darkOnSurfaceVariant
-                                                    : AppColors
-                                                          .surfaceVariant,
+                                                    : AppColors.surfaceVariant,
                                               ),
                                             ),
                                           ],

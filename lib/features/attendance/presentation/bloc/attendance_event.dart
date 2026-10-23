@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
+import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class AttendanceEvent extends Equatable {
@@ -44,6 +45,16 @@ class AttendanceLocationUpdated extends AttendanceEvent {
   List<Object?> get props => [latitude, longitude, accuracy, isInsideGeofence];
 }
 
+/// GPS gagal didapat (izin ditolak, layanan GPS mati, atau timeout).
+class AttendanceGpsIssueReported extends AttendanceEvent {
+  final AttendanceGpsIssue issue;
+
+  const AttendanceGpsIssueReported(this.issue);
+
+  @override
+  List<Object?> get props => [issue];
+}
+
 /// Event untuk memilih/mengganti lokasi kerja yang digunakan.
 class AttendanceWorkLocationChanged extends AttendanceEvent {
   final WorkLocationItem selectedLocation;
@@ -81,14 +92,14 @@ class AttendanceClockInSubmitted extends AttendanceEvent {
 
   @override
   List<Object?> get props => [
-        latitude,
-        longitude,
-        address,
-        note,
-        attendanceMethod,
-        workLocationId,
-        photoFile,
-      ];
+    latitude,
+    longitude,
+    address,
+    note,
+    attendanceMethod,
+    workLocationId,
+    photoFile,
+  ];
 }
 
 class AttendanceClockOutSubmitted extends AttendanceEvent {
@@ -112,14 +123,14 @@ class AttendanceClockOutSubmitted extends AttendanceEvent {
 
   @override
   List<Object?> get props => [
-        latitude,
-        longitude,
-        address,
-        note,
-        attendanceMethod,
-        workLocationId,
-        photoFile,
-      ];
+    latitude,
+    longitude,
+    address,
+    note,
+    attendanceMethod,
+    workLocationId,
+    photoFile,
+  ];
 }
 
 /// Memulai istirahat (`POST /attendances/break/start`) memakai lokasi GPS terakhir.
@@ -141,4 +152,3 @@ class AttendanceBreakEnded extends AttendanceEvent {
   @override
   List<Object?> get props => [note];
 }
-

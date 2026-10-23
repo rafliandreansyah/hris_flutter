@@ -10,6 +10,7 @@ import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/app_route_observer.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/domain/repositories/auth_repository.dart';
 import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -273,46 +274,6 @@ class _DashboardViewState extends State<_DashboardView>
           },
         ),
         actions: [
-          // Tombol Jadwal Kerja Diri Sendiri (Squircle Glassmorphic Container)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: surfaceCol,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: borderCol.withValues(alpha: isDark ? 0.6 : 0.8),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: isDark ? 0.2 : 0.03,
-                    ),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1.5),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                key: const ValueKey('dashboard_work_schedule_btn'),
-                tooltip: 'Jadwal Kerja Saya',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  context.push(Routes.WORK_SCHEDULE);
-                },
-                icon: Icon(
-                  LucideIcons.calendarClock,
-                  size: 20,
-                  color: textCol,
-                ),
-              ),
-            ),
-          ),
-
           // Notification Button with Unread Badge
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -524,17 +485,15 @@ class _DashboardViewState extends State<_DashboardView>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.brandTeal,
-                        ),
+                      AppButton(
+                        text: l10n?.retry ?? 'Coba Lagi',
+                        leadingIcon: LucideIcons.refreshCw,
+                        width: 180,
                         onPressed: () {
                           context.read<DashboardBloc>().add(
                             const DashboardFetchRequested(),
                           );
                         },
-                        icon: const Icon(LucideIcons.refreshCw, size: 16),
-                        label: Text(l10n?.retry ?? 'Coba Lagi'),
                       ),
                     ],
                   ),

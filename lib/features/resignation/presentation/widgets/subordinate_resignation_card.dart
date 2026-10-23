@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -45,10 +46,7 @@ class SubordinateResignationCard extends StatelessWidget {
 
     final isPending = item.status.toLowerCase() == 'submitted';
 
-    final (statusLabel, statusBg, statusFg) = _resolveStatusBadge(
-      item.status,
-      isDark,
-    );
+    final (statusLabel, statusTone) = _resolveStatus(item.status);
 
     return Container(
       width: double.infinity,
@@ -83,24 +81,7 @@ class SubordinateResignationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  statusLabel,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: statusFg,
-                  ),
-                ),
-              ),
+              AppStatusChip(label: statusLabel, tone: statusTone),
             ],
           ),
           const SizedBox(height: 14),
@@ -278,45 +259,21 @@ class SubordinateResignationCard extends StatelessWidget {
     );
   }
 
-  (String, Color, Color) _resolveStatusBadge(String status, bool isDark) {
+  (String, AppStatusTone) _resolveStatus(String status) {
     switch (status.toLowerCase()) {
       case 'submitted':
-        return (
-          'Menunggu 1-on-1',
-          isDark ? const Color(0xFF78350F) : AppColors.warningContainer,
-          isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
-        );
+        return ('Menunggu 1-on-1', AppStatusTone.warning);
       case 'manager_approved':
-        return (
-          'Disetujui Manajer',
-          isDark ? const Color(0xFF134E4A) : AppColors.accentTealLight,
-          isDark ? const Color(0xFF5EEAD4) : AppColors.primaryHover,
-        );
+        return ('Disetujui Manajer', AppStatusTone.info);
       case 'hr_approved':
       case 'in_clearance':
-        return (
-          'Clearance Offboarding',
-          isDark ? const Color(0xFF1E3A8A) : const Color(0xFFDBEAFE),
-          isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
-        );
+        return ('Clearance Offboarding', AppStatusTone.info);
       case 'settled':
-        return (
-          'Selesai & Paklaring',
-          isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
-          isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
-        );
+        return ('Selesai & Paklaring', AppStatusTone.success);
       case 'rejected':
-        return (
-          'Ditolak',
-          isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
-          isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626),
-        );
+        return ('Ditolak', AppStatusTone.error);
       default:
-        return (
-          status,
-          isDark ? AppColors.darkSurfaceContainerHigh : const Color(0xFFF1F5F9),
-          isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant,
-        );
+        return (status, AppStatusTone.neutral);
     }
   }
 }

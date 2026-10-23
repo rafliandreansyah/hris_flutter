@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_today_data.dart';
@@ -39,15 +40,18 @@ class AttendanceSuccessInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        attendanceType,
-        title,
-        message,
-        date,
-        formattedDate,
-        formattedTime,
-        locationName,
-      ];
+    attendanceType,
+    title,
+    message,
+    date,
+    formattedDate,
+    formattedTime,
+    locationName,
+  ];
 }
+
+/// Penyebab GPS belum bisa dipakai, ditampilkan jelas ke user di status banner.
+enum AttendanceGpsIssue { permissionDenied, serviceDisabled, unavailable }
 
 class AttendanceLoaded extends AttendanceState {
   final AttendanceTodayData data;
@@ -69,6 +73,9 @@ class AttendanceLoaded extends AttendanceState {
   /// Status & daftar istirahat hari ini; `null` bila belum dimuat / belum clock-in.
   final AttendanceBreakStatus? breakStatus;
 
+  /// Kendala GPS terakhir; `null` bila tidak ada (dikosongkan saat lokasi berhasil didapat).
+  final AttendanceGpsIssue? gpsIssue;
+
   const AttendanceLoaded({
     required this.data,
     required this.currentClockTime,
@@ -82,7 +89,27 @@ class AttendanceLoaded extends AttendanceState {
     this.isGpsAcquired = false,
     this.attendanceSuccess,
     this.breakStatus,
+    this.gpsIssue,
   });
+
+  /// Jarak (meter) user ke lokasi kerja terpilih; `null` bila GPS/koordinat kantor belum ada.
+  double? get distanceToOfficeMeters {
+    final loc = data.selectedWorkLocation;
+    if (userLatitude == null ||
+        userLongitude == null ||
+        loc == null ||
+        loc.isAnyWhere ||
+        loc.latitude == null ||
+        loc.longitude == null) {
+      return null;
+    }
+    return Geolocator.distanceBetween(
+      userLatitude!,
+      userLongitude!,
+      loc.latitude!,
+      loc.longitude!,
+    );
+  }
 
   /// Format waktu jam:menit:detik tanpa 'WIB' karena timezone sudah ditampilkan secara terpisah di chip.
   String get formattedClockTime =>
@@ -102,6 +129,8 @@ class AttendanceLoaded extends AttendanceState {
     AttendanceSuccessInfo? attendanceSuccess,
     bool clearAttendanceSuccess = false,
     AttendanceBreakStatus? breakStatus,
+    AttendanceGpsIssue? gpsIssue,
+    bool clearGpsIssue = false,
   }) {
     return AttendanceLoaded(
       data: data ?? this.data,
@@ -116,24 +145,26 @@ class AttendanceLoaded extends AttendanceState {
       isGpsAcquired: isGpsAcquired ?? this.isGpsAcquired,
       attendanceSuccess: clearAttendanceSuccess ? null : attendanceSuccess,
       breakStatus: breakStatus ?? this.breakStatus,
+      gpsIssue: clearGpsIssue ? null : (gpsIssue ?? this.gpsIssue),
     );
   }
 
   @override
   List<Object?> get props => [
-        data,
-        currentClockTime,
-        isSubmittingAction,
-        actionMessage,
-        errorMessage,
-        userLatitude,
-        userLongitude,
-        gpsAccuracyMeters,
-        isInsideGeofence,
-        isGpsAcquired,
-        attendanceSuccess,
-        breakStatus,
-      ];
+    data,
+    currentClockTime,
+    isSubmittingAction,
+    actionMessage,
+    errorMessage,
+    userLatitude,
+    userLongitude,
+    gpsAccuracyMeters,
+    isInsideGeofence,
+    isGpsAcquired,
+    attendanceSuccess,
+    breakStatus,
+    gpsIssue,
+  ];
 }
 
 class AttendanceFailure extends AttendanceState {
@@ -148,4 +179,3 @@ class AttendanceFailure extends AttendanceState {
   @override
   List<Object?> get props => [message, statusCode];
 }
-

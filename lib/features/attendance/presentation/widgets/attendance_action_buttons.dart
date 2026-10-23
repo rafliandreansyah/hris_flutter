@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+/// Tombol aksi presensi yang menempel di bawah layar (sticky bottom bar).
 class AttendanceActionButtons extends StatelessWidget {
   final bool isClockedIn;
   final bool isClockedOut;
@@ -15,17 +17,8 @@ class AttendanceActionButtons extends StatelessWidget {
   /// Apakah user memiliki lokasi kerja yang ditentukan.
   final bool hasWorkLocation;
 
-  /// Waktu break out (untuk menentukan apakah sudah pernah break).
-  final String? breakOutTime;
-
   /// Metode presensi yang didapat dari server (e.g. 'photo', 'biometric').
   final String attendanceMethod;
-
-  /// Menandakan apakah hari ini adalah hari libur kerja.
-  final bool isDayOff;
-
-  /// Callback presensi dengan parameter method ('photo' atau 'biometric').
-  final ValueChanged<String>? onClockWithMethodPressed;
 
   const AttendanceActionButtons({
     super.key,
@@ -34,291 +27,93 @@ class AttendanceActionButtons extends StatelessWidget {
     required this.isOnBreak,
     this.isLoading = false,
     this.onClockPressed,
-    this.onClockWithMethodPressed,
     this.onBreakPressed,
     this.hasWorkLocation = true,
-    this.breakOutTime,
     this.attendanceMethod = 'photo',
-    this.isDayOff = false,
   });
-
-  bool get _hasAttendanceMethod => attendanceMethod.trim().isNotEmpty;
-  bool get _isBiometric =>
-      attendanceMethod.toLowerCase().contains('biometric') ||
-      attendanceMethod.toLowerCase().contains('finger');
-  bool get _isLiveness =>
-      attendanceMethod.toLowerCase().contains('liveness');
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final method = attendanceMethod.toLowerCase();
+    final hasMethod = attendanceMethod.trim().isNotEmpty;
+    final isLiveness = method.contains('liveness');
+    final isBiometric =
+        method.contains('biometric') || method.contains('finger');
+    final isCompleted = isClockedIn && isClockedOut;
 
-    final isAttendanceCompleted = isClockedIn && isClockedOut;
-    final isBiometric = _isBiometric;
-    final isLiveness = _isLiveness;
-    final hasMethod = _hasAttendanceMethod;
+    final IconData methodIcon = isLiveness
+        ? LucideIcons.scanFace
+        : isBiometric
+        ? LucideIcons.fingerprint
+        : LucideIcons.camera;
+    final String methodLabel = isLiveness
+        ? 'Verifikasi: Liveness AI'
+        : isBiometric
+        ? 'Verifikasi: Sidik Jari / Face ID'
+        : 'Verifikasi: Foto Selfie';
 
-    final String primaryButtonText;
-    final IconData primaryButtonIcon;
-    final VoidCallback? primaryAction;
-
-    final bool isActionDisabled =
-        !hasWorkLocation || !hasMethod || isAttendanceCompleted;
-
-    void defaultClockAction() {
-      if (onClockWithMethodPressed != null) {
-        onClockWithMethodPressed!(attendanceMethod);
-      } else if (onClockPressed != null) {
-        onClockPressed!();
-      }
-    }
-
+    final String text;
+    final IconData icon;
+    VoidCallback? onPressed;
     if (!hasWorkLocation) {
-      primaryButtonText = 'Lokasi Kerja Tidak Tersedia';
-      primaryButtonIcon = LucideIcons.mapPinOff;
-      primaryAction = null;
+      text = 'Lokasi Kerja Belum Diatur';
+      icon = LucideIcons.mapPinOff;
     } else if (!hasMethod) {
-      primaryButtonText = 'Metode Presensi Tidak Tersedia';
-      primaryButtonIcon = LucideIcons.shieldAlert;
-      primaryAction = null;
-    } else if (!isClockedIn) {
-      primaryButtonText = isLiveness
-          ? 'Clock In via Liveness AI'
-          : isBiometric
-              ? 'Clock In via Biometrik'
-              : 'Clock In Now';
-      primaryButtonIcon = isLiveness
-          ? LucideIcons.scanFace
-          : isBiometric
-              ? LucideIcons.fingerprint
-              : LucideIcons.camera;
-      primaryAction = isLoading ? null : defaultClockAction;
-    } else if (!isClockedOut) {
-      primaryButtonText = isLiveness
-          ? 'Clock Out via Liveness AI'
-          : isBiometric
-              ? 'Clock Out via Biometrik'
-              : 'Clock Out Now';
-      primaryButtonIcon = isLiveness
-          ? LucideIcons.scanFace
-          : isBiometric
-              ? LucideIcons.fingerprint
-              : LucideIcons.camera;
-      primaryAction = isLoading ? null : defaultClockAction;
+      text = 'Metode Presensi Belum Diatur';
+      icon = LucideIcons.shieldAlert;
+    } else if (isCompleted) {
+      text = 'Presensi Selesai';
+      icon = LucideIcons.circleCheck;
     } else {
-      primaryButtonText = 'Attendance Completed';
-      primaryButtonIcon = LucideIcons.circleCheck;
-      primaryAction = null;
+      text = isClockedIn ? 'Absen Pulang' : 'Absen Masuk';
+      icon = methodIcon;
+      onPressed = isLoading ? null : onClockPressed;
     }
 
-    // Istirahat dapat dilakukan berkali-kali selama sudah clock-in dan belum clock-out
-    final bool showBreakButton = isClockedIn && !isClockedOut;
-
-    final String breakButtonText =
-        isOnBreak ? 'Selesai Istirahat' : 'Mulai Istirahat';
+    final showBreak = isClockedIn && !isClockedOut;
+    final showHint = !showBreak && (onPressed != null || isLoading);
+    final subtle = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 0. Badge Informasi Metode Presensi (Otomatis dari Server, non-toggleable)
-        if (hasWorkLocation && !isAttendanceCompleted && hasMethod) ...[
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurfaceContainer
-                    : AppColors.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: isDark
-                      ? AppColors.darkOutlineMuted
-                      : AppColors.outlineMuted,
-                ),
+        if (showHint) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(methodIcon, size: 14, color: subtle),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                methodLabel,
+                style: AppTypography.labelSmall.copyWith(color: subtle),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isLiveness
-                        ? LucideIcons.scanFace
-                        : isBiometric
-                            ? LucideIcons.fingerprint
-                            : LucideIcons.camera,
-                    size: 14,
-                    color: AppColors.brandTeal,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isLiveness
-                        ? 'Metode Presensi: Liveness AI'
-                        : isBiometric
-                            ? 'Metode Presensi: Biometrik'
-                            : 'Metode Presensi: Foto Selfie',
-                    style: AppTypography.labelSmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.onBackground,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
-
-        // 0.1 Badge Hari Libur Kerja
-        if (isDayOff && !isAttendanceCompleted) ...[
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurfaceContainerHighest
-                    : AppColors.warningContainer,
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: isDark
-                      ? AppColors.darkOutlineMuted
-                      : AppColors.warning.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    LucideIcons.calendarOff,
-                    size: 14,
-                    color: isDark
-                        ? AppColors.warning
-                        : AppColors.onWarningContainer,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Hari Ini Jadwal Libur Kerja',
-                    style: AppTypography.labelSmall.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.darkOnSurface
-                          : AppColors.onWarningContainer,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-        ] else if (hasWorkLocation && !isAttendanceCompleted && hasMethod) ...[
-          const SizedBox(height: AppSpacing.xs),
-        ],
-
-        // 1. Primary Clock Action Button (Clock In / Clock Out)
-        SizedBox(
+        AppButton(
+          key: const ValueKey('attendance_clock_button'),
+          text: text,
+          leadingIcon: icon,
           height: 56,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: !isActionDisabled
-                  ? AppColors.brandTeal
-                  : AppColors.surfaceVariant,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: const StadiumBorder(),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              disabledBackgroundColor: !isActionDisabled
-                  ? AppColors.brandTeal.withValues(alpha: 0.5)
-                  : (isDark
-                        ? AppColors.darkSurfaceContainerHigh
-                        : AppColors.darkOnBackground),
-            ),
-            onPressed: primaryAction,
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(primaryButtonIcon, size: 22),
-                      const SizedBox(width: 10),
-                      Text(
-                        primaryButtonText,
-                        style: AppTypography.titleMedium.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: !isActionDisabled ? 16 : 14,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+          isLoading: isLoading,
+          onPressed: onPressed,
         ),
-
-        // 2. Secondary Break Button (Start Break / End Break) — conditional
-        if (showBreakButton) ...[
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 56,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark
-                    ? AppColors.darkPrimaryContainer
-                    : AppColors.accentTealLight,
-                foregroundColor: AppColors.brandTeal,
-                elevation: 0,
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-              ),
-              onPressed: isLoading ? null : onBreakPressed,
-              child: isLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isDark
-                              ? AppColors.inversePrimary
-                              : AppColors.brandTeal,
-                        ),
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          LucideIcons.coffee,
-                          size: 20,
-                          color: isDark
-                              ? AppColors.inversePrimary
-                              : AppColors.brandTeal,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          breakButtonText,
-                          style: AppTypography.titleMedium.copyWith(
-                            color: isDark
-                                ? AppColors.inversePrimary
-                                : AppColors.brandTeal,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+        if (showBreak) ...[
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            key: const ValueKey('attendance_break_button'),
+            text: isOnBreak ? 'Selesai Istirahat' : 'Mulai Istirahat',
+            leadingIcon: LucideIcons.coffee,
+            variant: AppButtonVariant.outlined,
+            height: 48,
+            onPressed: isLoading ? null : onBreakPressed,
           ),
         ],
-
-        // 3. Report Location Issue Button
       ],
     );
   }

@@ -303,4 +303,76 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get tabWarningIssued => 'Diterbitkan';
+
+  @override
+  String get menuAttendance => 'Presensi';
+
+  @override
+  String get menuOutsideAttendance => 'Absen Luar';
+
+  @override
+  String get menuSchedule => 'Jadwal Kerja';
+
+  @override
+  String get menuLiveTracking => 'Live Tracking';
+
+  @override
+  String get menuLeave => 'Izin & Cuti';
+
+  @override
+  String get menuOvertime => 'Lembur';
+
+  @override
+  String get menuActivity => 'Aktivitas';
+
+  @override
+  String get menuPayroll => 'Slip Gaji';
+
+  @override
+  String get menuClaims => 'Klaim & Kasbon';
+
+  @override
+  String get menuEmployee => 'Pegawai';
+
+  @override
+  String get menuWarningLetter => 'Surat Peringatan';
+
+  @override
+  String get menuAsset => 'Aset';
+
+  @override
+  String get menuResignation => 'Pengunduran Diri';
+
+  @override
+  String get menuMore => 'Lainnya';
+
+  @override
+  String get menuGroupAttendance => 'Kehadiran';
+
+  @override
+  String get menuGroupRequests => 'Pengajuan';
+
+  @override
+  String get menuGroupFinance => 'Keuangan';
+
+  @override
+  String get menuGroupEmployee => 'Karyawan';
+
+  @override
+  String get seeAll => 'Lihat Semua';
+
+  @override
+  String get clockInAction => 'Absen Masuk';
+
+  @override
+  String get clockOutAction => 'Absen Pulang';
+
+  @override
+  String get clockInShort => 'Masuk';
+
+  @override
+  String get clockOutShort => 'Pulang';
+
+  @override
+  String get latestCompanyAnnouncement => 'Terbaru · Pengumuman Perusahaan';
 }

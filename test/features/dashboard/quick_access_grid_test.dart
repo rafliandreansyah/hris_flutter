@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 
 MenuItemModel _menu(String code, String name) =>
     MenuItemModel(id: code, name: name, code: code);
@@ -82,13 +83,31 @@ void main() {
   });
 
   group('QuickAccessGrid widget', () {
-    testWidgets('menus null menampilkan seluruh menu default', (tester) async {
+    testWidgets('menus null menampilkan 7 menu utama + tile Lainnya', (tester) async {
       await tester.pumpWidget(_wrap(const QuickAccessGrid()));
 
-      expect(find.text('Quick Access'), findsOneWidget);
+      expect(find.text('Akses Cepat'), findsOneWidget);
       expect(find.text('Aktivitas'), findsOneWidget);
       expect(find.text('Lembur'), findsOneWidget);
       expect(find.text('Izin & Cuti'), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick_access_more')), findsOneWidget);
+    });
+
+    testWidgets('menu ≤ 8 ditampilkan semua tanpa tile Lainnya', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          QuickAccessGrid(
+            menus: [
+              _menu('mobile_leave', 'Cuti'),
+              _menu('mobile_employee', 'Pegawai'),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.text('Izin & Cuti'), findsOneWidget);
+      expect(find.text('Pegawai'), findsOneWidget);
+      expect(find.byKey(const ValueKey('quick_access_more')), findsNothing);
     });
 
     testWidgets('hanya menu yang ada di API yang ditampilkan (grid tidak rusak)', (tester) async {
@@ -113,8 +132,33 @@ void main() {
     testWidgets('API mengembalikan list kosong: seluruh section disembunyikan', (tester) async {
       await tester.pumpWidget(_wrap(const QuickAccessGrid(menus: [])));
 
-      expect(find.text('Quick Access'), findsNothing);
+      expect(find.text('Akses Cepat'), findsNothing);
       expect(find.text('Lembur'), findsNothing);
+    });
+
+    testWidgets('judul menu mengikuti bahasa aplikasi (en)', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: QuickAccessGrid(
+                menus: [
+                  _menu('mobile_leave', 'Cuti'),
+                  _menu('mobile_overtime', 'Lembur'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Quick Access'), findsOneWidget);
+      expect(find.text('Leave'), findsOneWidget);
+      expect(find.text('Overtime'), findsOneWidget);
+      expect(find.text('Izin & Cuti'), findsNothing);
     });
   });
 }

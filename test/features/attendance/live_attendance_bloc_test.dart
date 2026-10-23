@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/widgets/app_realtime_map_card.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_request.dart';
 import 'package:hris_flutter/features/attendance/data/models/live_attendance_response.dart';
@@ -429,6 +430,29 @@ void main() {
 
       await sub.cancel();
       await bloc.close();
+    });
+
+    test('GpsIssueReported menyimpan kendala dan dikosongkan saat lokasi didapat', () async {
+      final bloc = LiveAttendanceBloc(
+        repository: _MockAttendanceRequestRepo(),
+        autoStartTimer: false,
+      );
+      addTearDown(bloc.close);
+
+      bloc.add(const LiveAttendanceGpsIssueReported(MapGpsIssue.serviceDisabled));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.gpsIssue, MapGpsIssue.serviceDisabled);
+      expect(bloc.state.isLocating, isFalse);
+      expect(bloc.state.hasValidCoordinates, isFalse);
+
+      bloc.add(const LiveAttendanceLocationUpdated(
+        latitude: -6.2,
+        longitude: 106.8,
+        accuracy: '±12m',
+      ));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.gpsIssue, isNull);
+      expect(bloc.state.accuracyMeters, 12);
     });
   });
 }

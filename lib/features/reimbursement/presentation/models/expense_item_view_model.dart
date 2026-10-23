@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:intl/intl.dart';
-import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Helper pemformatan mata uang Rupiah.
 String formatRupiah(num? amount) {
@@ -41,51 +40,18 @@ extension ExpenseStatusExtension on ExpenseStatus {
     }
   }
 
-  Color get textColor {
+  AppStatusTone get tone {
     switch (this) {
       case ExpenseStatus.requested:
-        return const Color(0xFFB45309); // Amber 700
-      case ExpenseStatus.approved:
-        return AppColors.primaryHover; // Teal 700
-      case ExpenseStatus.disbursed:
-      case ExpenseStatus.settled:
-        return const Color(0xFF166534); // Green 800
       case ExpenseStatus.settlementInProgress:
-        return const Color(0xFF4338CA); // Indigo 700
-      case ExpenseStatus.rejected:
-        return const Color(0xFF991B1B); // Red 800
-    }
-  }
-
-  Color get backgroundColor {
-    switch (this) {
-      case ExpenseStatus.requested:
-        return AppColors.warningContainer; // Amber 100
+        return AppStatusTone.warning;
       case ExpenseStatus.approved:
-        return AppColors.accentTealLight; // Teal 100
-      case ExpenseStatus.disbursed:
       case ExpenseStatus.settled:
-        return const Color(0xFFDCFCE7); // Green 100
-      case ExpenseStatus.settlementInProgress:
-        return const Color(0xFFE0E7FF); // Indigo 100
-      case ExpenseStatus.rejected:
-        return const Color(0xFFFEE2E2); // Red 100
-    }
-  }
-
-  Color get dotColor {
-    switch (this) {
-      case ExpenseStatus.requested:
-        return AppColors.warning;
-      case ExpenseStatus.approved:
-        return AppColors.brandTealSecondary;
+        return AppStatusTone.success;
       case ExpenseStatus.disbursed:
-      case ExpenseStatus.settled:
-        return const Color(0xFF16A34A);
-      case ExpenseStatus.settlementInProgress:
-        return const Color(0xFF6366F1);
+        return AppStatusTone.info;
       case ExpenseStatus.rejected:
-        return AppColors.errorRed;
+        return AppStatusTone.error;
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/features/dashboard/data/models/dashboard_response_model.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Card Pengumuman / Feed Updates Dashboard.
@@ -28,21 +29,21 @@ class UpdatesFeedCard extends StatelessWidget {
     this.onAnnouncementTap,
   });
 
-  /// Format waktu relatif pengumuman (e.g. "2h lalu · Company Announcement").
+  /// Format waktu relatif pengumuman (e.g. "2j lalu · Pengumuman Perusahaan").
   static String formatAnnouncementTime(String? createdAt) {
     if (createdAt == null || createdAt.isEmpty) {
-      return 'Terbaru · Company Announcement';
+      return 'Terbaru · Pengumuman Perusahaan';
     }
     final dt = DateTime.tryParse(createdAt);
     if (dt == null) return 'Terbaru · Company Announcement';
     final now = DateTime.now();
     final diff = now.difference(dt);
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m lalu · Company Announcement';
+      return '${diff.inMinutes}m lalu · Pengumuman Perusahaan';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}h lalu · Company Announcement';
+      return '${diff.inHours}j lalu · Pengumuman Perusahaan';
     } else {
-      return '${diff.inDays}h lalu · Company Announcement';
+      return '${diff.inDays}h lalu · Pengumuman Perusahaan';
     }
   }
 
@@ -86,7 +87,7 @@ class UpdatesFeedCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Updates',
+              AppLocalizations.of(context)?.updates ?? 'Pembaruan',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -96,7 +97,7 @@ class UpdatesFeedCard extends StatelessWidget {
               GestureDetector(
                 onTap: onSeeAll ?? () => context.push(Routes.ANNOUNCEMENT),
                 child: Text(
-                  'See All',
+                  AppLocalizations.of(context)?.seeAll ?? 'Lihat Semua',
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.brandTeal,
                     fontWeight: FontWeight.w700,

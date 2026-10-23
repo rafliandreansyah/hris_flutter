@@ -20,6 +20,12 @@ typedef LocationChangedCallback =
 typedef AddressDetectedCallback =
     void Function(String fullAddress, String locationName);
 
+/// Penyebab GPS gagal didapat; dilaporkan lewat [AppRealtimeMapCard.onGpsIssue].
+enum MapGpsIssue { permissionDenied, serviceDisabled, unavailable }
+
+/// Callback signature for GPS failures (permission, service off, timeout).
+typedef GpsIssueCallback = void Function(MapGpsIssue issue);
+
 /// Global Reusable Real-time Map Card Component.
 ///
 /// Features:
@@ -42,6 +48,9 @@ class AppRealtimeMapCard extends StatefulWidget {
   final LocationChangedCallback? onLocationChanged;
   final AddressDetectedCallback? onAddressDetected;
 
+  /// Dipanggil saat GPS gagal didapat agar halaman bisa menjelaskannya ke user.
+  final GpsIssueCallback? onGpsIssue;
+
   const AppRealtimeMapCard({
     super.key,
     this.title = 'Lokasi Aktivitas',
@@ -53,6 +62,7 @@ class AppRealtimeMapCard extends StatefulWidget {
     this.showOpenInMaps = true,
     this.onLocationChanged,
     this.onAddressDetected,
+    this.onGpsIssue,
   });
 
   @override
@@ -71,6 +81,10 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
   late String _currentAccuracy;
   bool _hasLocationPermission = false;
   bool _isLocating = true;
+
+  /// Sudah pernah menerima posisi nyata dari sensor GPS. Sebelum itu, koordinat
+  /// yang tampil hanya nilai awal dari parent, bukan posisi user.
+  bool _hasFix = false;
 
   /// Flag pengujian unit/widget test untuk melewati GoogleMap dan animasi berulang
   @visibleForTesting
@@ -112,6 +126,8 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
       _initGpsLocation();
     } else {
       _isLocating = false;
+      // shortcut: test/desktop tidak punya sensor GPS, dianggap sudah terkunci.
+      _hasFix = true;
     }
   }
 
@@ -146,6 +162,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
       );
       if (!serviceEnabled) {
         if (mounted) setState(() => _isLocating = false);
+        widget.onGpsIssue?.call(MapGpsIssue.serviceDisabled);
         return;
       }
 
@@ -156,6 +173,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
       );
       if (!locResult.isGranted) {
         if (mounted) setState(() => _isLocating = false);
+        widget.onGpsIssue?.call(MapGpsIssue.permissionDenied);
         return;
       }
 
@@ -187,6 +205,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
     } catch (e) {
       debugPrint('[AppRealtimeMapCard] Gps fetch error: $e');
       if (mounted) setState(() => _isLocating = false);
+      if (!_hasFix) widget.onGpsIssue?.call(MapGpsIssue.unavailable);
     }
   }
 
@@ -198,6 +217,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
       _currentLng = position.longitude;
       _currentAccuracy = accuracyText;
       _isLocating = false;
+      _hasFix = true;
       _hasLocationPermission = true;
     });
 
@@ -258,16 +278,32 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
 
   /// Membuka lokasi aktual pada aplikasi Maps default perangkat
   Future<void> _openInDefaultMaps() async {
-    if (_isTestEnvironment) return;
+    if (_isTestEnvironment || !_hasFix) return;
     await MapsConfig.openGoogleMaps(
       latitude: _currentLat,
       longitude: _currentLng,
     );
   }
 
+  /// Label & warna badge akurasi: hijau <= 20 m, kuning <= 100 m, merah di atasnya.
+  (String, Color) _accuracyBadge() {
+    if (!_hasFix) return ('Menunggu sinyal GPS…', AppColors.warning);
+    final meters = int.tryParse(
+      RegExp(r'\d+').stringMatch(_currentAccuracy) ?? '',
+    );
+    if (meters == null || meters <= 20) {
+      return ('GPS Akurat ($_currentAccuracy)', AppColors.success);
+    }
+    if (meters <= 100) {
+      return ('GPS Cukup ($_currentAccuracy)', AppColors.warning);
+    }
+    return ('GPS Lemah ($_currentAccuracy)', AppColors.errorRed);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accuracyBadge = _accuracyBadge();
     final cardBg = isDark
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
@@ -383,25 +419,26 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                       ),
                       gestureRecognizers:
                           <Factory<OneSequenceGestureRecognizer>>{
-                        Factory<OneSequenceGestureRecognizer>(
-                          () => EagerGestureRecognizer(),
-                        ),
-                      },
+                            Factory<OneSequenceGestureRecognizer>(
+                              () => EagerGestureRecognizer(),
+                            ),
+                          },
                       // Murni lingkaran biru GPS tanpa pin marker merah/buatan
                       markers: const <Marker>{},
                       circles: {
-                        Circle(
-                          circleId: const CircleId('user_realtime_radius'),
-                          center: targetLocation,
-                          radius: 35,
-                          fillColor: const Color(
-                            0xFF2563EB,
-                          ).withValues(alpha: 0.14),
-                          strokeColor: const Color(
-                            0xFF2563EB,
-                          ).withValues(alpha: 0.35),
-                          strokeWidth: 1,
-                        ),
+                        if (_hasFix)
+                          Circle(
+                            circleId: const CircleId('user_realtime_radius'),
+                            center: targetLocation,
+                            radius: 35,
+                            fillColor: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.14),
+                            strokeColor: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.35),
+                            strokeWidth: 1,
+                          ),
                       },
                       myLocationEnabled: _hasLocationPermission,
                       myLocationButtonEnabled: false,
@@ -409,6 +446,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                       mapToolbarEnabled: false,
                       compassEnabled: false,
                       liteModeEnabled: false,
+                      style: isDark ? MapsConfig.darkMapStyle : null,
                       onMapCreated: (controller) {
                         _mapController = controller;
                         // Langsung fokuskan kamera ke koordinat aktual perangkat
@@ -420,53 +458,95 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
 
                   // Indikator Titik Biru GPS (Pulsing Radar Blue Dot) di tengah peta
                   // Memberikan visualisasi instan posisi real-time tanpa pin marker manual
-                  IgnorePointer(
-                    child: Center(
-                      child: AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Gelombang radar biru luar
-                              Container(
-                                width: 38 * _pulseAnimation.value + 16,
-                                height: 38 * _pulseAnimation.value + 16,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFF2563EB).withValues(
-                                    alpha: (1.0 - _pulseAnimation.value) * 0.35,
-                                  ),
-                                ),
-                              ),
-                              // Titik biru solid GPS
-                              Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFF2563EB),
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF2563EB,
-                                      ).withValues(alpha: 0.45),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 1),
+                  if (_hasFix)
+                    IgnorePointer(
+                      child: Center(
+                        child: AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) {
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Gelombang radar biru luar
+                                Container(
+                                  width: 38 * _pulseAnimation.value + 16,
+                                  height: 38 * _pulseAnimation.value + 16,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFF2563EB).withValues(
+                                      alpha:
+                                          (1.0 - _pulseAnimation.value) * 0.35,
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                                // Titik biru solid GPS
+                                Container(
+                                  width: 15,
+                                  height: 15,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFF2563EB),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF2563EB,
+                                        ).withValues(alpha: 0.45),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
+
+                  // Belum ada posisi nyata: jangan tampilkan titik di koordinat awal
+                  if (!_hasFix)
+                    IgnorePointer(
+                      child: Container(
+                        color: (isDark ? Colors.black : Colors.white)
+                            .withValues(alpha: 0.55),
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isLocating)
+                              const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.brandTeal,
+                                ),
+                              )
+                            else
+                              const Icon(
+                                LucideIcons.locateOff,
+                                size: 24,
+                                color: AppColors.errorRed,
+                              ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _isLocating
+                                  ? 'Mencari lokasi Anda…'
+                                  : 'Lokasi belum ditemukan',
+                              style: AppTypography.labelMedium.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: textCol,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                   // Overlay Badge: Live GPS Tracking (Top Right)
                   Positioned(
@@ -503,7 +583,9 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                           Text(
                             _isLocating
                                 ? 'Mencari GPS...'
-                                : 'Live GPS Tracking',
+                                : _hasFix
+                                ? 'Live GPS Tracking'
+                                : 'GPS Tidak Tersedia',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
@@ -546,14 +628,14 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                           Container(
                             width: 5,
                             height: 5,
-                            decoration: const BoxDecoration(
-                              color: AppColors.success,
+                            decoration: BoxDecoration(
+                              color: accuracyBadge.$2,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            'GPS Akurat ($_currentAccuracy)',
+                            accuracyBadge.$1,
                             style: AppTypography.labelSmall.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -625,7 +707,9 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                   border: Border.all(color: borderCol, width: 1),
                 ),
                 child: Text(
-                  '${_currentLat.toStringAsFixed(4)}° S, ${_currentLng.toStringAsFixed(4)}° E',
+                  _hasFix
+                      ? '${_currentLat.toStringAsFixed(4)}° S, ${_currentLng.toStringAsFixed(4)}° E'
+                      : 'Koordinat belum tersedia',
                   style: const TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 11,

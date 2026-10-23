@@ -23,12 +23,11 @@ import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_st
 import 'package:hris_flutter/features/attendance/presentation/pages/liveness_camera_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_action_buttons.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_break_sheet.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_employee_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_geofence_map_card.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_server_clock_card.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_break_sessions_card.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_compact_header.dart';
+import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_status_strip.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_success_dialog.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_timeline_section.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_top_app_bar.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_work_location_card.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -68,37 +67,88 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
   bool _hasShownNoMethodDialog = false;
   bool _isShowingSuccessDialog = false;
 
+  /// Perkiraan tinggi header melayang (di luar status bar) untuk padding kamera peta.
+  static const double _headerHeight = 196;
+
   @override
   void initState() {
     super.initState();
     _requestGpsLocation();
   }
 
+  /// Muat ulang data presensi sekaligus posisi GPS.
+  void _refresh() {
+    context.read<AttendanceBloc>().add(
+      const AttendanceFetchRequested(isRefresh: true),
+    );
+    unawaited(_requestGpsLocation(showFeedback: true));
+  }
+
+  void _openLocationPicker(BuildContext context, AttendanceLoaded loaded) {
+    final data = loaded.data;
+    if (data.availableWorkLocations.length < 2) return;
+    AttendanceWorkLocationCard(
+      selectedLocation: data.selectedWorkLocation,
+      availableLocations: data.availableWorkLocations,
+      onLocationChanged: (newLocation, {setAsDefault = false}) {
+        context.read<AttendanceBloc>().add(
+          AttendanceWorkLocationChanged(
+            newLocation,
+            setAsDefault: setAsDefault,
+          ),
+        );
+      },
+    ).showPicker(context);
+  }
+
+  void _showBreakHistory(BuildContext context, AttendanceLoaded loaded) {
+    final status = loaded.breakStatus;
+    if (status == null) return;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: isDark
+          ? AppColors.darkSurfaceContainerLowest
+          : AppColors.surfaceContainerLowest,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: AttendanceBreakSessionsCard(status: status),
+        ),
+      ),
+    );
+  }
+
+  void _reportGpsIssue(AttendanceGpsIssue issue) {
+    if (mounted) {
+      context.read<AttendanceBloc>().add(AttendanceGpsIssueReported(issue));
+    }
+  }
+
+  void _pushLocation(Position position) {
+    if (!mounted) return;
+    context.read<AttendanceBloc>().add(
+      AttendanceLocationUpdated(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accuracy: position.accuracy,
+        isInsideGeofence: true,
+      ),
+    );
+  }
+
+  /// Mengambil GPS user. Kegagalan (izin / GPS mati / timeout) dilaporkan ke bloc
+  /// agar tampil jelas di status banner, bukan snackbar singkat.
   Future<Position?> _requestGpsLocation({bool showFeedback = false}) async {
     if (showFeedback && mounted) {
       setState(() => _isUpdatingLocation = true);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(width: 12),
-              Text('Memperbarui lokasi GPS sekarang...'),
-            ],
-          ),
-          backgroundColor: AppColors.brandTeal,
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 1),
-        ),
-      );
     }
 
     try {
@@ -107,25 +157,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         showRationale: showFeedback,
       );
       if (!locResult.isGranted) {
-        if (showFeedback && mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(LucideIcons.circleAlert, color: Colors.white, size: 18),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text('Izin lokasi ditolak. Aktifkan izin lokasi di pengaturan.'),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+        _reportGpsIssue(AttendanceGpsIssue.permissionDenied);
         return null;
       }
 
@@ -135,124 +167,45 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
           context,
           promptToEnable: showFeedback,
         );
-        if (!gpsEnabled) return null;
+        if (!gpsEnabled) {
+          _reportGpsIssue(AttendanceGpsIssue.serviceDisabled);
+          return null;
+        }
       }
 
-      // 1. Coba ambil lokasi terakhir (cached) secara instan (~10ms) untuk iOS/Android
+      // 1. Lokasi terakhir (cached) secara instan agar banner cepat berubah
       Position? position;
       try {
-        final lastKnown = await Geolocator.getLastKnownPosition();
-        if (lastKnown != null && mounted) {
-          position = lastKnown;
-          context.read<AttendanceBloc>().add(
-            AttendanceLocationUpdated(
-              latitude: lastKnown.latitude,
-              longitude: lastKnown.longitude,
-              accuracy: lastKnown.accuracy,
-              isInsideGeofence: true,
-            ),
-          );
-        }
+        position = await Geolocator.getLastKnownPosition();
+        if (position != null) _pushLocation(position);
       } catch (silentError) {
-      debugPrint('[diabaikan] $silentError');
-    }
-
-      // 2. Ambil koordinat GPS akurat dengan batas waktu responsif (4 detik jika sudah ada posisi, 6 detik jika cold start)
-      try {
-        final freshPosition = await Geolocator.getCurrentPosition(
-          locationSettings: LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: position != null
-                ? const Duration(seconds: 4)
-                : const Duration(seconds: 6),
-          ),
-        );
-        position = freshPosition;
-        if (mounted) {
-          context.read<AttendanceBloc>().add(
-            AttendanceLocationUpdated(
-              latitude: freshPosition.latitude,
-              longitude: freshPosition.longitude,
-              accuracy: freshPosition.accuracy,
-              isInsideGeofence: true,
-            ),
-          );
-        }
-      } catch (_) {
-        // Fallback cepat: Jika high accuracy timeout & belum ada posisi (misal di dalam ruangan),
-        // coba ambil posisi via jaringan seluler/Wi-Fi (medium accuracy) yang sangat cepat
-        if (position == null) {
-          try {
-            final fallbackPosition = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.medium,
-                timeLimit: Duration(seconds: 3),
-              ),
-            );
-            position = fallbackPosition;
-            if (mounted) {
-              context.read<AttendanceBloc>().add(
-                AttendanceLocationUpdated(
-                  latitude: fallbackPosition.latitude,
-                  longitude: fallbackPosition.longitude,
-                  accuracy: fallbackPosition.accuracy,
-                  isInsideGeofence: true,
-                ),
-              );
-            }
-          } catch (_) {
-            if (position == null) {
-              rethrow;
-            }
-          }
-        }
+        debugPrint('[diabaikan] $silentError');
       }
 
-      if (showFeedback && mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(
-                  LucideIcons.circleCheck,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Lokasi GPS diperbarui: ${position.latitude.toStringAsFixed(4)}°, ${position.longitude.toStringAsFixed(4)}°',
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.brandTeal,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
+      // 2. GPS akurat dengan batas waktu (4 dtk bila sudah ada posisi, 6 dtk cold start)
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: position != null ? 4 : 6),
           ),
         );
+        _pushLocation(position);
+      } catch (_) {
+        // Fallback cepat via jaringan seluler/Wi-Fi bila belum ada posisi sama sekali
+        if (position == null) {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+              timeLimit: Duration(seconds: 3),
+            ),
+          );
+          _pushLocation(position);
+        }
       }
       return position;
     } catch (_) {
-      // Ignored for environments without GPS/test runner
-      if (showFeedback && mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Icon(LucideIcons.circleAlert, color: Colors.white, size: 18),
-                SizedBox(width: 10),
-                Text('Tidak dapat memperbarui lokasi GPS'),
-              ],
-            ),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      _reportGpsIssue(AttendanceGpsIssue.unavailable);
       return null;
     } finally {
       if (mounted && _isUpdatingLocation) {
@@ -260,7 +213,6 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       }
     }
   }
-
 
   /// Mulai / selesai istirahat: konfirmasi via bottom sheet (catatan opsional),
   /// lalu kirim event ke bloc yang memanggil API.
@@ -292,13 +244,11 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
     // 1. Pengecekan apakah sudah absen masuk dan pulang
     if (data.isClockedIn && data.isClockedOut) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Presensi kehadiran hari ini sudah selesai.'),
-          backgroundColor: AppColors.brandTeal,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppDialogUtil.showSuccess(
+        context,
+        title: 'Presensi Selesai',
+        message: 'Presensi kehadiran hari ini sudah selesai.',
+        buttonText: 'Mengerti',
       );
       return;
     }
@@ -348,14 +298,38 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
       return;
     }
 
-    // 4. Validasi radius kantor (kecuali lokasi kerja adalah isAnyWhere)
+    // 4. Validasi GPS & radius kantor (kecuali lokasi kerja adalah isAnyWhere)
     final isAnyWhere = selectedLocation.isAnyWhere;
+    if (!isAnyWhere && !state.isGpsAcquired) {
+      AppDialogUtil.showWarning(
+        context,
+        title: 'Lokasi Belum Terdeteksi',
+        message: switch (state.gpsIssue) {
+          AttendanceGpsIssue.permissionDenied =>
+            'Izin lokasi belum diberikan, jadi kami belum bisa memastikan Anda berada di area kerja. Izinkan akses lokasi lalu coba lagi.',
+          AttendanceGpsIssue.serviceDisabled =>
+            'GPS perangkat Anda mati. Aktifkan GPS/Lokasi lalu coba lagi.',
+          _ =>
+            'Posisi Anda belum ditemukan. Tunggu GPS terkunci atau pindah ke area terbuka, lalu coba lagi.',
+        },
+        confirmText: 'Perbarui Lokasi',
+        cancelText: 'Kembali',
+        onConfirm: () => _requestGpsLocation(showFeedback: true),
+      );
+      return;
+    }
     if (!isAnyWhere && !state.isInsideGeofence) {
+      final dist = state.distanceToOfficeMeters;
+      final distText = dist == null
+          ? ''
+          : 'Posisi Anda sekitar ${dist >= 1000 ? '${(dist / 1000).toStringAsFixed(1)} km' : '${dist.toStringAsFixed(0)} m'} dari ${data.officeName}. ';
       AppDialogUtil.showError(
         context,
-        title: 'Di Luar Radius Kantor',
+        title: 'Anda Di Luar Radius Kantor',
         message:
-            'Anda berada di luar radius lokasi kerja (${data.geofenceRadiusMeters.toStringAsFixed(0)}m). Silakan mendekat ke area kantor untuk melakukan presensi.',
+            '${distText}Presensi hanya bisa dilakukan dalam radius ${data.geofenceRadiusMeters.toStringAsFixed(0)} m. Dekati area kantor, atau ganti lokasi kerja bila Anda bertugas di tempat lain.',
+        retryText: 'Perbarui Lokasi',
+        onRetry: () => _requestGpsLocation(showFeedback: true),
         closeText: 'Kembali',
       );
       return;
@@ -376,9 +350,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
       try {
         final File? capturedFile = await Navigator.of(context).push<File?>(
-          MaterialPageRoute(
-            builder: (_) => const LivenessCameraScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const LivenessCameraScreen()),
         );
 
         if (capturedFile == null) return;
@@ -418,8 +390,9 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         );
       }
     } else if (data.isBiometricMethod) {
-      final locGranted =
-          await PermissionUtil.requestLocationPermission(context: context);
+      final locGranted = await PermissionUtil.requestLocationPermission(
+        context: context,
+      );
       if (!locGranted.isGranted) return;
       if (!context.mounted) return;
 
@@ -528,111 +501,113 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         ? AppColors.darkBackgroundSubtle
         : AppColors.backgroundSubtle;
 
+    final currentState = context.watch<AttendanceBloc>().state;
+
     return Scaffold(
       backgroundColor: scaffoldBg,
-      body: SafeArea(
-        child: BlocConsumer<AttendanceBloc, AttendanceState>(
-          listenWhen: (previous, current) {
-            if (previous is AttendanceLoaded && current is AttendanceLoaded) {
-              return previous.attendanceSuccess != current.attendanceSuccess ||
-                  previous.actionMessage != current.actionMessage ||
-                  previous.errorMessage != current.errorMessage ||
-                  previous.data.hasAttendanceMethod !=
-                      current.data.hasAttendanceMethod;
-            }
-            return previous != current;
-          },
-          listener: (context, state) {
-            if (state is AttendanceLoaded) {
-              if (!state.data.hasAttendanceMethod && !_hasShownNoMethodDialog) {
-                _hasShownNoMethodDialog = true;
-                AppDialogUtil.showError(
-                  context,
-                  title: 'Metode Presensi Tidak Ditemukan',
-                  message:
-                      'Anda belum memiliki metode presensi yang ditentukan. Hubungi admin atau atasan Anda untuk mengatur metode presensi.',
-                  closeText: 'Kembali',
-                  onClose: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/dashboard');
-                    }
-                  },
-                );
-                return;
-              }
-
-              // 1. Tampilkan Dialog Sukses Presensi jika ada (Clock In / Clock Out)
-              if (state.attendanceSuccess != null && !_isShowingSuccessDialog) {
-                _isShowingSuccessDialog = true;
-                final info = state.attendanceSuccess!;
-                AttendanceSuccessDialog.show(
-                  context,
-                  successInfo: info,
-                  onOk: () {
-                    _isShowingSuccessDialog = false;
-                    Navigator.of(context, rootNavigator: true).pop();
-                    context.pushReplacement(
-                      Routes.ATTENDANCE_LOGS,
-                      extra: {'redirectToDashboardOnBack': true},
-                    );
-                  },
-                );
-                return;
-              }
-
-              if (state.actionMessage != null) {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.actionMessage!),
-                    backgroundColor: AppColors.brandTeal,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } else if (state.errorMessage != null) {
-                AppDialogUtil.showError(
-                  context,
-                  title: 'Gagal',
-                  message: state.errorMessage!,
-                );
-              }
-            } else if (state is AttendanceFailure) {
-              final isNotFound = state.isNotFound;
-              final l10n = AppLocalizations.of(context);
+      bottomNavigationBar: currentState is AttendanceLoaded
+          ? _buildBottomBar(context, currentState, isDark)
+          : null,
+      body: BlocConsumer<AttendanceBloc, AttendanceState>(
+        listenWhen: (previous, current) {
+          if (previous is AttendanceLoaded && current is AttendanceLoaded) {
+            return previous.attendanceSuccess != current.attendanceSuccess ||
+                previous.actionMessage != current.actionMessage ||
+                previous.errorMessage != current.errorMessage ||
+                previous.data.hasAttendanceMethod !=
+                    current.data.hasAttendanceMethod;
+          }
+          return previous != current;
+        },
+        listener: (context, state) {
+          if (state is AttendanceLoaded) {
+            if (!state.data.hasAttendanceMethod && !_hasShownNoMethodDialog) {
+              _hasShownNoMethodDialog = true;
               AppDialogUtil.showError(
                 context,
-                title: isNotFound
-                    ? (l10n?.notice ?? 'Pemberitahuan')
-                    : (l10n?.failedToLoadAttendance ?? 'Gagal Memuat Absensi'),
-                message: state.message,
-                closeText: isNotFound
-                    ? l10n?.back ?? 'Kembali'
-                    : l10n?.close ?? 'Tutup',
-                onClose: isNotFound
-                    ? () => Navigator.of(context).maybePop()
-                    : null,
-                onRetry: isNotFound
-                    ? null
-                    : () {
-                        context.read<AttendanceBloc>().add(
-                          const AttendanceFetchRequested(),
-                        );
-                      },
+                title: 'Metode Presensi Tidak Ditemukan',
+                message:
+                    'Anda belum memiliki metode presensi yang ditentukan. Hubungi admin atau atasan Anda untuk mengatur metode presensi.',
+                closeText: 'Kembali',
+                onClose: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/dashboard');
+                  }
+                },
+              );
+              return;
+            }
+
+            // 1. Tampilkan Dialog Sukses Presensi jika ada (Clock In / Clock Out)
+            if (state.attendanceSuccess != null && !_isShowingSuccessDialog) {
+              _isShowingSuccessDialog = true;
+              final info = state.attendanceSuccess!;
+              AttendanceSuccessDialog.show(
+                context,
+                successInfo: info,
+                onOk: () {
+                  _isShowingSuccessDialog = false;
+                  Navigator.of(context, rootNavigator: true).pop();
+                  context.pushReplacement(
+                    Routes.ATTENDANCE_LOGS,
+                    extra: {'redirectToDashboardOnBack': true},
+                  );
+                },
+              );
+              return;
+            }
+
+            if (state.actionMessage != null) {
+              AppDialogUtil.showSuccess(
+                context,
+                title: 'Berhasil',
+                message: state.actionMessage!,
+              );
+            } else if (state.errorMessage != null) {
+              AppDialogUtil.showError(
+                context,
+                title: 'Presensi Gagal Dikirim',
+                message: state.errorMessage!,
               );
             }
-          },
-          builder: (context, state) {
+          } else if (state is AttendanceFailure) {
+            final isNotFound = state.isNotFound;
             final l10n = AppLocalizations.of(context);
-            if (state is AttendanceLoading) {
-              return _buildShimmerLoading(isDark);
-            }
+            AppDialogUtil.showError(
+              context,
+              title: isNotFound
+                  ? (l10n?.notice ?? 'Pemberitahuan')
+                  : (l10n?.failedToLoadAttendance ?? 'Gagal Memuat Absensi'),
+              message: state.message,
+              closeText: isNotFound
+                  ? l10n?.back ?? 'Kembali'
+                  : l10n?.close ?? 'Tutup',
+              onClose: isNotFound
+                  ? () => Navigator.of(context).maybePop()
+                  : null,
+              onRetry: isNotFound
+                  ? null
+                  : () {
+                      context.read<AttendanceBloc>().add(
+                        const AttendanceFetchRequested(),
+                      );
+                    },
+            );
+          }
+        },
+        builder: (context, state) {
+          final l10n = AppLocalizations.of(context);
+          if (state is AttendanceLoading) {
+            return SafeArea(child: _buildShimmerLoading(isDark));
+          }
 
-            if (state is AttendanceFailure) {
-              final isNotFound = state.isNotFound;
+          if (state is AttendanceFailure) {
+            final isNotFound = state.isNotFound;
 
-              return Center(
+            return SafeArea(
+              child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
@@ -683,270 +658,123 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
                     ],
                   ),
                 ),
-              );
-            }
-
-            final loaded = state is AttendanceLoaded
-                ? state
-                : AttendanceLoaded(
-                    data: AttendanceTodayData(serverTime: DateTime.now()),
-                    currentClockTime: DateTime.now(),
-                  );
-
-            final data = loaded.data;
-
-            return RefreshIndicator(
-              color: AppColors.brandTeal,
-              onRefresh: () async {
-                final fetchFuture = context.read<AttendanceBloc>().stream.firstWhere(
-                  (s) => s is AttendanceLoaded || s is AttendanceFailure,
-                );
-                context.read<AttendanceBloc>().add(
-                  const AttendanceFetchRequested(isRefresh: true),
-                );
-                unawaited(_requestGpsLocation());
-                await fetchFuture;
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  // Top App Bar (SliverAppBar floating & snap - hide on scroll down, show on scroll up)
-                  AttendanceTopAppBar(
-                    title: l10n?.attendanceTitle ?? 'Attendance & Check-In',
-                    subtitle: '${data.companyName} • ${data.departmentName}',
-                    isUpdatingLocation: _isUpdatingLocation,
-                    onUpdateLocationPressed: _isUpdatingLocation
-                        ? null
-                        : () => _requestGpsLocation(showFeedback: true),
-                  ),
-
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        // 1. Geofence Map Card
-                        AttendanceGeofenceMapCard(
-                          officeLatitude: data.officeLatitude,
-                          officeLongitude: data.officeLongitude,
-                          userLatitude: loaded.userLatitude,
-                          userLongitude: loaded.userLongitude,
-                          geofenceRadiusMeters: data.geofenceRadiusMeters,
-                          isInsideGeofence: loaded.isInsideGeofence,
-                          gpsAccuracy: data.gpsAccuracy,
-                          isAnyWhere:
-                              data.selectedWorkLocation?.isAnyWhere ?? false,
-                          hasWorkLocation: data.hasWorkLocation,
-                          isGpsAcquired: loaded.isGpsAcquired,
-                          officeName: data.officeName,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 2. Work Location Card (Picker & Switcher)
-                        AttendanceWorkLocationCard(
-                          selectedLocation: data.selectedWorkLocation,
-                          availableLocations: data.availableWorkLocations,
-                          onLocationChanged: (newLocation,
-                              {setAsDefault = false}) {
-                            context.read<AttendanceBloc>().add(
-                                  AttendanceWorkLocationChanged(
-                                    newLocation,
-                                    setAsDefault: setAsDefault,
-                                  ),
-                                );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 2.1 Day Off Informational Banner
-                        if (data.isDayOff) ...[
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkSurfaceContainerHighest
-                                  : AppColors.warningContainer.withValues(alpha: 0.6),
-                              borderRadius: AppRadius.borderLg,
-                              border: Border.all(
-                                color: isDark
-                                    ? AppColors.darkOutlineMuted
-                                    : AppColors.warning.withValues(alpha: 0.35),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(AppSpacing.sm),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? AppColors.darkSurfaceContainerHigh
-                                        : AppColors.warningContainer,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.calendarOff,
-                                    color: isDark
-                                        ? AppColors.warning
-                                        : AppColors.onWarningContainer,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n?.dayOffNotice ?? 'Jadwal Libur Kerja',
-                                        style: AppTypography.titleSmall.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? AppColors.darkOnSurface
-                                              : AppColors.onWarningContainer,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        l10n?.dayOffDescription ??
-                                            'Hari ini Anda tidak memiliki jadwal kerja aktif (Hari Libur).',
-                                        style: AppTypography.bodySmall.copyWith(
-                                          color: isDark
-                                              ? AppColors.darkOnSurfaceVariant
-                                              : AppColors.onWarningContainer.withValues(alpha: 0.85),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ] else if (!data.hasSchedule) ...[
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.darkSurfaceContainerHighest
-                                  : AppColors.surfaceContainerHigh,
-                              borderRadius: AppRadius.borderLg,
-                              border: Border.all(
-                                color: isDark
-                                    ? AppColors.darkOutlineMuted
-                                    : AppColors.outlineMuted,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(AppSpacing.sm),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? AppColors.darkSurfaceContainerHigh
-                                        : AppColors.surfaceContainerLowest,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.calendarX,
-                                    color: isDark
-                                        ? AppColors.darkOnSurfaceVariant
-                                        : AppColors.onSurfaceVariant,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n?.scheduleNotice ?? 'Pemberitahuan Jadwal',
-                                        style: AppTypography.titleSmall.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? AppColors.darkOnSurface
-                                              : AppColors.onSurface,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        l10n?.noWorkSchedule ?? 'Tidak Ada Jadwal Kerja',
-                                        style: AppTypography.bodySmall.copyWith(
-                                          color: isDark
-                                              ? AppColors.darkOnSurfaceVariant
-                                              : AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // 3. Realtime Server Clock Card (Without 'WIB')
-                        AttendanceServerClockCard(
-                          serverTime: loaded.currentClockTime,
-                          clockTimeString: loaded.formattedClockTime,
-                          timezone: data.timezone,
-                          shiftName: data.shiftName,
-                          isDayOff: data.isDayOff,
-                          hasSchedule: data.hasSchedule,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 4. User & Office Info Card
-                        AttendanceEmployeeCard(
-                          employeeName: data.employeeName,
-                          employeeRole: data.employeeRole,
-                          employeeId: data.employeeId,
-                          photoUrl: data.photoUrl,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 5. Timeline Section (Clock In, Break Session, Clock Out)
-                        AttendanceTimelineSection(
-                          inTime: data.inTime,
-                          outTime: data.outTime,
-                          breakOutTime: data.breakOutTime,
-                          breakInTime: data.breakInTime,
-                          isClockedIn: data.isClockedIn,
-                          isClockedOut: data.isClockedOut,
-                          breakStatus: loaded.breakStatus,
-                        ),
-                        const SizedBox(height: 20),
-
-                        // 6. Action Buttons (Clock In Now, Start Break, Report Location Issue)
-                        AttendanceActionButtons(
-                          isClockedIn: data.isClockedIn,
-                          isClockedOut: data.isClockedOut,
-                          isOnBreak: data.isOnBreak,
-                          isLoading: loaded.isSubmittingAction,
-                          hasWorkLocation: data.hasWorkLocation,
-                          breakOutTime: data.breakOutTime,
-                          attendanceMethod: data.attendanceMethod,
-                          isDayOff: data.isDayOff,
-                          onClockPressed: () => _handleClockAction(
-                            context,
-                            state: loaded,
-                          ),
-                          onBreakPressed: () =>
-                              _handleBreakAction(context, state: loaded),
-                        ),
-                        const SizedBox(height: 24),
-                      ]),
-                    ),
-                  ),
-                ],
               ),
             );
-          },
+          }
+
+          final loaded = state is AttendanceLoaded
+              ? state
+              : AttendanceLoaded(
+                  data: AttendanceTodayData(serverTime: DateTime.now()),
+                  currentClockTime: DateTime.now(),
+                );
+
+          final data = loaded.data;
+
+          final topInset = MediaQuery.paddingOf(context).top;
+
+          return Stack(
+            children: [
+              // Peta penuh layar: posisi user & radius kantor terlihat jelas
+              Positioned.fill(
+                child: AttendanceGeofenceMapCard(
+                  fullscreen: true,
+                  mapPadding: EdgeInsets.only(
+                    top: topInset + _headerHeight,
+                    bottom: AppSpacing.sm,
+                  ),
+                  officeLatitude: data.officeLatitude,
+                  officeLongitude: data.officeLongitude,
+                  userLatitude: loaded.userLatitude,
+                  userLongitude: loaded.userLongitude,
+                  geofenceRadiusMeters: data.geofenceRadiusMeters,
+                  isInsideGeofence: loaded.isInsideGeofence,
+                  gpsAccuracy: data.gpsAccuracy,
+                  isAnyWhere: data.selectedWorkLocation?.isAnyWhere ?? false,
+                  hasWorkLocation: data.hasWorkLocation,
+                  isGpsAcquired: loaded.isGpsAcquired,
+                  officeName: data.officeName,
+                  distanceMeters: loaded.distanceToOfficeMeters,
+                  isRefreshingLocation: _isUpdatingLocation,
+                  onRefreshLocation: _refresh,
+                ),
+              ),
+
+              // Header ringkas melayang: lokasi, jam, shift, Masuk/Istirahat/Pulang
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm + AppSpacing.xs,
+                      AppSpacing.sm,
+                      AppSpacing.sm + AppSpacing.xs,
+                      0,
+                    ),
+                    child: AttendanceCompactHeader(
+                      state: loaded,
+                      onLocationTap: () => _openLocationPicker(context, loaded),
+                      onBreakTap: () => _showBreakHistory(context, loaded),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Bar aksi yang selalu terlihat di bawah layar (tidak ikut scroll).
+  Widget _buildBottomBar(
+    BuildContext context,
+    AttendanceLoaded loaded,
+    bool isDark,
+  ) {
+    final data = loaded.data;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceContainerLowest
+            : AppColors.surfaceContainerLowest,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AttendanceStatusStrip(
+                state: loaded,
+                isBusy: _isUpdatingLocation,
+                onAction: () => _requestGpsLocation(showFeedback: true),
+              ),
+              const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
+              AttendanceActionButtons(
+                isClockedIn: data.isClockedIn,
+                isClockedOut: data.isClockedOut,
+                isOnBreak: data.isOnBreak,
+                isLoading: loaded.isSubmittingAction,
+                hasWorkLocation: data.hasWorkLocation,
+                attendanceMethod: data.attendanceMethod,
+                onClockPressed: () =>
+                    _handleClockAction(context, state: loaded),
+                onBreakPressed: () =>
+                    _handleBreakAction(context, state: loaded),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -960,57 +788,29 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         ? AppColors.darkSurfaceContainerHigh
         : AppColors.backgroundSubtle;
 
+    Widget block(double height, {double radius = AppRadius.xl}) => Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+
     return Shimmer.fromColors(
       baseColor: baseColor,
       highlightColor: highlightColor,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           children: [
-            Container(
-              height: 48,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: baseColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 220,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: baseColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 140,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: baseColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 110,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: baseColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 80,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: baseColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
+            block(_headerHeight - AppSpacing.md), // header ringkas
+            const SizedBox(height: AppSpacing.md),
+            Expanded(child: block(double.infinity)), // peta
+            const SizedBox(height: AppSpacing.md),
+            block(72, radius: AppRadius.lg), // status
+            const SizedBox(height: AppSpacing.sm),
+            block(56, radius: AppRadius.full), // tombol
           ],
         ),
       ),

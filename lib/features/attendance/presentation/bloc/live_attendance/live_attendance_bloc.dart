@@ -8,10 +8,11 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_event.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/live_attendance/live_attendance_state.dart';
 
-typedef SafeAddressFetcher = Future<String> Function({
-  required double latitude,
-  required double longitude,
-});
+typedef SafeAddressFetcher =
+    Future<String> Function({
+      required double latitude,
+      required double longitude,
+    });
 
 class LiveAttendanceBloc
     extends Bloc<LiveAttendanceEvent, LiveAttendanceState> {
@@ -26,14 +27,15 @@ class LiveAttendanceBloc
     SafeAddressFetcher? addressFetcher,
     DateTime? initialTime,
     bool autoStartTimer = true,
-  })  : _addressFetcher = addressFetcher ?? MapboxGeocodingUtil.getSafeAddress,
-        super(LiveAttendanceState(
-          currentClockTime: initialTime ?? DateTime.now(),
-        )) {
+  }) : _addressFetcher = addressFetcher ?? MapboxGeocodingUtil.getSafeAddress,
+       super(
+         LiveAttendanceState(currentClockTime: initialTime ?? DateTime.now()),
+       ) {
     on<LiveAttendanceStarted>(_onStarted);
     on<LiveAttendanceClockTicked>(_onClockTicked);
     on<LiveAttendanceTypeChanged>(_onTypeChanged);
     on<LiveAttendanceLocationUpdated>(_onLocationUpdated);
+    on<LiveAttendanceGpsIssueReported>(_onGpsIssueReported);
     on<LiveAttendanceReasonChanged>(_onReasonChanged);
     on<LiveAttendancePhotoChanged>(_onPhotoChanged);
     on<LiveAttendanceSubmitted>(_onSubmitted);
@@ -46,9 +48,11 @@ class LiveAttendanceBloc
   void _startClockTimer() {
     _clockTimer?.cancel();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      add(LiveAttendanceClockTicked(
-        state.currentClockTime.add(const Duration(seconds: 1)),
-      ));
+      add(
+        LiveAttendanceClockTicked(
+          state.currentClockTime.add(const Duration(seconds: 1)),
+        ),
+      );
     });
   }
 
@@ -75,10 +79,12 @@ class LiveAttendanceBloc
       }
     }
 
-    emit(state.copyWith(
-      attendanceMethod: method,
-      currentClockTime: DateTime.now(),
-    ));
+    emit(
+      state.copyWith(
+        attendanceMethod: method,
+        currentClockTime: DateTime.now(),
+      ),
+    );
   }
 
   void _onClockTicked(
@@ -100,12 +106,22 @@ class LiveAttendanceBloc
     LiveAttendanceLocationUpdated event,
     Emitter<LiveAttendanceState> emit,
   ) {
-    emit(state.copyWith(
-      latitude: event.latitude,
-      longitude: event.longitude,
-      gpsAccuracy: event.accuracy,
-      isLocating: false,
-    ));
+    emit(
+      state.copyWith(
+        latitude: event.latitude,
+        longitude: event.longitude,
+        gpsAccuracy: event.accuracy,
+        isLocating: false,
+        clearGpsIssue: true,
+      ),
+    );
+  }
+
+  void _onGpsIssueReported(
+    LiveAttendanceGpsIssueReported event,
+    Emitter<LiveAttendanceState> emit,
+  ) {
+    emit(state.copyWith(gpsIssue: event.issue, isLocating: false));
   }
 
   void _onReasonChanged(
@@ -127,34 +143,43 @@ class LiveAttendanceBloc
     Emitter<LiveAttendanceState> emit,
   ) async {
     if (!state.hasValidCoordinates) {
-      emit(state.copyWith(
-        errorMessage: () =>
-            'Koordinat GPS belum ditemukan. Harap tunggu atau perbarui GPS.',
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: () =>
+              'Koordinat GPS belum ditemukan. Harap tunggu atau perbarui GPS.',
+        ),
+      );
       return;
     }
 
     if (state.reason.trim().isEmpty) {
-      emit(state.copyWith(
-        errorMessage: () => 'Alasan presensi luar kantor wajib diisi.',
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: () => 'Alasan presensi luar kantor wajib diisi.',
+        ),
+      );
       return;
     }
 
-    if ((state.isPhotoMethod || state.isLivenessMethod) && state.photo == null) {
-      emit(state.copyWith(
-        errorMessage: () => state.isLivenessMethod
-            ? 'Foto bukti kehadiran / verifikasi wajah wajib diambil.'
-            : 'Foto bukti kehadiran / selfie wajib diambil.',
-      ));
+    if ((state.isPhotoMethod || state.isLivenessMethod) &&
+        state.photo == null) {
+      emit(
+        state.copyWith(
+          errorMessage: () => state.isLivenessMethod
+              ? 'Foto bukti kehadiran / verifikasi wajah wajib diambil.'
+              : 'Foto bukti kehadiran / selfie wajib diambil.',
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(
-      isSubmitting: true,
-      submissionSuccess: false,
-      errorMessage: () => null,
-    ));
+    emit(
+      state.copyWith(
+        isSubmitting: true,
+        submissionSuccess: false,
+        errorMessage: () => null,
+      ),
+    );
 
     try {
       final safeAddress = await _addressFetcher(
@@ -167,7 +192,9 @@ class LiveAttendanceBloc
         latitude: state.latitude!,
         longitude: state.longitude!,
         attendanceType: state.attendanceType,
-        file: (state.isPhotoMethod || state.isLivenessMethod) ? state.photo : null,
+        file: (state.isPhotoMethod || state.isLivenessMethod)
+            ? state.photo
+            : null,
         address: safeAddress,
         reason: state.reason.trim(),
       );
@@ -177,25 +204,31 @@ class LiveAttendanceBloc
       _clockTimer?.cancel();
       _clockTimer = null;
 
-      emit(state.copyWith(
-        isSubmitting: false,
-        submissionSuccess: true,
-        successMessage: () => response.message,
-        submissionResult: () => response.data,
-      ));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          submissionSuccess: true,
+          successMessage: () => response.message,
+          submissionResult: () => response.data,
+        ),
+      );
     } on ApiException catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        submissionSuccess: false,
-        errorMessage: () => e.message,
-      ));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          submissionSuccess: false,
+          errorMessage: () => e.message,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        submissionSuccess: false,
-        errorMessage: () =>
-            'Terjadi kesalahan saat mengirim presensi: ${e.toString()}',
-      ));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          submissionSuccess: false,
+          errorMessage: () =>
+              'Terjadi kesalahan saat mengirim presensi: ${e.toString()}',
+        ),
+      );
     }
   }
 }

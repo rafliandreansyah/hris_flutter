@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -536,28 +537,11 @@ void main() {
   });
 
   group('OvertimeStatusExtension', () {
-    test('badge status selaras dengan desain aktivitas (palette sama)', () {
-      // Pending -> Amber 100 / 700 / 500
-      expect(OvertimeStatus.pending.backgroundColor, const Color(0xFFFEF3C7));
-      expect(OvertimeStatus.pending.textColor, const Color(0xFFB45309));
-      expect(OvertimeStatus.pending.dotColor, const Color(0xFFF59E0B));
-
-      // Approved -> Green 100 / 800 / 600
-      expect(OvertimeStatus.approved.backgroundColor, const Color(0xFFDCFCE7));
-      expect(OvertimeStatus.approved.textColor, const Color(0xFF166534));
-      expect(OvertimeStatus.approved.dotColor, const Color(0xFF16A34A));
-
-      // Rejected -> Red 100 / 800 / 500
-      expect(OvertimeStatus.rejected.backgroundColor, const Color(0xFFFEE2E2));
-      expect(OvertimeStatus.rejected.textColor, const Color(0xFF991B1B));
-      expect(OvertimeStatus.rejected.dotColor, const Color(0xFFEF4444));
-
-      // Requested = alias visual pending
-      expect(OvertimeStatus.requested.label, 'Pending');
-      expect(
-        OvertimeStatus.requested.backgroundColor,
-        OvertimeStatus.pending.backgroundColor,
-      );
+    test('badge status memakai nada AppStatusChip yang seragam', () {
+      expect(OvertimeStatus.pending.tone, AppStatusTone.warning);
+      expect(OvertimeStatus.requested.tone, AppStatusTone.warning);
+      expect(OvertimeStatus.approved.tone, AppStatusTone.success);
+      expect(OvertimeStatus.rejected.tone, AppStatusTone.error);
     });
   });
 

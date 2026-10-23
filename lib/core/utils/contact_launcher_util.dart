@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_icon_badge.dart';
+import 'package:hris_flutter/core/widgets/whatsapp_icon.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
@@ -80,8 +82,10 @@ class ContactLauncherUtil {
               ListTile(
                 key: const ValueKey('contact_whatsapp_option'),
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(LucideIcons.messageCircle,
-                    color: AppColors.success),
+                leading: const AppIconBadge(
+                  color: AppColors.whatsappGreen,
+                  child: WhatsAppIcon(size: 20),
+                ),
                 title: Text('WhatsApp',
                     style: AppTypography.bodyMedium.copyWith(color: textCol)),
                 onTap: () => Navigator.of(sheetContext).pop('whatsapp'),
@@ -89,8 +93,10 @@ class ContactLauncherUtil {
               ListTile(
                 key: const ValueKey('contact_call_option'),
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(LucideIcons.phone,
-                    color: isDark ? AppColors.inversePrimary : AppColors.brandTeal),
+                leading: AppIconBadge(
+                  icon: LucideIcons.phone,
+                  color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                ),
                 title: Text('Telepon',
                     style: AppTypography.bodyMedium.copyWith(color: textCol)),
                 onTap: () => Navigator.of(sheetContext).pop('call'),

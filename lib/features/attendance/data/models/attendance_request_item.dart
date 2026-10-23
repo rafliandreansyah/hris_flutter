@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
-import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 
 /// Status pengajuan presensi luar kantor pada Oasish HRIS.
 enum AttendanceRequestStatus { requested, approved, rejected }
@@ -17,48 +16,20 @@ extension AttendanceRequestStatusExtension on AttendanceRequestStatus {
     }
   }
 
-  /// Warna teks badge status (Amber 700 / Emerald 700 / Red 700).
-  Color get textColor {
+  AppStatusTone get tone {
     switch (this) {
       case AttendanceRequestStatus.requested:
-        return const Color(0xFFB45309);
+        return AppStatusTone.warning;
       case AttendanceRequestStatus.approved:
-        return const Color(0xFF047857);
+        return AppStatusTone.success;
       case AttendanceRequestStatus.rejected:
-        return const Color(0xFFB91C1C);
-    }
-  }
-
-  /// Warna background badge status (Amber 50 / Emerald 50 / Red 50).
-  Color get backgroundColor {
-    switch (this) {
-      case AttendanceRequestStatus.requested:
-        return const Color(0xFFFFFBEB);
-      case AttendanceRequestStatus.approved:
-        return const Color(0xFFECFDF5);
-      case AttendanceRequestStatus.rejected:
-        return const Color(0xFFFEF2F2);
-    }
-  }
-
-  /// Warna dot indikator di dalam badge (Amber 500 / Emerald 600 / Red 500).
-  Color get dotColor {
-    switch (this) {
-      case AttendanceRequestStatus.requested:
-        return AppColors.warning;
-      case AttendanceRequestStatus.approved:
-        return const Color(0xFF059669);
-      case AttendanceRequestStatus.rejected:
-        return AppColors.errorRed;
+        return AppStatusTone.error;
     }
   }
 }
 
 /// Jenis metode presensi luar kantor untuk modal bottom sheet selection.
-enum AttendanceOutsideMethod {
-  live,
-  schedule,
-}
+enum AttendanceOutsideMethod { live, schedule }
 
 /// Model item pengajuan presensi luar kantor (Attendance Request).
 class AttendanceRequestItem extends Equatable {
@@ -141,7 +112,8 @@ class AttendanceRequestItem extends Equatable {
 
   /// Format tanggal presensi, e.g. "29 Agustus 2026"
   String get formattedDate {
-    final effectiveDate = date ??
+    final effectiveDate =
+        date ??
         attendanceInTime ??
         attendanceTime ??
         attendanceOutTime ??
@@ -192,7 +164,10 @@ class AttendanceRequestItem extends Equatable {
     if (isInOut) {
       final sTime = startTime?.trim();
       final eTime = endTime?.trim();
-      if (sTime != null && sTime.isNotEmpty && eTime != null && eTime.isNotEmpty) {
+      if (sTime != null &&
+          sTime.isNotEmpty &&
+          eTime != null &&
+          eTime.isNotEmpty) {
         return 'Masuk $sTime • Pulang $eTime $tz';
       } else if (sTime != null && sTime.isNotEmpty) {
         return 'Jam Masuk: $sTime $tz';
@@ -208,7 +183,10 @@ class AttendanceRequestItem extends Equatable {
     }
     final sTime = startTime?.trim();
     final eTime = endTime?.trim();
-    if (sTime != null && sTime.isNotEmpty && eTime != null && eTime.isNotEmpty) {
+    if (sTime != null &&
+        sTime.isNotEmpty &&
+        eTime != null &&
+        eTime.isNotEmpty) {
       return 'Jam Kerja: Masuk $sTime $tz s/d Pulang $eTime $tz';
     } else if (sTime != null && sTime.isNotEmpty) {
       return 'Jam Masuk: $sTime $tz';
@@ -245,28 +223,28 @@ class AttendanceRequestItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        employeeId,
-        name,
-        role,
-        department,
-        company,
-        employeeNumber,
-        avatarUrl,
-        initials,
-        date,
-        startTime,
-        endTime,
-        workHours,
-        notes,
-        status,
-        createdAt,
-        isSelf,
-        attendanceType,
-        approverNotes,
-        attendanceInTime,
-        attendanceOutTime,
-        attendanceTime,
-        timezone,
-      ];
+    id,
+    employeeId,
+    name,
+    role,
+    department,
+    company,
+    employeeNumber,
+    avatarUrl,
+    initials,
+    date,
+    startTime,
+    endTime,
+    workHours,
+    notes,
+    status,
+    createdAt,
+    isSelf,
+    attendanceType,
+    approverNotes,
+    attendanceInTime,
+    attendanceOutTime,
+    attendanceTime,
+    timezone,
+  ];
 }

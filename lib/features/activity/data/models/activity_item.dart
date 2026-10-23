@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:intl/intl.dart';
-import 'package:hris_flutter/app/config/app_colors.dart';
 
 /// Status aktivitas kerja pada Oasish HRIS (StatusEmployeeActivity)
 enum ActivityStatus {
@@ -30,48 +29,18 @@ extension ActivityStatusExtension on ActivityStatus {
     }
   }
 
-  Color get textColor {
+  AppStatusTone get tone {
     switch (this) {
       case ActivityStatus.planned:
-        return AppColors.darkSurfaceContainerHighest; // Slate 600
+        return AppStatusTone.neutral;
       case ActivityStatus.ongoing:
-        return const Color(0xFFB45309); // Amber 700
+        return AppStatusTone.warning;
       case ActivityStatus.completed:
-        return const Color(0xFF166534); // Green 800
+        return AppStatusTone.success;
       case ActivityStatus.canceled:
-        return const Color(0xFF991B1B); // Red 800
+        return AppStatusTone.error;
       case ActivityStatus.pendingReview:
-        return const Color(0xFF0369A1); // Sky 700
-    }
-  }
-
-  Color get backgroundColor {
-    switch (this) {
-      case ActivityStatus.planned:
-        return const Color(0xFFF1F5F9); // Slate 100
-      case ActivityStatus.ongoing:
-        return AppColors.warningContainer; // Amber 100
-      case ActivityStatus.completed:
-        return const Color(0xFFDCFCE7); // Green 100
-      case ActivityStatus.canceled:
-        return const Color(0xFFFEE2E2); // Red 100
-      case ActivityStatus.pendingReview:
-        return const Color(0xFFE0F2FE); // Sky 100
-    }
-  }
-
-  Color get dotColor {
-    switch (this) {
-      case ActivityStatus.planned:
-        return AppColors.surfaceVariant;
-      case ActivityStatus.ongoing:
-        return AppColors.warning;
-      case ActivityStatus.completed:
-        return const Color(0xFF16A34A);
-      case ActivityStatus.canceled:
-        return AppColors.errorRed;
-      case ActivityStatus.pendingReview:
-        return const Color(0xFF0284C7);
+        return AppStatusTone.info;
     }
   }
 }
@@ -284,7 +253,8 @@ class ActivityItem {
     }
 
     // Jika memiliki data aktual dari API detail (filePath / startTime / notes / filePath2)
-    final hasApiDetailData = filePath != null ||
+    final hasApiDetailData =
+        filePath != null ||
         filePath2 != null ||
         notes != null ||
         startTime != null ||
@@ -294,8 +264,7 @@ class ActivityItem {
 
     if (hasApiDetailData) {
       final startDt = (startTime ?? createdAt ?? date).toLocal();
-      final phase1TimeStr =
-          DateFormat('HH:mm, dd MMM yyyy').format(startDt);
+      final phase1TimeStr = DateFormat('HH:mm, dd MMM yyyy').format(startDt);
 
       final phase1 = ActivityPhaseItem(
         phaseNumber: 1,
@@ -310,8 +279,7 @@ class ActivityItem {
       );
 
       final endDt = (endTime ?? updatedAt ?? date).toLocal();
-      final phase2TimeStr =
-          DateFormat('HH:mm, dd MMM yyyy').format(endDt);
+      final phase2TimeStr = DateFormat('HH:mm, dd MMM yyyy').format(endDt);
 
       ActivityPhaseItem phase2;
       if (status == ActivityStatus.completed) {

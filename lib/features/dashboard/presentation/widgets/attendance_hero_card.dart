@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Hero Card Absensi Dashboard (Teal Oasis)
@@ -34,6 +36,7 @@ class AttendanceHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -89,7 +92,7 @@ class AttendanceHeroCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'CURRENT STATUS',
+                        l10n?.currentStatus ?? 'STATUS SAAT INI',
                         style: AppTypography.labelSmall.copyWith(
                           color: AppColors.accentTealLight,
                           letterSpacing: 1.0,
@@ -243,7 +246,7 @@ class AttendanceHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Clock In: $clockInTime',
+                        '${l10n?.clockInShort ?? 'Masuk'}: $clockInTime',
                         style: AppTypography.labelSmall.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -261,7 +264,7 @@ class AttendanceHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Clock Out: $clockOutTime',
+                        '${l10n?.clockOutShort ?? 'Pulang'}: $clockOutTime',
                         style: AppTypography.labelSmall.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -273,35 +276,17 @@ class AttendanceHeroCard extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Action Button (Quick Clock In / Clock Out)
-              SizedBox(
-                width: double.infinity,
+              // Tombol aksi: Absen Masuk / Absen Pulang
+              AppButton(
+                key: const ValueKey('dashboard_clock_button'),
+                text: isClockedIn
+                    ? (l10n?.clockOutAction ?? 'Absen Pulang')
+                    : (l10n?.clockInAction ?? 'Absen Masuk'),
+                leadingIcon: LucideIcons.fingerprint,
                 height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.brandTeal,
-                    elevation: 0,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                  ),
-                  onPressed: onClockPressed,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('⚡', style: TextStyle(fontSize: 16)),
-                      const SizedBox(width: 8),
-                      Text(
-                        isClockedIn ? 'Quick Clock Out' : 'Quick Clock In',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: AppColors.brandTeal,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.brandTeal,
+                onPressed: onClockPressed,
               ),
             ],
           ),

@@ -32,6 +32,9 @@ abstract class AppColors {
   // --- STATUS & FEEDBACK TOKENS ---
   // ==========================================
   static const Color success = Color(0xFF10B981);
+
+  /// Hijau brand resmi WhatsApp.
+  static const Color whatsappGreen = Color(0xFF25D366);
   static const Color successContainer = Color(0xFFD1FAE5);
   static const Color onSuccessContainer = Color(0xFF065F46);
 

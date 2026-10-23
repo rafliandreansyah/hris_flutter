@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/app_date_util.dart';
@@ -20,38 +21,8 @@ class ExpenseRequestCard extends StatelessWidget {
     this.onTap,
   }) : isTeam = isTeamTab ?? isTeam;
 
-  Widget _buildStatusBadge(ExpenseStatus status) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: status.backgroundColor,
-        borderRadius: BorderRadius.circular(100),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: status.dotColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            status.label,
-            style: TextStyle(
-              color: status.textColor,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildStatusBadge(ExpenseStatus status) =>
+      AppStatusChip(label: status.label, tone: status.tone);
 
   Widget _buildTypeBadge(bool isReimbursement) {
     final bgColor = isReimbursement

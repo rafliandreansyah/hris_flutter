@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -213,22 +214,22 @@ class LiveEmployeeBottomCard extends StatelessWidget {
 
   Widget _buildStatusBadge() {
     if (employee.isGpsOff) {
-      return _buildChip(
+      return const AppStatusChip(
         label: 'GPS Dimatikan',
-        color: AppColors.errorRed,
+        tone: AppStatusTone.error,
         icon: LucideIcons.mapPinOff,
       );
     }
     if (employee.status == 'activity') {
-      return _buildChip(
+      return const AppStatusChip(
         label: 'Dinas Lapangan',
-        color: AppColors.brandTeal,
+        tone: AppStatusTone.info,
         icon: LucideIcons.briefcase,
       );
     }
-    return _buildChip(
+    return const AppStatusChip(
       label: 'Presensi Aktif',
-      color: AppColors.success,
+      tone: AppStatusTone.success,
       icon: LucideIcons.fingerprint,
     );
   }
@@ -238,15 +239,14 @@ class LiveEmployeeBottomCard extends StatelessWidget {
       final text = employee.minutesSinceLastPing <= 1
           ? 'Online (Baru saja)'
           : 'Online (${employee.minutesSinceLastPing}m lalu)';
-      return _buildChip(
+      return AppStatusChip(
         label: text,
-        color: const Color(0xFF0EA5E9),
+        tone: AppStatusTone.info,
         icon: LucideIcons.wifi,
       );
     }
-    return _buildChip(
+    return AppStatusChip(
       label: 'Offline (${employee.minutesSinceLastPing}m lalu)',
-      color: AppColors.outlineMuted,
       icon: LucideIcons.wifiOff,
     );
   }

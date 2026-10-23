@@ -303,4 +303,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabWarningIssued => 'Issued Letters';
+
+  @override
+  String get menuAttendance => 'Attendance';
+
+  @override
+  String get menuOutsideAttendance => 'Outside Check-in';
+
+  @override
+  String get menuSchedule => 'Work Schedule';
+
+  @override
+  String get menuLiveTracking => 'Live Tracking';
+
+  @override
+  String get menuLeave => 'Leave';
+
+  @override
+  String get menuOvertime => 'Overtime';
+
+  @override
+  String get menuActivity => 'Activities';
+
+  @override
+  String get menuPayroll => 'Payslip';
+
+  @override
+  String get menuClaims => 'Claims & Advances';
+
+  @override
+  String get menuEmployee => 'Employees';
+
+  @override
+  String get menuWarningLetter => 'Warning Letters';
+
+  @override
+  String get menuAsset => 'Assets';
+
+  @override
+  String get menuResignation => 'Resignation';
+
+  @override
+  String get menuMore => 'More';
+
+  @override
+  String get menuGroupAttendance => 'Attendance';
+
+  @override
+  String get menuGroupRequests => 'Requests';
+
+  @override
+  String get menuGroupFinance => 'Finance';
+
+  @override
+  String get menuGroupEmployee => 'People';
+
+  @override
+  String get seeAll => 'See All';
+
+  @override
+  String get clockInAction => 'Clock In';
+
+  @override
+  String get clockOutAction => 'Clock Out';
+
+  @override
+  String get clockInShort => 'In';
+
+  @override
+  String get clockOutShort => 'Out';
+
+  @override
+  String get latestCompanyAnnouncement => 'Latest · Company Announcement';
 }

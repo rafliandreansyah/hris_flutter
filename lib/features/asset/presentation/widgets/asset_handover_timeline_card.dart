@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -283,38 +284,29 @@ class AssetHandoverTimelineCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(String status) {
-    String label;
-    Color color;
-
     switch (status) {
       case 'ACTIVE':
-        label = 'Sedang Dipegang';
-        color = AppColors.success;
-        break;
+        return const AppStatusChip(
+          label: 'Sedang Dipegang',
+          tone: AppStatusTone.success,
+        );
       case 'PENDING_ACCEPTANCE':
-        label = 'Menunggu Konfirmasi';
-        color = AppColors.warning;
-        break;
+        return const AppStatusChip(
+          label: 'Menunggu Konfirmasi',
+          tone: AppStatusTone.warning,
+        );
       case 'RETURNED':
-        label = 'Telah Dialihkan / Kembali';
-        color = AppColors.surfaceVariant;
-        break;
+        return const AppStatusChip(
+          label: 'Telah Dialihkan / Kembali',
+          tone: AppStatusTone.neutral,
+        );
       case 'REJECTED':
-        label = 'Ditolak';
-        color = AppColors.errorRed;
-        break;
+        return const AppStatusChip(
+          label: 'Ditolak',
+          tone: AppStatusTone.error,
+        );
       default:
-        label = status;
-        color = AppColors.brandTeal;
+        return AppStatusChip(label: status, tone: AppStatusTone.info);
     }
-
-    return Text(
-      label,
-      style: AppTypography.labelSmall.copyWith(
-        color: color,
-        fontWeight: FontWeight.w700,
-        fontSize: 11,
-      ),
-    );
   }
 }

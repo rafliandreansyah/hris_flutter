@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_api_models.dart';
 import 'package:hris_flutter/features/overtime/data/models/overtime_create_models.dart';
@@ -183,9 +184,7 @@ void main() {
     test('OvertimeStatusExtension styling tokens and labels', () {
       for (final st in OvertimeStatus.values) {
         expect(st.label.isNotEmpty, true);
-        expect(st.textColor, isNotNull);
-        expect(st.backgroundColor, isNotNull);
-        expect(st.dotColor, isNotNull);
+        expect(st.tone, isA<AppStatusTone>());
       }
       expect(OvertimeStatus.pending.label, 'Pending');
       expect(OvertimeStatus.approved.label, 'Approved');
