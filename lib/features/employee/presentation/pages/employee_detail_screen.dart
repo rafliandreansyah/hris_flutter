@@ -16,6 +16,7 @@ import 'package:hris_flutter/features/employee/domain/repositories/employee_repo
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_detail/employee_detail_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/account_settings_bottom_sheet.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_detail_shimmer_loading.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_share_bottom_sheet.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employment_data_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/leave_balances_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/manager_info_card.dart';
@@ -176,6 +177,16 @@ class _EmployeeDetailView extends StatelessWidget {
     final displayAvatar = detail?.photoUrl ?? employee?.avatarUrl;
 
     final effectiveIsFromDirectory = isFromDirectory ?? (employee != null);
+    final inMemoryEmpId = SecureStorageService.instance.employeeIdInMemory;
+    final currentEmpId = state.currentEmployeeId ?? inMemoryEmpId;
+    final isSelf = !effectiveIsFromDirectory ||
+        state.isSelf ||
+        (currentEmpId != null &&
+            currentEmpId.isNotEmpty &&
+            (detail?.id == currentEmpId ||
+                employee?.rawId == currentEmpId ||
+                employee?.id == currentEmpId ||
+                employeeId == currentEmpId));
 
     // Gagal memuat (mis. 403/404): sembunyikan seluruh konten, tampilkan error di tengah halaman.
     final hasError =
@@ -218,16 +229,30 @@ class _EmployeeDetailView extends StatelessWidget {
         actions: [
           if (!hasError)
             IconButton(
+              key: const ValueKey('employee_detail_share_button'),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Membagikan profil karyawan...'),
-                  ),
-                );
+                final targetId = detail?.id ??
+                    employeeId ??
+                    employee?.rawId ??
+                    employee?.id ??
+                    currentEmpId ??
+                    '';
+                if (targetId.isNotEmpty) {
+                  showEmployeeShareBottomSheet(
+                    context,
+                    employeeId: targetId,
+                    name: displayName,
+                    role: displayRole,
+                    department: displayDept,
+                    company: displayCompany,
+                    email: detail?.email ?? employee?.email,
+                    phone: detail?.phone ?? employee?.phone,
+                  );
+                }
               },
               icon: Icon(LucideIcons.share2, size: 20, color: textCol),
             ),
-          if (!effectiveIsFromDirectory && !hasError)
+          if (isSelf && !hasError)
             IconButton(
               onPressed: () {
                 showAccountSettingsBottomSheet(
@@ -321,6 +346,7 @@ class _EmployeeDetailView extends StatelessWidget {
                             : '-',
                         contractType: detail?.employmentType ?? '-',
                         avatarUrl: displayAvatar,
+                        isSelf: isSelf,
                         onCall: () => ContactLauncherUtil.showPhoneOptions(
                           context,
                           name: displayName,
@@ -412,7 +438,7 @@ class _EmployeeDetailView extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       // 6b. Kontrak & Riwayat Karier (hanya profil sendiri; tanpa gaji)
-                      if (!effectiveIsFromDirectory) ...[
+                      if (isSelf) ...[
                         LifecycleProfileSection(
                           repository: lifecycleRepository,
                         ),
@@ -420,7 +446,7 @@ class _EmployeeDetailView extends StatelessWidget {
                       ],
 
                       // 7. Team Coworkers Preview (Hanya tampil saat melihat profil diri sendiri)
-                      if (!effectiveIsFromDirectory) ...[
+                      if (isSelf) ...[
                         Builder(
                           builder: (context) {
                             final List<EmployeeDirectoryItem> coworkerItems =

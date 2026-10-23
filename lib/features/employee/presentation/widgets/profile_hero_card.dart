@@ -17,6 +17,7 @@ class ProfileHeroCard extends StatelessWidget {
   final VoidCallback? onCall;
   final VoidCallback? onEmail;
   final VoidCallback? onChat;
+  final bool isSelf;
 
   const ProfileHeroCard({
     super.key,
@@ -31,16 +32,25 @@ class ProfileHeroCard extends StatelessWidget {
     this.onCall,
     this.onEmail,
     this.onChat,
+    this.isSelf = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppColors.darkSurfaceContainerLowest : AppColors.surfaceContainerLowest;
-    final borderCol = isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final cardBg = isDark
+        ? AppColors.darkSurfaceContainerLowest
+        : AppColors.surfaceContainerLowest;
+    final borderCol = isDark
+        ? AppColors.darkOutlineMuted
+        : AppColors.outlineMuted;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final labelCol = isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
-    final actionBg = isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
+    final labelCol = isDark
+        ? AppColors.darkOnSurfaceVariant
+        : AppColors.onSurfaceVariant;
+    final actionBg = isDark
+        ? AppColors.darkBackgroundSubtle
+        : AppColors.backgroundSubtle;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -64,7 +74,10 @@ class ProfileHeroCard extends StatelessWidget {
             children: [
               // Active Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(100),
@@ -94,15 +107,22 @@ class ProfileHeroCard extends StatelessWidget {
 
               // Contract Type Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkPrimaryContainer : AppColors.primaryContainer,
+                  color: isDark
+                      ? AppColors.darkPrimaryContainer
+                      : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
                   contractType,
                   style: AppTypography.labelSmall.copyWith(
-                    color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                    color: isDark
+                        ? AppColors.inversePrimary
+                        : AppColors.brandTeal,
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
                   ),
@@ -157,55 +177,49 @@ class ProfileHeroCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-
-          // Quick Action Buttons (Call, Email, Chat)
-          Row(
-            children: [
-              Expanded(
-                child: _QuickActionButton(
-                  icon: LucideIcons.phone,
-                  label: 'Call',
-                  backgroundColor: actionBg,
-                  onTap: onCall ??
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Menghubungi nomor telepon karyawan...')),
-                        );
-                      },
+          if (!isSelf) ...[
+            const SizedBox(height: 20),
+            // Quick Action Buttons (Call, Email)
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: LucideIcons.phone,
+                    label: 'Call',
+                    backgroundColor: actionBg,
+                    onTap:
+                        onCall ??
+                        () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Menghubungi nomor telepon karyawan...',
+                              ),
+                            ),
+                          );
+                        },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _QuickActionButton(
-                  icon: LucideIcons.mail,
-                  label: 'Email',
-                  backgroundColor: actionBg,
-                  onTap: onEmail ??
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Membuka email client...')),
-                        );
-                      },
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: LucideIcons.mail,
+                    label: 'Email',
+                    backgroundColor: actionBg,
+                    onTap:
+                        onEmail ??
+                        () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Membuka email client...'),
+                            ),
+                          );
+                        },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _QuickActionButton(
-                  icon: LucideIcons.messageSquare,
-                  label: 'Chat',
-                  backgroundColor: actionBg,
-                  foregroundColor: AppColors.brandTeal,
-                  onTap: onChat ??
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Membuka ruang obrolan internal...')),
-                        );
-                      },
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -216,20 +230,20 @@ class _QuickActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color backgroundColor;
-  final Color? foregroundColor;
   final VoidCallback onTap;
 
   const _QuickActionButton({
     required this.icon,
     required this.label,
     required this.backgroundColor,
-    this.foregroundColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fg = foregroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkOnSurface : AppColors.darkSurfaceContainerHigh);
+    final fg = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.darkOnSurface
+        : AppColors.darkSurfaceContainerHigh;
 
     return Material(
       color: backgroundColor,

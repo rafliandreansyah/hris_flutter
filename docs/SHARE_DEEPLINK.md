@@ -7,15 +7,16 @@ atasan yang berhak approve (dari API). Link dikirim lewat WhatsApp / Email memak
 Link = URL halaman approval di hris-web. Kalau app terpasang, link membuka app (App Links / Universal Links).
 Kalau tidak, link membuka web.
 
-| Modul         | Link web                                                                                              | Route mobile                                    |
-| ------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Cuti          | `/approval/leaves/{id}`                                                                               | `LEAVE_DETAIL?id=&isApprover=true`              |
-| Lembur        | `/approval/overtimes/{id}`                                                                            | `OVERTIME_DETAIL?id=&isApprover=true`           |
-| Presensi      | `/approval/attendances/{id}`                                                                          | `ATTENDANCE_REQUEST_DETAIL?id=&isApprover=true` |
-| Reimbursement | `/approval/reimbursements/{id}`                                                                       | `REIMBURSEMENT_DETAIL?id=`                      |
-| Kasbon        | `/approval/cash-advances/{id}` (web: diarahkan ke `/reimbursement?cashAdvanceId=` dan membuka drawer) | `CASH_ADVANCE_DETAIL?id=`                       |
-| Resign        | `/approval/resignation/{id}` (web: diarahkan ke `/approval/resignation`)                              | `RESIGNATION` (tab Persetujuan Tim)             |
-| Aktivitas     | `/report/activities/{id}`                                                                             | `ACTIVITY_DETAIL?id=`                           |
+| Modul          | Link web                                                                                              | Route mobile                                    |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Cuti           | `/approval/leaves/{id}`                                                                               | `LEAVE_DETAIL?id=&isApprover=true`              |
+| Lembur         | `/approval/overtimes/{id}`                                                                            | `OVERTIME_DETAIL?id=&isApprover=true`           |
+| Presensi       | `/approval/attendances/{id}`                                                                          | `ATTENDANCE_REQUEST_DETAIL?id=&isApprover=true` |
+| Reimbursement  | `/approval/reimbursements/{id}`                                                                       | `REIMBURSEMENT_DETAIL?id=`                      |
+| Kasbon         | `/approval/cash-advances/{id}` (web: diarahkan ke `/reimbursement?cashAdvanceId=` dan membuka drawer) | `CASH_ADVANCE_DETAIL?id=`                       |
+| Resign         | `/approval/resignation/{id}` (web: diarahkan ke `/approval/resignation`)                              | `RESIGNATION` (tab Persetujuan Tim)             |
+| Aktivitas      | `/report/activities/{id}`                                                                             | `ACTIVITY_DETAIL?id=`                           |
+| Profil Pegawai | `/employee/{id}` (dan `/employees/{id}`)                                                              | `EMPLOYEE_DETAIL?id=`                           |
 
 Kode mobile: `lib/core/utils/share_link_util.dart`, `lib/features/approver_share/`.
 Host web: `ApiEndpoints.webBaseUrl` (override `--dart-define=WEB_BASE_URL=...`), harus sama dengan host di manifest Android

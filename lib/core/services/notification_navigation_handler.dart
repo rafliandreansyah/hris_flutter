@@ -115,6 +115,12 @@ class NotificationNavigationHandler {
 
       debugPrint('🧭 [NotificationNavigationHandler] Parsing route -> type: "$type", module: "$module", id: "$id", isApprover: $isApprover, actionUrl: "$actionUrl"');
 
+      // 00. Pengingat otomatis server (lupa absen pulang, approver menunggu, eskalasi). Tidak membawa id
+      //     pengajuan, jadi ditangani lebih dulu agar id notifikasi tidak dipakai membuka detail.
+      if (_isReminderType(type)) {
+        return _handleReminder(context, type, module);
+      }
+
       // 0. Siklus Karyawan (lifecycle_*) — ditangani lebih dulu agar tidak tertangkap kata kunci modul lain.
       if (type.startsWith('lifecycle') || module == 'lifecycle') {
         return _handleLifecycle(context, type, id);
@@ -255,6 +261,37 @@ class NotificationNavigationHandler {
     } catch (e) {
       debugPrint('⚠️ [NotificationNavigationHandler] Gagal menavigasikan payload notifikasi: $e');
       return false;
+    }
+  }
+
+  static const _reminderTypes = {
+    'attendance_forgot_checkout',
+    'approval_reminder',
+    'approval_escalation',
+  };
+
+  bool _isReminderType(String type) => _reminderTypes.contains(type);
+
+  /// Pengingat otomatis: arahkan ke daftar modul terkait (bukan detail, karena tidak ada satu pengajuan tertentu).
+  /// - `attendance_forgot_checkout`: karyawan diminta mengajukan memo absensi.
+  /// - `approval_reminder` / `approval_escalation`: approver/admin membuka daftar pengajuan sesuai `module`.
+  bool _handleReminder(BuildContext context, String type, String module) {
+    if (type == 'attendance_forgot_checkout') {
+      context.push(Routes.ATTENDANCE_REQUESTS);
+      return true;
+    }
+    switch (module) {
+      case 'leave':
+        context.push(Routes.LEAVE);
+        return true;
+      case 'overtime':
+        context.push(Routes.OVERTIME);
+        return true;
+      case 'attendance':
+        context.push(Routes.ATTENDANCE_REQUESTS);
+        return true;
+      default:
+        return false;
     }
   }
 

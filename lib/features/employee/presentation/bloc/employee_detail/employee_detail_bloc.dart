@@ -61,6 +61,13 @@ class EmployeeDetailBloc
     String? employeeRawId,
     required Emitter<EmployeeDetailState> emit,
   }) async {
+    String? currentEmployeeId;
+    try {
+      currentEmployeeId = await SecureStorageService.instance.getEmployeeId();
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
+    }
+
     String? targetId = employeeId;
 
     if (targetId == null || targetId.isEmpty) {
@@ -68,11 +75,7 @@ class EmployeeDetailBloc
     }
 
     if (targetId == null || targetId.isEmpty) {
-      try {
-        targetId = await SecureStorageService.instance.getEmployeeId();
-      } catch (silentError) {
-      debugPrint('[diabaikan] $silentError');
-    }
+      targetId = currentEmployeeId;
     }
 
     if (targetId != null && targetId.isNotEmpty) {
@@ -84,6 +87,7 @@ class EmployeeDetailBloc
         emit(state.copyWith(
           detail: data,
           status: EmployeeDetailStatus.success,
+          currentEmployeeId: currentEmployeeId,
         ));
         return;
       } on ApiException catch (e) {
@@ -91,12 +95,14 @@ class EmployeeDetailBloc
           status: EmployeeDetailStatus.failure,
           errorMessage: e.message,
           errorStatusCode: e.statusCode,
+          currentEmployeeId: currentEmployeeId,
         ));
         return;
       } catch (e) {
         emit(state.copyWith(
           status: EmployeeDetailStatus.failure,
           errorMessage: e.toString(),
+          currentEmployeeId: currentEmployeeId,
         ));
         return;
       }

@@ -14,13 +14,17 @@ void main() {
         ShareLinkUtil.webUrl(ShareModule.activity, 'act-1'),
         '${ApiEndpoints.webBaseUrl}/report/activities/act-1',
       );
+      expect(
+        ShareLinkUtil.webUrl(ShareModule.employee, 'emp-101'),
+        '${ApiEndpoints.webBaseUrl}/employee/emp-101',
+      );
     });
   });
 
   group('ShareLinkUtil.toAppLocation', () {
     String? map(String url) => ShareLinkUtil.toAppLocation(Uri.parse(url));
 
-    test('memetakan ketujuh modul ke route aplikasi', () {
+    test('memetakan seluruh modul dan deep link profil ke route aplikasi', () {
       const host = 'https://app.hroasish.com';
       expect(map('$host/approval/leaves/l1'),
           '${Routes.LEAVE_DETAIL}?id=l1&isApprover=true');
@@ -35,6 +39,10 @@ void main() {
       expect(map('$host/approval/resignation/s1'), Routes.RESIGNATION);
       expect(map('$host/report/activities/x1'),
           '${Routes.ACTIVITY_DETAIL}?id=x1');
+      expect(map('$host/employees/e1'),
+          '${Routes.EMPLOYEE_DETAIL}?id=e1');
+      expect(map('$host/employee/e1'),
+          '${Routes.EMPLOYEE_DETAIL}?id=e1');
     });
 
     test('webUrl dan toAppLocation saling cocok untuk semua modul', () {
@@ -89,6 +97,24 @@ void main() {
       expect(uri.path, 'atasan@kantor.id');
       expect(uri.toString(), contains('subject=Cuti%20Budi'));
       expect(uri.toString(), isNot(contains('+')));
+    });
+
+    test('whatsAppShareUri membuka send tanpa nomor dengan pesan terisi', () {
+      final uri = ShareLinkUtil.whatsAppShareUri('Halo ini link profil');
+      expect(uri.host, 'api.whatsapp.com');
+      expect(uri.path, '/send');
+      expect(uri.queryParameters['text'], 'Halo ini link profil');
+    });
+
+    test('emailShareUri tanpa penerima menyiapkan subject dan body', () {
+      final uri = ShareLinkUtil.emailShareUri(
+        subject: 'Profil Karyawan',
+        body: 'Berikut link profil',
+      );
+      expect(uri.scheme, 'mailto');
+      expect(uri.path, isEmpty);
+      expect(uri.toString(), contains('subject=Profil%20Karyawan'));
+      expect(uri.toString(), contains('body=Berikut%20link%20profil'));
     });
   });
 

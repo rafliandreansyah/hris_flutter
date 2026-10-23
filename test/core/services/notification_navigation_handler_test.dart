@@ -345,6 +345,71 @@ void main() {
       expect(handled, isFalse);
     });
 
+    group('Pengingat otomatis server', () {
+      Future<(bool, List<String>)> run(WidgetTester tester, Map<String, dynamic> payload) async {
+        final routes = <String>[];
+        GoRoute stub(String path) => GoRoute(
+              path: path,
+              builder: (context, state) {
+                routes.add(path);
+                return const Scaffold(body: Text('Stub'));
+              },
+            );
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(path: '/', builder: (c, s) => const Scaffold(body: Text('Home'))),
+            stub(Routes.ATTENDANCE_REQUESTS),
+            stub(Routes.ATTENDANCE_REQUEST_DETAIL),
+            stub(Routes.LEAVE),
+            stub(Routes.LEAVE_DETAIL),
+            stub(Routes.OVERTIME),
+            stub(Routes.OVERTIME_DETAIL),
+          ],
+        );
+        await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+        final context = tester.element(find.text('Home'));
+        final handled = handler.handlePayload(context, payload);
+        await tester.pumpAndSettle();
+        return (handled, routes);
+      }
+
+      testWidgets('lupa absen pulang → daftar pengajuan absensi, bukan detail (id notifikasi diabaikan)', (tester) async {
+        final (handled, routes) = await run(tester, {
+          'type': 'attendance_forgot_checkout',
+          'id': 'notification-id-bukan-pengajuan',
+          'attendanceId': 'att-1',
+        });
+        expect(handled, isTrue);
+        expect(routes, [Routes.ATTENDANCE_REQUESTS]);
+      });
+
+      testWidgets('pengingat & eskalasi approver → daftar modul sesuai module', (tester) async {
+        for (final type in ['approval_reminder', 'approval_escalation']) {
+          final cases = {
+            'attendance': Routes.ATTENDANCE_REQUESTS,
+            'leave': Routes.LEAVE,
+            'overtime': Routes.OVERTIME,
+          };
+          for (final entry in cases.entries) {
+            final (handled, routes) = await run(tester, {
+              'type': type,
+              'module': entry.key,
+              'id': 'notification-id',
+            });
+            expect(handled, isTrue, reason: '$type/${entry.key}');
+            expect(routes, [entry.value], reason: '$type/${entry.key}');
+          }
+        }
+      });
+
+      testWidgets('pengingat tanpa module dikenal → tidak ditangani (fallback modal)', (tester) async {
+        final (handled, routes) = await run(tester, {'type': 'approval_reminder'});
+        expect(handled, isFalse);
+        expect(routes, isEmpty);
+      });
+    });
+
     group('Siklus Karyawan (lifecycle_*)', () {
       Future<(bool, List<String>, List<Object?>)> run(
         WidgetTester tester,

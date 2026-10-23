@@ -48,8 +48,19 @@ class SecureStorageService {
     return await _storage.read(key: AppConstants.refreshTokenKey);
   }
 
+  static String? _memoryEmployeeId;
+
+  /// Mengambil Employee ID dari cache memori jika sudah tersedia
+  String? get employeeIdInMemory => _memoryEmployeeId;
+
+  /// Mengatur cache Employee ID di memori secara langsung (berguna untuk pengujian)
+  void setEmployeeIdInMemory(String? employeeId) {
+    _memoryEmployeeId = employeeId;
+  }
+
   /// Menyimpan Employee ID yang sedang login
   Future<void> saveEmployeeId(String employeeId) async {
+    _memoryEmployeeId = employeeId;
     await _storage.write(
       key: AppConstants.employeeIdKey,
       value: employeeId,
@@ -58,7 +69,12 @@ class SecureStorageService {
 
   /// Mengambil Employee ID yang tersimpan
   Future<String?> getEmployeeId() async {
-    return await _storage.read(key: AppConstants.employeeIdKey);
+    if (_memoryEmployeeId != null && _memoryEmployeeId!.isNotEmpty) {
+      return _memoryEmployeeId;
+    }
+    final id = await _storage.read(key: AppConstants.employeeIdKey);
+    _memoryEmployeeId = id;
+    return id;
   }
 
   /// Menyimpan bahasa terpilih ('id' atau 'en')
@@ -153,6 +169,7 @@ class SecureStorageService {
   /// Menghapus semua sesi & token autentikasi (saat Logout)
   Future<void> clearAuthData() async {
     _memoryPermissions.clear();
+    _memoryEmployeeId = null;
     await _storage.delete(key: AppConstants.accessTokenKey);
     await _storage.delete(key: AppConstants.refreshTokenKey);
     await _storage.delete(key: AppConstants.userProfileKey);
@@ -162,6 +179,8 @@ class SecureStorageService {
 
   /// Menghapus seluruh data di secure storage
   Future<void> deleteAll() async {
+    _memoryPermissions.clear();
+    _memoryEmployeeId = null;
     await _storage.deleteAll();
   }
 }

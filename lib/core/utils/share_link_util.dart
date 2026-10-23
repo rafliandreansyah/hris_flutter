@@ -15,7 +15,8 @@ enum ShareModule {
   // Di web, path ini diarahkan ke drawer detail kasbon di /reimbursement.
   cashAdvance('cash_advance', 'approval/cash-advances', 'Kasbon'),
   resignation('resignation', 'approval/resignation', 'Pengunduran Diri'),
-  activity('activity', 'report/activities', 'Aktivitas');
+  activity('activity', 'report/activities', 'Aktivitas'),
+  employee('employee', 'employee', 'Profil Karyawan');
 
   final String apiKey;
   final String webPath;
@@ -58,7 +59,13 @@ abstract class ShareLinkUtil {
     final base = segments.sublist(0, segments.length - 1).join('/');
     final module =
         ShareModule.values.where((m) => m.webPath == base).firstOrNull;
-    if (module == null) return null;
+    if (module == null) {
+      if (base == 'employee' || base == 'employees') {
+        final query = 'id=${Uri.encodeQueryComponent(segments.last)}';
+        return '${Routes.EMPLOYEE_DETAIL}?$query';
+      }
+      return null;
+    }
 
     final query = 'id=${Uri.encodeQueryComponent(segments.last)}';
     switch (module) {
@@ -77,6 +84,8 @@ abstract class ShareLinkUtil {
       case ShareModule.resignation:
         // Approval resign ada di tab "Persetujuan Tim" halaman resign (tidak ada halaman detail).
         return Routes.RESIGNATION;
+      case ShareModule.employee:
+        return '${Routes.EMPLOYEE_DETAIL}?$query';
     }
   }
 
@@ -108,10 +117,23 @@ abstract class ShareLinkUtil {
         {'text': message},
       );
 
+  /// URI universal untuk share ke WhatsApp (membuka WhatsApp dengan pesan terisi, memilih kontak tujuan).
+  static Uri whatsAppShareUri(String message) => Uri.https(
+        'api.whatsapp.com',
+        '/send',
+        {'text': message},
+      );
+
   // Query ditulis manual: Uri(queryParameters:) mengubah spasi jadi '+', yang tampil apa adanya di aplikasi email.
   static Uri emailUri(String email, {required String subject, required String body}) =>
       Uri.parse(
         'mailto:$email?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+      );
+
+  /// Email share URI tanpa penerima khusus (pengguna memilih penerima sendiri di aplikasi email).
+  static Uri emailShareUri({required String subject, required String body}) =>
+      Uri.parse(
+        'mailto:?subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
       );
 
   /// Buka halaman daftar atasan yang bisa approve pengajuan ini.
@@ -119,14 +141,19 @@ abstract class ShareLinkUtil {
     context.push(Routes.APPROVER_SHARE, extra: args);
   }
 
-  static Future<void> copyLink(BuildContext context, String url) async {
+  static Future<void> copyLink(
+    BuildContext context,
+    String url, {
+    String title = 'Link Disalin',
+    String message =
+        'Link pengajuan sudah disalin. Tempel di aplikasi mana pun untuk membagikannya.',
+  }) async {
     await Clipboard.setData(ClipboardData(text: url));
     if (!context.mounted) return;
     AppDialogUtil.showSuccess(
       context,
-      title: 'Link Disalin',
-      message:
-          'Link pengajuan sudah disalin. Tempel di aplikasi mana pun untuk membagikannya.',
+      title: title,
+      message: message,
     );
   }
 }

@@ -10,6 +10,8 @@
                 <data android:host="app.hroasish.com"/>
                 <data android:pathPrefix="/approval/"/>
                 <data android:pathPrefix="/report/activities/"/>
+                <data android:pathPrefix="/employees/"/>
+                <data android:pathPrefix="/employee/"/>
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
@@ -19,6 +21,8 @@
                 <data android:host="${customHost}"/>
                 <data android:pathPrefix="/approval/"/>
                 <data android:pathPrefix="/report/activities/"/>
+                <data android:pathPrefix="/employees/"/>
+                <data android:pathPrefix="/employee/"/>
             </intent-filter>
         </activity>
     </application>

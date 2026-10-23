@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/fake_lifecycle_repository.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
@@ -94,12 +96,14 @@ void main() {
     required EmployeeRepository repository,
     String? employeeId = 'emp-101',
     EmployeeDirectoryItem? employee,
+    bool? isFromDirectory,
   }) {
     return MaterialApp(
       home: EmployeeDetailScreen(
         repository: repository,
         employeeId: employeeId,
         employee: employee,
+        isFromDirectory: isFromDirectory,
         lifecycleRepository: FakeLifecycleRepository(),
       ),
     );
@@ -108,12 +112,14 @@ void main() {
   group('EmployeeDetailScreen Widget Tests', () {
     setUp(() {
       FlutterSecureStorage.setMockInitialValues({});
+      SecureStorageService.instance.setEmployeeIdInMemory(null);
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.physicalSize = const Size(1080, 2400);
       binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
     });
 
     tearDown(() {
+      SecureStorageService.instance.setEmployeeIdInMemory(null);
       final binding = TestWidgetsFlutterBinding.ensureInitialized();
       binding.platformDispatcher.views.first.resetPhysicalSize();
       binding.platformDispatcher.views.first.resetDevicePixelRatio();
@@ -131,6 +137,88 @@ void main() {
       expect(find.text('EMP-777 • Finance Ops'), findsOneWidget);
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
       expect(find.byIcon(LucideIcons.share2), findsOneWidget);
+    });
+
+    testWidgets('menyembunyikan tombol Call dan Email saat melihat profil sendiri', (tester) async {
+      final repo = _FakeEmployeeDetailRepo();
+
+      // isFromDirectory: false berarti melihat profil sendiri
+      await tester.pumpWidget(buildTestableWidget(
+        repository: repo,
+        isFromDirectory: false,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Call'), findsNothing);
+      expect(find.text('Email'), findsNothing);
+    });
+
+    testWidgets('menampilkan tombol Call dan Email saat melihat profil rekan kerja (isFromDirectory: true)', (tester) async {
+      final repo = _FakeEmployeeDetailRepo();
+      SecureStorageService.instance.setEmployeeIdInMemory('my-logged-in-id');
+
+      await tester.pumpWidget(buildTestableWidget(
+        repository: repo,
+        employeeId: 'emp-101',
+        isFromDirectory: true,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Call'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
+    });
+
+    testWidgets('menyembunyikan tombol Call dan Email dari direktori jika ID cocok dengan akun sendiri', (tester) async {
+      final repo = _FakeEmployeeDetailRepo();
+      // Detail yang dikembalikan _FakeEmployeeDetailRepo memiliki id 'emp-101'
+      SecureStorageService.instance.setEmployeeIdInMemory('emp-101');
+
+      await tester.pumpWidget(buildTestableWidget(
+        repository: repo,
+        employeeId: 'emp-101',
+        isFromDirectory: true,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Call'), findsNothing);
+      expect(find.text('Email'), findsNothing);
+    });
+
+    testWidgets('menampilkan bottom sheet share dengan pilihan WhatsApp, Email, Salin Link, dan Bagikan Lainnya', (tester) async {
+      final repo = _FakeEmployeeDetailRepo();
+      String? copiedText;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'Clipboard.setData') {
+            copiedText = (methodCall.arguments as Map)['text'] as String?;
+            return null;
+          }
+          return null;
+        },
+      );
+
+      await tester.pumpWidget(buildTestableWidget(repository: repo));
+      await tester.pumpAndSettle();
+
+      final shareBtn = find.byKey(const ValueKey('employee_detail_share_button'));
+      expect(shareBtn, findsOneWidget);
+      await tester.tap(shareBtn);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bagikan Profil'), findsOneWidget);
+      expect(find.byKey(const ValueKey('employee_share_whatsapp')), findsOneWidget);
+      expect(find.byKey(const ValueKey('employee_share_email')), findsOneWidget);
+      expect(find.byKey(const ValueKey('employee_share_copy')), findsOneWidget);
+      expect(find.byKey(const ValueKey('employee_share_more')), findsOneWidget);
+
+      // Tap Salin Link dan pastikan dialog sukses muncul serta link tersalin
+      await tester.tap(find.byKey(const ValueKey('employee_share_copy')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(copiedText, contains('/employee/'));
+      expect(find.text('Link Disalin'), findsOneWidget);
     });
 
     testWidgets('menampilkan shimmer saat memuat detail lalu konten setelah selesai', (tester) async {
@@ -162,19 +250,6 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
       expect(find.byType(EmployeeDetailShimmerLoading), findsNothing);
-    });
-
-    testWidgets('shows snackbar when share icon is tapped', (tester) async {
-      final repo = _FakeEmployeeDetailRepo();
-
-      await tester.pumpWidget(buildTestableWidget(repository: repo));
-      await tester.pumpAndSettle();
-
-      final shareBtn = find.byIcon(LucideIcons.share2);
-      await tester.tap(shareBtn);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Membagikan profil karyawan...'), findsOneWidget);
     });
 
     testWidgets('404 menampilkan pesan API dan hanya tombol Kembali', (tester) async {

@@ -152,6 +152,13 @@ class AppRouter {
               isFromDirectory: true,
             );
           }
+          final queryId = state.uri.queryParameters['id'];
+          if (queryId != null && queryId.isNotEmpty) {
+            return EmployeeDetailScreen(
+              employeeId: queryId,
+              isFromDirectory: true,
+            );
+          }
           return const EmployeeDetailScreen(isFromDirectory: false);
         },
       ),
@@ -780,6 +787,16 @@ class AppRouter {
       ),
       GoRoute(
         path: '/report/activities/:id',
+        redirect: (context, state) =>
+            ShareLinkUtil.toAppLocation(state.uri) ?? Routes.DASHBOARD,
+      ),
+      GoRoute(
+        path: '/employees/:id',
+        redirect: (context, state) =>
+            ShareLinkUtil.toAppLocation(state.uri) ?? Routes.DASHBOARD,
+      ),
+      GoRoute(
+        path: '/employee/:id',
         redirect: (context, state) =>
             ShareLinkUtil.toAppLocation(state.uri) ?? Routes.DASHBOARD,
       ),
