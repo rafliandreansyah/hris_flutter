@@ -39,15 +39,17 @@ void main() {
       expect(map('$host/approval/resignation/s1'), Routes.RESIGNATION);
       expect(map('$host/report/activities/x1'),
           '${Routes.ACTIVITY_DETAIL}?id=x1');
-      expect(map('$host/employees/e1'),
-          '${Routes.EMPLOYEE_DETAIL}?id=e1');
-      expect(map('$host/employee/e1'),
-          '${Routes.EMPLOYEE_DETAIL}?id=e1');
+      const empId = '3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b';
+      expect(map('$host/employees/$empId'),
+          '${Routes.EMPLOYEE_DETAIL}?id=$empId');
+      expect(map('$host/employee/$empId'),
+          '${Routes.EMPLOYEE_DETAIL}?id=$empId');
     });
 
     test('webUrl dan toAppLocation saling cocok untuk semua modul', () {
       for (final module in ShareModule.values) {
-        final url = ShareLinkUtil.webUrl(module, 'id-1');
+        final url = ShareLinkUtil.webUrl(
+            module, '3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b');
         expect(ShareLinkUtil.toAppLocation(Uri.parse(url)), isNotNull,
             reason: module.name);
       }
@@ -57,6 +59,8 @@ void main() {
       expect(map('/approval/leaves'), isNull);
       expect(map('/approval/unknown/1'), isNull);
       expect(map('/dashboard'), isNull);
+      expect(map('/employee/create'), isNull);
+      expect(map('/employee/leave-balance'), isNull);
       expect(map('/'), isNull);
     });
   });

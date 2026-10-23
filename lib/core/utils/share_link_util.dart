@@ -48,6 +48,10 @@ class ApproverShareArgs {
 
 /// Link share pengajuan: URL web (App Links / Universal Links) + pemetaannya ke route aplikasi.
 abstract class ShareLinkUtil {
+  static final _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
   static String webUrl(ShareModule module, String id) =>
       '${ApiEndpoints.webBaseUrl}/${module.webPath}/${Uri.encodeComponent(id)}';
 
@@ -57,15 +61,15 @@ abstract class ShareLinkUtil {
     if (segments.length < 2) return null;
 
     final base = segments.sublist(0, segments.length - 1).join('/');
+    // Halaman admin web lain di bawah /employee/ (mis. /employee/create) bukan profil karyawan.
+    if (base == 'employee' || base == 'employees') {
+      if (!_uuidPattern.hasMatch(segments.last)) return null;
+      return '${Routes.EMPLOYEE_DETAIL}?id=${Uri.encodeQueryComponent(segments.last)}';
+    }
+
     final module =
         ShareModule.values.where((m) => m.webPath == base).firstOrNull;
-    if (module == null) {
-      if (base == 'employee' || base == 'employees') {
-        final query = 'id=${Uri.encodeQueryComponent(segments.last)}';
-        return '${Routes.EMPLOYEE_DETAIL}?$query';
-      }
-      return null;
-    }
+    if (module == null) return null;
 
     final query = 'id=${Uri.encodeQueryComponent(segments.last)}';
     switch (module) {
