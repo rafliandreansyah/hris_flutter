@@ -1,3 +1,5 @@
+import 'package:camera/camera.dart' show CameraLensDirection;
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -365,6 +367,7 @@ class ImageCompressUtil {
   static Future<ImageCompressResult?> pickAndCompress({
     required ImageSource source,
     ImagePicker? picker,
+    BuildContext? context,
     CameraDevice preferredCameraDevice = CameraDevice.rear,
     int maxSizeBytes = defaultMaxSizeBytes,
     int? quality,
@@ -392,10 +395,22 @@ class ImageCompressUtil {
     final imagePicker = picker ?? ImagePicker();
 
     try {
-      final picked = await imagePicker.pickImage(
-        source: source,
-        preferredCameraDevice: preferredCameraDevice,
-      );
+      // Kamera in-app agar aplikasi tidak di-kill OS saat membuka kamera bawaan.
+      final useInAppCamera =
+          source == ImageSource.camera && context != null && picker == null;
+      final picked = useInAppCamera
+          ? await CameraCaptureUtil.capture(
+              context,
+              lens: preferredCameraDevice == CameraDevice.front
+                  ? CameraLensDirection.front
+                  : CameraLensDirection.back,
+            )
+          : await imagePicker.pickImage(
+              source: source,
+              preferredCameraDevice: preferredCameraDevice,
+              maxWidth: source == ImageSource.gallery ? 1600 : null,
+              maxHeight: source == ImageSource.gallery ? 1600 : null,
+            );
 
       if (picked == null) {
         return null;

@@ -20,11 +20,20 @@ class EmployeeDirectoryScreen extends StatelessWidget {
   final EmployeeRepository? employeeRepository;
   final EmployeeListBloc? employeeListBloc;
 
+  /// Override judul/subjudul AppBar dan aksi tap kartu (mis. pemilih pegawai
+  /// untuk jadwal kerja). Bila null, memakai tampilan direktori standar.
+  final String? title;
+  final String? subtitle;
+  final ValueChanged<EmployeeDirectoryItem>? onEmployeeTap;
+
   const EmployeeDirectoryScreen({
     super.key,
     this.customEmployees,
     this.employeeRepository,
     this.employeeListBloc,
+    this.title,
+    this.subtitle,
+    this.onEmployeeTap,
   });
 
   @override
@@ -35,6 +44,9 @@ class EmployeeDirectoryScreen extends StatelessWidget {
         child: _EmployeeDirectoryView(
           customEmployees: customEmployees,
           employeeRepository: employeeRepository,
+          title: title,
+          subtitle: subtitle,
+          onEmployeeTap: onEmployeeTap,
         ),
       );
     }
@@ -47,6 +59,9 @@ class EmployeeDirectoryScreen extends StatelessWidget {
       child: _EmployeeDirectoryView(
         customEmployees: customEmployees,
         employeeRepository: employeeRepository,
+        title: title,
+        subtitle: subtitle,
+        onEmployeeTap: onEmployeeTap,
       ),
     );
   }
@@ -55,10 +70,16 @@ class EmployeeDirectoryScreen extends StatelessWidget {
 class _EmployeeDirectoryView extends StatefulWidget {
   final List<EmployeeDirectoryItem>? customEmployees;
   final EmployeeRepository? employeeRepository;
+  final String? title;
+  final String? subtitle;
+  final ValueChanged<EmployeeDirectoryItem>? onEmployeeTap;
 
   const _EmployeeDirectoryView({
     this.customEmployees,
     this.employeeRepository,
+    this.title,
+    this.subtitle,
+    this.onEmployeeTap,
   });
 
   @override
@@ -181,6 +202,10 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
   }
 
   void _onEmployeeTapped(EmployeeDirectoryItem employee) {
+    if (widget.onEmployeeTap != null) {
+      widget.onEmployeeTap!(employee);
+      return;
+    }
     context.push(Routes.EMPLOYEE_DETAIL, extra: employee);
   }
 
@@ -263,7 +288,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Employee Directory',
+              widget.title ?? 'Employee Directory',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -274,7 +299,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
             ),
             const SizedBox(height: 1),
             Text(
-              'Find colleagues, departments & contact info',
+              widget.subtitle ?? 'Find colleagues, departments & contact info',
               style: AppTypography.labelSmall.copyWith(
                 color: subtitleCol,
                 fontSize: 11,

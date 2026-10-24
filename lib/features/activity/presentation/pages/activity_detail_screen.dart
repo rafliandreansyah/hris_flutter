@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -573,12 +574,9 @@ class _ActivityDetailView extends StatelessWidget {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () async {
-                                      final picker = ImagePicker();
-                                      final picked = await picker.pickImage(
-                                        source: ImageSource.camera,
-                                        maxWidth: 1600,
-                                        maxHeight: 1600,
-                                        imageQuality: 85,
+                                      final picked =
+                                          await CameraCaptureUtil.capture(
+                                        context,
                                       );
                                       if (picked != null) {
                                         final compressedPick = (await ImageCompressUtil.compressXFile(picked)).file;
@@ -1104,12 +1102,9 @@ class _ActivityDetailView extends StatelessWidget {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () async {
-                                      final picker = ImagePicker();
-                                      final picked = await picker.pickImage(
-                                        source: ImageSource.camera,
-                                        maxWidth: 1600,
-                                        maxHeight: 1600,
-                                        imageQuality: 85,
+                                      final picked =
+                                          await CameraCaptureUtil.capture(
+                                        context,
                                       );
                                       if (picked != null) {
                                         setModalState(() => isCompressingPhoto = true);

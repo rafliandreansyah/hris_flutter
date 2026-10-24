@@ -60,10 +60,10 @@ class QuickAccessGrid extends StatelessWidget {
   static final List<_MenuDef> _defaultMenus = [
     _MenuDef(
       code: 'mobile_attendance',
-      matchTitle: 'Presensi',
-      icon: LucideIcons.fingerprint,
+      matchTitle: 'Riwayat Absen',
+      icon: LucideIcons.calendarCheck2,
       group: MenuGroup.attendance,
-      title: (l) => l?.menuAttendance ?? 'Presensi',
+      title: (l) => l?.menuAttendance ?? 'Riwayat Absen',
     ),
     _MenuDef(
       code: 'mobile_attendance_request_live',
@@ -231,7 +231,11 @@ class QuickAccessGrid extends StatelessWidget {
           (mName == 'presensi' ||
               mName == 'attendance' ||
               mName == 'presensi / absensi' ||
-              mName == 'absensi')) {
+              mName == 'absensi' ||
+              mName.contains('riwayat absen') ||
+              mName.contains('riwayat presensi') ||
+              mName.contains('attendance history') ||
+              mName.contains('attendance log'))) {
         return true;
       }
       if (targetCode == 'mobile_employee' &&

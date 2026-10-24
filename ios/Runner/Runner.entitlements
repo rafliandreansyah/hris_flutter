@@ -2,11 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Universal Links: link share pengajuan dari hris-web (host = ApiEndpoints.webBaseUrl). -->
+	<!--
+	Universal Links (associated-domains) dinonaktifkan sementara agar build debug
+	bisa berjalan tanpa capability terdaftar di Apple Developer.
+	Kembalikan saat siap rilis:
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:app.hroasish.com</string>
 		<string>applinks:dev.hroasish.com</string>
 	</array>
+	-->
 </dict>
 </plist>

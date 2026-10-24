@@ -32,8 +32,13 @@ abstract class EmployeeRemoteDataSource {
 class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
   final ApiClient _apiClient;
 
-  EmployeeRemoteDataSourceImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient.instance;
+  /// Endpoint daftar pegawai. Default `/employee`; layar jadwal kerja memakai
+  /// `/employee/work-schedule/employees` (dijaga permission `work_schedule.view`).
+  final String _listEndpoint;
+
+  EmployeeRemoteDataSourceImpl({ApiClient? apiClient, String? listEndpoint})
+      : _apiClient = apiClient ?? ApiClient.instance,
+        _listEndpoint = listEndpoint ?? ApiEndpoints.employee;
 
   @override
   Future<EmployeeListResponse> getEmployees({
@@ -63,7 +68,7 @@ class EmployeeRemoteDataSourceImpl implements EmployeeRemoteDataSource {
     }
 
     final response = await _apiClient.get(
-      ApiEndpoints.employee,
+      _listEndpoint,
       queryParameters: queryParams,
     );
 

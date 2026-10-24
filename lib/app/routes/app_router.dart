@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_employee_model.dart';
 import 'package:hris_flutter/features/payroll/presentation/pages/payroll_detail_screen.dart';
 import 'package:hris_flutter/features/payroll/presentation/pages/payroll_employee_slips_screen.dart';
@@ -555,6 +557,12 @@ class AppRouter {
       GoRoute(
         path: Routes.EMPLOYEE_SCHEDULE_SELECT,
         name: Routes.EMPLOYEE_SCHEDULE_SELECT,
+        redirect: (context, state) =>
+            SecureStorageService.instance.hasPermissionInMemory(
+              AppPermissions.workScheduleView,
+            )
+            ? null
+            : Routes.WORK_SCHEDULE,
         builder: (context, state) => const EmployeeScheduleSelectScreen(),
       ),
 
@@ -596,9 +604,7 @@ class AppRouter {
           } else if (extra is Map<String, dynamic>) {
             cashAdvanceId = extra['cashAdvanceId']?.toString();
           }
-          return CreateReimbursementScreen(
-            initialCashAdvanceId: cashAdvanceId,
-          );
+          return CreateReimbursementScreen(initialCashAdvanceId: cashAdvanceId);
         },
       ),
 
@@ -722,15 +728,15 @@ class AppRouter {
       GoRoute(
         path: Routes.LIFECYCLE_MY_EVALUATION_DETAIL,
         name: Routes.LIFECYCLE_MY_EVALUATION_DETAIL,
-        builder: (context, state) =>
-            MyEvaluationDetailScreen(evaluationId: state.extra as String? ?? ''),
+        builder: (context, state) => MyEvaluationDetailScreen(
+          evaluationId: state.extra as String? ?? '',
+        ),
       ),
       GoRoute(
         path: Routes.LIFECYCLE_TASKS,
         name: Routes.LIFECYCLE_TASKS,
         builder: (context, state) => const LifecycleTasksScreen(),
       ),
-
 
       // 39. Layar Slip Gaji & Riwayat Penggajian (Payroll)
       GoRoute(

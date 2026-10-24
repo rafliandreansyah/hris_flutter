@@ -451,6 +451,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
 
       try {
         final result = await ImageCompressUtil.pickAndCompress(
+          context: context,
           source: ImageSource.camera,
           preferredCameraDevice: CameraDevice.front,
         );

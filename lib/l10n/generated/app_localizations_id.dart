@@ -305,7 +305,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get tabWarningIssued => 'Diterbitkan';
 
   @override
-  String get menuAttendance => 'Presensi';
+  String get menuAttendance => 'Riwayat Absen';
 
   @override
   String get menuOutsideAttendance => 'Absen Luar';

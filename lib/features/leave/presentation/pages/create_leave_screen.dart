@@ -63,15 +63,18 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
     super.dispose();
   }
 
-  /// Menghitung batas maksimum hari yang berlaku untuk jenis cuti yang dipilih.
+  /// Jumlah hari terkunci; `null` jika fixedDays kosong atau 0 (hari bebas dipilih).
+  int? get _lockedDays {
+    final fixed = _selectedType?.fixedDays;
+    return (fixed != null && fixed > 0) ? fixed : null;
+  }
+
+  /// Batas maksimum hari: maxDays jika diisi, jika tidak default 30 hari.
   int get _effectiveMaxDays {
-    if (_selectedType?.fixedDays != null) {
-      return _selectedType!.fixedDays!;
-    }
-    if (_selectedType?.maxDays != null) {
-      final max = _selectedType!.maxDays!;
-      return max < _defaultMaxDays ? max : _defaultMaxDays;
-    }
+    final locked = _lockedDays;
+    if (locked != null) return locked;
+    final max = _selectedType?.maxDays;
+    if (max != null && max > 0) return max;
     return _defaultMaxDays;
   }
 
@@ -143,10 +146,13 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
   void _onSelectLeaveType(LeaveTypeOptionModel type) {
     setState(() {
       _selectedType = type;
-      if (type.fixedDays != null) {
-        _totalDays = type.fixedDays!;
-      } else if (type.maxDays != null && _totalDays > type.maxDays!) {
-        _totalDays = type.maxDays!;
+      final fixed = type.fixedDays;
+      final max = type.maxDays;
+      if (fixed != null && fixed > 0) {
+        _totalDays = fixed;
+      } else {
+        final cap = (max != null && max > 0) ? max : _defaultMaxDays;
+        if (_totalDays > cap) _totalDays = cap;
       }
     });
     context.read<CreateLeaveBloc>().add(CreateLeaveTypeChanged(type));
@@ -281,14 +287,14 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                             textColor: const Color(0xFFDC2626),
                                             icon: LucideIcons.fileText,
                                           ),
-                                        if (type.fixedDays != null)
+                                        if ((type.fixedDays ?? 0) > 0)
                                           _buildTag(
                                             label: 'Durasi: ${type.fixedDays} Hari',
                                             bgColor: const Color(0xFFEFF6FF),
                                             textColor: const Color(0xFF2563EB),
                                             icon: LucideIcons.lock,
                                           )
-                                        else if (type.maxDays != null)
+                                        else if ((type.maxDays ?? 0) > 0)
                                           _buildTag(
                                             label: 'Maks. ${type.maxDays} Hari',
                                             bgColor: const Color(0xFFF0FDF4),
@@ -595,8 +601,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                                         const Color(0xFFDC2626),
                                                     icon: LucideIcons.fileText,
                                                   ),
-                                                if (_selectedType!.fixedDays !=
-                                                    null)
+                                                if ((_selectedType!.fixedDays ?? 0) > 0)
                                                   _buildTag(
                                                     label:
                                                         'Durasi ${_selectedType!.fixedDays} Hari',
@@ -606,9 +611,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                                         const Color(0xFF2563EB),
                                                     icon: LucideIcons.lock,
                                                   )
-                                                else if (_selectedType!
-                                                        .maxDays !=
-                                                    null)
+                                                else if ((_selectedType!.maxDays ?? 0) > 0)
                                                   _buildTag(
                                                     label:
                                                         'Maks ${_selectedType!.maxDays} Hari',
@@ -750,8 +753,8 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                   ),
                                 ),
                                 Text(
-                                  _selectedType?.fixedDays != null
-                                      ? 'Terkunci ${_selectedType!.fixedDays} hari'
+                                  _lockedDays != null
+                                      ? 'Terkunci $_lockedDays hari'
                                       : 'Pilihan hingga $_effectiveMaxDays hari',
                                   style: AppTypography.labelSmall.copyWith(
                                     color: subtitleCol,
@@ -765,7 +768,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                               children: [
                                 IconButton(
                                   key: const ValueKey('decrement_days_btn'),
-                                  onPressed: (_selectedType?.fixedDays != null ||
+                                  onPressed: (_lockedDays != null ||
                                           _totalDays <= 1)
                                       ? null
                                       : () {
@@ -800,7 +803,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                                 ),
                                 IconButton(
                                   key: const ValueKey('increment_days_btn'),
-                                  onPressed: (_selectedType?.fixedDays != null ||
+                                  onPressed: (_lockedDays != null ||
                                           _totalDays >= _effectiveMaxDays)
                                       ? null
                                       : () {
@@ -816,7 +819,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                         ),
 
                         // Quick Day Selection Chips (1 s/d 30 hari)
-                        if (_selectedType?.fixedDays == null) ...[
+                        if (_lockedDays == null) ...[
                           const SizedBox(height: 10),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,

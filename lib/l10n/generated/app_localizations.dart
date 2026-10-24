@@ -665,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuAttendance.
   ///
   /// In id, this message translates to:
-  /// **'Presensi'**
+  /// **'Riwayat Absen'**
   String get menuAttendance;
 
   /// No description provided for @menuOutsideAttendance.

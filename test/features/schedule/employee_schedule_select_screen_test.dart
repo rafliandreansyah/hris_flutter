@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
-import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_api_models.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -116,7 +115,7 @@ void main() {
 
       expect(find.text('Jadwal Pegawai'), findsOneWidget);
       expect(find.text('Pilih pegawai untuk melihat jadwal kerja'), findsOneWidget);
-      expect(find.byType(AppSearchBar), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
       expect(find.text('Budi Santoso'), findsOneWidget);
       expect(find.text('Siti Aminah'), findsOneWidget);
     });
@@ -142,7 +141,7 @@ void main() {
       await tester.pumpWidget(buildTestableWidget(repository: repo));
       await tester.pumpAndSettle();
 
-      expect(find.text('Pegawai tidak ditemukan'), findsOneWidget);
+      expect(find.text('Belum Ada Data Pegawai'), findsOneWidget);
     });
 
     testWidgets('renders error view with retry button on failure', (tester) async {

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -363,10 +364,8 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                       context: context,
                     );
                     if (!perm.isGranted) return;
-                    final photo = await _picker.pickImage(
-                      source: ImageSource.camera,
-                      imageQuality: 85,
-                    );
+                    if (!mounted) return;
+                    final photo = await CameraCaptureUtil.capture(context);
                     if (photo != null) {
                       final compressed =
                           (await ImageCompressUtil.compressXFile(photo)).file;

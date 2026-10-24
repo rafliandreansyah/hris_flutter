@@ -1,3 +1,5 @@
+import 'package:camera/camera.dart' show CameraLensDirection;
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -190,11 +192,16 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
     if (!mounted) return;
 
     try {
-      final picked = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        imageQuality: 85,
-      );
+      final picked = widget.imagePicker != null
+          ? await _imagePicker.pickImage(
+              source: ImageSource.camera,
+              preferredCameraDevice: CameraDevice.front,
+              imageQuality: 85,
+            )
+          : await CameraCaptureUtil.capture(
+              context,
+              lens: CameraLensDirection.front,
+            );
 
       if (picked != null && mounted) {
         if (isIn) {

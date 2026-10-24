@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 MenuItemModel _menu(String code, String name) =>
     MenuItemModel(id: code, name: name, code: code);
@@ -38,6 +39,14 @@ void main() {
       );
       expect(
         QuickAccessGrid.isMenuAvailable('mobile_asset', 'Asset', [_menu('x', 'Fasilitas')]),
+        isTrue,
+      );
+      expect(
+        QuickAccessGrid.isMenuAvailable('mobile_attendance', 'Riwayat Absen', [_menu('x', 'Riwayat Absensi')]),
+        isTrue,
+      );
+      expect(
+        QuickAccessGrid.isMenuAvailable('mobile_attendance', 'Riwayat Absen', [_menu('x', 'Attendance History')]),
         isTrue,
       );
     });
@@ -159,6 +168,50 @@ void main() {
       expect(find.text('Leave'), findsOneWidget);
       expect(find.text('Overtime'), findsOneWidget);
       expect(find.text('Izin & Cuti'), findsNothing);
+    });
+
+    testWidgets('mobile_attendance menampilkan Riwayat Absen (id) dan icon calendarCheck2', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: QuickAccessGrid(
+                menus: [
+                  _menu('mobile_attendance', 'Riwayat Absen'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Riwayat Absen'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.calendarCheck2), findsOneWidget);
+    });
+
+    testWidgets('mobile_attendance menampilkan Attendance History (en)', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: QuickAccessGrid(
+                menus: [
+                  _menu('mobile_attendance', 'Attendance History'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Attendance History'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.calendarCheck2), findsOneWidget);
     });
   });
 }

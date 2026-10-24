@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -198,13 +199,14 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
       }
       if (!mounted) return;
 
-      final picker = ImagePicker();
-      final photo = await picker.pickImage(
-        source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
-      );
+      final XFile? photo = source == ImageSource.camera
+          ? await CameraCaptureUtil.capture(context)
+          : await ImagePicker().pickImage(
+              source: source,
+              maxWidth: 1280,
+              maxHeight: 1280,
+              imageQuality: 80,
+            );
 
       if (photo != null && mounted) {
         _notifyLoading(true);

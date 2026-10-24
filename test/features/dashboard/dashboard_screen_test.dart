@@ -81,7 +81,7 @@ void main() {
 
       // Verify that available menus are displayed (in Indonesian as per current standard)
       expect(find.text('Pegawai'), findsOneWidget);
-      expect(find.text('Presensi'), findsOneWidget);
+      expect(find.text('Riwayat Absen'), findsOneWidget);
 
       // Verify that unavailable menus are hidden
       expect(find.text('Slip Gaji'), findsNothing);
@@ -117,7 +117,7 @@ void main() {
       expect(find.text('Akses Cepat'), findsOneWidget);
       // 7 menu utama
       for (final t in [
-        'Presensi',
+        'Riwayat Absen',
         'Izin & Cuti',
         'Lembur',
         'Absen Luar',

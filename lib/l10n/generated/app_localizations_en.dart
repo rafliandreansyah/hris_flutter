@@ -305,7 +305,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabWarningIssued => 'Issued Letters';
 
   @override
-  String get menuAttendance => 'Attendance';
+  String get menuAttendance => 'Attendance History';
 
   @override
   String get menuOutsideAttendance => 'Outside Check-in';

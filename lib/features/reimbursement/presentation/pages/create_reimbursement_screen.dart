@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -162,11 +163,13 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
 
   Future<void> _pickReceiptImage(int index, ImageSource source) async {
     try {
-      final picked = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 1920,
-      );
+      final XFile? picked = source == ImageSource.camera
+          ? await CameraCaptureUtil.capture(context)
+          : await _imagePicker.pickImage(
+              source: source,
+              imageQuality: 80,
+              maxWidth: 1280,
+            );
       if (picked == null) return;
 
       // Kompres ke JPEG: format HEIC/WebP dari galeri ditolak server (validasi magic bytes)
