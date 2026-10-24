@@ -78,7 +78,6 @@ class _LoginFormViewState extends State<_LoginFormView> {
     final borderCol = isDark
         ? AppColors.darkOutlineMuted
         : AppColors.outlineMuted;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
     final labelCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
@@ -182,10 +181,11 @@ class _LoginFormViewState extends State<_LoginFormView> {
 
                               // 2. Header Area
                               Text(
-                                'Welcome Back',
+                                'Oasish',
+                                // Warna primary aplikasi, sama dengan splash screen.
                                 style: AppTypography.headlineLargeMobile
                                     .copyWith(
-                                      color: textCol,
+                                      color: Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.w700,
                                     ),
                                 textAlign: TextAlign.center,

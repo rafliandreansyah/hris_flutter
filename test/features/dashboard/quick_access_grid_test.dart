@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
@@ -88,6 +90,38 @@ void main() {
         QuickAccessGrid.isMenuAvailable(code, 'Surat Peringatan', [_menu('x', 'Surat Peringatan')]),
         isTrue,
       );
+    });
+  });
+
+  group('QuickAccessGrid menu Pegawai butuh izin employee.view', () {
+    tearDown(() => SecureStorageService.instance.setPermissionsInMemory(const []));
+
+    testWidgets('disembunyikan bila izin sudah dimuat tetapi tanpa employee.view', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory(const [AppPermissions.reimbursementView]);
+      await tester.pumpWidget(
+        _wrap(QuickAccessGrid(menus: [_menu('mobile_leave', 'Cuti'), _menu('mobile_employee', 'Pegawai')])),
+      );
+
+      expect(find.text('Izin & Cuti'), findsOneWidget);
+      expect(find.text('Pegawai'), findsNothing);
+    });
+
+    testWidgets('tampil bila pengguna punya employee.view', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory(const [AppPermissions.employeeView]);
+      await tester.pumpWidget(
+        _wrap(QuickAccessGrid(menus: [_menu('mobile_leave', 'Cuti'), _menu('mobile_employee', 'Pegawai')])),
+      );
+
+      expect(find.text('Pegawai'), findsOneWidget);
+    });
+
+    testWidgets('tampil bila izin belum dimuat (perilaku lama dipertahankan)', (tester) async {
+      SecureStorageService.instance.setPermissionsInMemory(const []);
+      await tester.pumpWidget(
+        _wrap(QuickAccessGrid(menus: [_menu('mobile_employee', 'Pegawai')])),
+      );
+
+      expect(find.text('Pegawai'), findsOneWidget);
     });
   });
 

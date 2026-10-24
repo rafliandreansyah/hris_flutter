@@ -4,6 +4,8 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -335,12 +337,22 @@ class QuickAccessGrid extends StatelessWidget {
     }
   }
 
+  /// Direktori Pegawai butuh izin `employee.view`; tanpa izin, layar hanya menampilkan "Forbidden".
+  /// Dilewati bila izin belum dimuat agar perilaku sebelum login/tes tidak berubah.
+  bool _hasRequiredPermission(_MenuDef m) {
+    if (m.code != 'mobile_employee') return true;
+    final storage = SecureStorageService.instance;
+    return !storage.hasLoadedPermissions ||
+        storage.hasAnyPermissionInMemory([AppPermissions.employeeView]);
+  }
+
   /// Menu yang tersedia (sesuai API) dalam urutan: utama dulu, lalu sisanya.
   List<_MenuDef> _available() {
     final list = menus == null
         ? _defaultMenus
         : _defaultMenus
               .where((m) => isMenuAvailable(m.code, m.matchTitle, menus))
+              .where(_hasRequiredPermission)
               .toList();
     int rank(_MenuDef m) {
       final i = _primaryOrder.indexOf(m.code);

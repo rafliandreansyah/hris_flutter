@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -37,6 +38,15 @@ class MockAuthRepo implements AuthRepository {
 
   @override
   Future<void> logout({bool notifyServer = false}) async {
+    logoutCalled = true;
+  }
+}
+
+/// Logout yang butuh waktu (panggilan ke server): sheet sudah tertutup penuh saat logout selesai.
+class SlowLogoutAuthRepo extends MockAuthRepo {
+  @override
+  Future<void> logout({bool notifyServer = false}) async {
+    await Future<void>.delayed(const Duration(seconds: 1));
     logoutCalled = true;
   }
 }
@@ -240,6 +250,74 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(mockAuth.logoutCalled, isTrue);
+  });
+
+  testWidgets(
+      'Logout dari bottom sheet yang dibuka modal menutup sheet dan membuka halaman login',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final mockAuth = SlowLogoutAuthRepo();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, _) => Scaffold(
+            body: Builder(
+              builder: (ctx) => ElevatedButton(
+                onPressed: () => showAccountSettingsBottomSheet(
+                  ctx,
+                  avatarUrl: '',
+                  authRepository: mockAuth,
+                ),
+                child: const Text('Open Settings'),
+              ),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, _) => const Scaffold(body: Text('Halaman Login')),
+        ),
+      ],
+    );
+    final storage = MockStorage();
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<LocaleBloc>(
+            create: (_) => LocaleBloc(
+              authRepository: MockAuthRepo(),
+              storageService: storage,
+            ),
+          ),
+          BlocProvider<ThemeBloc>(create: (_) => ThemeBloc(storageService: storage)),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('id'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Open Settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Keluar dari Akun (Logout)'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.text('Keluar'));
+    // Dialog konfirmasi beranimasi terus-menerus; maju beberapa frame saja, bukan pumpAndSettle.
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+
+    expect(mockAuth.logoutCalled, isTrue);
+    expect(find.byType(AccountSettingsBottomSheet), findsNothing);
+    expect(find.text('Halaman Login'), findsOneWidget);
   });
 
   testWidgets('Tapping Bahasa opens dialog and selects English',

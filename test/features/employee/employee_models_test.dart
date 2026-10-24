@@ -152,6 +152,38 @@ void main() {
       ],
     };
 
+    test('EmployeeDetailData memakai totalOvertimeMinutes (menit) dan menjaga saldo cuti pecahan', () {
+      final json = Map<String, dynamic>.from(sampleDetailJson)
+        ..['totalOvertime'] = 1
+        ..['totalOvertimeMinutes'] = 360
+        ..['totalLeaveRequest'] = 3
+        ..['leaveBalances'] = [
+          {
+            'id': 'lb-1',
+            'periodYear': 2026,
+            'entitlement': 12,
+            'used': 2.5,
+            'remaining': 9.5,
+            'expiredDate': '2026-12-31T00:00:00.000Z',
+            'leaveType': {'id': 'lt-1', 'name': 'Cuti Tahunan', 'code': 'ANNUAL'},
+          },
+        ];
+      final detail = EmployeeDetailData.fromJson(json);
+
+      expect(detail.totalOvertime, 360);
+      expect(detail.totalLeaveRequest, 3);
+      expect(detail.leaveBalances.single.remaining, 9.5);
+      expect(detail.leaveBalances.single.used, 2.5);
+    });
+
+    test('EmployeeDetailData tetap membaca totalOvertime lama bila totalOvertimeMinutes tidak ada', () {
+      final json = Map<String, dynamic>.from(sampleDetailJson)
+        ..remove('totalOvertimeMinutes')
+        ..['totalOvertime'] = 150;
+
+      expect(EmployeeDetailData.fromJson(json).totalOvertime, 150);
+    });
+
     test('EmployeeDetailData fromJson parses all nested sections correctly', () {
       final detail = EmployeeDetailData.fromJson(sampleDetailJson);
 

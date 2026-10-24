@@ -3,7 +3,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Kartu Ringkasan Metrik (Overtime & Pengajuan Cuti)
+/// Kartu Ringkasan Metrik periode payroll aktif: lembur disetujui (menit) dan cuti disetujui (hari).
 class MetricsStripCard extends StatelessWidget {
   final String overtimeFormatted;
   final int overtimeTotalMinutes;
@@ -12,11 +12,17 @@ class MetricsStripCard extends StatelessWidget {
 
   const MetricsStripCard({
     super.key,
-    this.overtimeFormatted = '4 Jam 0 Menit',
-    this.overtimeTotalMinutes = 240,
-    this.leaveRequestCount = 3,
-    this.leaveRequestStatus = 'Menunggu Approval',
+    this.overtimeFormatted = '0 Jam 0 Menit',
+    this.overtimeTotalMinutes = 0,
+    this.leaveRequestCount = 0,
+    this.leaveRequestStatus = 'Disetujui periode ini',
   });
+
+  /// Ubah total menit menjadi "X Jam Y Menit" (contoh: 360 -> "6 Jam 0 Menit").
+  static String formatMinutes(int totalMinutes) {
+    final minutes = totalMinutes < 0 ? 0 : totalMinutes;
+    return '${minutes ~/ 60} Jam ${minutes % 60} Menit';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +124,7 @@ class MetricsStripCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'PENGAJUAN CUTI',
+                        'CUTI DISETUJUI',
                         style: AppTypography.labelSmall.copyWith(
                           color: iconCol,
                           fontWeight: FontWeight.w700,
@@ -134,7 +140,7 @@ class MetricsStripCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$leaveRequestCount Pengajuan',
+                      '$leaveRequestCount Hari',
                       style: AppTypography.titleSmall.copyWith(
                         color: textCol,
                         fontWeight: FontWeight.w700,

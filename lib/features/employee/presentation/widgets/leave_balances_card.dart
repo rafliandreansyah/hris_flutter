@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/features/employee/data/models/employee_detail_model.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Kartu Rincian Saldo & Kuota Cuti Karyawan (Enhanced Leave View)
+/// Kartu Rincian Saldo & Kuota Cuti Karyawan (data dari API `leaveBalances`).
 class LeaveBalancesCard extends StatelessWidget {
-  const LeaveBalancesCard({super.key});
+  final List<DetailLeaveBalance> balances;
+
+  const LeaveBalancesCard({super.key, this.balances = const []});
+
+  /// Angka hari tanpa ".0" (12), setengah hari tetap terlihat (9,5).
+  static String formatDays(double days) =>
+      days == days.roundToDouble() ? days.toInt().toString() : days.toStringAsFixed(1).replaceAll('.', ',');
+
+  /// "Berlaku hingga 31 Desember 2026" dari `expiredDate`; "Tanpa batas waktu" bila kosong.
+  static String expiryLabel(String? expiredDate) {
+    final dt = expiredDate == null ? null : DateTime.tryParse(expiredDate);
+    if (dt == null) return 'Tanpa batas waktu';
+    return 'Berlaku hingga ${AppDateUtil.formatDateFull(dt.toLocal(), locale: 'id').split(', ').last}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,94 +57,32 @@ class LeaveBalancesCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              // 1. Cuti Tahunan
-              _LeaveQuotaItem(
-                title: 'Cuti Tahunan',
-                remainingDays: 10,
-                totalDays: 12,
-                usedDays: 2,
-                expiryDate: 'Berlaku hingga 31 Desember 2024',
-                showDivider: true,
-                cardBg: cardBg,
-                borderCol: borderCol,
-                textCol: textCol,
-                labelCol: labelCol,
-                progressBg: progressBg,
-              ),
-
-              // 2. Cuti Sakit
-              _LeaveQuotaItem(
-                title: 'Cuti Sakit',
-                remainingDays: 14,
-                totalDays: 14,
-                usedDays: 0,
-                expiryDate: 'Berlaku hingga 31 Desember 2024',
-                showDivider: true,
-                cardBg: cardBg,
-                borderCol: borderCol,
-                textCol: textCol,
-                labelCol: labelCol,
-                progressBg: progressBg,
-              ),
-
-              // 3. Cuti Khusus (Melahirkan, Menikah, dll)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: balances.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Belum ada saldo cuti aktif. Hubungi HR bila Anda merasa berhak atas cuti.',
+                    style: AppTypography.bodySmall.copyWith(color: labelCol, fontSize: 12),
+                  ),
+                )
+              : Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Cuti Khusus',
-                          style: AppTypography.titleSmall.copyWith(
-                            color: textCol,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkSurfaceContainerHigh : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: Text(
-                            'Sesuai Kebijakan',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: labelCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Cuti Melahirkan, Menikah, Berduka, dll.',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: labelCol,
-                        fontSize: 11.5,
+                    for (var i = 0; i < balances.length; i++)
+                      _LeaveQuotaItem(
+                        title: balances[i].leaveType?.name ?? 'Cuti',
+                        remainingDays: balances[i].remaining,
+                        totalDays: balances[i].entitlement,
+                        usedDays: balances[i].used,
+                        expiryDate: expiryLabel(balances[i].expiredDate),
+                        showDivider: i < balances.length - 1,
+                        cardBg: cardBg,
+                        borderCol: borderCol,
+                        textCol: textCol,
+                        labelCol: labelCol,
+                        progressBg: progressBg,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _StatColumn(title: 'TOTAL HAK', value: '-', textCol: textCol, labelCol: labelCol),
-                        _StatColumn(title: 'TERPAKAI', value: '3', textCol: textCol, labelCol: labelCol),
-                        _StatColumn(title: 'SISA KUOTA', value: '-', textCol: AppColors.brandTeal, labelCol: labelCol),
-                      ],
-                    ),
                   ],
                 ),
-              ),
-            ],
-          ),
         ),
       ],
     );
@@ -138,9 +91,9 @@ class LeaveBalancesCard extends StatelessWidget {
 
 class _LeaveQuotaItem extends StatelessWidget {
   final String title;
-  final int remainingDays;
-  final int totalDays;
-  final int usedDays;
+  final double remainingDays;
+  final double totalDays;
+  final double usedDays;
   final String expiryDate;
   final bool showDivider;
   final Color cardBg;
@@ -165,7 +118,7 @@ class _LeaveQuotaItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final usedFraction = (usedDays / totalDays).clamp(0.0, 1.0);
+    final usedFraction = totalDays <= 0 ? 0.0 : (usedDays / totalDays).clamp(0.0, 1.0);
 
     return Column(
       children: [
@@ -192,7 +145,7 @@ class _LeaveQuotaItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      '$remainingDays Hari Tersisa',
+                      '${LeaveBalancesCard.formatDays(remainingDays)} Hari Tersisa',
                       style: AppTypography.labelSmall.copyWith(
                         color: AppColors.brandTeal,
                         fontWeight: FontWeight.w700,
@@ -229,9 +182,9 @@ class _LeaveQuotaItem extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _StatColumn(title: 'TOTAL HAK', value: '$totalDays', textCol: textCol, labelCol: labelCol),
-                  _StatColumn(title: 'TERPAKAI', value: '$usedDays', textCol: textCol, labelCol: labelCol),
-                  _StatColumn(title: 'SISA KUOTA', value: '$remainingDays', textCol: AppColors.brandTeal, labelCol: labelCol),
+                  _StatColumn(title: 'TOTAL HAK', value: LeaveBalancesCard.formatDays(totalDays), textCol: textCol, labelCol: labelCol),
+                  _StatColumn(title: 'TERPAKAI', value: LeaveBalancesCard.formatDays(usedDays), textCol: textCol, labelCol: labelCol),
+                  _StatColumn(title: 'SISA KUOTA', value: LeaveBalancesCard.formatDays(remainingDays), textCol: AppColors.brandTeal, labelCol: labelCol),
                 ],
               ),
               const SizedBox(height: 10),

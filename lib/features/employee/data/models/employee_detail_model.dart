@@ -225,7 +225,8 @@ class EmployeeDetailData {
               .map((e) => DetailLeaveBalance.fromJson(e))
               .toList()
           : [],
-      totalOvertime: json['totalOvertime'] as num?,
+      // Menit. Server baru mengirim `totalOvertimeMinutes`; `totalOvertime` adalah alias lama (juga menit).
+      totalOvertime: (json['totalOvertimeMinutes'] ?? json['totalOvertime']) as num?,
       totalLeaveRequest: json['totalLeaveRequest'] as num?,
     );
   }
@@ -562,9 +563,10 @@ class DetailLeaveBalance {
   final String id;
   final String? leaveTypeId;
   final int periodYear;
-  final int entitlement;
-  final int used;
-  final int remaining;
+  // Server menyimpan saldo sebagai Float (mendukung setengah hari); jangan dipotong jadi int.
+  final double entitlement;
+  final double used;
+  final double remaining;
   final String? effectiveDate;
   final String? expiredDate;
   final String? source;
@@ -590,9 +592,9 @@ class DetailLeaveBalance {
       id: json['id']?.toString() ?? '',
       leaveTypeId: json['leaveTypeId']?.toString(),
       periodYear: (json['periodYear'] as num?)?.toInt() ?? DateTime.now().year,
-      entitlement: (json['entitlement'] as num?)?.toInt() ?? 0,
-      used: (json['used'] as num?)?.toInt() ?? 0,
-      remaining: (json['remaining'] as num?)?.toInt() ?? 0,
+      entitlement: (json['entitlement'] as num?)?.toDouble() ?? 0,
+      used: (json['used'] as num?)?.toDouble() ?? 0,
+      remaining: (json['remaining'] as num?)?.toDouble() ?? 0,
       effectiveDate: json['effectiveDate']?.toString(),
       expiredDate: json['expiredDate']?.toString(),
       source: json['source']?.toString(),

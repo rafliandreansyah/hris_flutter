@@ -155,6 +155,9 @@ class SecureStorageService {
     return _memoryPermissions.contains(permissionCode);
   }
 
+  /// True bila daftar izin pengguna sudah dimuat (tidak kosong).
+  bool get hasLoadedPermissions => _memoryPermissions.isNotEmpty;
+
   /// Memeriksa apakah pengguna memiliki salah satu dari izin yang ditentukan
   bool hasAnyPermissionInMemory(Iterable<String> permissionCodes) {
     return permissionCodes.any((code) => _memoryPermissions.contains(code));

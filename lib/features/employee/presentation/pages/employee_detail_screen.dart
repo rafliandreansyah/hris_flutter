@@ -362,20 +362,21 @@ class _EmployeeDetailView extends StatelessWidget {
 
                       // 2. Metrics Strip (Overtime & Leave Requests)
                       MetricsStripCard(
+                        // API mengirim total lembur dalam MENIT (periode payroll aktif).
                         overtimeFormatted: detail?.totalOvertime != null
-                            ? '${detail!.totalOvertime} Jam'
+                            ? MetricsStripCard.formatMinutes(
+                                detail!.totalOvertime!.toInt(),
+                              )
                             : '-',
-                        overtimeTotalMinutes: detail?.totalOvertime != null
-                            ? (detail!.totalOvertime! * 60).toInt()
-                            : 0,
+                        overtimeTotalMinutes:
+                            detail?.totalOvertime?.toInt() ?? 0,
                         leaveRequestCount:
                             detail?.totalLeaveRequest?.toInt() ?? 0,
-                        leaveRequestStatus: 'Menunggu Approval',
                       ),
                       const SizedBox(height: 16),
 
                       // 3. Saldo & Kuota Cuti (Enhanced Leave Quota View)
-                      const LeaveBalancesCard(),
+                      LeaveBalancesCard(balances: detail?.leaveBalances ?? const []),
                       const SizedBox(height: 16),
 
                       // 4. Direct Reporting Manager

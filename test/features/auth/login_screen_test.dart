@@ -58,7 +58,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Welcome Back'), findsOneWidget);
+      expect(find.text('Oasish'), findsOneWidget);
       expect(find.text('Sign in to continue'), findsOneWidget);
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
