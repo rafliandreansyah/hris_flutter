@@ -1,3 +1,9 @@
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
+import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:camera/camera.dart' show CameraLensDirection;
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
@@ -125,6 +131,8 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
   void initState() {
     super.initState();
     _imagePicker = widget.imagePicker ?? ImagePicker();
+    // Segarkan sisa kuota & batas tanggal setiap membuka form
+    SubmissionSettingCubit.maybeOf(context)?.load();
   }
 
   @override
@@ -140,7 +148,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
   String _formatTimeOfDay(TimeOfDay time) {
     final h = time.hour.toString().padLeft(2, '0');
     final m = time.minute.toString().padLeft(2, '0');
-    return '$h:$m WIB';
+    return '$h:$m ${AppDateUtil.defaultTimezone}';
   }
 
   bool get _isTestEnvironment {
@@ -246,7 +254,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
         AppDialogUtil.showError(
           context,
           title: 'Kamera Gagal',
-          message: 'Terjadi kesalahan saat mengambil foto selfie: $e',
+          message: AppErrorMessage.from(e),
         );
       }
     }
@@ -310,11 +318,19 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
   /// Membuka pemilih tanggal
   Future<void> _selectDate(BuildContext context, DateTime currentDate) async {
     final bloc = context.read<ScheduleAttendanceBloc>();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final range = resolvePickerRange(
+      SubmissionSettingCubit.windowOf(context, SubmissionWindowType.scheduledAttendance),
+      fallbackFirst: DateTime(2020),
+      fallbackLast: today,
+      maxCeil: today, // presensi terjadwal tidak boleh di masa depan
+    );
     final picked = await showDatePicker(
       context: context,
-      initialDate: currentDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
+      initialDate: range.clamp(currentDate),
+      firstDate: range.first,
+      lastDate: range.last,
       builder: (ctx, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -546,10 +562,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               icon: Icon(LucideIcons.arrowLeft, color: textCol),
               onPressed: () => context.pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Presensi Luar (Schedule)',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -557,15 +570,6 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                     fontSize: 16,
                   ),
                 ),
-                Text(
-                  'Ajukan jadwal presensi luar kantor terencana',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
               child: Container(color: borderCol, height: 1),
@@ -1302,7 +1306,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                height: 120,
+                height: 200,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   border: Border.all(color: borderCol, width: 1),
@@ -1467,7 +1471,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                   state.isLivenessMethod
                       ? 'Metode: Liveness AI'
                       : state.isPhotoMethod
-                          ? 'Metode: Photo Verification'
+                          ? 'Metode: Verifikasi Foto'
                           : 'Metode: Biometric Verification',
                   style: AppTypography.labelSmall.copyWith(
                     fontSize: 10.5,
@@ -1688,7 +1692,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
               childOnTop: true,
               child: Container(
                 width: double.infinity,
-                height: 115,
+                height: 160,
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.08)
@@ -1697,10 +1701,7 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
                 ),
                 child: isCompressing
                     ? const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.brandTeal,
-                        ),
+                        child: AppLoadingIndicator(color: AppColors.brandTeal),
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -1971,17 +1972,70 @@ class _ScheduleAttendanceViewState extends State<_ScheduleAttendanceView> {
           ),
         ],
       ),
-      child: AppButton(
-        key: const Key('schedule-attendance-submit-button'),
-        text: 'Ajukan Presensi Terencana',
-        variant: AppButtonVariant.primary,
-        leadingIcon: LucideIcons.send,
-        height: 52,
-        isLoading: state.isSubmitting,
-        onPressed: state.isSubmitting
-            ? null
-            : () => _handleSubmission(state),
-      ),
+      child: _buildQuotaAwareSubmit(context: context, state: state, isDark: isDark),
+    );
+  }
+
+  /// Tombol ajukan + info sisa kuota presensi terjadwal (jika perusahaan mengaktifkan kuota).
+  Widget _buildQuotaAwareSubmit({
+    required BuildContext context,
+    required ScheduleAttendanceState state,
+    required bool isDark,
+  }) {
+    Widget button(bool quotaExhausted) => AppButton(
+          key: const Key('schedule-attendance-submit-button'),
+          text: 'Ajukan Presensi Terencana',
+          variant: AppButtonVariant.primary,
+          leadingIcon: LucideIcons.send,
+          height: 52,
+          isLoading: state.isSubmitting,
+          onPressed: (state.isSubmitting || quotaExhausted)
+              ? null
+              : () => _handleSubmission(state),
+        );
+
+    final cubit = SubmissionSettingCubit.maybeOf(context);
+    if (cubit == null) return button(false);
+
+    return BlocBuilder<SubmissionSettingCubit, SubmissionSettingState>(
+      bloc: cubit,
+      builder: (context, settingState) {
+        final quota = settingState.data?.scheduledQuota;
+        if (quota == null || !quota.enabled) return button(false);
+
+        final exhausted = quota.isExhausted;
+        final periodLabel = quota.isYearly ? 'tahun ini' : 'bulan ini';
+        final color = exhausted ? AppColors.error : AppColors.brandTeal;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(LucideIcons.ticket, size: 14, color: color),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      exhausted
+                          ? 'Kuota pengajuan $periodLabel habis (${quota.used}/${quota.limit})'
+                          : 'Sisa kuota $periodLabel: ${quota.remaining}/${quota.limit}',
+                      key: const Key('schedule-attendance-quota-label'),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            button(exhausted),
+          ],
+        );
+      },
     );
   }
 }

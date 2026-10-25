@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -121,7 +122,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       emit(DashboardError(message: e.message, statusCode: e.statusCode));
     } catch (e) {
       if (event.silent && state is DashboardLoaded) return;
-      emit(DashboardError(message: 'Terjadi kesalahan: $e'));
+      emit(DashboardError(message: AppErrorMessage.from(e)));
     }
   }
 

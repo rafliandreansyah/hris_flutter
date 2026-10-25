@@ -183,7 +183,7 @@ class PermissionUtil {
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestCameraPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -283,7 +283,7 @@ class PermissionUtil {
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestGalleryPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -377,7 +377,7 @@ class PermissionUtil {
       return HrisPermissionResult.granted();
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestDocumentStoragePermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -526,16 +526,48 @@ class PermissionUtil {
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestLocationPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
   /// Meminta izin lokasi latar belakang (Background Location) - khusus field sales / duty tracking
   static Future<HrisPermissionResult> requestBackgroundLocationPermission({
     BuildContext? context,
+    bool showRationale = true,
   }) async {
     if (_isTestEnvironment) return HrisPermissionResult.granted();
+    // Android: pelacakan berjalan lewat foreground service (notifikasi persisten) yang dimulai
+    // saat clock-in, sehingga izin "Sepanjang Waktu" tidak diminta (kebijakan lokasi Google Play).
+    if (Platform.isAndroid) {
+      return HrisPermissionResult.granted();
+    }
     try {
+      // Fast-path: sudah diizinkan "Selalu"
+      if ((await Permission.locationAlways.status).isGranted) {
+        return HrisPermissionResult.granted('Izin lokasi latar belakang telah aktif.');
+      }
+
+      if (showRationale && context != null && context.mounted) {
+        final allowed = await AppDialogUtil.showPermissionDialog(
+          context,
+          title: 'Izinkan Lokasi "Selalu"',
+          description:
+              'Oasish mengumpulkan data lokasi untuk merekam rute kerja Anda, termasuk saat aplikasi ditutup atau tidak digunakan, hanya selama Anda clock-in hingga clock-out dan saat tugas dinas lapangan. Pilih "Ubah ke Selalu Izinkan" pada langkah berikutnya.',
+          permissions: [
+            AppPermissionItem.location(
+              title: 'Lokasi Latar Belakang',
+              description:
+                  'Merekam rute kerja selama jam kerja aktif. Di luar jam kerja lokasi tidak direkam.',
+            ),
+          ],
+          barrierDismissible: false,
+          canPop: false,
+        );
+        if (!allowed) {
+          return HrisPermissionResult.denied('Izin lokasi latar belakang ditolak oleh pengguna.');
+        }
+      }
+
       // Wajib request WhenInUse terlebih dahulu sebelum Always
       final inUseStatus = await Permission.locationWhenInUse.status;
       if (!inUseStatus.isGranted) {
@@ -554,13 +586,13 @@ class PermissionUtil {
           type: HrisPermissionType.backgroundLocation,
           title: 'Izin Lokasi Latar Belakang Diperlukan',
           description:
-              'Untuk pelacakan rute dinas luar kota / sales tracking otomatis, pilih "Izinkan Sepanjang Waktu" pada Pengaturan Lokasi.',
+              'Agar rute kerja tetap terekam saat aplikasi ditutup selama jam kerja, pilih "Selalu" pada Pengaturan > Oasish > Lokasi.',
         );
       }
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestBackgroundLocationPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -643,7 +675,7 @@ class PermissionUtil {
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestNotificationPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -668,7 +700,7 @@ class PermissionUtil {
       return HrisPermissionResult.granted();
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestExactAlarmPermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 
@@ -697,7 +729,7 @@ class PermissionUtil {
       return result;
     } catch (e) {
       debugPrint('⚠️ [PermissionUtil.requestMicrophonePermission] $e');
-      return HrisPermissionResult.denied(e.toString());
+      return HrisPermissionResult.denied('Izin tidak dapat diminta saat ini. Silakan coba lagi atau atur izin di Pengaturan.');
     }
   }
 

@@ -30,11 +30,14 @@ class TrackingLocationPoint extends Equatable {
 
   /// Konversi ke payload JSON untuk API POST /tracking/batch
   Map<String, dynamic> toApiJson() => {
+        // Kunci idempoten: server mengabaikan titik duplikat saat batch dikirim ulang
+        if (id.isNotEmpty) 'clientPointId': id,
         'latitude': latitude,
         'longitude': longitude,
         if (accuracy != null) 'accuracy': accuracy,
         if (speed != null) 'speed': speed,
-        if (heading != null) 'heading': heading,
+        // iOS mengirim -1 saat arah tidak valid; server hanya menerima 0..360
+        if (heading != null && heading! >= 0) 'heading': heading,
         if (altitude != null) 'altitude': altitude,
         if (batteryLevel != null) 'batteryLevel': batteryLevel,
         'isMock': isMock,

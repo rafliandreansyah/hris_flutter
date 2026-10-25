@@ -90,7 +90,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Liveness AI Verified',
+                        'Terverifikasi Liveness AI',
                         style: AppTypography.labelSmall.copyWith(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
@@ -143,7 +143,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               subtitle: detail.formattedDate,
               hintText:
                   'Foto Presensi Masuk • Ketuk untuk memperbesar foto',
-              height: 180.0,
+              height: 280.0,
             ),
             const SizedBox(height: 12),
             AppImageThumbnailPreview(
@@ -152,7 +152,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               subtitle: detail.formattedDate,
               hintText:
                   'Foto Presensi Pulang • Ketuk untuk memperbesar foto',
-              height: 180.0,
+              height: 280.0,
             ),
           ] else if (isOutOnly && hasPrimaryOutImage) ...[
             AppImageThumbnailPreview(
@@ -161,7 +161,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               subtitle: detail.formattedDate,
               hintText:
                   'Selfie / Foto Lokasi Kunjungan • Ketuk untuk memperbesar foto',
-              height: 190.0,
+              height: 280.0,
             ),
           ] else if (hasInImage) ...[
             AppImageThumbnailPreview(
@@ -172,7 +172,7 @@ class AttendanceRequestPhotoCard extends StatelessWidget {
               subtitle: detail.formattedDate,
               hintText:
                   'Selfie / Foto Lokasi Kunjungan • Ketuk untuk memperbesar foto',
-              height: 190.0,
+              height: 280.0,
             ),
           ] else ...[
             Container(

@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -284,11 +286,8 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.title ?? 'Employee Directory',
+        title: Text(
+              widget.title ?? 'Direktori Pegawai',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -297,16 +296,6 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              widget.subtitle ?? 'Find colleagues, departments & contact info',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             onPressed: () async {
@@ -400,7 +389,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                       style: AppTypography.bodyMedium.copyWith(color: textCol),
                       decoration: InputDecoration(
                         hintText:
-                            'Search by name, role, department, or email...',
+                            'Cari nama, jabatan, departemen, atau email...',
                         hintStyle: AppTypography.bodyMedium.copyWith(
                           color: subtitleCol,
                           fontSize: 13.5,
@@ -550,7 +539,12 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                                       brandColor: brandColor,
                                       textCol: textCol,
                                     ),
-                                  TextButton(
+                                  AppButton(
+                                    text: 'Hapus Semua',
+                                    variant: AppButtonVariant.ghost,
+                                    width: null,
+                                    height: 36,
+                                    foregroundColor: brandColor,
                                     onPressed: () {
                                       context.read<EmployeeListBloc>().add(
                                             const EmployeeListFilterApplied(
@@ -558,14 +552,6 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                                             ),
                                           );
                                     },
-                                    child: Text(
-                                      'Hapus Semua',
-                                      style:
-                                          AppTypography.labelSmall.copyWith(
-                                        color: brandColor,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
                                   ),
                                 ],
                               ),
@@ -606,11 +592,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 60),
                             child: Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(brandColor),
-                              ),
+                              child: AppLoadingIndicator(color: brandColor),
                             ),
                           ),
                         )
@@ -672,15 +654,7 @@ class _EmployeeDirectoryViewState extends State<_EmployeeDirectoryView> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 24),
                             child: Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      brandColor),
-                                ),
-                              ),
+                              child: AppLoadingIndicator.small(color: brandColor),
                             ),
                           ),
                         )

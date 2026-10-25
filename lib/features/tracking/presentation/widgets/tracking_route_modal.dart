@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -249,7 +250,7 @@ class _TrackingRouteModalState extends State<TrackingRouteModal> {
           Expanded(
             child: widget.isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                    child: AppLoadingIndicator(),
                   )
                 : widget.errorMessage != null
                     ? Center(

@@ -1,5 +1,6 @@
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
     show resolveFileUrl;
+import 'package:hris_flutter/core/utils/level_name_util.dart';
 import 'package:hris_flutter/features/overtime/presentation/models/overtime_request_item.dart';
 
 /// Metadata paginasi respons dari endpoint `/overtime`.
@@ -91,6 +92,7 @@ class OvertimeEmployeeModel {
   final OvertimeDepartmentModel? department;
   final OvertimePositionModel? position;
   final String? photoUrl;
+  final String? levelName;
 
   const OvertimeEmployeeModel({
     required this.id,
@@ -104,6 +106,7 @@ class OvertimeEmployeeModel {
     this.department,
     this.position,
     this.photoUrl,
+    this.levelName,
   });
 
   factory OvertimeEmployeeModel.fromJson(Map<String, dynamic> json) {
@@ -131,6 +134,7 @@ class OvertimeEmployeeModel {
             )
           : null,
       photoUrl: json['photoUrl']?.toString(),
+      levelName: parseLevelName(json['level']),
     );
   }
 
@@ -298,7 +302,7 @@ OvertimeRequestItem overtimeRequestItemFromApiJson(
     notes: model.notes ?? '',
     approverNotes: model.approverNotes ?? '',
     status: status,
-    timezone: model.timezone ?? 'WIB',
+    timezone: model.timezone ?? 'Asia/Jakarta',
     isSelf: !isApprover,
   );
 }

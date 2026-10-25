@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/filter/app_filter_sheet_frame.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Kriteria filter untuk daftar pengumuman Oasish HRIS.
@@ -142,177 +142,79 @@ class _AnnouncementFilterBottomSheetState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
-    return Material(
-      color: surfaceColor,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+    return AppFilterSheetFrame(
+      title: 'Filter Pengumuman',
+      onReset: _resetFilters,
+      onApply: _applyFilters,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Kategori
+          Text(
+            'Kategori',
+            style: AppTypography.labelMedium.copyWith(
+              color: textCol,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Header: Icon Badge, Title, & Reset Button (Rule 12)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: brandColor.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        LucideIcons.slidersHorizontal,
-                        size: 18,
-                        color: brandColor,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Filter Pengumuman',
-                        style: AppTypography.titleMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _resetFilters,
-                      icon: const Icon(LucideIcons.rotateCcw, size: 14),
-                      label: const Text('Reset Filter'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: brandColor,
-                        textStyle: AppTypography.labelSmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, color: borderCol),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _categories.map((cat) {
+              final key = cat['key'];
+              final label = cat['label']!;
+              final isSelected = _selectedCategory == key;
 
-              // 2. Body: Category Chips & Priority Chips
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Section Kategori
-                    Text(
-                      'Kategori',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: textCol,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.map((cat) {
-                        final key = cat['key'];
-                        final label = cat['label']!;
-                        final isSelected = _selectedCategory == key;
-
-                        return _buildFilterChip(
-                          label: label,
-                          isSelected: isSelected,
-                          onTap: () {
-                            setState(() {
-                              _selectedCategory = key;
-                            });
-                          },
-                          isDark: isDark,
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Section Prioritas
-                    Text(
-                      'Prioritas',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: textCol,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _priorities.map((pri) {
-                        final key = pri['key'];
-                        final label = pri['label']!;
-                        final isSelected = _selectedPriority == key;
-
-                        return _buildFilterChip(
-                          label: label,
-                          isSelected: isSelected,
-                          onTap: () {
-                            setState(() {
-                              _selectedPriority = key;
-                            });
-                          },
-                          isDark: isDark,
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // 3. Footer Actions: Batal & Terapkan Filter (Rule 12)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        text: 'Batal',
-                        variant: AppButtonVariant.outlined,
-                        height: 50,
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: AppButton(
-                        text: 'Terapkan Filter',
-                        variant: AppButtonVariant.primary,
-                        leadingIcon: LucideIcons.filter,
-                        height: 50,
-                        onPressed: _applyFilters,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              return _buildFilterChip(
+                label: label,
+                isSelected: isSelected,
+                onTap: () {
+                  setState(() {
+                    _selectedCategory = key;
+                  });
+                },
+                isDark: isDark,
+              );
+            }).toList(),
           ),
-        ),
+
+          const SizedBox(height: 24),
+
+          // Section Prioritas
+          Text(
+            'Prioritas',
+            style: AppTypography.labelMedium.copyWith(
+              color: textCol,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _priorities.map((pri) {
+              final key = pri['key'];
+              final label = pri['label']!;
+              final isSelected = _selectedPriority == key;
+
+              return _buildFilterChip(
+                label: label,
+                isSelected: isSelected,
+                onTap: () {
+                  setState(() {
+                    _selectedPriority = key;
+                  });
+                },
+                isDark: isDark,
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

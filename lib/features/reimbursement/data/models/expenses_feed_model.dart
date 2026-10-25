@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/level_name_util.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
     show resolveFileUrl;
 
@@ -33,10 +34,12 @@ class ExpenseEmployeeModel {
   final String firstName;
   final String? lastName;
   final String email;
+  final String? phone;
   final String? photoUrl;
   final String? jobPosition;
   final String? department;
   final String? company;
+  final String? levelName;
 
   const ExpenseEmployeeModel({
     required this.id,
@@ -45,10 +48,12 @@ class ExpenseEmployeeModel {
     required this.firstName,
     this.lastName,
     required this.email,
+    this.phone,
     this.photoUrl,
     this.jobPosition,
     this.department,
     this.company,
+    this.levelName,
   });
 
   String get fullName {
@@ -65,11 +70,18 @@ class ExpenseEmployeeModel {
     final num = employeeNumber?.trim();
     if (num != null && num.isNotEmpty) return num;
     final empId = employeeId?.trim();
-    if (empId != null && empId.isNotEmpty && empId != id.trim()) {
+    if (empId != null &&
+        empId.isNotEmpty &&
+        empId != id.trim() &&
+        !_uuidPattern.hasMatch(empId)) {
       return empId;
     }
     return null;
   }
+
+  static final _uuidPattern = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
 
   String get initials {
     final name = fullName;
@@ -90,10 +102,12 @@ class ExpenseEmployeeModel {
     String? firstName,
     String? lastName,
     String? email,
+    String? phone,
     String? photoUrl,
     String? jobPosition,
     String? department,
     String? company,
+    String? levelName,
   }) {
     return ExpenseEmployeeModel(
       id: id ?? this.id,
@@ -102,10 +116,12 @@ class ExpenseEmployeeModel {
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
       photoUrl: photoUrl ?? this.photoUrl,
       jobPosition: jobPosition ?? this.jobPosition,
       department: department ?? this.department,
       company: company ?? this.company,
+      levelName: levelName ?? this.levelName,
     );
   }
 
@@ -145,7 +161,9 @@ class ExpenseEmployeeModel {
     final rawEmpId = json['employeeId'] ?? json['employee_id'];
     if (rawEmpId != null) {
       final str = rawEmpId.toString().trim();
-      if (str.isNotEmpty && str != json['id']?.toString().trim()) {
+      if (str.isNotEmpty &&
+          str != json['id']?.toString().trim() &&
+          !_uuidPattern.hasMatch(str)) {
         return str;
       }
     }
@@ -160,6 +178,7 @@ class ExpenseEmployeeModel {
       firstName: json['firstName']?.toString() ?? '',
       lastName: json['lastName']?.toString(),
       email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? json['phoneNumber']?.toString(),
       photoUrl: json['photoUrl']?.toString(),
       jobPosition: extractName(json['jobPosition']) ??
           extractName(json['position']) ??
@@ -169,6 +188,7 @@ class ExpenseEmployeeModel {
       company: extractName(json['company']) ??
           extractName(json['companyName']) ??
           extractName(json['company_name']),
+      levelName: parseLevelName(json['level']),
     );
   }
 }

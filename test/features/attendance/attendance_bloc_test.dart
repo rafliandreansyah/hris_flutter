@@ -285,7 +285,7 @@ void main() {
       final loaded = bloc.state as AttendanceLoaded;
       expect(loaded.data.isClockedIn, isTrue);
       expect(loaded.data.inTime, '08:45');
-      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+      expect(loaded.actionMessage, 'Absen masuk berhasil dicatat!');
 
       await bloc.close();
     });
@@ -449,7 +449,7 @@ void main() {
       final loaded = bloc.state as AttendanceLoaded;
       expect(loaded.data.isClockedOut, isTrue);
       expect(loaded.data.outTime, '18:00');
-      expect(loaded.actionMessage, 'Clock Out berhasil dicatat!');
+      expect(loaded.actionMessage, 'Absen pulang berhasil dicatat!');
 
       await bloc.close();
     });
@@ -476,7 +476,7 @@ void main() {
       final loaded = bloc.state as AttendanceLoaded;
       expect(loaded.data.isClockedIn, isTrue);
       expect(loaded.data.inTime, '08:45');
-      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+      expect(loaded.actionMessage, 'Absen masuk berhasil dicatat!');
 
       await bloc.close();
     });
@@ -503,7 +503,7 @@ void main() {
       expect(bloc.state, isA<AttendanceLoaded>());
       final loaded = bloc.state as AttendanceLoaded;
       expect(loaded.data.isClockedIn, isTrue);
-      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+      expect(loaded.actionMessage, 'Absen masuk berhasil dicatat!');
 
       await bloc.close();
     });
@@ -673,7 +673,7 @@ void main() {
       expect(loaded.isSubmittingAction, isFalse);
       expect(loaded.errorMessage, isNull);
       expect(loaded.data.isClockedIn, isTrue);
-      expect(loaded.actionMessage, 'Clock In berhasil dicatat!');
+      expect(loaded.actionMessage, 'Absen masuk berhasil dicatat!');
 
       await bloc.close();
     });

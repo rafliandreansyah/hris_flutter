@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 
@@ -5,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
@@ -85,7 +87,7 @@ class AppPhotoPickerCard extends StatefulWidget {
     this.onFileChanged,
     this.onLoadingChanged,
     this.onError,
-    this.uploadPlaceholderTitle = 'Tap to Capture or Upload Photo',
+    this.uploadPlaceholderTitle = 'Ketuk untuk ambil atau unggah foto',
     this.uploadPlaceholderSubtitle = 'Kamera atau Galeri (Maksimal 100 KB)',
     this.sheetTitle = 'Pilih Sumber Dokumen / Foto',
     this.previewTitle = 'Foto Bukti',
@@ -232,7 +234,9 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
       }
     } catch (e) {
       if (mounted && widget.onError != null) {
-        widget.onError!('Gagal mengambil foto: $e');
+        widget.onError!(
+          AppErrorMessage.from(e, fallback: 'Foto gagal diambil. Silakan coba lagi.'),
+        );
       }
     }
   }
@@ -432,7 +436,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
     final compressResult = _effectiveCompressResult;
 
     return Container(
-      height: 140,
+      height: 220,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -527,14 +531,7 @@ class _AppPhotoPickerCardState extends State<AppPhotoPickerCard> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.brandTeal,
-                              ),
-                            ),
+                            AppLoadingIndicator.small(color: AppColors.brandTeal),
                             SizedBox(width: 8),
                             Text(
                               'Mengompresi foto...',

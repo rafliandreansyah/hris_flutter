@@ -8,6 +8,12 @@ import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursem
 import 'package:image_picker/image_picker.dart';
 
 class _MockReimbursementRemoteDataSource implements ReimbursementRemoteDataSource {
+  @override
+  Future<void> deleteReimbursement(String id) async {}
+
+  @override
+  Future<void> deleteCashAdvance(String id) async {}
+
   int getExpensesFeedCallCount = 0;
   int getCategoriesCallCount = 0;
   int getReimbursementDetailCallCount = 0;

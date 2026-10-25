@@ -166,11 +166,13 @@ void main() {
 
       // 1. Header
       expect(find.text('Filter Pengajuan Presensi'), findsOneWidget);
-      expect(find.text('Reset Filter'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
+      // Header ringkas: judul + tombol close; Reset pindah ke footer.
+      expect(find.byIcon(LucideIcons.x), findsOneWidget);
+      expect(find.text('Reset'), findsOneWidget);
+      expect(find.text('Batal'), findsNothing);
 
       // 2. Date Range Field
-      expect(find.text('Rentang Tanggal (Date Range)'), findsOneWidget);
+      expect(find.text('Rentang Tanggal'), findsOneWidget);
       expect(find.text('Semua Rentang Waktu'), findsOneWidget);
       expect(find.text('Pilih rentang tanggal mulai hingga selesai'),
           findsOneWidget);
@@ -179,25 +181,25 @@ void main() {
       expect(find.text('Status Pengajuan'), findsOneWidget);
       expect(find.text('Semua'), findsOneWidget);
       expect(find.text('Diajukan'), findsOneWidget);
-      expect(find.text('Approved'), findsOneWidget);
-      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.text('Disetujui'), findsOneWidget);
+      expect(find.text('Ditolak'), findsOneWidget);
       expect(
         find.text('Default memuat status pengajuan diminta (requested)'),
         findsOneWidget,
       );
 
       // 4. Perusahaan (Company)
-      expect(find.text('Perusahaan (Company)'), findsOneWidget);
+      expect(find.text('Perusahaan'), findsOneWidget);
       expect(find.text('Semua Perusahaan'), findsOneWidget);
 
       // 5. Departemen (Division) & Jabatan (Position) - disabled
-      expect(find.text('Departemen (Division)'), findsOneWidget);
-      expect(find.text('Jabatan (Position)'), findsOneWidget);
+      expect(find.text('Departemen'), findsOneWidget);
+      expect(find.text('Jabatan'), findsOneWidget);
       expect(find.text('Pilih perusahaan terlebih dahulu'), findsNWidgets(2));
       expect(find.byIcon(LucideIcons.lock), findsNWidgets(2));
 
       // 6. Action buttons
-      expect(find.text('Batal'), findsOneWidget);
+      expect(find.text('Reset'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
     });
 
@@ -213,7 +215,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Select 'Approved'
-      await tester.tap(find.text('Approved'));
+      await tester.tap(find.text('Disetujui'));
       await tester.pumpAndSettle();
 
       // Tap 'Terapkan Filter'
@@ -275,7 +277,7 @@ void main() {
       expect(find.text('PT Muratech Global Solusi'), findsOneWidget);
 
       // Tap Reset Filter
-      await tester.tap(find.text('Reset Filter'));
+      await tester.tap(find.text('Reset'));
       await tester.pumpAndSettle();
 
       // Should reset to 'Semua Perusahaan' and lock downstream

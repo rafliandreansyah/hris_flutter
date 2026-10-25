@@ -204,7 +204,7 @@ class _AttendanceRequestLocationCardState
 
           // Google Map Container
           Container(
-            height: 150,
+            height: 240,
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),

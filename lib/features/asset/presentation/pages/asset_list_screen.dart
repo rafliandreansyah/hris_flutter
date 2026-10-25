@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -180,10 +181,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
               onPressed: () => Navigator.of(context).maybePop(),
             ),
             titleSpacing: 0,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   state.currentTab == AssetListTab.warehouse
                       ? 'Gudang Fasilitas'
                       : 'Asset Saya',
@@ -193,17 +191,6 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
                     fontSize: 18,
                   ),
                 ),
-                Text(
-                  state.currentTab == AssetListTab.warehouse
-                      ? 'Inventaris Siap Pakai & Serah Terima'
-                      : 'Inventaris & Serah Terima Aset',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               Stack(
                 alignment: Alignment.center,
@@ -682,7 +669,7 @@ class _AssetListScreenViewState extends State<_AssetListScreenView> {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(
-              child: CircularProgressIndicator(strokeWidth: 2.5),
+              child: AppLoadingIndicator(),
             ),
           );
         }

@@ -3,13 +3,17 @@
     <!-- Lokasi untuk GPS Presensi & Aktivitas Lapangan -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Sengaja TIDAK meminta ACCESS_BACKGROUND_LOCATION: pelacakan berjalan lewat foreground
+         service (notifikasi persisten) yang dimulai saat clock-in di foreground. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <!-- Kamera untuk Selfie Absensi, Foto Profil & Bukti Lapangan -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Kamera hanya untuk foto (enableAudio: false); buang RECORD_AUDIO bawaan plugin camera -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
 
     <!-- Biometrik (Sidik Jari & Pengenalan Wajah) untuk Presensi -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -17,12 +21,15 @@
     <!-- Notifikasi Push & Pengingat Shift/Aktivitas -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Pengingat "lanjutkan pelacakan" setelah HP dinyalakan ulang -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Akses Galeri & Dokumen (Slip Gaji, Klaim Reimburse, Surat Sakit) -->
-    <!-- Android 13+ (API 33+) -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- Android 13+ memakai Photo Picker (image_picker) sehingga READ_MEDIA_* tidak diperlukan
+         (kebijakan Photo & Video Permissions Google Play). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
     <!-- Android 12 ke bawah (API <= 32) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission
@@ -83,6 +90,16 @@
             android:name="com.baseflow.geolocator.GeolocatorLocationService"
             android:foregroundServiceType="location"
             android:exported="false" />
+
+        <!-- Setelah reboot / update app: tampilkan notifikasi untuk melanjutkan pelacakan aktif -->
+        <receiver
+            android:name=".TrackingBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

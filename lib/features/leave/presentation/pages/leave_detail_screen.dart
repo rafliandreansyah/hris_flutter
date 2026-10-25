@@ -1,4 +1,7 @@
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -25,7 +28,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 ///
 /// Logika Akses & Approval:
 /// - Jika dibuka sebagai Approver (`isApprover: true`) dan status masih pending/requested,
-///   muncul tombol aksi "Reject" dan "Approve" di bottom bar.
+///   muncul tombol aksi "Tolak" dan "Setujui" di bottom bar.
 /// - Jika sudah di-approve/reject ATAU dibuka sebagai pengaju sendiri (`isApprover: false`),
 ///   tombol aksi disembunyikan.
 /// - Pengaju sendiri dapat menghapus pengajuan melalui menu pojok kanan atas (`DELETE /leave-request/{id}`).
@@ -86,7 +89,6 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
   void _handleShare(LeaveRequestDetailData detail) {
     final text = StringBuffer()
       ..writeln('📋 DETAIL PENGAJUAN CUTI')
-      ..writeln('ID: ${detail.id}')
       ..writeln('Jenis: ${detail.leaveType.name}')
       ..writeln('Karyawan: ${detail.employee.fullName}')
       ..writeln('Departemen: ${detail.employee.department?.name ?? '-'}')
@@ -141,8 +143,6 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
     final cardBg = isDark
@@ -190,10 +190,6 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
       },
       builder: (context, state) {
         final detail = state.detail;
-        final shortId = detail != null && detail.id.isNotEmpty
-            ? (detail.id.length >= 8 ? detail.id.substring(0, 8) : detail.id)
-            : widget.id;
-        final leaveTypeName = detail?.leaveType.name ?? 'Leave';
 
         // Tampilkan bottom bar aksi HANYA jika:
         // 1. User membuka dalam konteks approver (state.isApprover == true)
@@ -224,73 +220,32 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                 icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
                 onPressed: _handlePop,
               ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Leave Request Detail',
+              title: Text(
+                    AppLocalizations.of(context)?.titleLeaveDetail ?? 'Detail Cuti / Izin',
                     style: AppTypography.titleMedium.copyWith(
                       color: textCol,
                       fontWeight: FontWeight.w700,
                       fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Request ID: $shortId • $leaveTypeName',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 11.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
               actions: [
                 if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
-                    tooltip: 'Salin Link',
-                    onPressed: () => ShareLinkUtil.copyLink(
-                      context,
-                      ShareLinkUtil.webUrl(ShareModule.leave, detail.id),
-                    ),
-                  ),
-                if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.share2, color: textCol, size: 20),
-                    tooltip: 'Bagikan',
-                    onPressed: () => _handleShare(detail),
-                  ),
-                // Menu pojok kanan atas: Opsi Hapus bila pengajuan milik sendiri
-                if (!state.isApprover && detail != null)
-                  PopupMenuButton<String>(
-                    icon: Icon(LucideIcons.ellipsisVertical, color: textCol, size: 20),
-                    onSelected: (val) {
-                      if (val == 'delete') {
-                        _handleDelete(context);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(LucideIcons.trash2,
-                                color: AppColors.errorRed, size: 18),
-                            SizedBox(width: 10),
-                            Text(
-                              'Hapus Pengajuan',
-                              style: TextStyle(
-                                color: AppColors.errorRed,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                  AppDetailMoreMenu(
+                    items: [
+                      AppDetailMenuItem.share(() => _handleShare(detail)),
+                      AppDetailMenuItem.copyLink(
+                        () => ShareLinkUtil.copyLink(
+                          context,
+                          ShareLinkUtil.webUrl(ShareModule.leave, detail.id),
                         ),
                       ),
+                      if (!state.isApprover)
+                        AppDetailMenuItem(
+                          icon: LucideIcons.trash2,
+                          label: 'Hapus Pengajuan',
+                          isDestructive: true,
+                          onTap: () => _handleDelete(context),
+                        ),
                     ],
                   ),
               ],
@@ -314,10 +269,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
     if (state.status == LeaveDetailStatus.loading ||
         (state.status == LeaveDetailStatus.initial && state.detail == null)) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.brandTeal,
-          strokeWidth: 2.5,
-        ),
+        child: AppLoadingIndicator(color: AppColors.brandTeal),
       );
     }
 
@@ -357,20 +309,17 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
               ),
               const SizedBox(height: 24),
               if (is404)
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Kembali',
+                  leadingIcon: LucideIcons.arrowLeft,
+                  width: null,
                   onPressed: _handlePop,
-                  icon: const Icon(LucideIcons.arrowLeft, size: 18),
-                  label: const Text('Kembali'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 )
               else
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Coba Lagi',
+                  leadingIcon: LucideIcons.rotateCcw,
+                  width: null,
                   onPressed: () {
                     context.read<LeaveDetailBloc>().add(
                           LeaveDetailStarted(
@@ -379,15 +328,6 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
                           ),
                         );
                   },
-                  icon: const Icon(LucideIcons.rotateCcw, size: 18),
-                  label: const Text('Coba Lagi'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -421,7 +361,10 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
           const SizedBox(height: 14),
 
           // ── Card 2: Requester Employee Information ──────────────────
-          LeaveDetailEmployeeCard(employee: detail.employee),
+          LeaveDetailEmployeeCard(
+            employee: detail.employee,
+            showContactActions: state.isApprover,
+          ),
           const SizedBox(height: 14),
 
           // ── Card 3: Assigned Approver (Sembunyi jika approver == null)
@@ -429,6 +372,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
             LeaveDetailApproverCard(
               approver: detail.approver!,
               approverNotes: detail.approverNotes,
+              isRejected: detail.isRejected,
             ),
             const SizedBox(height: 14),
           ],
@@ -484,7 +428,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
           Expanded(
             child: AppButton(
               key: const ValueKey('leave_detail_reject_button'),
-              text: isRejecting ? 'Memproses...' : 'Reject',
+              text: isRejecting ? 'Memproses...' : 'Tolak',
               leadingIcon: isRejecting ? null : LucideIcons.x,
               isLoading: isRejecting,
               variant: AppButtonVariant.outlined,
@@ -502,7 +446,7 @@ class _LeaveDetailViewState extends State<_LeaveDetailView> {
           Expanded(
             child: AppButton(
               key: const ValueKey('leave_detail_approve_button'),
-              text: isApproving ? 'Memproses...' : 'Approve',
+              text: isApproving ? 'Memproses...' : 'Setujui',
               leadingIcon: isApproving ? null : LucideIcons.check,
               isLoading: isApproving,
               variant: AppButtonVariant.primary,

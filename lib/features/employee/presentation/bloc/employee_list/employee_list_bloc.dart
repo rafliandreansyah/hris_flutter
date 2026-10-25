@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -139,7 +140,7 @@ class EmployeeListBloc extends Bloc<EmployeeListEvent, EmployeeListState> {
     } catch (e) {
       emit(state.copyWith(
         isLoadingMore: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -312,7 +313,7 @@ class EmployeeListBloc extends Bloc<EmployeeListEvent, EmployeeListState> {
         employees: const [],
         isLoading: false,
         status: EmployeeListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
         isTeamAttendance: true,
       ));
     }
@@ -360,7 +361,7 @@ class EmployeeListBloc extends Bloc<EmployeeListEvent, EmployeeListState> {
       emit(state.copyWith(
         isLoading: false,
         status: EmployeeListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

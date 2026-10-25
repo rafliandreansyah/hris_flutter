@@ -69,7 +69,7 @@ void main() {
     test('categoryDisplayName and priorityDisplayName return correct labels', () {
       final item = AnnouncementItem.fromJson(jsonSample);
       expect(item.categoryDisplayName, 'Kebijakan HR');
-      expect(item.categoryBadgeText, 'HR POLICY');
+      expect(item.categoryBadgeText, 'Kebijakan HR');
       expect(item.priorityDisplayName, 'Mendesak');
     });
 

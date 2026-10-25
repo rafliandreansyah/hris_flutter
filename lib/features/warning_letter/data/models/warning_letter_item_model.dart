@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:hris_flutter/core/utils/level_name_util.dart';
+import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
+    show resolveFileUrl;
 import 'package:intl/intl.dart';
 
 /// Ringkasan tipe surat peringatan di dalam item data.
@@ -73,6 +76,7 @@ class WarningLetterEmployee extends Equatable {
   final WarningLetterOrgUnit? company;
   final WarningLetterOrgUnit? department;
   final WarningLetterOrgUnit? position;
+  final String? levelName;
   final String? photoUrl;
 
   const WarningLetterEmployee({
@@ -86,6 +90,7 @@ class WarningLetterEmployee extends Equatable {
     this.company,
     this.department,
     this.position,
+    this.levelName,
     this.photoUrl,
   });
 
@@ -107,6 +112,7 @@ class WarningLetterEmployee extends Equatable {
       position: json['position'] is Map<String, dynamic>
           ? WarningLetterOrgUnit.fromJson(json['position'] as Map<String, dynamic>)
           : null,
+      levelName: parseLevelName(json['level']),
       photoUrl: json['photoUrl']?.toString(),
     );
   }
@@ -123,9 +129,13 @@ class WarningLetterEmployee extends Equatable {
       'company': company?.toJson(),
       'department': department?.toJson(),
       'position': position?.toJson(),
+      if (levelName != null) 'level': {'name': levelName},
       'photoUrl': photoUrl,
     };
   }
+
+  /// URL foto yang sudah dilengkapi base URL server (path relatif → absolut).
+  String? get resolvedAvatarUrl => resolveFileUrl(photoUrl);
 
   /// Nama lengkap pegawai
   String get fullName {
@@ -158,6 +168,7 @@ class WarningLetterEmployee extends Equatable {
         company,
         department,
         position,
+        levelName,
         photoUrl,
       ];
 }
@@ -200,7 +211,7 @@ class WarningLetterItem extends Equatable {
           : null,
       isActive: json['isActive'] == true,
       createdAt: parsedCreatedAt,
-      timezone: json['timezone']?.toString() ?? 'WIB',
+      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
     );
   }
 
@@ -223,7 +234,7 @@ class WarningLetterItem extends Equatable {
     return 'SP';
   }
 
-  /// Format tanggal pembuatan yang rapi, contoh: "29 Agustus 2026, 12:47 WIB"
+  /// Format tanggal pembuatan yang rapi, contoh: "29 Agustus 2026, 12:47 Asia/Jakarta"
   String get formattedCreatedAt {
     if (createdAt == null) return '-';
     try {

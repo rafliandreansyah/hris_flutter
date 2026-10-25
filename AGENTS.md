@@ -29,7 +29,8 @@
    - Centralize routes in `lib/app/routes/route_name.dart` and register them in `lib/app/routes/app_router.dart`.
 8. **Loading State Standards**:
    - **Initial Page/Tab Loading**: Always use **Shimmer (Skeleton)** placeholder cards that mirror the structure of content (requests, logs, activity feed) to maintain high perceived performance and prevent content layout shifts.
-   - **Pagination (Load More)**: Use a small **`CircularProgressIndicator(strokeWidth: 2.5)`** at the bottom of the list.
+   - **Pagination (Load More)**: Use **`AppLoadingIndicator.small()`** at the bottom of the list.
+   - **Single Spinner Widget**: Never use a raw `CircularProgressIndicator` (except inside `AppButton`). Always use **`AppLoadingIndicator`** (`lib/core/widgets/app_loading_indicator.dart`): `regular` 28dp / `small` 20dp, stroke 2.5, **no accompanying text** ("Memproses…", "Memuat…").
    - **Form Actions / Submit**: Use **`CircularProgressIndicator`** inside the action button (e.g. submit, approve, reject).
    - **Pull-to-Refresh**: Use standard Flutter **`RefreshIndicator`**.
 9. **Reusable Global Widgets & Button Loading Standards**:
@@ -52,25 +53,27 @@
       - **Option Picker Modal**: **`showFilterOptionSelector`** (`lib/core/widgets/filter/filter_option_selector_modal.dart`) with auto-search box for >5 items, checkmark indicator for active option, and anti-alias sheet.
       - **Status Segmented Chips**: **`FilterStatusSegmentedRow`** (`lib/core/widgets/filter/filter_status_segmented_row.dart`) with 4 equal horizontal buttons (`Semua`, `Diajukan` / `Requested`, `Approved`, `Rejected`), border 1.5px, subtle teal tint `#F0FDFA` when selected.
       - **Date Range Picker**: **`showAppDateRangePicker`** (`lib/core/widgets/filter/app_date_range_picker.dart`) fully styled with Stitch M3 Teal Oasis date picker tokens.
+    - **Frame (`AppFilterSheetFrame`)**: Every filter bottom sheet MUST wrap its form in **`AppFilterSheetFrame`** (`lib/core/widgets/filter/app_filter_sheet_frame.dart`) for a consistent, spacious header & footer.
     - **Header**:
-      - Rounded circular icon badge (36x36, primary/brandTeal 10% opacity, `LucideIcons.slidersHorizontal`, size 18).
-      - Title using `AppTypography.titleMedium` (16sp, bold/w700).
-      - Action `TextButton.icon` with `LucideIcons.rotateCcw` (size 14) labeled "Reset Filter".
+      - Title only (`AppTypography.titleMedium`, 18sp, w700) — no leading icon badge.
+      - Close `IconButton` (`LucideIcons.x`) aligned on the same row as the title (replaces the old "Batal" button).
       - Trailing `Divider(height: 1)`.
     - **Organization Cascading (Company -> Department -> Position)**:
       - Always consume `OrganizationFilterBloc`.
       - Department and Position fields must be disabled (locked with `LucideIcons.lock`, opacity 0.6, and helper text "Pilih perusahaan terlebih dahulu") until a company is selected.
       - Selecting a company resets downstream selections and dispatches `OrganizationFilterCompanySelected`.
       - Selecting a department resets position and dispatches `OrganizationFilterDepartmentSelected`.
-    - **Footer Actions**:
-      - Row with two `AppButton` widgets at `height: 50`: "Batal" (`AppButtonVariant.outlined`) and "Terapkan Filter" (`AppButtonVariant.primary`, `leadingIcon: LucideIcons.filter`).
+    - **Footer Actions** (rendered by `AppFilterSheetFrame`):
+      - Row with two `AppButton` widgets at `height: 50`: "Reset" (`AppButtonVariant.outlined`, `leadingIcon: LucideIcons.rotateCcw`) and "Terapkan Filter" (`AppButtonVariant.primary`, `leadingIcon: LucideIcons.filter`).
 13. **Required Form Field Asterisk Standards**:
     - **Mandatory Red Asterisk (`*`)**: For all required form input fields, form labels, section headers, or upload cards across all features, the mandatory asterisk indicator (`*`) MUST ALWAYS be styled in red (`AppColors.errorRed` / `AppColors.error`, e.g., `TextSpan(text: ' *', style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold))`).
     - **AppTextField Standard**: `AppTextField` automatically renders the required asterisk (`*`) in red (either cleanly extracted from `label` containing `*` or when `isRequired: true`).
     - **Zero Plain Asterisks**: Never render a required asterisk `*` in the default label or onSurface text color.
-14. **Request Items Employee Info Standard (`EmployeeInfoRow`)**:
-    - **Single Standard for Request Modules**: Across all request modules (`attendance_request`, `leave`, `overtime`, etc.) and feeds (`activity`), all request item cards displayed in list views MUST ALWAYS use the global widget **`EmployeeInfoRow`** (`lib/core/widgets/employee_info_row.dart`) for rendering employee identity (avatar, name, role • department, employee number badge, company badge).
-    - **Consistency Across Cards**: Never build manual or ad-hoc avatar + employee info columns in request cards. Always pass `name`, `role`, `department`, `company`, `employeeId`, `avatarUrl`, `initials`, and a compact `avatarSize` (typically 40–44) into `EmployeeInfoRow`.
+14. **Request List Card Standard (`RequestCardHeader` & `RequestListCardFrame`)**:
+    - **Compact List Cards**: Across all request modules (`attendance_request`, `leave`, `overtime`, `reimbursement`, `resignation`, `warning_letter`) and feeds (`activity`), list item cards MUST use **`RequestListCardFrame`** + **`RequestCardHeader`** (`lib/core/widgets/request_card_header.dart`): avatar, name, and job title only (department as fallback) with the status chip on the right. Body lines use `RequestCardInfoLine` / `RequestCardNote`.
+    - **Keep Lists Short**: Show only the key data (type, date/time, duration/amount, short note). Do NOT show employee number, company, timezone, reference IDs or "View Details" links in list cards — the whole card is tappable and the full data lives on the detail screen.
+    - **Request Status = Icon Only**: Request status (leave, overtime, attendance request, reimbursement, cash advance, resignation) is shown only as **`AppStatusIcon`** (`lib/core/widgets/app_status_icon.dart`) — colored icon with Tooltip + Semantics, no text — on both list cards and detail overview. Standard labels: Menunggu Persetujuan, Disetujui, Ditolak, Dibatalkan, Dicairkan, Selesai. `AppStatusChip` (no dot) remains for non-request statuses (asset, payroll, activity).
+    - **Nothing Truncated**: Names and job titles in `RequestCardHeader` wrap to multiple lines; never cut employee data with a 1-line ellipsis.
 15. **Keyboard Dismiss & Form Action Standards (`onTapOutside` & Unfocus on Submit)**:
     - **Global `AppTextField`**: Always configure default `onTapOutside: widget.onTapOutside ?? (event) => FocusManager.instance.primaryFocus?.unfocus()` so tapping outside any text field immediately dismisses the software keyboard on iOS and Android.
     - **Direct TextField / TextFormField**: Any raw input field across forms, search bars, dialogs, or filter sheets MUST specify `onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus()`.
@@ -102,6 +105,9 @@
     - **Consistent Suffix Interaction**: Automatically render an interactive clear (`x`) button when query text is present, and ensure automatic keyboard unfocus on outside taps via `onTapOutside`.
 19. **Standard Requester & Approver Cards for Request Detail Screens (`INFORMASI PENGAJU` & `PEJABAT PENYETUJU`)**:
     - **Single Architectural Standard**: Across all request detail screens (`leave`, `overtime`, `attendance_requests`, `reimbursement`, `cash_advance`, etc.), both the Requester Profile ("INFORMASI PENGAJU") and Assigned Approver ("PEJABAT PENYETUJU") cards MUST strictly follow the unified Stitch M3 component structure:
+      - **Reusable Implementation**: All module cards (`LeaveDetailEmployeeCard`, `OvertimeDetailApproverCard`, etc.) delegate to the global **`RequestDetailPersonCard`** (`lib/core/widgets/request_detail_person_card.dart`): avatar + name + position (2 lines), then a vertical info list (Perusahaan, Departemen, No. Pegawai, Email/Telepon) whose values wrap instead of being truncated.
+      - **Contact Actions**: When the viewer is the approver (`isApprover`) or otherwise not the requester, pass `showContactActions: true` on the requester card to show Telepon / WhatsApp / Email buttons (via `ContactLauncherUtil`).
+      - **Header Actions**: Detail screens never show separate link/share icons in the AppBar — use **`AppDetailMoreMenu`** (`lib/core/widgets/app_detail_more_menu.dart`) with `AppDetailMenuItem.share`, `AppDetailMenuItem.copyLink`, and destructive items such as "Hapus Pengajuan".
       - **Requester Card (`INFORMASI PENGAJU`)**:
         - Container: `width: double.infinity`, `padding: const EdgeInsets.all(AppSpacing.md)`, `borderRadius: BorderRadius.circular(16)`, `border: Border.all(color: borderCol, width: 1)`, background `cardBg`.
         - Section Title: `Text('INFORMASI PENGAJU', style: AppTypography.labelSmall.copyWith(color: subtitleCol, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8))`.
@@ -115,4 +121,13 @@
         - Notes / Reason Callout Box: When notes/rejection reason is present, display a nested container with `padding: 12`, `borderRadius: 10`, `border: Border(left: BorderSide(color: isRejected ? AppColors.errorRed : brandColor, width: 3))`, icon `LucideIcons.messageSquare` (or `alertTriangle` if rejected), and italic note text in `AppTypography.bodySmall`.
         - Visibility: If status is still pending and no approver has been assigned/approved yet and no notes exist, auto-hide the approver card.
     - **Zero Ad-hoc Profiling**: Never build manual or ad-hoc `Row` / `AppAvatar` profile containers in request detail screens. Always implement or reuse the dedicated standard cards (`LeaveDetailEmployeeCard` / `LeaveDetailApproverCard`, `OvertimeDetailEmployeeCard` / `OvertimeDetailApproverCard`, `AttendanceRequestEmployeeCard` / `AttendanceRequestApproverCard`, `ExpenseDetailEmployeeCard` / `ExpenseDetailApproverCard`).
+20. **Header, ID & Media Standards**:
+    - **No AppBar Subtitles**: AppBar titles are a single `Text`. Never add a subtitle line under the title; if the subtitle carried data (e.g. the attendance date), render it in the page content instead.
+    - **Never Show Internal IDs**: Do not display database IDs/UUIDs (request IDs, document IDs, `employee.id` fallbacks) anywhere in the UI or in share texts. Human-readable numbers (employee number, reference number) are fine.
+    - **Media Heights**: Photo previews in forms/details use at least 200–260dp (`AppPhotoPickerCard`, `AppImageThumbnailPreview` default 220) and maps at least 220dp (`AppRealtimeMapCard` default 220).
+    - **Timezone Display**: Show the IANA name as-is via `AppDateUtil.timezoneLabel` (e.g. `Asia/Jakarta`); **never** abbreviate to WIB/WITA/WIT. Fallback is `AppDateUtil.defaultTimezone` (`Asia/Jakarta`).
+    - **Human Error Messages**: Never show `e.toString()` / `'$e'` to users. Use **`AppErrorMessage.from(e)`** (`lib/core/utils/app_error_message.dart`) — API messages pass through, network/timeout/unknown errors become friendly Indonesian text. Device authentication errors (`LocalAuthException`) are mapped in `BiometricService`.
+    - **Indonesian UI Text**: Screen titles, statuses, and labels are Indonesian (add keys to `app_id.arb` + `app_en.arb` for titles, use `l10n?.key ?? 'Default Indonesia'`). No mixed English like "Clock In", "On Time", "Pending", "Request Detail".
+    - **Employee Level**: Person cards show `level` when present (`RequestDetailPersonCard(level: …)`), hidden when empty.
+    - **Delete Own Request**: Leave, overtime, attendance request, reimbursement and cash advance can be deleted by the owner while still pending, via the `AppDetailMoreMenu` "Hapus Pengajuan" item.
 

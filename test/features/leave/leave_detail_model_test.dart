@@ -84,8 +84,8 @@ void main() {
       expect(data.isPending, isTrue);
       expect(data.isApproved, isFalse);
       expect(data.isRejected, isFalse);
-      expect(data.statusLabel, 'Pending Approval');
-      expect(data.durationLabel, '5 Work Day(s)');
+      expect(data.statusLabel, 'Menunggu Persetujuan');
+      expect(data.durationLabel, '5 Hari Kerja');
 
       // Leave Type
       expect(data.leaveType.id, 'lt-001');
@@ -146,8 +146,8 @@ void main() {
       expect(data.employee.fullName, 'Budi');
       expect(data.employee.initials, 'BU');
       expect(data.isApproved, isTrue);
-      expect(data.statusLabel, 'Approved');
-      expect(data.durationLabel, '1 Work Day(s)');
+      expect(data.statusLabel, 'Disetujui');
+      expect(data.durationLabel, '1 Hari Kerja');
       expect(data.formattedDateRange, contains('11'));
       expect(data.formattedDateRange, contains('2026'));
     });
@@ -161,14 +161,14 @@ void main() {
       );
 
       expect(model.isRejected, isTrue);
-      expect(model.statusLabel, 'Rejected');
+      expect(model.statusLabel, 'Ditolak');
 
       final updated = model.copyWith(
         status: 'approved',
         approverNotes: 'Updated notes',
       );
       expect(updated.isApproved, isTrue);
-      expect(updated.statusLabel, 'Approved');
+      expect(updated.statusLabel, 'Disetujui');
       expect(updated.approverNotes, 'Updated notes');
     });
   });

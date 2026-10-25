@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -160,11 +161,7 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
               onPressed: () => context.pop(),
             ),
             titleSpacing: 0,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+            title: Text(
                   'Pengumuman',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -172,16 +169,6 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
                     fontSize: 18,
                   ),
                 ),
-                Text(
-                  'Berita perusahaan, surat edaran & update resmi',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               // Tombol Filter dengan Badge Jumlah Filter Aktif
               Stack(
@@ -496,14 +483,7 @@ class _AnnouncementListViewState extends State<_AnnouncementListView> {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: AppColors.brandTeal,
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: AppColors.brandTeal),
               ),
             );
           }

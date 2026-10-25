@@ -71,7 +71,7 @@ class AttendanceRequestDetailData extends Equatable {
     this.longitudeOut,
     this.addressOut,
     this.createdAt,
-    this.timezone = 'WIB',
+    this.timezone = 'Asia/Jakarta',
     this.livenessScore,
     this.similarityScore,
     this.isLive,
@@ -141,7 +141,7 @@ class AttendanceRequestDetailData extends Equatable {
       longitudeOut: parseDouble(json['longitudeOut']),
       addressOut: json['addressOut']?.toString(),
       createdAt: parseDate(json['createdAt']),
-      timezone: json['timezone']?.toString() ?? 'WIB',
+      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
       livenessScore: parseDouble(json['livenessScore']),
       similarityScore: parseDouble(json['similarityScore']),
       isLive: json['isLive'] as bool?,
@@ -396,7 +396,7 @@ class AttendanceRequestDetailData extends Equatable {
     return '${date.day} $monthName ${date.year}';
   }
 
-  /// Format waktu masuk (misal: "08:30 WIB")
+  /// Format waktu masuk (misal: "08:30 Asia/Jakarta")
   String get formattedInTime {
     final time = attendanceInTime ?? (isIn ? attendanceTime : null);
     if (time == null) return '-';
@@ -405,7 +405,7 @@ class AttendanceRequestDetailData extends Equatable {
     return '$h:$m $timezone';
   }
 
-  /// Format waktu pulang (misal: "17:30 WIB")
+  /// Format waktu pulang (misal: "17:30 Asia/Jakarta")
   String get formattedOutTime {
     final time = attendanceOutTime ?? (isOut ? attendanceTime : null);
     if (time == null) return '-';
@@ -414,13 +414,13 @@ class AttendanceRequestDetailData extends Equatable {
     return '$h:$m $timezone';
   }
 
-  /// Format info pengajuan (misal: "Diajukan: 29 Agustus 2026, 13:35 WIB • Zona Waktu: WIB")
+  /// Format info pengajuan (misal: "Diajukan: 29 Agustus 2026, 13:35 Asia/Jakarta")
   String get formattedSubmittedInfo {
     if (createdAt == null) return 'Zona Waktu: $timezone';
     final monthName = _monthsIndonesian[createdAt!.month - 1];
     final h = createdAt!.hour.toString().padLeft(2, '0');
     final m = createdAt!.minute.toString().padLeft(2, '0');
-    return 'Diajukan: ${createdAt!.day} $monthName ${createdAt!.year}, $h:$m $timezone • Zona Waktu: $timezone';
+    return 'Diajukan: ${createdAt!.day} $monthName ${createdAt!.year}, $h:$m $timezone';
   }
 
   @override

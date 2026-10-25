@@ -77,5 +77,19 @@ void main() {
         expect(AppDateUtil.tryParseDateTime('not-a-date'), isNull);
       });
     });
+
+    group('timezoneLabel', () {
+      test('menampilkan nama IANA apa adanya, bukan singkatan WIB', () {
+        expect(AppDateUtil.timezoneLabel('Asia/Jakarta'), 'Asia/Jakarta');
+        expect(AppDateUtil.timezoneLabel(' Asia/Makassar '), 'Asia/Makassar');
+      });
+
+      test('kosong atau placeholder memakai Asia/Jakarta', () {
+        expect(AppDateUtil.timezoneLabel(null), 'Asia/Jakarta');
+        expect(AppDateUtil.timezoneLabel(''), 'Asia/Jakarta');
+        expect(AppDateUtil.timezoneLabel('--:--'), 'Asia/Jakarta');
+        expect(AppDateUtil.defaultTimezone, 'Asia/Jakarta');
+      });
+    });
   });
 }

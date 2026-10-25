@@ -49,6 +49,14 @@ class ReimbursementRepositoryImpl implements ReimbursementRepository {
   }
 
   @override
+  Future<void> deleteReimbursement(String id) =>
+      _remoteDataSource.deleteReimbursement(id);
+
+  @override
+  Future<void> deleteCashAdvance(String id) =>
+      _remoteDataSource.deleteCashAdvance(id);
+
+  @override
   Future<ReimbursementDetailModel> getReimbursementDetail(String id) {
     return _remoteDataSource.getReimbursementDetail(id);
   }

@@ -154,11 +154,13 @@ void main() {
 
       expect(item.id, 'uuid-5678');
       expect(item.rawId, 'uuid-5678');
-      expect(item.displayId, 'uuid-5678');
+      // Tanpa employeeNumber, displayId kosong (UUID tidak ditampilkan).
+      expect(item.displayId, '');
       expect(item.name, 'Budi');
       expect(item.initials, 'BU');
-      expect(item.role, 'Staff');
-      expect(item.department, 'Umum');
+      // Tidak mengarang jabatan/departemen bila API tidak mengirim.
+      expect(item.role, '');
+      expect(item.department, '');
       expect(item.company, isNull);
     });
 

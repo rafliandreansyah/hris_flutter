@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -76,6 +77,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
       context,
       title: 'Pilih Rekan Kerja Penerima',
       excludeEmployeeId: currentHolderId,
+      selectedEmployeeId: _targetEmployee?.id,
     );
     if (emp != null && mounted) {
       setState(() {
@@ -117,10 +119,9 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_targetEmployee == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan pilih rekan kerja yang akan menerima fasilitas'),
-        ),
+      AppDialogUtil.showValidationError(
+        context,
+        message: 'Silakan pilih rekan kerja yang akan menerima fasilitas.',
       );
       return;
     }

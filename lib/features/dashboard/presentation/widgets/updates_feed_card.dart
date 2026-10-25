@@ -35,7 +35,7 @@ class UpdatesFeedCard extends StatelessWidget {
       return 'Terbaru · Pengumuman Perusahaan';
     }
     final dt = DateTime.tryParse(createdAt);
-    if (dt == null) return 'Terbaru · Company Announcement';
+    if (dt == null) return 'Terbaru · Pengumuman Perusahaan';
     final now = DateTime.now();
     final diff = now.difference(dt);
     if (diff.inMinutes < 60) {

@@ -32,8 +32,8 @@ class AttendanceDetailHeroCard extends StatelessWidget {
 
     final isClockIn = detail.isClockIn;
     final typeText = isClockIn
-        ? (l10n?.clockIn ?? 'Clock In')
-        : (l10n?.clockOut ?? 'Clock Out');
+        ? (l10n?.clockIn ?? 'Absen Masuk')
+        : (l10n?.clockOut ?? 'Absen Pulang');
 
     return Container(
       width: double.infinity,
@@ -113,7 +113,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                           : AppColors.onErrorContainer;
                       badgeIcon = LucideIcons.clockAlert;
                       badgeText = l10n?.lateByMinutes(detail.lateInMinutes) ??
-                          'Late by ${detail.lateInMinutes} mins';
+                          'Terlambat ${detail.lateInMinutes} menit';
                     } else {
                       badgeBg = isDark
                           ? AppColors.success.withValues(alpha: 0.2)
@@ -122,7 +122,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                           ? const Color(0xFF86EFAC)
                           : AppColors.onSuccessContainer;
                       badgeIcon = LucideIcons.checkCircle2;
-                      badgeText = l10n?.onTime ?? 'On Time';
+                      badgeText = l10n?.onTime ?? 'Tepat Waktu';
                     }
                   } else {
                     // Clock Out (Absen Pulang)
@@ -145,7 +145,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                           ? const Color(0xFF86EFAC)
                           : AppColors.onSuccessContainer;
                       badgeIcon = LucideIcons.checkCircle2;
-                      badgeText = l10n?.onTime ?? 'On Time';
+                      badgeText = l10n?.onTime ?? 'Tepat Waktu';
                     }
                   }
 
@@ -207,7 +207,7 @@ class AttendanceDetailHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        l10n?.outsideAttendanceTitle ?? 'Outside Attendance',
+                        l10n?.outsideAttendanceTitle ?? 'Presensi Luar Kantor',
                         style: AppTypography.labelSmall.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark
@@ -260,6 +260,25 @@ class AttendanceDetailHeroCard extends StatelessWidget {
               ],
             ],
           ),
+          // Tanggal presensi (dipindahkan dari subtitle header)
+          if (detail.formattedDate.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(LucideIcons.calendarDays, size: 14, color: subtitleCol),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    detail.formattedDate,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: subtitleCol,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
 
           const SizedBox(height: 16),
 

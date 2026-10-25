@@ -5,9 +5,11 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_theme.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/legal_links.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/legal_link_util.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
 import 'package:hris_flutter/features/auth/data/repositories/auth_repository_impl.dart';
@@ -358,6 +360,71 @@ class AccountSettingsBottomSheet extends StatelessWidget {
                         onTap: () {
                           _showThemeDialog(sheetContext);
                         },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // 5b. Section Label: LEGAL & BANTUAN
+                Text(
+                  l10n?.legalAndHelp ?? 'LEGAL & BANTUAN',
+                  style: AppTypography.labelMedium.copyWith(
+                    color: labelCol,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                Container(
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderCol, width: 1),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: [
+                      for (final (index, (icon, title, url)) in [
+                        (LucideIcons.shieldCheck,
+                            l10n?.legalPrivacyPolicy ?? 'Kebijakan Privasi',
+                            LegalLinks.privacyPolicy),
+                        (LucideIcons.fileText,
+                            l10n?.legalTerms ?? 'Syarat & Ketentuan',
+                            LegalLinks.termsConditions),
+                        (LucideIcons.receipt,
+                            l10n?.legalRefundPolicy ??
+                                'Kebijakan Pengembalian Dana',
+                            LegalLinks.refundPolicy),
+                        (LucideIcons.circleHelp, l10n?.legalFaq ?? 'FAQ',
+                            LegalLinks.faq),
+                        (LucideIcons.mail, l10n?.legalContact ?? 'Kontak',
+                            LegalLinks.contact),
+                      ].indexed) ...[
+                        if (index > 0)
+                          Divider(height: 1, thickness: 1, color: borderCol),
+                        _LegalLinkTile(
+                          icon: icon,
+                          iconBg: iconCircleBg,
+                          iconColor: textCol,
+                          title: title,
+                          onTap: () => LegalLinkUtil.open(sheetContext, url),
+                        ),
+                      ],
+                      Divider(height: 1, thickness: 1, color: borderCol),
+                      // Wajib Google Play & App Store: jalur penghapusan akun dari dalam aplikasi.
+                      _LegalLinkTile(
+                        icon: LucideIcons.trash2,
+                        iconBg: AppColors.errorRed.withValues(alpha: 0.12),
+                        iconColor: AppColors.errorRed,
+                        title: l10n?.legalDeleteData ?? 'Hapus Akun & Data',
+                        titleColor: AppColors.errorRed,
+                        subtitle: l10n?.legalDeleteDataSubtitle ??
+                            'Ajukan penghapusan akun dan data pribadi Anda',
+                        onTap: () =>
+                            LegalLinkUtil.open(sheetContext, LegalLinks.deleteData),
                       ),
                     ],
                   ),
@@ -747,6 +814,79 @@ class _SettingsListTile extends StatelessWidget {
 
               // Chevron Right
               Icon(LucideIcons.chevronRight, size: 18, color: labelCol),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalLinkTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String title;
+  final Color? titleColor;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  const _LegalLinkTile({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.title,
+    this.titleColor,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
+    final subtitleCol =
+        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: iconBg),
+                child: Icon(icon, size: 18, color: iconColor),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.bodyLarge.copyWith(
+                        color: titleColor ?? textCol,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: AppTypography.bodyMedium
+                            .copyWith(color: subtitleCol, fontSize: 12.5),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(LucideIcons.externalLink, size: 16, color: subtitleCol),
             ],
           ),
         ),

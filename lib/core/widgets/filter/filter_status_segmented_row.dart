@@ -16,8 +16,8 @@ class FilterStatusOption {
   static const List<FilterStatusOption> defaultRequestStatusOptions = [
     FilterStatusOption(label: 'Semua', value: 'all'),
     FilterStatusOption(label: 'Diajukan', value: 'requested'),
-    FilterStatusOption(label: 'Approved', value: 'approved'),
-    FilterStatusOption(label: 'Rejected', value: 'rejected'),
+    FilterStatusOption(label: 'Disetujui', value: 'approved'),
+    FilterStatusOption(label: 'Ditolak', value: 'rejected'),
   ];
 }
 

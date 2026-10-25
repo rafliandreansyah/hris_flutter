@@ -78,7 +78,10 @@ class LiveEmployeeBottomCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${employee.positionName ?? 'Staff'} • ${employee.departmentName ?? 'Departemen'}',
+                      [
+                        employee.positionName,
+                        employee.departmentName,
+                      ].where((v) => v != null && v.trim().isNotEmpty).join(' • '),
                       style: AppTypography.bodySmall.copyWith(
                         color: subtitleCol,
                         fontSize: 12,

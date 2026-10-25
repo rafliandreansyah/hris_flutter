@@ -1,7 +1,11 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -115,12 +119,10 @@ class _ActivityDetailView extends StatelessWidget {
           );
         } else if (state.status == ActivityDetailStatus.failure &&
             state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal memproses aksi: ${state.errorMessage}'),
-              backgroundColor: Colors.red.shade700,
-              behavior: SnackBarBehavior.floating,
-            ),
+          AppDialogUtil.showError(
+            context,
+            title: 'Gagal Memproses Aksi',
+            message: state.errorMessage!,
           );
         }
       },
@@ -167,53 +169,35 @@ class _ActivityDetailView extends StatelessWidget {
                 onPressed: () => _handlePop(context, state.hasChanged),
                 tooltip: 'Kembali',
               ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Activity Detail',
+              title: Text(
+                    AppLocalizations.of(context)?.titleActivityDetail ?? 'Detail Aktivitas',
                     style: AppTypography.titleMedium.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: textCol,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'ID: ${item.id} • ${item.status.label}',
-                    style: AppTypography.labelSmall.copyWith(
-                      fontSize: 12,
-                      color: subtitleCol,
-                    ),
-                  ),
-                ],
-              ),
               actions: [
                 if (isLoading)
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.only(right: 8),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+                      child: AppLoadingIndicator.small(),
                     ),
                   ),
-                IconButton(
-                  icon: Icon(LucideIcons.link, color: textCol, size: 20),
-                  tooltip: 'Salin Link',
-                  onPressed: () => ShareLinkUtil.copyLink(
-                    context,
-                    ShareLinkUtil.webUrl(ShareModule.activity, item.id),
-                  ),
+                AppDetailMoreMenu(
+                  iconColor: textCol,
+                  items: [
+                    AppDetailMenuItem.share(() => _handleShare(context, item)),
+                    AppDetailMenuItem.copyLink(
+                      () => ShareLinkUtil.copyLink(
+                        context,
+                        ShareLinkUtil.webUrl(ShareModule.activity, item.id),
+                      ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(LucideIcons.share2, color: textCol, size: 20),
-                  tooltip: 'Bagikan Aktivitas',
-                  onPressed: () => _handleShare(context, item),
-                ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
               ],
             ),
 
@@ -314,28 +298,19 @@ class _ActivityDetailView extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 height: 48,
-                child: OutlinedButton.icon(
+                child: AppButton(
                   key: const ValueKey('cancel_activity_btn'),
+                  text: 'Batalkan',
+                  leadingIcon: LucideIcons.xCircle,
+                  variant: AppButtonVariant.outlined,
+                  width: double.infinity,
+                  height: 48,
+                  foregroundColor: AppColors.errorRed,
+                  borderColor: AppColors.errorRed.withValues(alpha: 0.5),
                   onPressed: () => _showActionBottomSheet(
                     context: context,
                     item: item,
                     isFinish: false,
-                  ),
-                  icon: const Icon(LucideIcons.xCircle, size: 18),
-                  label: const Text(
-                    'Batalkan',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFDC2626),
-                    side: const BorderSide(
-                      color: Color(0xFFF87171),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                 ),
               ),
@@ -346,26 +321,16 @@ class _ActivityDetailView extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 height: 48,
-                child: ElevatedButton.icon(
+                child: AppButton(
                   key: const ValueKey('complete_activity_btn'),
+                  text: 'Selesaikan',
+                  leadingIcon: LucideIcons.checkCircle2,
+                  width: double.infinity,
+                  height: 48,
                   onPressed: () => _showActionBottomSheet(
                     context: context,
                     item: item,
                     isFinish: true,
-                  ),
-                  icon: const Icon(LucideIcons.checkCircle2, size: 18),
-                  label: const Text(
-                    'Selesaikan',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                 ),
               ),
@@ -407,25 +372,15 @@ class _ActivityDetailView extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 48,
-          child: ElevatedButton.icon(
+          child: AppButton(
             key: const ValueKey('start_activity_btn'),
+            text: 'Mulai Aktivitas',
+            leadingIcon: LucideIcons.playCircle,
+            width: double.infinity,
+            height: 48,
             onPressed: () => _showStartActivityBottomSheet(
               context: context,
               item: item,
-            ),
-            icon: const Icon(LucideIcons.playCircle, size: 18),
-            label: const Text(
-              'Mulai Aktivitas',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brandTeal,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
             ),
           ),
         ),
@@ -572,7 +527,14 @@ class _ActivityDetailView extends StatelessWidget {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: OutlinedButton.icon(
+                                  child: AppButton(
+                                    text: 'Kamera',
+                                    leadingIcon: LucideIcons.camera,
+                                    variant: AppButtonVariant.outlined,
+                                    width: double.infinity,
+                                    height: 44,
+                                    foregroundColor: textCol,
+                                    borderColor: borderCol,
                                     onPressed: () async {
                                       final picked =
                                           await CameraCaptureUtil.capture(
@@ -585,26 +547,18 @@ class _ActivityDetailView extends StatelessWidget {
                                         );
                                       }
                                     },
-                                    icon: const Icon(
-                                      LucideIcons.camera,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Kamera',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: textCol,
-                                      side: BorderSide(color: borderCol),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: OutlinedButton.icon(
+                                  child: AppButton(
+                                    text: 'Galeri',
+                                    leadingIcon: LucideIcons.image,
+                                    variant: AppButtonVariant.outlined,
+                                    width: double.infinity,
+                                    height: 44,
+                                    foregroundColor: textCol,
+                                    borderColor: borderCol,
                                     onPressed: () async {
                                       final picker = ImagePicker();
                                       final picked = await picker.pickImage(
@@ -620,21 +574,6 @@ class _ActivityDetailView extends StatelessWidget {
                                         );
                                       }
                                     },
-                                    icon: const Icon(
-                                      LucideIcons.image,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Galeri',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: textCol,
-                                      side: BorderSide(color: borderCol),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
                                   ),
                                 ),
                               ],
@@ -793,8 +732,14 @@ class _ActivityDetailView extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: ElevatedButton(
+                          child: AppButton(
                             key: const ValueKey('submit_action_confirm_btn'),
+                            text: isFinish
+                                  ? 'Selesaikan Aktivitas'
+                                  : 'Konfirmasi Batalkan',
+                            width: double.infinity,
+                            height: 50,
+                            backgroundColor: actionColor,
                             onPressed: () async {
                               final notes = notesController.text.trim();
                               if (notes.isEmpty) {
@@ -858,23 +803,6 @@ class _ActivityDetailView extends StatelessWidget {
                                 );
                               }
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: actionColor,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              isFinish
-                                  ? 'Selesaikan Aktivitas'
-                                  : 'Konfirmasi Batalkan',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
                           ),
                         ),
                       ],
@@ -1100,7 +1028,14 @@ class _ActivityDetailView extends StatelessWidget {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: OutlinedButton.icon(
+                                  child: AppButton(
+                                    text: 'Kamera',
+                                    leadingIcon: LucideIcons.camera,
+                                    variant: AppButtonVariant.outlined,
+                                    width: double.infinity,
+                                    height: 44,
+                                    foregroundColor: textCol,
+                                    borderColor: borderCol,
                                     onPressed: () async {
                                       final picked =
                                           await CameraCaptureUtil.capture(
@@ -1115,26 +1050,18 @@ class _ActivityDetailView extends StatelessWidget {
                                         });
                                       }
                                     },
-                                    icon: const Icon(
-                                      LucideIcons.camera,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Kamera',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: textCol,
-                                      side: BorderSide(color: borderCol),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: OutlinedButton.icon(
+                                  child: AppButton(
+                                    text: 'Galeri',
+                                    leadingIcon: LucideIcons.image,
+                                    variant: AppButtonVariant.outlined,
+                                    width: double.infinity,
+                                    height: 44,
+                                    foregroundColor: textCol,
+                                    borderColor: borderCol,
                                     onPressed: () async {
                                       final picker = ImagePicker();
                                       final picked = await picker.pickImage(
@@ -1152,21 +1079,6 @@ class _ActivityDetailView extends StatelessWidget {
                                         });
                                       }
                                     },
-                                    icon: const Icon(
-                                      LucideIcons.image,
-                                      size: 16,
-                                    ),
-                                    label: const Text(
-                                      'Galeri',
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: textCol,
-                                      side: BorderSide(color: borderCol),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
                                   ),
                                 ),
                               ],
@@ -1192,10 +1104,7 @@ class _ActivityDetailView extends StatelessWidget {
                                           width: 52,
                                           height: 52,
                                           child: Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: AppColors.brandTeal,
-                                            ),
+                                            child: AppLoadingIndicator(color: AppColors.brandTeal),
                                           ),
                                         )
                                       : kIsWeb
@@ -1288,8 +1197,11 @@ class _ActivityDetailView extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: ElevatedButton(
+                          child: AppButton(
                             key: const ValueKey('submit_start_confirm_btn'),
+                            text: 'Mulai Aktivitas Sekarang',
+                            width: double.infinity,
+                            height: 50,
                             onPressed: isCompressingPhoto
                                 ? null
                                 : () async {
@@ -1313,21 +1225,6 @@ class _ActivityDetailView extends StatelessWidget {
                                       ),
                                     );
                                   },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.brandTeal,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Text(
-                              'Mulai Aktivitas Sekarang',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
                           ),
                         ),
                       ],
@@ -1465,7 +1362,6 @@ class _ActivityDetailView extends StatelessWidget {
   void _handleShare(BuildContext context, ActivityItem item) {
     final shareContent = StringBuffer()
       ..writeln('📋 LAPORAN AKTIVITAS OASISH HRIS')
-      ..writeln('ID: ${item.id}')
       ..writeln('Judul: ${item.title}')
       ..writeln('Karyawan: ${item.userName} (${item.userRole})')
       ..writeln('Departemen: ${item.department}')
@@ -1481,7 +1377,7 @@ class _ActivityDetailView extends StatelessWidget {
         module: ShareModule.activity,
         requestId: item.id,
         summary: shareContent.toString(),
-        subject: 'Laporan Aktivitas: ${item.title} (${item.id})',
+        subject: 'Laporan Aktivitas: ${item.title}',
       ),
     );
   }

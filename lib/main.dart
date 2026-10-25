@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,7 @@ import 'package:hris_flutter/app/routes/app_router.dart';
 import 'package:hris_flutter/core/localization/bloc/locale_bloc.dart';
 import 'package:hris_flutter/core/theme/bloc/theme_bloc.dart';
 import 'package:hris_flutter/core/network/alice_service.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/services/notification_navigation_handler.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
 import 'package:hris_flutter/core/widgets/offline_status_banner.dart';
@@ -47,6 +51,11 @@ Future<void> main() async {
     }
 
   runApp(const MyApp());
+
+  // Lanjutkan pelacakan sesi clock-in yang masih aktif tanpa menunggu dashboard dibuka:
+  // app bisa dibangunkan iOS di background (Significant Location Change) atau dibuka
+  // dari notifikasi "ketuk untuk melanjutkan" setelah HP Android dinyalakan ulang.
+  unawaited(LocationTrackingService.instance.restoreOnAppStart());
 }
 
 class MyApp extends StatelessWidget {
@@ -74,6 +83,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<ThemeBloc>(
             create: (context) =>
                 (themeBloc ?? ThemeBloc())..add(const ThemeStarted()),
+          ),
+          BlocProvider<SubmissionSettingCubit>(
+            create: (context) => SubmissionSettingCubit(),
           ),
           BlocProvider<OrganizationFilterBloc>(
             create: (context) =>

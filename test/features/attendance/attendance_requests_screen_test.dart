@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_api_models.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_detail_model.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
@@ -164,7 +164,7 @@ void main() {
       expect(find.text('Presensi Luar Kantor'), findsOneWidget);
       expect(
         find.text('Verifikasi & persetujuan presensi tim luar kantor'),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
@@ -225,8 +225,8 @@ void main() {
 
         // Modal Bottom Sheet Stitch Screen 2
         expect(find.text('Pilih Metode Presensi Luar'), findsOneWidget);
-        expect(find.text('Live Attendance (Real-Time)'), findsOneWidget);
-        expect(find.text('Schedule Attendance (Terencana)'), findsOneWidget);
+        expect(find.text('Presensi Langsung (Real-Time)'), findsOneWidget);
+        expect(find.text('Presensi Terjadwal'), findsOneWidget);
         expect(find.text('Instant Check-In / Out'), findsOneWidget);
         expect(find.text('Custom Date & Time'), findsOneWidget);
         expect(find.text('Batal'), findsOneWidget);
@@ -302,24 +302,25 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.byType(EmployeeInfoRow), findsOneWidget);
+        expect(find.byType(RequestCardHeader), findsOneWidget);
         expect(find.text('Budi Santoso'), findsOneWidget);
         expect(find.textContaining('Senior Backend Engineer'), findsOneWidget);
-        expect(find.text('Menunggu'), findsOneWidget);
+        expect(find.byTooltip('Menunggu Persetujuan'), findsOneWidget);
         expect(find.text('29 Agustus 2026'), findsOneWidget);
         expect(
-          find.text('Jam Kerja: Masuk 08:30 WIB s/d Pulang 17:00 WIB'),
+          find.text('Jam Kerja: Masuk 08:30 Asia/Jakarta s/d Pulang 17:00 Asia/Jakarta'),
           findsOneWidget,
         );
         expect(
-          find.text(
-            '"Presentasi implementasi integrasi payment gateway ke klien di Menara Sudirman."',
+          find.textContaining(
+            'Presentasi implementasi integrasi payment gateway',
           ),
           findsOneWidget,
         );
+        // Waktu pengajuan cukup di halaman detail, tidak di kartu daftar.
         expect(
-          find.text('Diajukan: 29 Agustus 2026, 13:35 WIB'),
-          findsOneWidget,
+          find.text('Diajukan: 29 Agustus 2026, 13:35 Asia/Jakarta'),
+          findsNothing,
         );
       },
     );
@@ -342,7 +343,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('IN'), findsOneWidget);
-        expect(find.text('Jam Masuk: 08:15 WIB'), findsOneWidget);
+        expect(find.text('Jam Masuk: 08:15 Asia/Jakarta'), findsOneWidget);
 
         final itemOut = AttendanceRequestItem(
           id: 'out-req-1',
@@ -359,7 +360,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('OUT'), findsOneWidget);
-        expect(find.text('Jam Pulang: 17:15 WIB'), findsOneWidget);
+        expect(find.text('Jam Pulang: 17:15 Asia/Jakarta'), findsOneWidget);
       },
     );
 
@@ -387,7 +388,7 @@ void main() {
       await tester.tap(find.text('Buka'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Live Attendance (Real-Time)'));
+      await tester.tap(find.text('Presensi Langsung (Real-Time)'));
       await tester.pumpAndSettle();
 
       expect(chosenMethod, AttendanceOutsideMethod.live);

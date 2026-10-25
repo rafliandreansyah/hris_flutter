@@ -29,7 +29,8 @@ void main() {
       await tester.pump();
 
       expect(find.text('SE_Direksi_2026.pdf'), findsOneWidget);
-      expect(find.text('Surat Edaran Direksi'), findsOneWidget);
+      // Header tanpa subtitle: hanya nama file.
+      expect(find.text('Surat Edaran Direksi'), findsNothing);
       expect(find.byIcon(LucideIcons.share2), findsOneWidget);
       expect(find.byIcon(LucideIcons.download), findsOneWidget);
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);

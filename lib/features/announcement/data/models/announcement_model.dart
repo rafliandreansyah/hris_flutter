@@ -159,18 +159,18 @@ class AnnouncementItem extends Equatable {
   String get categoryBadgeText {
     switch (category.toLowerCase()) {
       case 'hr_policy':
-        return 'HR POLICY';
+        return 'Kebijakan HR';
       case 'event':
-        return 'EVENT';
+        return 'Acara';
       case 'holiday':
-        return 'HOLIDAY';
+        return 'Libur';
       case 'maintenance':
-        return 'MAINTENANCE';
+        return 'Pemeliharaan';
       case 'emergency':
-        return 'EMERGENCY';
+        return 'Darurat';
       case 'general':
       default:
-        return 'GENERAL';
+        return 'Umum';
     }
   }
 

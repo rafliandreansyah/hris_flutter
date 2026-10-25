@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
@@ -49,7 +50,7 @@ class NotificationListBloc
     } on ApiException catch (e) {
       emit(NotificationListError(message: e.message, statusCode: e.statusCode));
     } catch (e) {
-      emit(NotificationListError(message: 'Gagal memuat notifikasi: $e'));
+      emit(NotificationListError(message: AppErrorMessage.from(e)));
     }
   }
 
@@ -86,7 +87,7 @@ class NotificationListBloc
       }
     } catch (e) {
       if (state is! NotificationListLoaded) {
-        emit(NotificationListError(message: 'Gagal menyegarkan notifikasi: $e'));
+        emit(NotificationListError(message: AppErrorMessage.from(e)));
       }
     }
   }

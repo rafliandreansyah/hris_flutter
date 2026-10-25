@@ -105,7 +105,7 @@ void main() {
 
       // 1. AppBar
       expect(find.text('Ajukan Lembur'), findsOneWidget);
-      expect(find.text('Formulir permohonan lembur karyawan'), findsOneWidget);
+      expect(find.text('Formulir permohonan lembur karyawan'), findsNothing);
 
       // 2. Sections (Konsisten dengan CreateLeaveScreen)
       expect(find.text('PERIODE & JADWAL LEMBUR'), findsOneWidget);

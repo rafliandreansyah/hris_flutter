@@ -11,13 +11,17 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 class EmployeeCard extends StatelessWidget {
   final EmployeeDirectoryItem employee;
   /// Null = detail tidak boleh dibuka (mis. tanpa izin employee.view): kartu tidak bisa
-  /// diketuk dan "View Profile" disembunyikan.
+  /// diketuk dan "Lihat Profil" disembunyikan.
   final VoidCallback? onTap;
+
+  /// Label tautan aksi di kanan bawah kartu (mis. "Lihat Absensi").
+  final String actionLabel;
 
   const EmployeeCard({
     super.key,
     required this.employee,
     this.onTap,
+    this.actionLabel = 'Lihat Profil',
   });
 
   @override
@@ -98,7 +102,7 @@ class EmployeeCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
@@ -109,7 +113,7 @@ class EmployeeCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 6),
@@ -125,6 +129,7 @@ class EmployeeCard extends StatelessWidget {
                                 fontSize: 11,
                               ),
                             ),
+                            if (employee.displayId.isNotEmpty) ...[
                             Container(
                               width: 3.5,
                               height: 3.5,
@@ -147,7 +152,7 @@ class EmployeeCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                'ID: ${employee.displayId}',
+                                employee.displayId,
                                 style: AppTypography.labelSmall.copyWith(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w500,
@@ -157,6 +162,7 @@ class EmployeeCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            ],
                           ],
                         ),
                       ],
@@ -205,7 +211,7 @@ class EmployeeCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // 2. Bottom Section: Email address and "View Profile" link
+              // 2. Bottom Section: Email address and "Lihat Profil" link
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -237,7 +243,7 @@ class EmployeeCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'View Profile',
+                        actionLabel,
                         style: AppTypography.labelMedium.copyWith(
                           color: roleCol,
                           fontWeight: FontWeight.w600,

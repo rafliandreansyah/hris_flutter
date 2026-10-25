@@ -230,6 +230,11 @@ abstract class ApiEndpoints {
   static const String trackingLive = '/tracking/live';
 
   // ==========================================
+  // --- 🗓️ SUBMISSION SETTINGS (kuota & batas tanggal pengajuan) ---
+  // ==========================================
+  static const String submissionSettings = '/submission-settings';
+
+  // ==========================================
   // --- 💵 PAYROLL & SLIP GAJI ENDPOINTS ---
   // ==========================================
   static const String payrolls = '/payrolls';

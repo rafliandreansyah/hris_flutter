@@ -1,5 +1,6 @@
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
     show resolveFileUrl;
+import 'package:hris_flutter/core/utils/level_name_util.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
 
 /// Metadata paginasi respons dari endpoint `/attendances/requests`.
@@ -94,6 +95,7 @@ class AttendanceRequestEmployeeModel {
   final AttendanceRequestDepartmentModel? department;
   final AttendanceRequestPositionModel? position;
   final String? photoUrl;
+  final String? levelName;
 
   const AttendanceRequestEmployeeModel({
     required this.id,
@@ -106,6 +108,7 @@ class AttendanceRequestEmployeeModel {
     this.department,
     this.position,
     this.photoUrl,
+    this.levelName,
   });
 
   factory AttendanceRequestEmployeeModel.fromJson(Map<String, dynamic> json) {
@@ -140,6 +143,7 @@ class AttendanceRequestEmployeeModel {
                   id: '', name: json['position'].toString())
               : null),
       photoUrl: resolveFileUrl(json['photoUrl']?.toString()),
+      levelName: parseLevelName(json['level']),
     );
   }
 
@@ -225,7 +229,7 @@ class AttendanceRequestApiModel {
 
     final rawType = (json['attendanceType'] ?? json['type'])?.toString();
     final normType = rawType?.toLowerCase().trim();
-    final tz = json['timezone']?.toString() ?? 'WIB';
+    final tz = json['timezone']?.toString() ?? 'Asia/Jakarta';
 
     final aTime = parseDate(json['attendanceTime']);
     final inTime = parseDate(json['attendanceInTime'] ?? (normType == 'in' ? json['attendanceTime'] : null));

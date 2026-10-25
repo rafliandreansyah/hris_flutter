@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
@@ -98,7 +99,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
         emit(state.copyWith(
           status: OvertimeListStatus.failure,
           isMyLoading: false,
-          errorMessage: e is ApiException ? e.message : e.toString(),
+          errorMessage: AppErrorMessage.from(e),
         ));
       }
     } else {
@@ -151,7 +152,7 @@ class OvertimeListBloc extends Bloc<OvertimeListEvent, OvertimeListState> {
           emit(state.copyWith(
             status: OvertimeListStatus.failure,
             isTeamLoading: false,
-            errorMessage: e is ApiException ? e.message : e.toString(),
+            errorMessage: AppErrorMessage.from(e),
           ));
         }
       }

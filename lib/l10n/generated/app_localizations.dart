@@ -551,7 +551,7 @@ abstract class AppLocalizations {
   /// No description provided for @outsideAttendanceDesc.
   ///
   /// In id, this message translates to:
-  /// **'Absen dari pengajuan Outside Attendance / Kehadiran luar kantor'**
+  /// **'Absen dari pengajuan presensi luar kantor'**
   String get outsideAttendanceDesc;
 
   /// No description provided for @requestReference.
@@ -805,6 +805,216 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Terbaru · Pengumuman Perusahaan'**
   String get latestCompanyAnnouncement;
+
+  /// No description provided for @titleLeave.
+  ///
+  /// In id, this message translates to:
+  /// **'Cuti & Izin'**
+  String get titleLeave;
+
+  /// No description provided for @titleLeaveDetail.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Cuti / Izin'**
+  String get titleLeaveDetail;
+
+  /// No description provided for @titleOvertime.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengajuan Lembur'**
+  String get titleOvertime;
+
+  /// No description provided for @titleOvertimeDetail.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Lembur'**
+  String get titleOvertimeDetail;
+
+  /// No description provided for @titleAttendanceLogs.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Presensi'**
+  String get titleAttendanceLogs;
+
+  /// No description provided for @titleActivityReports.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan Aktivitas'**
+  String get titleActivityReports;
+
+  /// No description provided for @titleActivityDetail.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Aktivitas'**
+  String get titleActivityDetail;
+
+  /// No description provided for @titleCreateActivity.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat Aktivitas'**
+  String get titleCreateActivity;
+
+  /// No description provided for @statusWaitingApproval.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu Persetujuan'**
+  String get statusWaitingApproval;
+
+  /// No description provided for @statusApproved.
+  ///
+  /// In id, this message translates to:
+  /// **'Disetujui'**
+  String get statusApproved;
+
+  /// No description provided for @statusRejected.
+  ///
+  /// In id, this message translates to:
+  /// **'Ditolak'**
+  String get statusRejected;
+
+  /// No description provided for @clockInLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen Masuk'**
+  String get clockInLabel;
+
+  /// No description provided for @clockOutLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Absen Pulang'**
+  String get clockOutLabel;
+
+  /// No description provided for @titleEmployeeDirectory.
+  ///
+  /// In id, this message translates to:
+  /// **'Direktori Pegawai'**
+  String get titleEmployeeDirectory;
+
+  /// No description provided for @consentTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kebijakan Privasi & Syarat Ketentuan'**
+  String get consentTitle;
+
+  /// No description provided for @consentIntro.
+  ///
+  /// In id, this message translates to:
+  /// **'Sebelum menggunakan Oasish, mohon baca dan setujui cara kami mengumpulkan dan memproses data Anda.'**
+  String get consentIntro;
+
+  /// No description provided for @consentDataHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'DATA YANG KAMI PROSES'**
+  String get consentDataHeader;
+
+  /// No description provided for @consentDataLocation.
+  ///
+  /// In id, this message translates to:
+  /// **'Lokasi presisi untuk presensi. Selama Anda clock-in hingga clock-out dan saat tugas lapangan, rute kerja direkam termasuk saat aplikasi ditutup atau di latar belakang.'**
+  String get consentDataLocation;
+
+  /// No description provided for @consentDataCamera.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamera dan foto untuk swafoto presensi, bukti aktivitas, dan dokumen klaim.'**
+  String get consentDataCamera;
+
+  /// No description provided for @consentDataBiometric.
+  ///
+  /// In id, this message translates to:
+  /// **'Biometrik (sidik jari / Face ID) diproses di perangkat dan tidak dikirim ke server.'**
+  String get consentDataBiometric;
+
+  /// No description provided for @consentDataDevice.
+  ///
+  /// In id, this message translates to:
+  /// **'Data kepegawaian, ID perangkat, level baterai, dan token notifikasi untuk menjalankan layanan.'**
+  String get consentDataDevice;
+
+  /// No description provided for @consentDocumentsHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'DOKUMEN LEGAL'**
+  String get consentDocumentsHeader;
+
+  /// No description provided for @consentAgreement.
+  ///
+  /// In id, this message translates to:
+  /// **'Saya telah membaca dan menyetujui Kebijakan Privasi dan Syarat & Ketentuan Oasish.'**
+  String get consentAgreement;
+
+  /// No description provided for @consentAccept.
+  ///
+  /// In id, this message translates to:
+  /// **'Setuju & Lanjutkan'**
+  String get consentAccept;
+
+  /// No description provided for @legalPrivacyPolicy.
+  ///
+  /// In id, this message translates to:
+  /// **'Kebijakan Privasi'**
+  String get legalPrivacyPolicy;
+
+  /// No description provided for @legalTerms.
+  ///
+  /// In id, this message translates to:
+  /// **'Syarat & Ketentuan'**
+  String get legalTerms;
+
+  /// No description provided for @legalRefundPolicy.
+  ///
+  /// In id, this message translates to:
+  /// **'Kebijakan Pengembalian Dana'**
+  String get legalRefundPolicy;
+
+  /// No description provided for @legalFaq.
+  ///
+  /// In id, this message translates to:
+  /// **'FAQ'**
+  String get legalFaq;
+
+  /// No description provided for @legalDeleteData.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus Akun & Data'**
+  String get legalDeleteData;
+
+  /// No description provided for @legalDeleteDataSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ajukan penghapusan akun dan data pribadi Anda'**
+  String get legalDeleteDataSubtitle;
+
+  /// No description provided for @legalContact.
+  ///
+  /// In id, this message translates to:
+  /// **'Kontak'**
+  String get legalContact;
+
+  /// No description provided for @legalAndHelp.
+  ///
+  /// In id, this message translates to:
+  /// **'LEGAL & BANTUAN'**
+  String get legalAndHelp;
+
+  /// No description provided for @legalLinkOpenFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Halaman tidak dapat dibuka. Periksa koneksi internet Anda lalu coba lagi.'**
+  String get legalLinkOpenFailed;
+
+  /// No description provided for @trackingResumeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pelacakan lokasi kerja dijeda'**
+  String get trackingResumeTitle;
+
+  /// No description provided for @trackingResumeBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Ketuk untuk melanjutkan pelacakan selama jam kerja Anda.'**
+  String get trackingResumeBody;
 }
 
 class _AppLocalizationsDelegate

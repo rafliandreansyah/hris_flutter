@@ -13,11 +13,11 @@ extension OvertimeStatusExtension on OvertimeStatus {
     switch (this) {
       case OvertimeStatus.pending:
       case OvertimeStatus.requested:
-        return 'Pending';
+        return 'Menunggu Persetujuan';
       case OvertimeStatus.approved:
-        return 'Approved';
+        return 'Disetujui';
       case OvertimeStatus.rejected:
-        return 'Rejected';
+        return 'Ditolak';
     }
   }
 
@@ -70,7 +70,7 @@ class OvertimeRequestItem extends Equatable {
 
   final OvertimeStatus status;
 
-  /// Zona waktu lembur, mis. "WIB".
+  /// Zona waktu lembur, mis. "Asia/Jakarta".
   final String timezone;
 
   /// True jika permintaan milik user sendiri (tab "My Overtime").
@@ -92,7 +92,7 @@ class OvertimeRequestItem extends Equatable {
     String notes = '',
     this.approverNotes = '',
     this.status = OvertimeStatus.pending,
-    this.timezone = 'WIB',
+    this.timezone = 'Asia/Jakarta',
     this.isSelf = false,
   }) : notes = note ?? notes;
 

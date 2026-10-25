@@ -10,12 +10,16 @@ class CashAdvanceDetailState extends Equatable {
   final String? actionSuccessMessage;
   final String? errorMessage;
 
+  /// True setelah pengajuan berhasil dihapus; layar menutup halaman detail.
+  final bool isDeleted;
+
   const CashAdvanceDetailState({
     this.status = CashAdvanceDetailStatus.initial,
     this.detail,
     this.isActionLoading = false,
     this.actionSuccessMessage,
     this.errorMessage,
+    this.isDeleted = false,
   });
 
   bool get isActionSuccess => actionSuccessMessage != null;
@@ -26,6 +30,7 @@ class CashAdvanceDetailState extends Equatable {
     bool? isActionLoading,
     String? actionSuccessMessage,
     String? errorMessage,
+    bool? isDeleted,
     bool clearActionMessage = false,
     bool clearErrorMessage = false,
   }) {
@@ -39,6 +44,7 @@ class CashAdvanceDetailState extends Equatable {
       errorMessage: clearErrorMessage
           ? null
           : (errorMessage ?? this.errorMessage),
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -49,5 +55,6 @@ class CashAdvanceDetailState extends Equatable {
         isActionLoading,
         actionSuccessMessage,
         errorMessage,
+        isDeleted,
       ];
 }

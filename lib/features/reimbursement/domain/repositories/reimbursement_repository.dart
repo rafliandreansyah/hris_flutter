@@ -30,6 +30,12 @@ abstract class ReimbursementRepository {
   /// Mengambil detail pengajuan reimbursement dari `GET /reimbursements/{id}`.
   Future<ReimbursementDetailModel> getReimbursementDetail(String id);
 
+  /// Menghapus pengajuan reimbursement milik sendiri (`DELETE /reimbursements/{id}`).
+  Future<void> deleteReimbursement(String id);
+
+  /// Menghapus pengajuan kasbon milik sendiri (`DELETE /cash-advances/{id}`).
+  Future<void> deleteCashAdvance(String id);
+
   /// Membuat permohonan klaim reimbursement baru ke `POST /reimbursements`.
   Future<String> createReimbursement({
     required String title,

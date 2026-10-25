@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/services/notification_service.dart';
@@ -205,7 +206,7 @@ void main() {
 
       final expectedStates = [
         const AuthLoading(),
-        const AuthFailure(message: 'Terjadi kesalahan: Exception: Network timeout'),
+        const AuthFailure(message: AppErrorMessage.generic),
       ];
 
       final expectation = expectLater(authBloc.stream, emitsInOrder(expectedStates));

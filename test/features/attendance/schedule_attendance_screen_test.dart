@@ -93,7 +93,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Presensi Luar (Schedule)'), findsOneWidget);
-      expect(find.text('Ajukan jadwal presensi luar kantor terencana'), findsOneWidget);
+      expect(find.text('Ajukan jadwal presensi luar kantor terencana'), findsNothing);
 
       bloc.close();
     });
@@ -133,8 +133,8 @@ void main() {
 
       expect(find.textContaining('TANGGAL & WAKTU PRESENSI'), findsOneWidget);
       expect(find.textContaining('17 September 2026'), findsOneWidget);
-      expect(find.text('08:30 WIB'), findsOneWidget);
-      expect(find.text('17:00 WIB'), findsOneWidget);
+      expect(find.text('08:30 Asia/Jakarta'), findsOneWidget);
+      expect(find.text('17:00 Asia/Jakarta'), findsOneWidget);
 
       bloc.close();
     });
@@ -181,7 +181,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.textContaining('BUKTI VERIFIKASI KEHADIRAN'), findsOneWidget);
-      expect(find.text('Metode: Photo Verification'), findsOneWidget);
+      expect(find.text('Metode: Verifikasi Foto'), findsOneWidget);
       expect(find.byKey(const Key('schedule-photo-in-trigger')), findsOneWidget);
       expect(find.byKey(const Key('schedule-photo-out-trigger')), findsOneWidget);
 

@@ -73,10 +73,10 @@ void main() {
       expect(detail.title, contains('Kebijakan Kerja Fleksibel'));
       expect(detail.isPinned, isTrue);
       expect(detail.requiresAcknowledgment, isTrue);
-      expect(detail.categoryBadgeText, 'POLICY');
+      expect(detail.categoryBadgeText, 'Kebijakan');
       expect(detail.priorityDisplayName, 'URGENT NOTICE');
-      expect(detail.scopeDisplayName, 'Company-Wide');
-      expect(detail.scopeAndCategorySubtitle, 'SCOPE: COMPANY • POLICY');
+      expect(detail.scopeDisplayName, 'Seluruh Perusahaan');
+      expect(detail.scopeAndCategorySubtitle, 'SCOPE: COMPANY • Kebijakan');
       expect(detail.userReadStatus?.isAcknowledged, isFalse);
       expect(detail.attachments.length, 2);
       expect(detail.author?.fullName, 'Jessica Pranata');

@@ -48,8 +48,8 @@ class EmployeeInfoRow extends StatelessWidget {
   String? _resolvedCompany() => employee?.company ?? company;
   String _resolvedEmployeeId() {
     if (employee != null) {
-      final num = employee!.employeeNumber;
-      return (num != null && num.isNotEmpty) ? num : employee!.id;
+      // Jangan pernah menampilkan id internal (UUID) — hanya nomor pegawai.
+      return employee!.employeeNumber?.trim() ?? '';
     }
     return employeeId ?? '';
   }
@@ -117,7 +117,7 @@ class EmployeeInfoRow extends StatelessWidget {
                   color: subtitleCol,
                   fontSize: 12.5,
                 ),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
@@ -172,7 +172,7 @@ class EmployeeInfoRow extends StatelessWidget {
                             color: subtitleCol,
                             fontSize: 11,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

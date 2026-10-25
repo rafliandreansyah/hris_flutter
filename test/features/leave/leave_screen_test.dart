@@ -151,14 +151,14 @@ void main() {
       binding.platformDispatcher.views.first.resetDevicePixelRatio();
     });
 
-    testWidgets('merender AppBar judul Leave & Time Off + subtitle', (
+    testWidgets('merender AppBar judul Cuti & Izin tanpa subtitle', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Leave & Time Off'), findsOneWidget);
-      expect(find.text('Team approvals & time-off management'), findsOneWidget);
+      expect(find.text('Cuti & Izin'), findsOneWidget);
+      expect(find.text('Team approvals & time-off management'), findsNothing);
     });
 
     testWidgets('merender TabBar My Requests & Team Requests', (
@@ -191,7 +191,7 @@ void main() {
 
       expect(find.byType(TextField), findsOneWidget);
       expect(
-        find.text('Search by employee name or keyword...'),
+        find.text('Cari nama pegawai atau kata kunci...'),
         findsOneWidget,
       );
       expect(find.byIcon(LucideIcons.search), findsWidgets);
@@ -225,12 +225,13 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Identitas via EmployeeInfoRow global (nama + role • department).
-      expect(find.text('Frontend Engineer • Engineering'), findsWidgets);
+      // Identitas ringkas via RequestCardHeader (nama + jabatan saja).
+      expect(find.text('Frontend Engineer'), findsWidgets);
+      expect(find.text('Frontend Engineer • Engineering'), findsNothing);
 
       // Badge status dengan label desain aktivitas (dot + label).
-      expect(find.text('Pending'), findsWidgets);
-      expect(find.text('Approved'), findsWidgets);
+      expect(find.byTooltip('Menunggu Persetujuan'), findsWidgets);
+      expect(find.byTooltip('Disetujui'), findsWidgets);
     });
 
     testWidgets('card merender detail leave type, durasi, tanggal, dan note', (
@@ -240,13 +241,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Annual Leave'), findsWidgets);
-      expect(find.text('3 Days'), findsWidgets);
+      expect(find.text('3 Hari'), findsWidgets);
       expect(find.text('28 Agu 2026 - 30 Agu 2026'), findsWidgets);
       expect(
         find.textContaining('Attending technical conference'),
         findsWidgets,
       );
-      expect(find.textContaining('Submitted with Timezone'), findsWidgets);
+      // Data yang tidak perlu (zona waktu) tidak lagi tampil di daftar.
+      expect(find.textContaining('Submitted with Timezone'), findsNothing);
     });
 
     testWidgets('HTTP 403 Team Requests menampilkan forbidden state', (
@@ -333,7 +335,7 @@ void main() {
       await tester.pumpWidget(wrapCard(item));
       await tester.pumpAndSettle();
 
-      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.byTooltip('Ditolak'), findsOneWidget);
     });
 
     testWidgets('status requested tampil sebagai label Pending', (
@@ -346,29 +348,31 @@ void main() {
       await tester.pumpWidget(wrapCard(item));
       await tester.pumpAndSettle();
 
-      expect(find.text('Pending'), findsOneWidget);
+      expect(find.byTooltip('Menunggu Persetujuan'), findsOneWidget);
     });
 
-    testWidgets('View Details hanya tampil jika callback diberikan', (
+    testWidgets('seluruh kartu dapat diketuk untuk membuka detail', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(wrapCard(_testItems.first));
+      var tapped = 0;
+      await tester.pumpWidget(
+        wrapCard(_testItems.first, onViewDetails: () => tapped++),
+      );
       await tester.pumpAndSettle();
       expect(find.text('View Details'), findsNothing);
 
-      await tester.pumpWidget(wrapCard(_testItems.first, onViewDetails: () {}));
-      await tester.pumpAndSettle();
-      expect(find.text('View Details'), findsOneWidget);
+      await tester.tap(find.byType(LeaveRequestCard));
+      expect(tapped, 1);
     });
 
-    testWidgets('isSelf menampilkan penanda Your request', (
+    testWidgets('isSelf menampilkan penanda Pengajuan Anda', (
       WidgetTester tester,
     ) async {
       final item = _testItems.first.copyWith(id: 'lr-self', isSelf: true);
       await tester.pumpWidget(wrapCard(item));
       await tester.pumpAndSettle();
 
-      expect(find.text('Your request'), findsOneWidget);
+      expect(find.text('Pengajuan Anda'), findsOneWidget);
     });
   });
 
@@ -387,7 +391,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: LeaveScreen(leaveListBloc: bloc)));
       await tester.pumpAndSettle();
 
-      expect(find.text('Leave & Time Off'), findsOneWidget);
+      expect(find.text('Cuti & Izin'), findsOneWidget);
       expect(find.text('Persetujuan Tim'), findsOneWidget);
     });
   });

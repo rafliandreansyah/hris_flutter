@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +88,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           zIndexInt: isSelected ? 10 : 1,
           infoWindow: InfoWindow(
             title: emp.name,
-            snippet: '${emp.positionName ?? 'Staff'} • ${emp.departmentName ?? 'Dept'}',
+            snippet: [emp.positionName, emp.departmentName]
+                .where((v) => v != null && v.trim().isNotEmpty)
+                .join(' • '),
             onTap: () {
               context
                   .read<LiveTrackingBloc>()
@@ -279,11 +283,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                   .add(const LiveTrackingRefreshed());
                             },
                             icon: state.status == LiveTrackingStatus.loading
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
+                                ? const AppLoadingIndicator.small()
                                 : const Icon(LucideIcons.rotateCcw, size: 18),
                             color: textCol,
                           ),
@@ -422,10 +422,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                                 ),
                               );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('ID sesi aktif tidak ditemukan untuk rute ini.'),
-                            ),
+                          AppDialogUtil.showError(
+                            context,
+                            message: 'ID sesi aktif tidak ditemukan untuk rute ini.',
                           );
                         }
                       },

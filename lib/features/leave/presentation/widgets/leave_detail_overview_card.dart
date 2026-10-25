@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_status_chip.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
 import 'package:hris_flutter/features/leave/data/models/leave_request_detail_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Card Status Banner & Overview sesuai desain Google Stitch:
-/// - Badge jenis cuti (mint/teal light)
-/// - Badge status cuti (Pending / Approved / Rejected)
-/// - Ikon kalender + Rentang tanggal (misal: "28 Agustus 2026")
-/// - Badge durasi hari kerja (misal: "1 Work Day(s)")
-/// - Pembatas & Bagian "REASON"
+/// Kartu ringkasan detail pengajuan cuti/izin:
+/// - Header: jenis cuti + ikon status
+/// - Daftar berlabel: tanggal mulai, tanggal selesai, durasi
+/// - Bagian alasan
 class LeaveDetailOverviewCard extends StatelessWidget {
   final LeaveRequestDetailData detail;
 
   const LeaveDetailOverviewCard({super.key, required this.detail});
 
-  Widget _buildStatusBadge(BuildContext context) {
+  Widget _buildStatusIcon() {
     if (detail.isApproved) {
-      return const AppStatusChip(label: 'Approved', tone: AppStatusTone.success);
+      return const AppStatusIcon(label: 'Disetujui', tone: AppStatusTone.success);
     }
     if (detail.isRejected) {
-      return const AppStatusChip(label: 'Rejected', tone: AppStatusTone.error);
+      return const AppStatusIcon(label: 'Ditolak', tone: AppStatusTone.error);
     }
-    return const AppStatusChip(
-      label: 'Pending Approval',
+    return const AppStatusIcon(
+      label: 'Menunggu Persetujuan',
       tone: AppStatusTone.warning,
     );
   }
@@ -40,112 +40,110 @@ class LeaveDetailOverviewCard extends StatelessWidget {
         isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
-    final leaveTypeName = detail.leaveType.name.isNotEmpty
-        ? detail.leaveType.name
-        : 'Leave Request';
+    final leaveTypeName =
+        detail.leaveType.name.isNotEmpty ? detail.leaveType.name : 'Cuti / Izin';
+    final hasNotes = detail.notes != null && detail.notes!.trim().isNotEmpty;
+
+    final rows = <(IconData, String, String)>[
+      (LucideIcons.calendarDays, 'Tanggal Mulai', detail.formattedStartDate),
+      (LucideIcons.calendarCheck, 'Tanggal Selesai', detail.formattedEndDate),
+      (LucideIcons.hourglass, 'Durasi', detail.durationLabel),
+    ];
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: borderCol, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Row 1: Leave Type Pill & Status Badge ─────────────────────
+          // ── Header: jenis cuti + status ───────────────────────────────
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF004D44)
-                      : AppColors.accentTealLight,
-                  borderRadius: BorderRadius.circular(100),
+                  color: brandColor.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.borderInput,
                 ),
-                child: Text(
-                  leaveTypeName,
-                  style: TextStyle(
-                    color: isDark
-                        ? AppColors.secondaryContainer
-                        : AppColors.primaryHover,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: Icon(LucideIcons.calendarClock, size: 20, color: brandColor),
               ),
-              _buildStatusBadge(context),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Row 2: Calendar icon + Formatted Date ──────────────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(
-                LucideIcons.calendarDays,
-                color: subtitleCol,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.md - 4),
               Expanded(
-                child: Text(
-                  detail.formattedDateRange,
-                  style: AppTypography.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: textCol,
-                    fontSize: 18,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Jenis Cuti / Izin',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: subtitleCol,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                    Text(
+                      leaveTypeName,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: textCol,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
+              _buildStatusIcon(),
             ],
           ),
-
-          const SizedBox(height: 10),
-
-          // ── Row 3: Work days count badge ──────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4.5),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.darkSurfaceBright
-                  : AppColors.surfaceContainer,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Text(
-              detail.durationLabel,
-              style: TextStyle(
-                color: isDark ? AppColors.darkOnSurfaceVariant : AppColors.darkSurfaceContainerHigh,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Divider ───────────────────────────────────────────────────
+          const SizedBox(height: AppSpacing.md - 2),
           Divider(color: borderCol, height: 1, thickness: 1),
 
-          const SizedBox(height: 14),
+          // ── Daftar tanggal & durasi ───────────────────────────────────
+          for (final r in rows)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+              child: Row(
+                children: [
+                  Icon(r.$1, size: 18, color: subtitleCol),
+                  const SizedBox(width: AppSpacing.md - 4),
+                  Expanded(
+                    child: Text(
+                      r.$2,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: subtitleCol,
+                        fontSize: 13.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Text(
+                      r.$3,
+                      textAlign: TextAlign.end,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: textCol,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-          // ── Reason Section ────────────────────────────────────────────
+          Divider(color: borderCol, height: 1, thickness: 1),
+          const SizedBox(height: AppSpacing.md - 2),
+
+          // ── Alasan ────────────────────────────────────────────────────
           Text(
-            'REASON',
+            'ALASAN',
             style: AppTypography.labelSmall.copyWith(
               color: subtitleCol,
               fontSize: 11,
@@ -153,15 +151,13 @@ class LeaveDetailOverviewCard extends StatelessWidget {
               letterSpacing: 0.8,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm - 2),
           Text(
-            (detail.notes != null && detail.notes!.trim().isNotEmpty)
+            hasNotes
                 ? detail.notes!.trim()
-                : 'Tidak ada catatan alasan yang dilampirkan.',
+                : 'Tidak ada alasan yang dilampirkan.',
             style: AppTypography.bodyMedium.copyWith(
-              color: (detail.notes != null && detail.notes!.trim().isNotEmpty)
-                  ? textCol
-                  : subtitleCol,
+              color: hasNotes ? textCol : subtitleCol,
               fontSize: 14,
               height: 1.45,
             ),

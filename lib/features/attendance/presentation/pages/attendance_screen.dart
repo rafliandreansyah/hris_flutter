@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:hris_flutter/core/services/biometric_service.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
 import 'package:hris_flutter/core/utils/permission_util.dart';
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
@@ -260,8 +262,8 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         context,
         title: 'Istirahat Masih Berjalan',
         message:
-            'Istirahat Anda akan diselesaikan otomatis saat Clock Out. Lanjutkan?',
-        confirmText: 'Lanjut Clock Out',
+            'Istirahat Anda akan diselesaikan otomatis saat absen pulang. Lanjutkan?',
+        confirmText: 'Lanjut Absen Pulang',
         onConfirm: () => confirmed = true,
       );
       if (!confirmed || !context.mounted) return;
@@ -386,7 +388,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         AppDialogUtil.showError(
           context,
           title: 'Liveness AI Gagal',
-          message: 'Terjadi kesalahan saat memproses presensi liveness: $e',
+          message: AppErrorMessage.from(e),
         );
       }
     } else if (data.isBiometricMethod) {
@@ -438,7 +440,7 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         AppDialogUtil.showError(
           context,
           title: 'Autentikasi Biometrik Gagal',
-          message: e.toString(),
+          message: AppErrorMessage.from(e),
         );
       }
     } else {
@@ -488,8 +490,11 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
         AppDialogUtil.showError(
           context,
           title: 'Kamera Gagal',
-          message:
-              'Terjadi kesalahan saat mengakses kamera atau mengompres foto: $e',
+          message: AppErrorMessage.from(
+            e,
+            fallback:
+                'Kamera tidak dapat dibuka atau foto gagal diproses. Silakan coba lagi.',
+          ),
         );
       }
     }
@@ -548,9 +553,19 @@ class _AttendanceScreenViewState extends State<_AttendanceScreenView> {
               AttendanceSuccessDialog.show(
                 context,
                 successInfo: info,
-                onOk: () {
+                onOk: () async {
                   _isShowingSuccessDialog = false;
                   Navigator.of(context, rootNavigator: true).pop();
+                  // Pelacakan lokasi berjalan setelah clock-in: minta izin "Sepanjang Waktu"
+                  // agar tidak berhenti saat aplikasi di latar belakang.
+                  if (info.attendanceType == 'in' &&
+                      LocationTrackingService.instance.state != TrackingState.idle &&
+                      context.mounted) {
+                    await PermissionUtil.requestBackgroundLocationPermission(
+                      context: context,
+                    );
+                  }
+                  if (!context.mounted) return;
                   context.pushReplacement(
                     Routes.ATTENDANCE_LOGS,
                     extra: {'redirectToDashboardOnBack': true},

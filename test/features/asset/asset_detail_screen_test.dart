@@ -138,7 +138,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Detail Fasilitas'), findsOneWidget);
-      expect(find.text('Spesifikasi & Riwayat Handover'), findsOneWidget);
+      expect(find.text('Spesifikasi & Riwayat Handover'), findsNothing);
       expect(find.text('MacBook Pro M3 Max'), findsWidgets);
       expect(find.text('AST-NB-001'), findsWidgets);
       expect(find.text('Apple'), findsOneWidget);

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
-import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_item_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Card item Surat Peringatan sesuai desain Google Stitch M3 "Teal Oasis".
 ///
-/// Memanfaatkan [EmployeeInfoRow] untuk identitas pegawai yang konsisten
-/// dengan modul pengajuan lainnya (Absen Luar, Cuti, Lembur, Aktivitas).
+/// Memakai [RequestListCardFrame] + [RequestCardHeader] agar seragam dengan
+/// modul pengajuan lainnya (Absen Luar, Cuti, Lembur, Aktivitas).
 class WarningLetterCard extends StatelessWidget {
   final WarningLetterItem item;
   final VoidCallback? onTap;
@@ -67,196 +67,37 @@ class WarningLetterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceCol = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final subtleCol = isDark
-        ? AppColors.darkSurfaceContainer
-        : AppColors.backgroundSubtle;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
-    final brandColor =
-        isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-
     final employee = item.employee;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: surfaceCol,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderCol, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── 1. Baris Identitas Pegawai + Level Badge ─────────────
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: EmployeeInfoRow(
-                      name: employee?.fullName ?? 'Pegawai',
-                      role: employee?.position?.name ?? '',
-                      department: employee?.department?.name ?? '',
-                      company: employee?.company?.name,
-                      employeeId: employee?.employeeNumber ??
-                          employee?.idNumber ??
-                          '',
-                      avatarUrl: employee?.photoUrl,
-                      initials: employee?.initials,
-                      avatarSize: 42,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildLevelBadge(isDark),
-                      const SizedBox(height: 6),
-                      _buildStatusBadge(isDark),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              // ── 2. Box Info Dokumen & Jenis Pelanggaran/SP ─────────────
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: subtleCol,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark
-                        ? AppColors.darkOutlineMuted.withValues(alpha: 0.5)
-                        : const Color(0xFFF1F5F9),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: brandColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        LucideIcons.fileText,
-                        color: brandColor,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.warningLetterType.name,
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13.5,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'ID Dokumen: ${item.id.length > 18 ? '${item.id.substring(0, 18)}...' : item.id} • Zona: ${item.timezone}',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: subtitleCol,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── 3. Footer: Tanggal Dibuat & Aksi Lihat Rincian ─────────
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            LucideIcons.calendar,
-                            size: 14,
-                            color: subtitleCol,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              item.formattedCreatedAt,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: subtitleCol,
-                                fontSize: 11.5,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Lihat Rincian',
-                          style: AppTypography.labelMedium.copyWith(
-                            color: brandColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          LucideIcons.chevronRight,
-                          size: 14,
-                          color: brandColor,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+    return RequestListCardFrame(
+      onTap: onTap,
+      header: RequestCardHeader(
+        name: employee?.fullName ?? 'Pegawai',
+        role: employee?.position?.name ?? '',
+        department: employee?.department?.name ?? '',
+        avatarUrl: employee?.resolvedAvatarUrl,
+        initials: employee?.initials,
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _buildLevelBadge(isDark),
+            const SizedBox(height: 6),
+            _buildStatusBadge(isDark),
+          ],
         ),
       ),
+      children: [
+        RequestCardInfoLine(
+          icon: LucideIcons.fileText,
+          text: item.warningLetterType.name,
+          emphasize: true,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        RequestCardInfoLine(
+          icon: LucideIcons.calendar,
+          text: item.formattedCreatedAt,
+        ),
+      ],
     );
   }
 }

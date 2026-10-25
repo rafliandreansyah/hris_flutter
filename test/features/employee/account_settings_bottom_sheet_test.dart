@@ -195,6 +195,11 @@ void main() {
     expect(find.text('Tema'), findsOneWidget);
     expect(find.text('Sistem'), findsOneWidget);
 
+    // Verify Legal & Bantuan section (wajib Play Store / App Store)
+    expect(find.text('LEGAL & BANTUAN'), findsOneWidget);
+    expect(find.text('Kebijakan Privasi'), findsOneWidget);
+    expect(find.text('Hapus Akun & Data'), findsOneWidget);
+
     // Verify Logout card
     expect(find.text('Keluar dari Akun (Logout)'), findsOneWidget);
 
@@ -207,7 +212,9 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    // Tap Logout button
+    // Tap Logout button (di bawah seksi Legal & Bantuan, gulir dulu)
+    await tester.ensureVisible(find.text('Keluar dari Akun (Logout)'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Keluar dari Akun (Logout)'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -235,7 +242,9 @@ void main() {
     await tester.pumpWidget(createTestWidget(authRepository: mockAuth));
     await tester.pumpAndSettle();
 
-    // Tap Logout button
+    // Tap Logout button (di bawah seksi Legal & Bantuan, gulir dulu)
+    await tester.ensureVisible(find.text('Keluar dari Akun (Logout)'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Keluar dari Akun (Logout)'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));

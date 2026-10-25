@@ -43,6 +43,9 @@ class LocationLocalStorage {
 
   LocationLocalStorage._internal();
 
+  /// Batas maksimum titik di antrean offline; melewatinya membuang titik tertua.
+  static const int maxQueuedPoints = 5000;
+
   factory LocationLocalStorage() => _instance;
 
   String? _customStoragePath;
@@ -88,6 +91,13 @@ class LocationLocalStorage {
       return [];
     } catch (e) {
       debugPrint('⚠️ [LocationLocalStorage._readAllUnlocked] Gagal membaca buffer: $e');
+      // Pindahkan file rusak ke samping agar tidak tertimpa antrean kosong pada enqueue berikutnya
+      try {
+        final file = await _getFile();
+        if (await file.exists()) {
+          await file.rename('${file.path}.corrupt');
+        }
+      } catch (_) {}
       return [];
     }
   }
@@ -123,6 +133,10 @@ class LocationLocalStorage {
         referenceId: referenceId,
         point: point,
       ));
+      // Batasi ukuran antrean agar file tidak membengkak tanpa batas; buang yang tertua.
+      if (list.length > maxQueuedPoints) {
+        list.removeRange(0, list.length - maxQueuedPoints);
+      }
       await _writeAllUnlocked(list);
     });
   }

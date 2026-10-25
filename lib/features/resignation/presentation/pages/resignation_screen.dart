@@ -1,4 +1,6 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -173,7 +175,6 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
     final effectiveDate = resignation.effectiveDate;
     final text = StringBuffer()
       ..writeln('📋 PENGAJUAN PENGUNDURAN DIRI')
-      ..writeln('ID: ${resignation.id}')
       ..writeln('Karyawan: ${name.isEmpty ? '-' : name}')
       ..writeln('Departemen: ${employee?.departmentName ?? '-'}')
       ..writeln('Status: ${resignation.status}')
@@ -253,10 +254,7 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
               icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
               onPressed: () => context.pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Pengajuan Resign',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -266,35 +264,25 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
                     height: 1.15,
                   ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  'Status & Pengajuan Karyawan',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
             actions: [
-              if (state.myStatus?.resignation != null) ...[
-                IconButton(
-                  icon: Icon(LucideIcons.link, color: subtitleCol, size: 20),
-                  tooltip: 'Salin Link',
-                  onPressed: () => ShareLinkUtil.copyLink(
-                    context,
-                    ShareLinkUtil.webUrl(
-                      ShareModule.resignation,
-                      state.myStatus!.resignation!.id,
+              if (state.myStatus?.resignation != null)
+                AppDetailMoreMenu(
+                  iconColor: subtitleCol,
+                  items: [
+                    AppDetailMenuItem.share(
+                      () => _handleShare(state.myStatus!.resignation!),
                     ),
-                  ),
+                    AppDetailMenuItem.copyLink(
+                      () => ShareLinkUtil.copyLink(
+                        context,
+                        ShareLinkUtil.webUrl(
+                          ShareModule.resignation,
+                          state.myStatus!.resignation!.id,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(LucideIcons.share2, color: subtitleCol, size: 20),
-                  tooltip: 'Bagikan ke Atasan',
-                  onPressed: () => _handleShare(state.myStatus!.resignation!),
-                ),
-              ],
               if (state.canViewSubordinates)
                 IconButton(
                   onPressed: _openFilterBottomSheet,
@@ -753,11 +741,7 @@ class _ResignationScreenViewState extends State<_ResignationScreenView>
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2.5),
-              ),
+              child: AppLoadingIndicator.small(),
             ),
           );
         }

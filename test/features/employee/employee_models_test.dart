@@ -45,7 +45,8 @@ void main() {
 
       expect(item.name, 'Joko');
       expect(item.initials, 'JO');
-      expect(item.displayId, 'emp-002');
+      // displayId hanya nomor pegawai — id internal tidak pernah ditampilkan.
+      expect(item.displayId, '');
 
       const emptyIdItem = EmployeeDirectoryItem(
         id: '',
@@ -55,7 +56,7 @@ void main() {
         email: 'guest@example.com',
         initials: 'G',
       );
-      expect(emptyIdItem.displayId, 'EMP-000');
+      expect(emptyIdItem.displayId, '');
     });
 
     test('EmployeeListResponse fromJson and toJson maps list and meta correctly', () {

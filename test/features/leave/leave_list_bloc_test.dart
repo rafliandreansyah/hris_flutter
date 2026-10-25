@@ -544,7 +544,7 @@ void main() {
       expect(LeaveStatus.requested.tone, AppStatusTone.warning);
       expect(LeaveStatus.approved.tone, AppStatusTone.success);
       expect(LeaveStatus.rejected.tone, AppStatusTone.error);
-      expect(LeaveStatus.requested.label, 'Pending');
+      expect(LeaveStatus.requested.label, 'Menunggu Persetujuan');
     });
   });
 
@@ -592,7 +592,7 @@ void main() {
       expect(item.employeeNumber, 'EMP-001');
       expect(item.leaveType, 'Annual Leave');
       expect(item.days, 3);
-      expect(item.durationLabel, '3 Days');
+      expect(item.durationLabel, '3 Hari');
       expect(item.initials, 'SJ');
       expect(item.status, LeaveStatus.pending);
       expect(item.isSelf, isFalse); // isApprover=true -> Team Requests
@@ -687,7 +687,7 @@ void main() {
       expect(item.notes, 'testing');
       expect(item.note, 'testing');
       expect(item.days, 12);
-      expect(item.durationLabel, '12 Days');
+      expect(item.durationLabel, '12 Hari');
       expect(item.status, LeaveStatus.requested);
       expect(item.leaveType, 'Cuti Tahunan');
       expect(item.name, 'Admin HR');

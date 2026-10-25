@@ -129,10 +129,10 @@ void main() {
 
         expect(find.text('Semua'), findsOneWidget);
         expect(find.text('Diajukan'), findsOneWidget);
-        expect(find.text('Approved'), findsOneWidget);
-        expect(find.text('Rejected'), findsOneWidget);
+        expect(find.text('Disetujui'), findsOneWidget);
+        expect(find.text('Ditolak'), findsOneWidget);
 
-        await tester.tap(find.text('Approved'));
+        await tester.tap(find.text('Disetujui'));
         await tester.pump();
 
         expect(selected, 'approved');

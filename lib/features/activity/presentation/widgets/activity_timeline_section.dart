@@ -26,7 +26,7 @@ class ActivityTimelineSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
-            'Activity Progress Timeline',
+            'Riwayat Progres Aktivitas',
             style: AppTypography.titleMedium.copyWith(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -190,7 +190,7 @@ class ActivityTimelineSection extends StatelessWidget {
                     const SizedBox(height: 12),
                     AppImageThumbnailPreview(
                       imageUrl: phase.imageUrl,
-                      height: 120,
+                      height: 240,
                       borderRadius: BorderRadius.circular(12),
                       title: phase.title,
                     ),

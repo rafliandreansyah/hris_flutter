@@ -7,6 +7,10 @@ abstract class ReimbursementDetailEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class ReimbursementDetailDeleted extends ReimbursementDetailEvent {
+  const ReimbursementDetailDeleted();
+}
+
 class ReimbursementDetailFetched extends ReimbursementDetailEvent {
   final String id;
   const ReimbursementDetailFetched(this.id);

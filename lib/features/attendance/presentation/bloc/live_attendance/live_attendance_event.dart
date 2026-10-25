@@ -9,7 +9,7 @@ abstract class LiveAttendanceEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Inisialisasi awal Live Attendance: memicu timer WIB dan deteksi metode presensi.
+/// Inisialisasi awal Live Attendance: memicu timer Asia/Jakarta dan deteksi metode presensi.
 class LiveAttendanceStarted extends LiveAttendanceEvent {
   final String? initialMethod;
 
@@ -19,7 +19,7 @@ class LiveAttendanceStarted extends LiveAttendanceEvent {
   List<Object?> get props => [initialMethod];
 }
 
-/// Event update waktu jam real-time WIB Asia/Jakarta setiap 1 detik.
+/// Event update waktu jam real-time Asia/Jakarta setiap 1 detik.
 class LiveAttendanceClockTicked extends LiveAttendanceEvent {
   final DateTime time;
 

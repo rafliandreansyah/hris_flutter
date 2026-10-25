@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
@@ -206,7 +207,7 @@ class PayrollEmployeeSlipsBloc
     } catch (e) {
       emit(state.copyWith(
         status: PayrollEmployeeSlipsStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

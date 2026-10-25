@@ -141,7 +141,7 @@ void main() {
       expect(find.text('Sarah Jenkins'), findsOneWidget);
 
       // Issuer section
-      expect(find.text('PEJABAT PENERBIT (ISSUED BY)'), findsOneWidget);
+      expect(find.text('PEJABAT PENERBIT'), findsOneWidget);
       expect(find.text('Alex Rivera'), findsOneWidget);
       expect(find.text('Engineering Manager'), findsOneWidget);
 

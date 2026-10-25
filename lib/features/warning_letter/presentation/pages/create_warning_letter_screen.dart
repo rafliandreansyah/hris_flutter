@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -497,10 +498,7 @@ class _CreateWarningLetterScreenViewState
             icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
             onPressed: () => context.pop(),
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+          title: Text(
                 'Buat Surat Peringatan',
                 style: AppTypography.titleMedium.copyWith(
                   color: textCol,
@@ -509,16 +507,6 @@ class _CreateWarningLetterScreenViewState
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(height: 1),
-              Text(
-                'Penerbitan sanksi disiplin & kepatuhan pegawai',
-                style: AppTypography.labelSmall.copyWith(
-                  color: subtitleCol,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
           actions: [
             IconButton(
               icon: Icon(LucideIcons.helpCircle, color: textCol, size: 20),
@@ -1045,24 +1033,13 @@ class _CreateWarningLetterScreenViewState
                     ],
                   ),
                 ),
-                TextButton(
+                AppButton(
+                  text: 'Ganti',
+                  variant: AppButtonVariant.ghost,
+                  width: null,
+                  height: 36,
+                  foregroundColor: brandColor,
                   onPressed: () => _showEmployeePicker(state),
-                  style: TextButton.styleFrom(
-                    foregroundColor: brandColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    'Ganti',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: brandColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -1087,20 +1064,7 @@ class _CreateWarningLetterScreenViewState
                 : AppColors.darkOnBackground,
           ),
         ),
-        child: const Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12),
-            Text(
-              'Memeriksa riwayat surat peringatan terakhir...',
-              style: TextStyle(fontSize: 12.5),
-            ),
-          ],
-        ),
+        child: const Center(child: AppLoadingIndicator.small()),
       );
     }
 

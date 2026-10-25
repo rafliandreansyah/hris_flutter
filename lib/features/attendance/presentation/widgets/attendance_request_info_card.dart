@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_detail_model.dart';
@@ -35,7 +34,6 @@ class AttendanceRequestInfoCard extends StatelessWidget {
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onWarningContainer;
 
-    final requestId = detail.attendanceRequestId!;
 
     return Container(
       width: double.infinity,
@@ -92,7 +90,7 @@ class AttendanceRequestInfoCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       l10n?.outsideAttendanceDesc ??
-                          'Absen dari pengajuan Outside Attendance / Kehadiran luar kantor',
+                          'Absen dari pengajuan presensi luar kantor',
                       style: AppTypography.bodySmall.copyWith(
                         fontSize: 11.5,
                         color: subtitleCol,
@@ -105,85 +103,6 @@ class AttendanceRequestInfoCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFFDE68A)),
-          const SizedBox(height: 10),
-
-          // Request Reference ID Row with Copy action
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    LucideIcons.hash,
-                    size: 14,
-                    color: subtitleCol,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${l10n?.requestReference ?? "Referensi Pengajuan"}:',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: subtitleCol,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: requestId));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('ID Pengajuan disalin: $requestId'),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkSurfaceContainer
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.darkOutlineMuted
-                          : const Color(0xFFE5E7EB),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 160),
-                        child: Text(
-                          requestId,
-                          style: AppTypography.labelSmall.copyWith(
-                            fontFamily: 'monospace',
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            color: textCol,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        LucideIcons.copy,
-                        size: 11,
-                        color: subtitleCol,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );

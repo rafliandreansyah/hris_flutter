@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -254,39 +255,13 @@ class PayrollHeroCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
 
                 // Button "Lihat Rincian Lengkap"
-                SizedBox(
-                  width: double.infinity,
-                  height: 42,
-                  child: ElevatedButton(
-                    onPressed: onTapDetail,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Lihat Rincian Lengkap',
-                          style: AppTypography.titleSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          LucideIcons.chevronRight,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ),
-                  ),
+                AppButton(
+                  text: 'Lihat Rincian Lengkap',
+                  trailingIcon: LucideIcons.chevronRight,
+                  height: 44,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.primary,
+                  onPressed: onTapDetail,
                 ),
               ],
             ),

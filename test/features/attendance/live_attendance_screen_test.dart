@@ -79,7 +79,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(find.text('Presensi Luar (Live)'), findsOneWidget);
-      expect(find.text('Check-in / Check-out real-time di lokasi tugas'), findsOneWidget);
+      expect(find.text('Check-in / Check-out real-time di lokasi tugas'), findsNothing);
 
       bloc.close();
     });
@@ -97,7 +97,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('Sinkronisasi Waktu Server Standar WIB'), findsOneWidget);
+      expect(find.text('Waktu server (Asia/Jakarta)'), findsOneWidget);
       expect(find.byKey(const Key('live-attendance-clock-text')), findsOneWidget);
       expect(find.text('Absen Masuk (In)'), findsOneWidget);
       expect(find.text('Absen Pulang (Out)'), findsOneWidget);
@@ -166,7 +166,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('Metode: Photo Verification'), findsOneWidget);
+      expect(find.text('Metode: Verifikasi Foto'), findsOneWidget);
       expect(find.textContaining('Foto Bukti Kehadiran / Selfie'), findsOneWidget);
       expect(find.byKey(const Key('live-attendance-camera-trigger')), findsOneWidget);
       expect(find.text('Ketuk untuk Ambil Foto Selfie via Kamera'), findsOneWidget);
@@ -198,7 +198,7 @@ void main() {
 
       // Memastikan box upload foto selfie TIDAK dirender pada mode biometric (sesuai instruksi)
       expect(find.byKey(const Key('live-attendance-camera-trigger')), findsNothing);
-      expect(find.text('Metode: Photo Verification'), findsNothing);
+      expect(find.text('Metode: Verifikasi Foto'), findsNothing);
 
       bloc.close();
     });

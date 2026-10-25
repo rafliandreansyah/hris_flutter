@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -90,14 +91,7 @@ class FilterFieldSelector extends StatelessWidget {
                     ),
                   ),
                   if (isLoading) ...[
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: brandColor,
-                      ),
-                    ),
+                    AppLoadingIndicator.small(color: brandColor),
                   ] else if (!isEnabled) ...[
                     Icon(
                       LucideIcons.lock,

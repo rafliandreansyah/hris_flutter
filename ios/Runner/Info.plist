@@ -5,13 +5,14 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Aplikasi memerlukan izin lokasi untuk pencatatan aktivitas dan presensi kehadiran.</string>
+	<string>Oasish menggunakan lokasi Anda untuk memverifikasi presensi di radius kantor dan mencatat lokasi aktivitas lapangan.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Aplikasi memerlukan izin lokasi untuk verifikasi radius kantor dan pelacakan aktivitas lapangan.</string>
+	<string>Oasish merekam rute kerja Anda, termasuk saat aplikasi ditutup atau di latar belakang, hanya selama Anda clock-in hingga clock-out dan saat tugas dinas lapangan. Di luar jam kerja lokasi tidak direkam.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Oasish merekam rute kerja Anda, termasuk saat aplikasi ditutup atau di latar belakang, hanya selama Anda clock-in hingga clock-out dan saat tugas dinas lapangan. Di luar jam kerja lokasi tidak direkam.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
-		<string>fetch</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Aplikasi memerlukan akses kamera untuk mengambil foto profil, bukti kegiatan lapangan, dan verifikasi absensi.</string>

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
@@ -86,7 +87,7 @@ class CoworkerListBloc extends Bloc<CoworkerListEvent, CoworkerListState> {
     } catch (e) {
       emit(state.copyWith(
         status: CoworkerListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

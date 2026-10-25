@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -57,12 +57,10 @@ class ActivityCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Employee Header Row (Avatar, Name, Role • Department)
-                EmployeeInfoRow(
+                RequestCardHeader(
                   name: activity.userName,
                   role: activity.userRole,
                   department: activity.department,
-                  company: activity.company,
-                  employeeId: activity.employeeNumber,
                   avatarUrl: activity.avatarUrl,
                   initials: activity.initials,
                   avatarSize: 40,

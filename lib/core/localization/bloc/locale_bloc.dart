@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -67,7 +68,7 @@ class LocaleBloc extends Bloc<LocaleEvent, LocaleState> {
     } catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

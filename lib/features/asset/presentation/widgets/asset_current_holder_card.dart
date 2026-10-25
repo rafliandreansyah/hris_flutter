@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_detail_person_card.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_detail_model.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -31,81 +31,34 @@ class AssetCurrentHolderCard extends StatelessWidget {
       final employee = active.employee!;
       final dateFormat = DateFormat('dd MMM yyyy');
 
-      return Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderCol),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(AppSpacing.md + 2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  LucideIcons.userCheck,
-                  size: 16,
-                  color: AppColors.brandTeal,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'PEMEGANG FASILITAS SAAT INI',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                    letterSpacing: 0.8,
+      return RequestDetailPersonCard(
+        title: 'Pemegang Fasilitas Saat Ini',
+        name: employee.fullName,
+        employeeNumber: employee.employeeNumber,
+        initials: employee.initials,
+        // Pemegang adalah orang lain bila dilihat oleh admin/atasan.
+        showContactActions: false,
+        footer: active.assignedDate == null
+            ? null
+            : Row(
+                children: [
+                  const Icon(
+                    LucideIcons.calendar,
+                    size: 14,
+                    color: AppColors.brandTeal,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            EmployeeInfoRow(
-              name: employee.fullName,
-              employeeId: employee.employeeNumber ?? '-',
-              initials: employee.initials,
-              avatarSize: 44,
-            ),
-            if (active.assignedDate != null) ...[
-              const SizedBox(height: AppSpacing.sm + 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkBackgroundSubtle
-                      : AppColors.backgroundSubtle,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      LucideIcons.calendar,
-                      size: 14,
-                      color: AppColors.brandTeal,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Diserahterimakan sejak: ${dateFormat.format(active.assignedDate!)}',
+                  const SizedBox(width: AppSpacing.sm - 2),
+                  Expanded(
+                    child: Text(
+                      'Diserahterimakan sejak ${dateFormat.format(active.assignedDate!)}',
                       style: AppTypography.bodySmall.copyWith(
                         color: subtitleCol,
-                        fontSize: 11,
+                        fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ],
-        ),
       );
     }
 

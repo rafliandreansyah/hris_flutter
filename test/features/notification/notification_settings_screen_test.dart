@@ -90,7 +90,7 @@ void main() {
       expect(find.text('Pengaturan Notifikasi'), findsOneWidget);
       expect(
         find.text('Kelola preferensi pemberitahuan & alarm push'),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.byTooltip('Reset'), findsOneWidget);
     });

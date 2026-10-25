@@ -241,7 +241,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Leave Balance'), findsOneWidget);
+      expect(find.text('Saldo Cuti'), findsOneWidget);
       expect(find.text('Tidak memiliki kuota cuti tahun ini'), findsOneWidget);
       expect(find.text('Annual'), findsNothing);
     });
@@ -264,10 +264,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Leave Balance'), findsOneWidget);
+      expect(find.text('Saldo Cuti'), findsOneWidget);
       expect(find.text('Annual'), findsOneWidget);
-      expect(find.text('11 Days'), findsOneWidget);
-      expect(find.text('8 Days'), findsOneWidget);
+      expect(find.text('11 Hari'), findsOneWidget);
+      expect(find.text('8 Hari'), findsOneWidget);
       expect(find.text('Tidak memiliki kuota cuti tahun ini'), findsNothing);
     });
 

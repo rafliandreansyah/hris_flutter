@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/warning_letter/data/repositories/warning_letter_repository_impl.dart';
@@ -38,7 +39,7 @@ class WarningLetterDetailBloc
     } catch (e) {
       emit(
         WarningLetterDetailError(
-          message: e.toString(),
+          message: AppErrorMessage.from(e),
         ),
       );
     }
@@ -64,7 +65,7 @@ class WarningLetterDetailBloc
     } catch (e) {
       emit(
         WarningLetterDetailError(
-          message: e.toString(),
+          message: AppErrorMessage.from(e),
         ),
       );
     }

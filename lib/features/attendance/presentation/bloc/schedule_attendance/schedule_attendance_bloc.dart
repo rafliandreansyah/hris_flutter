@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/models/schedule_attendance_request.dart';
@@ -284,7 +285,7 @@ class ScheduleAttendanceBloc
     } catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

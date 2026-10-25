@@ -13,11 +13,11 @@ extension LeaveStatusExtension on LeaveStatus {
     switch (this) {
       case LeaveStatus.pending:
       case LeaveStatus.requested:
-        return 'Pending';
+        return 'Menunggu Persetujuan';
       case LeaveStatus.approved:
-        return 'Approved';
+        return 'Disetujui';
       case LeaveStatus.rejected:
-        return 'Rejected';
+        return 'Ditolak';
     }
   }
 
@@ -71,7 +71,7 @@ class LeaveRequestItem extends Equatable {
 
   final LeaveStatus status;
 
-  /// Zona waktu pengajuan, mis. "WIB".
+  /// Zona waktu pengajuan, mis. "Asia/Jakarta".
   final String timezone;
 
   /// True jika pengajuan milik user sendiri (tab "My Requests").
@@ -94,12 +94,12 @@ class LeaveRequestItem extends Equatable {
     String? note,
     String notes = '',
     this.status = LeaveStatus.pending,
-    this.timezone = 'WIB',
+    this.timezone = 'Asia/Jakarta',
     this.isSelf = false,
   }) : notes = note ?? notes;
 
   /// Durasi terformat, mis. "3 Days" / "1 Day".
-  String get durationLabel => days == 1 ? '1 Day' : '$days Days';
+  String get durationLabel => days == 1 ? '1 Day' : '$days Hari';
 
   static const List<String> _months = [
     'Jan',

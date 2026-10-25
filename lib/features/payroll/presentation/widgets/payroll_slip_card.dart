@@ -4,7 +4,7 @@ import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/currency_util.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_slip_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -108,11 +108,10 @@ class PayrollSlipCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Divider(height: 1, thickness: 0.8),
                   const SizedBox(height: 12),
-                  EmployeeInfoRow(
+                  RequestCardHeader(
                     name: slip.employee.fullName,
                     role: slip.employee.position,
                     department: slip.employee.department,
-                    employeeId: slip.employee.employeeNumber,
                     avatarUrl: slip.employee.resolvedPhotoUrl,
                     avatarSize: 36,
                   ),
@@ -264,23 +263,10 @@ class PayrollSlipCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                         ],
-                        const Row(
-                          children: [
-                            Text(
-                              'Lihat Detail',
-                              style: TextStyle(
-                                color: brandCol,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            SizedBox(width: 2),
-                            Icon(
-                              LucideIcons.chevronRight,
-                              size: 14,
-                              color: brandCol,
-                            ),
-                          ],
+                        const Icon(
+                          LucideIcons.chevronRight,
+                          size: 18,
+                          color: brandCol,
                         ),
                       ],
                     ),

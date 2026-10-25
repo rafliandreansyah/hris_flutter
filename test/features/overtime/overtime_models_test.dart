@@ -186,9 +186,9 @@ void main() {
         expect(st.label.isNotEmpty, true);
         expect(st.tone, isA<AppStatusTone>());
       }
-      expect(OvertimeStatus.pending.label, 'Pending');
-      expect(OvertimeStatus.approved.label, 'Approved');
-      expect(OvertimeStatus.rejected.label, 'Rejected');
+      expect(OvertimeStatus.pending.label, 'Menunggu Persetujuan');
+      expect(OvertimeStatus.approved.label, 'Disetujui');
+      expect(OvertimeStatus.rejected.label, 'Ditolak');
     });
 
     test('OvertimeRequestItem duration, labels, and copyWith', () {

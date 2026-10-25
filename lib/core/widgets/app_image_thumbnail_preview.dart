@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -68,7 +69,7 @@ class AppImageThumbnailPreview extends StatelessWidget {
     this.xFile,
     this.title,
     this.subtitle,
-    this.height = 160.0,
+    this.height = 280.0,
     this.width = double.infinity,
     this.borderRadius,
     this.showCenterIcon = true,
@@ -231,14 +232,7 @@ class AppImageThumbnailPreview extends StatelessWidget {
           child: Center(
             child: _isTest
                 ? const SizedBox.shrink()
-                : const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.brandTeal,
-                    ),
-                  ),
+                : const AppLoadingIndicator.small(color: AppColors.brandTeal),
           ),
         ),
         errorWidget: (_, _, _) => _buildErrorPlaceholder(placeholderBg, subtitleCol),

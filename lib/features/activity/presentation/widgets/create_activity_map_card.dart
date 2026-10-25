@@ -33,7 +33,7 @@ class CreateActivityMapCard extends StatelessWidget {
       latitude: latitude,
       longitude: longitude,
       gpsAccuracy: gpsAccuracy,
-      mapHeight: 150.0,
+      mapHeight: 220.0,
       enableTracking: true,
       showOpenInMaps: showOpenInMaps,
       onLocationChanged: onLocationChanged,

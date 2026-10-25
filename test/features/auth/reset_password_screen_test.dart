@@ -44,7 +44,7 @@ void main() {
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.textContaining('Tautan reset kata sandi akan dikirimkan'), findsOneWidget);
       expect(find.text('Send Reset Link'), findsOneWidget);
-      expect(find.text('Back to Login'), findsOneWidget);
+      expect(find.text('Kembali ke Login'), findsOneWidget);
     });
 
     testWidgets('validates empty email on submit', (tester) async {
@@ -166,7 +166,7 @@ void main() {
       expect(find.text('Reset Password'), findsOneWidget);
 
       // Tap Back to Login
-      await tester.tap(find.text('Back to Login'));
+      await tester.tap(find.text('Kembali ke Login'));
       await tester.pumpAndSettle();
 
       // Successfully popped back to LOGIN screen

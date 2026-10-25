@@ -124,11 +124,15 @@ void main() {
 
         expect(find.byType(LeaveDetailOverviewCard), findsOneWidget);
         expect(find.byType(LeaveDetailEmployeeCard), findsOneWidget);
-        expect(find.byType(LeaveDetailApproverCard), findsOneWidget);
+        expect(
+          find.byType(LeaveDetailApproverCard, skipOffstage: false),
+          findsOneWidget,
+        );
         expect(find.text('Sarah Jenkins'), findsOneWidget);
-        expect(find.text('Alex Rivera'), findsOneWidget);
+        expect(find.text('Alex Rivera', skipOffstage: false), findsOneWidget);
         expect(find.text('Sick Leave'), findsOneWidget);
-        expect(find.text('1 Work Day(s)'), findsOneWidget);
+        expect(find.text('1 Hari Kerja'), findsOneWidget);
+        expect(find.text('Tanggal Masuk Kerja'), findsNothing);
       },
     );
 
@@ -177,8 +181,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsOneWidget);
-        expect(find.text('Approve'), findsOneWidget);
+        expect(find.text('Tolak'), findsOneWidget);
+        expect(find.text('Setujui'), findsOneWidget);
       },
     );
 
@@ -200,8 +204,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve'), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui'), findsNothing);
       },
     );
 
@@ -224,8 +228,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve'), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui'), findsNothing);
       },
     );
 
@@ -271,8 +275,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve'), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui'), findsNothing);
       },
     );
   });

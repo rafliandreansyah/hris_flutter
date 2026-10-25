@@ -140,7 +140,7 @@ void main() {
         expect(find.byType(OvertimeDetailApproverCard), findsOneWidget);
         expect(find.text('Sarah Jenkins'), findsOneWidget);
         expect(find.text('Alex Rivera'), findsOneWidget);
-        expect(find.text('Overtime Shift'), findsOneWidget);
+        expect(find.text('Jam Lembur'), findsOneWidget);
         expect(find.text('4 Jam Kerja'), findsOneWidget);
       },
     );
@@ -189,8 +189,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsOneWidget);
-        expect(find.text('Approve Overtime'), findsOneWidget);
+        expect(find.text('Tolak'), findsOneWidget);
+        expect(find.text('Setujui Lembur'), findsOneWidget);
       },
     );
 
@@ -212,8 +212,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve Overtime'), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui Lembur'), findsNothing);
 
         // Verify that delete option is available in AppBar
         expect(find.byIcon(LucideIcons.ellipsisVertical), findsOneWidget);
@@ -239,9 +239,13 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve Overtime'), findsNothing);
-        expect(find.byIcon(LucideIcons.ellipsisVertical), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui Lembur'), findsNothing);
+        // Menu titik tiga tetap ada (Bagikan/Salin Link) tetapi tanpa opsi hapus.
+        await tester.tap(find.byIcon(LucideIcons.ellipsisVertical));
+        await tester.pumpAndSettle();
+        expect(find.text('Bagikan'), findsOneWidget);
+        expect(find.text('Hapus Pengajuan'), findsNothing);
       },
     );
 
@@ -264,9 +268,13 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve Overtime'), findsNothing);
-        expect(find.byIcon(LucideIcons.ellipsisVertical), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui Lembur'), findsNothing);
+        // Menu titik tiga tetap ada (Bagikan/Salin Link) tetapi tanpa opsi hapus.
+        await tester.tap(find.byIcon(LucideIcons.ellipsisVertical));
+        await tester.pumpAndSettle();
+        expect(find.text('Bagikan'), findsOneWidget);
+        expect(find.text('Hapus Pengajuan'), findsNothing);
       },
     );
 
@@ -312,8 +320,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(find.text('Reject'), findsNothing);
-        expect(find.text('Approve Overtime'), findsNothing);
+        expect(find.text('Tolak'), findsNothing);
+        expect(find.text('Setujui Lembur'), findsNothing);
       },
     );
   });

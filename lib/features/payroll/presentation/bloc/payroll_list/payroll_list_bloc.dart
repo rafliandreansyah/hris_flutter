@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -119,7 +120,7 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
         status: PayrollListStatus.failure,
         isMyLoading: false,
         isEmployeesLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -175,7 +176,7 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
       emit(state.copyWith(
         status: PayrollListStatus.failure,
         isMyLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -237,7 +238,7 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
         status: PayrollListStatus.failure,
         isMyLoading: false,
         isEmployeesLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -399,7 +400,7 @@ class PayrollListBloc extends Bloc<PayrollListEvent, PayrollListState> {
       emit(state.copyWith(
         status: PayrollListStatus.failure,
         isEmployeesLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

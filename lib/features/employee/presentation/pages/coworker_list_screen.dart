@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -100,19 +102,6 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
         : AppColors.outlineMuted;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
-    final subtitle = () {
-      final parts = [
-        if (widget.args?.employeeName != null &&
-            widget.args!.employeeName!.isNotEmpty)
-          widget.args!.employeeName!,
-        if (widget.args?.departmentName != null &&
-            widget.args!.departmentName!.isNotEmpty)
-          widget.args!.departmentName!,
-      ];
-      if (parts.isNotEmpty) return parts.join(' • ');
-      return 'Rekan kerja satu tim dan divisi';
-    }();
-
     return Scaffold(
       backgroundColor: bgCol,
       appBar: AppBar(
@@ -124,10 +113,7 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Daftar Rekan Kerja',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
@@ -137,18 +123,6 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              subtitle,
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
       ),
       body: SafeArea(
         child: Column(
@@ -221,10 +195,7 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                   // Loading State
                   if (state.isLoading && state.coworkers.isEmpty) {
                     return Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                      ),
+                      child: AppLoadingIndicator(color: brandColor),
                     );
                   }
 
@@ -272,21 +243,17 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 18),
-                            OutlinedButton.icon(
+                            AppButton(
+                              text: 'Coba Lagi',
+                              leadingIcon: LucideIcons.rotateCcw,
+                              variant: AppButtonVariant.outlined,
+                              width: null,
+                              height: 44,
                               onPressed: () {
                                 context.read<CoworkerListBloc>().add(
                                   const CoworkerListRefreshed(),
                                 );
                               },
-                              icon: const Icon(LucideIcons.rotateCcw, size: 16),
-                              label: const Text('Coba Lagi'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: brandColor,
-                                side: BorderSide(
-                                  color: brandColor.withValues(alpha: 0.5),
-                                ),
-                                shape: const StadiumBorder(),
-                              ),
                             ),
                           ],
                         ),
@@ -355,25 +322,16 @@ class _CoworkerListViewState extends State<_CoworkerListView> {
                                 ),
                                 if (isSearching) ...[
                                   const SizedBox(height: 18),
-                                  OutlinedButton.icon(
+                                  AppButton(
+                                    text: 'Reset Pencarian',
+                                    leadingIcon: LucideIcons.rotateCcw,
+                                    variant: AppButtonVariant.outlined,
+                                    width: null,
+                                    height: 44,
                                     onPressed: () {
                                       _searchController.clear();
                                       _onSearchChanged('');
                                     },
-                                    icon: const Icon(
-                                      LucideIcons.rotateCcw,
-                                      size: 15,
-                                    ),
-                                    label: const Text('Reset Pencarian'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: brandColor,
-                                      side: BorderSide(
-                                        color: brandColor.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                      ),
-                                      shape: const StadiumBorder(),
-                                    ),
                                   ),
                                 ],
                               ],

@@ -8,7 +8,7 @@ extension AttendanceRequestStatusExtension on AttendanceRequestStatus {
   String get label {
     switch (this) {
       case AttendanceRequestStatus.requested:
-        return 'Menunggu';
+        return 'Menunggu Persetujuan';
       case AttendanceRequestStatus.approved:
         return 'Disetujui';
       case AttendanceRequestStatus.rejected:
@@ -140,7 +140,7 @@ class AttendanceRequestItem extends Equatable {
   String get formattedWorkHours {
     final tz = (timezone != null && timezone!.trim().isNotEmpty)
         ? timezone!.trim()
-        : 'WIB';
+        : 'Asia/Jakarta';
 
     // 1. Kasus IN: Tampilkan hanya jam masuk
     if (isIn) {
@@ -196,7 +196,7 @@ class AttendanceRequestItem extends Equatable {
     return 'Jam Kerja: Jam Operasional Normal';
   }
 
-  /// Format tanggal pengajuan, e.g. "Diajukan: 29 Agustus 2026, 13:35 WIB"
+  /// Format tanggal pengajuan, e.g. "Diajukan: 29 Agustus 2026, 13:35 Asia/Jakarta"
   String get formattedSubmittedAt {
     if (createdAt == null) return 'Diajukan: -';
     const months = [
@@ -215,7 +215,7 @@ class AttendanceRequestItem extends Equatable {
     ];
     final tz = (timezone != null && timezone!.trim().isNotEmpty)
         ? timezone!.trim()
-        : 'WIB';
+        : 'Asia/Jakarta';
     final h = createdAt!.hour.toString().padLeft(2, '0');
     final m = createdAt!.minute.toString().padLeft(2, '0');
     return 'Diajukan: ${createdAt!.day} ${months[createdAt!.month - 1]} ${createdAt!.year}, $h:$m $tz';

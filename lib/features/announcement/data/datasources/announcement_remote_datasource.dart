@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -75,7 +76,7 @@ class AnnouncementRemoteDataSourceImpl implements AnnouncementRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal memuat pengumuman: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -97,7 +98,7 @@ class AnnouncementRemoteDataSourceImpl implements AnnouncementRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal memuat detail pengumuman: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -121,7 +122,7 @@ class AnnouncementRemoteDataSourceImpl implements AnnouncementRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal mengonfirmasi pengumuman: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 }

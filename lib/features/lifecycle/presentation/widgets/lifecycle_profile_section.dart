@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -73,7 +75,7 @@ class LifecycleProfileSectionView extends StatelessWidget {
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(12),
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                    child: AppLoadingIndicator(),
                   ),
                 ),
               )
@@ -88,9 +90,12 @@ class LifecycleProfileSectionView extends StatelessWidget {
                         style: AppTypography.bodySmall.copyWith(color: c.subtitle),
                       ),
                     ),
-                    TextButton(
+                    AppButton(
+                      text: 'Coba Lagi',
+                      variant: AppButtonVariant.ghost,
+                      width: null,
+                      height: 40,
                       onPressed: () => context.read<LifecycleProfileCubit>().load(),
-                      child: const Text('Coba Lagi'),
                     ),
                   ],
                 ),

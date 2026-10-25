@@ -1,3 +1,7 @@
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -124,11 +128,9 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
     }
 
     if (!_agreementAccepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Harap centang pernyataan persetujuan pertanggungjawaban SPJ.'),
-          backgroundColor: AppColors.errorRed,
-        ),
+      AppDialogUtil.showValidationError(
+        context,
+        message: 'Harap centang pernyataan persetujuan pertanggungjawaban SPJ.',
       );
       return;
     }
@@ -171,10 +173,7 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Ajukan Kasbon',
               style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
@@ -183,15 +182,6 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                 letterSpacing: -0.5,
               ),
             ),
-            Text(
-              'Permohonan Uang Muka Operasional',
-              style: AppTypography.bodySmall.copyWith(
-                color: subtitleCol,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
         elevation: 0,
         backgroundColor: scaffoldBg,
         leading: IconButton(
@@ -235,30 +225,24 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
                 },
               ),
               const SizedBox(height: 6),
-              TextButton(
+              AppButton(
+                text: 'Batal & Kembali',
+                variant: AppButtonVariant.ghost,
+                width: null,
+                height: 40,
+                foregroundColor: subtitleCol,
                 onPressed: () => context.pop(),
-                child: Text(
-                  'Batal & Kembali',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: subtitleCol,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ),
             ],
           ),
         ),
       ),
       body: BlocConsumer<CreateCashAdvanceBloc, CreateCashAdvanceState>(
+        listenWhen: (prev, curr) => curr.errorMessage != prev.errorMessage ||
+            curr.isSuccess != prev.isSuccess,
         listener: (context, state) {
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColors.errorRed,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppDialogUtil.showError(context, message: state.errorMessage!);
           }
 
           if (state.isSuccess) {
@@ -711,11 +695,18 @@ class _CreateCashAdvanceViewState extends State<_CreateCashAdvanceView> {
           const SizedBox(height: 12),
           InkWell(
             onTap: () async {
+              final now = DateTime.now();
+              final range = resolvePickerRange(
+                SubmissionSettingCubit.windowOf(context, SubmissionWindowType.cashAdvance),
+                fallbackFirst: now,
+                fallbackLast: now.add(const Duration(days: 180)),
+                minFloor: DateTime(now.year, now.month, now.day), // tenggat tidak boleh lampau
+              );
               final picked = await showDatePicker(
                 context: context,
-                initialDate: _settlementDeadline ?? DateTime.now().add(const Duration(days: 14)),
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 180)),
+                initialDate: range.clamp(_settlementDeadline ?? now.add(const Duration(days: 14))),
+                firstDate: range.first,
+                lastDate: range.last,
               );
               if (!mounted) return;
               if (picked != null) {

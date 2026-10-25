@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
@@ -34,7 +35,7 @@ class CreateActivityBloc
       emit(state.copyWith(
         status: CreateActivityStatus.typesLoaded,
         activityTypes: const [],
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -70,7 +71,7 @@ class CreateActivityBloc
     } catch (e) {
       emit(state.copyWith(
         status: CreateActivityStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

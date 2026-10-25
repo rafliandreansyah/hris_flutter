@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -72,6 +73,8 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
     final emp = await AssetEmployeePickerModal.show(
       context,
       title: 'Pilih Karyawan Penerima',
+      selectedEmployeeId: _selectedEmployee?.id,
+      source: AssetPickerSource.directory,
     );
     if (emp != null && mounted) {
       setState(() {
@@ -112,8 +115,9 @@ class _AssetPoolHandoverModalState extends State<AssetPoolHandoverModal> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_selectedEmployee == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan pilih karyawan penerima fasilitas')),
+      AppDialogUtil.showValidationError(
+        context,
+        message: 'Silakan pilih karyawan penerima fasilitas.',
       );
       return;
     }

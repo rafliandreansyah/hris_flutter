@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_date_util.dart';
 import 'package:equatable/equatable.dart';
 
 /// DTO Model untuk detail pengumuman (Announcement Detail)
@@ -143,7 +144,7 @@ class AnnouncementDetailModel extends Equatable {
 
   DateTime? get effectiveDateTime => publishedAtDateTime ?? createdAtDateTime;
 
-  /// Label tanggal lengkap & jam publikasi (contoh: "28 Agustus 2026, 10:11 WIB")
+  /// Label tanggal lengkap & jam publikasi (contoh: "28 Agustus 2026, 10:11 Asia/Jakarta")
   String get formattedDateTime {
     final dt = effectiveDateTime;
     if (dt == null) return '';
@@ -165,25 +166,25 @@ class AnnouncementDetailModel extends Equatable {
     final month = months[dt.month - 1];
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
-    return '${dt.day} $month ${dt.year}, $hour:$minute WIB';
+    return '${dt.day} $month ${dt.year}, $hour:$minute ${AppDateUtil.defaultTimezone}';
   }
 
   /// Label badge kategori (uppercase)
   String get categoryBadgeText {
     switch (category.toLowerCase()) {
       case 'hr_policy':
-        return 'POLICY';
+        return 'Kebijakan';
       case 'event':
-        return 'EVENT';
+        return 'Acara';
       case 'holiday':
-        return 'HOLIDAY';
+        return 'Libur';
       case 'maintenance':
-        return 'MAINTENANCE';
+        return 'Pemeliharaan';
       case 'emergency':
-        return 'EMERGENCY';
+        return 'Darurat';
       case 'general':
       default:
-        return 'GENERAL';
+        return 'Umum';
     }
   }
 
@@ -205,10 +206,10 @@ class AnnouncementDetailModel extends Equatable {
   /// Label scope ramah pengguna
   String get scopeDisplayName {
     final s = scope?.toLowerCase() ?? '';
-    if (s == 'company') return 'Company-Wide';
-    if (s == 'department') return 'Department';
-    if (s == 'branch') return 'Branch';
-    return scope ?? 'Company-Wide';
+    if (s == 'company') return 'Seluruh Perusahaan';
+    if (s == 'department') return 'Departemen';
+    if (s == 'branch') return 'Cabang';
+    return scope ?? 'Seluruh Perusahaan';
   }
 
   /// Subtitle di Top App Bar
@@ -310,7 +311,7 @@ class AnnouncementUserReadStatus extends Equatable {
     final month = months[dt.month - 1];
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
-    return '${dt.day} $month ${dt.year}, $hour:$minute WIB';
+    return '${dt.day} $month ${dt.year}, $hour:$minute ${AppDateUtil.defaultTimezone}';
   }
 
   @override

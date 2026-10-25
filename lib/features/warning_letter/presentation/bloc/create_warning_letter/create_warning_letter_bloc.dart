@@ -1,5 +1,5 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/warning_letter/data/models/create_warning_letter_models.dart';
@@ -58,7 +58,7 @@ class CreateWarningLetterBloc
             (typedTypes.isNotEmpty ? typedTypes.first : null),
       ));
     } catch (e) {
-      final errorMsg = e is ApiException ? e.message : e.toString();
+      final errorMsg = AppErrorMessage.from(e);
       emit(state.copyWith(
         status: CreateWarningLetterStatus.failure,
         errorMessage: errorMsg,
@@ -188,7 +188,7 @@ class CreateWarningLetterBloc
         createdResponse: response,
       ));
     } catch (e) {
-      final errorMsg = e is ApiException ? e.message : e.toString();
+      final errorMsg = AppErrorMessage.from(e);
       emit(state.copyWith(
         status: CreateWarningLetterStatus.failure,
         errorMessage: errorMsg,

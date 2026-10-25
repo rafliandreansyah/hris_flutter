@@ -147,10 +147,10 @@ void main() {
 
       expect(find.text('Semua'), findsOneWidget);
       expect(find.text('Diajukan'), findsOneWidget);
-      expect(find.text('Approved'), findsOneWidget);
-      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.text('Disetujui'), findsOneWidget);
+      expect(find.text('Ditolak'), findsOneWidget);
 
-      await tester.tap(find.text('Rejected'));
+      await tester.tap(find.text('Ditolak'));
       await tester.pumpAndSettle();
 
       expect(selected, 'rejected');
@@ -186,13 +186,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Filter Pengajuan Tes'), findsOneWidget);
-      expect(find.text('Rentang Tanggal (Date Range)'), findsOneWidget);
-      expect(find.text('Perusahaan (Company)'), findsOneWidget);
-      expect(find.text('Departemen (Division)'), findsOneWidget);
-      expect(find.text('Jabatan (Position)'), findsOneWidget);
+      expect(find.text('Rentang Tanggal'), findsOneWidget);
+      expect(find.text('Perusahaan'), findsOneWidget);
+      expect(find.text('Departemen'), findsOneWidget);
+      expect(find.text('Jabatan'), findsOneWidget);
 
       // Select status 'Approved'
-      await tester.tap(find.text('Approved'));
+      await tester.tap(find.text('Disetujui'));
       await tester.pumpAndSettle();
 
       // Apply

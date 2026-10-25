@@ -44,6 +44,8 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
       mockRemoteDataSource = _MockDashboardRemoteDataSource();
       storageService = SecureStorageService.withStorage(const FlutterSecureStorage());
+      // _memoryEmployeeId bersifat static; reset agar tidak bocor antar test
+      storageService.setEmployeeIdInMemory(null);
       repository = DashboardRepositoryImpl(
         remoteDataSource: mockRemoteDataSource,
         storageService: storageService,

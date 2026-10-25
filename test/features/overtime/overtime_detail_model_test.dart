@@ -98,7 +98,7 @@ void main() {
       expect(requestedData.isPending, isTrue);
       expect(requestedData.isApproved, isFalse);
       expect(requestedData.isRejected, isFalse);
-      expect(requestedData.statusLabel, 'Pending Approval');
+      expect(requestedData.statusLabel, 'Menunggu Persetujuan');
 
       final approvedData = OvertimeDetailData.fromJson(const {
         "id": "2",
@@ -107,7 +107,7 @@ void main() {
       expect(approvedData.isRequested, isFalse);
       expect(approvedData.isApproved, isTrue);
       expect(approvedData.isRejected, isFalse);
-      expect(approvedData.statusLabel, 'Approved');
+      expect(approvedData.statusLabel, 'Disetujui');
 
       final rejectedData = OvertimeDetailData.fromJson(const {
         "id": "3",
@@ -116,7 +116,7 @@ void main() {
       expect(rejectedData.isRequested, isFalse);
       expect(rejectedData.isApproved, isFalse);
       expect(rejectedData.isRejected, isTrue);
-      expect(rejectedData.statusLabel, 'Rejected');
+      expect(rejectedData.statusLabel, 'Ditolak');
     });
 
     test('Duration calculations work accurately', () {

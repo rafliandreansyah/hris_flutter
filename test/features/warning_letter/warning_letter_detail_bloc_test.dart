@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/warning_letter/data/models/create_warning_letter_models.dart';
@@ -157,7 +158,7 @@ void main() {
         const WarningLetterDetailLoading(),
         predicate<WarningLetterDetailState>((state) {
           return state is WarningLetterDetailError &&
-              state.message.contains('Network timeout');
+              state.message == AppErrorMessage.generic;
         }),
       ];
 

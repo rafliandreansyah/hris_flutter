@@ -15,16 +15,38 @@ enum AppStatusTone {
   static AppStatusTone fromStatus(String? raw) {
     final s = (raw ?? '').toLowerCase().trim();
     const success = [
-      'approved', 'disetujui', 'paid', 'dibayar', 'active', 'aktif',
-      'completed', 'selesai', 'done', 'accepted', 'success',
+      'approved',
+      'disetujui',
+      'paid',
+      'dibayar',
+      'active',
+      'aktif',
+      'completed',
+      'selesai',
+      'done',
+      'accepted',
+      'success',
     ];
     const warning = [
-      'pending', 'requested', 'diajukan', 'draft', 'ongoing', 'berjalan',
-      'processing', 'menunggu', 'waiting',
+      'pending',
+      'requested',
+      'diajukan',
+      'draft',
+      'ongoing',
+      'berjalan',
+      'processing',
+      'menunggu',
+      'waiting',
     ];
     const error = [
-      'rejected', 'ditolak', 'cancelled', 'canceled', 'dibatalkan',
-      'expired', 'failed', 'gagal',
+      'rejected',
+      'ditolak',
+      'cancelled',
+      'canceled',
+      'dibatalkan',
+      'expired',
+      'failed',
+      'gagal',
     ];
     const info = ['planned', 'dijadwalkan', 'review', 'info'];
     if (success.contains(s)) return AppStatusTone.success;
@@ -51,7 +73,7 @@ class AppStatusChip extends StatelessWidget {
     required this.label,
     this.tone = AppStatusTone.neutral,
     this.icon,
-    this.showDot = true,
+    this.showDot = false,
     this.size = AppStatusChipSize.normal,
   });
 
@@ -61,7 +83,7 @@ class AppStatusChip extends StatelessWidget {
     Key? key,
     String? label,
     IconData? icon,
-    bool showDot = true,
+    bool showDot = false,
     AppStatusChipSize size = AppStatusChipSize.normal,
   }) => AppStatusChip(
     key: key,
@@ -72,75 +94,10 @@ class AppStatusChip extends StatelessWidget {
     size: size,
   );
 
-  (Color bg, Color fg, Color dot) _colors(bool isDark) {
-    switch (tone) {
-      case AppStatusTone.success:
-        return isDark
-            ? (
-                AppColors.success.withValues(alpha: 0.18),
-                const Color(0xFF6EE7B7),
-                AppColors.success,
-              )
-            : (
-                AppColors.successContainer,
-                AppColors.onSuccessContainer,
-                AppColors.success,
-              );
-      case AppStatusTone.warning:
-        return isDark
-            ? (
-                AppColors.warning.withValues(alpha: 0.18),
-                const Color(0xFFFCD34D),
-                AppColors.warning,
-              )
-            : (
-                AppColors.warningContainer,
-                AppColors.onWarningContainer,
-                AppColors.warning,
-              );
-      case AppStatusTone.error:
-        return isDark
-            ? (
-                AppColors.errorRed.withValues(alpha: 0.18),
-                const Color(0xFFFCA5A5),
-                AppColors.errorRed,
-              )
-            : (
-                AppColors.errorContainer,
-                AppColors.onErrorContainer,
-                AppColors.errorRed,
-              );
-      case AppStatusTone.info:
-        return isDark
-            ? (
-                AppColors.brandTeal.withValues(alpha: 0.18),
-                AppColors.inversePrimary,
-                AppColors.brandTeal,
-              )
-            : (
-                AppColors.primaryContainer,
-                AppColors.onPrimaryContainer,
-                AppColors.brandTeal,
-              );
-      case AppStatusTone.neutral:
-        return isDark
-            ? (
-                AppColors.darkSurfaceContainerHigh,
-                AppColors.darkOnSurfaceVariant,
-                AppColors.darkOnSurfaceVariant,
-              )
-            : (
-                AppColors.surfaceContainerHigh,
-                AppColors.onSurfaceVariant,
-                AppColors.surfaceVariant,
-              );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final (bg, fg, dot) = _colors(isDark);
+    final (bg, fg, dot) = appStatusToneColors(tone, isDark);
     final small = size == AppStatusChipSize.small;
 
     return Container(
@@ -179,5 +136,75 @@ class AppStatusChip extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Warna (latar, konten, titik) untuk sebuah [AppStatusTone]. Dipakai bersama
+/// oleh [AppStatusChip] dan `AppStatusIcon` agar palet status selalu seragam.
+(Color bg, Color fg, Color dot) appStatusToneColors(
+  AppStatusTone tone,
+  bool isDark,
+) {
+  switch (tone) {
+    case AppStatusTone.success:
+      return isDark
+          ? (
+              AppColors.success.withValues(alpha: 0.18),
+              const Color(0xFF6EE7B7),
+              AppColors.success,
+            )
+          : (
+              AppColors.successContainer,
+              AppColors.onSuccessContainer,
+              AppColors.success,
+            );
+    case AppStatusTone.warning:
+      return isDark
+          ? (
+              AppColors.warning.withValues(alpha: 0.18),
+              const Color(0xFFFCD34D),
+              AppColors.warning,
+            )
+          : (
+              AppColors.warningContainer,
+              AppColors.onWarningContainer,
+              AppColors.warning,
+            );
+    case AppStatusTone.error:
+      return isDark
+          ? (
+              AppColors.errorRed.withValues(alpha: 0.18),
+              const Color(0xFFFCA5A5),
+              AppColors.errorRed,
+            )
+          : (
+              AppColors.errorContainer,
+              AppColors.onErrorContainer,
+              AppColors.errorRed,
+            );
+    case AppStatusTone.info:
+      return isDark
+          ? (
+              AppColors.brandTeal.withValues(alpha: 0.18),
+              AppColors.inversePrimary,
+              AppColors.brandTeal,
+            )
+          : (
+              AppColors.primaryContainer,
+              AppColors.onPrimaryContainer,
+              AppColors.brandTeal,
+            );
+    case AppStatusTone.neutral:
+      return isDark
+          ? (
+              AppColors.darkSurfaceContainerHigh,
+              AppColors.darkOnSurfaceVariant,
+              AppColors.darkOnSurfaceVariant,
+            )
+          : (
+              AppColors.surfaceContainerHigh,
+              AppColors.onSurfaceVariant,
+              AppColors.surfaceVariant,
+            );
   }
 }

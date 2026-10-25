@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -40,7 +41,7 @@ class CreateAssetBloc extends Bloc<CreateAssetEvent, CreateAssetState> {
     } catch (e) {
       emit(state.copyWith(
         status: CreateAssetStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -73,7 +74,7 @@ class CreateAssetBloc extends Bloc<CreateAssetEvent, CreateAssetState> {
       emit(state.copyWith(
         isSubmitting: false,
         isSuccess: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

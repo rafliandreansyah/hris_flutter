@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/announcement/data/models/announcement_detail_model.dart';
@@ -45,7 +46,7 @@ class AnnouncementDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AnnouncementDetailStatus.failure,
-        errorMessage: 'Gagal memuat detail pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -113,7 +114,7 @@ class AnnouncementDetailBloc
     } catch (e) {
       emit(state.copyWith(
         isAcknowledging: false,
-        errorMessage: 'Gagal mengonfirmasi pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

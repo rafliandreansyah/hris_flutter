@@ -133,12 +133,13 @@ ActivityItem activityItemFromApiJson(
       : (existingItem?.userName ?? (isMyActivity ? 'Saya' : 'Pegawai'));
 
   // Role & Departemen & Perusahaan & Level
-  final role = posMap?['name']?.toString() ?? existingItem?.userRole ?? 'Staff';
+  // Jangan mengarang data pegawai: bila API tidak mengirim, biarkan kosong
+  // (widget identitas menyembunyikan baris yang kosong).
+  final role = posMap?['name']?.toString() ?? existingItem?.userRole ?? '';
   final department =
-      deptMap?['name']?.toString() ?? existingItem?.department ?? 'Umum';
-  final company = compMap?['name']?.toString() ??
-      existingItem?.company ??
-      'PT Oasish Tech Nusantara';
+      deptMap?['name']?.toString() ?? existingItem?.department ?? '';
+  final company =
+      compMap?['name']?.toString() ?? existingItem?.company ?? '';
   final userLevel = levelMap?['name']?.toString() ?? existingItem?.userLevel;
   final userEmail = empMap?['email']?.toString() ?? existingItem?.userEmail;
   final employeeNumber =

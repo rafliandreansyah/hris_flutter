@@ -98,7 +98,7 @@ void main() {
 
       final cards = tester.widgetList<EmployeeCard>(find.byType(EmployeeCard));
       expect(cards.every((c) => c.onTap == null), isTrue);
-      expect(find.text('View Profile'), findsNothing);
+      expect(find.text('Lihat Profil'), findsNothing);
     });
 
     testWidgets('dengan employee.view: kartu rekan kerja bisa dibuka detailnya', (tester) async {
@@ -108,7 +108,7 @@ void main() {
 
       final cards = tester.widgetList<EmployeeCard>(find.byType(EmployeeCard));
       expect(cards.every((c) => c.onTap != null), isTrue);
-      expect(find.text('View Profile'), findsNWidgets(2));
+      expect(find.text('Lihat Profil'), findsNWidgets(2));
     });
 
     testWidgets('Renders AppBar title and subtitle with employee and department info', (tester) async {
@@ -122,7 +122,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Daftar Rekan Kerja'), findsOneWidget);
-      expect(find.text('Sarah Jenkins • Engineering'), findsOneWidget);
+      expect(find.text('Sarah Jenkins • Engineering'), findsNothing);
       expect(find.byType(EmployeeCard), findsNWidgets(2));
       expect(find.text('Budi Santoso'), findsOneWidget);
       expect(find.text('Dewi Lestari'), findsOneWidget);

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
@@ -143,7 +144,7 @@ void main() {
               .having((s) => s.status, 'status', OrganizationFilterStatus.loadingCompanies),
           isA<OrganizationFilterState>()
               .having((s) => s.status, 'status', OrganizationFilterStatus.failure)
-              .having((s) => s.errorMessage, 'errorMessage', contains('API Error')),
+              .having((s) => s.errorMessage, 'errorMessage', AppErrorMessage.generic),
         ]),
       );
     });

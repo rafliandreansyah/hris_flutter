@@ -62,6 +62,13 @@ class EmployeeDetailData {
   final num? totalOvertime;
   final num? totalLeaveRequest;
 
+  /// Profil milik pengguna yang login (dari API `isSelf`).
+  final bool? isSelfProfile;
+
+  /// Boleh melihat jadwal kerja pegawai ini (API `canViewWorkSchedule`).
+  /// Null untuk server lama — klien jatuh ke cek permission lokal.
+  final bool? canViewWorkSchedule;
+
   const EmployeeDetailData({
     required this.id,
     this.userId,
@@ -116,6 +123,8 @@ class EmployeeDetailData {
     this.leaveBalances = const [],
     this.totalOvertime,
     this.totalLeaveRequest,
+    this.isSelfProfile,
+    this.canViewWorkSchedule,
   });
 
   String get fullName {
@@ -228,6 +237,8 @@ class EmployeeDetailData {
       // Menit. Server baru mengirim `totalOvertimeMinutes`; `totalOvertime` adalah alias lama (juga menit).
       totalOvertime: (json['totalOvertimeMinutes'] ?? json['totalOvertime']) as num?,
       totalLeaveRequest: json['totalLeaveRequest'] as num?,
+      isSelfProfile: json['isSelf'] as bool?,
+      canViewWorkSchedule: json['canViewWorkSchedule'] as bool?,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hris_flutter/app/routes/app_router.dart';
@@ -65,6 +66,13 @@ class ApiClient {
     _isHandlingUnauthorized = true;
 
     try {
+      // 0. Hentikan pelacakan lokasi & buang antrean lokal milik sesi yang berakhir
+      try {
+        await LocationTrackingService.instance.stopAndClearQueue();
+      } catch (silentError) {
+        debugPrint('[diabaikan] $silentError');
+      }
+
       // 1. Bersihkan token dari secure storage
       await SecureStorageService.instance.clearAuthData();
 

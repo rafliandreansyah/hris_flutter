@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -57,7 +58,7 @@ class AppRealtimeMapCard extends StatefulWidget {
     this.latitude = -6.2088,
     this.longitude = 106.8456,
     this.gpsAccuracy = '±3m',
-    this.mapHeight = 150.0,
+    this.mapHeight = 220.0,
     this.enableTracking = true,
     this.showOpenInMaps = true,
     this.onLocationChanged,
@@ -519,14 +520,7 @@ class AppRealtimeMapCardState extends State<AppRealtimeMapCard>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (_isLocating)
-                              const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: AppColors.brandTeal,
-                                ),
-                              )
+                              const AppLoadingIndicator.small(color: AppColors.brandTeal)
                             else
                               const Icon(
                                 LucideIcons.locateOff,

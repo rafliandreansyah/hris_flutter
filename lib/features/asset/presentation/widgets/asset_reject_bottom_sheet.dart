@@ -571,17 +571,15 @@ class _AssetRejectBottomSheetState extends State<AssetRejectBottomSheet> {
                       height: 48,
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    TextButton(
+                    AppButton(
+                      text: 'Batal, Kembali',
+                      variant: AppButtonVariant.ghost,
+                      width: null,
+                      height: 40,
+                      foregroundColor: subtitleCol,
                       onPressed: _isSubmitting
                           ? null
                           : () => Navigator.of(context).pop(),
-                      child: Text(
-                        'Batal, Kembali',
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: subtitleCol,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ),
                   ],
                 ),

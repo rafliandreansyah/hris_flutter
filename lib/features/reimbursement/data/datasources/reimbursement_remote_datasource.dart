@@ -29,6 +29,10 @@ abstract class ReimbursementRemoteDataSource {
 
   Future<ReimbursementDetailModel> getReimbursementDetail(String id);
 
+  Future<void> deleteReimbursement(String id);
+
+  Future<void> deleteCashAdvance(String id);
+
   Future<String> createReimbursement({
     required String title,
     String? description,
@@ -180,6 +184,24 @@ class ReimbursementRemoteDataSourceImpl
             .toList();
       }
       return [];
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  @override
+  Future<void> deleteReimbursement(String id) async {
+    try {
+      await _apiClient.delete(ApiEndpoints.reimbursementDetail(id));
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  @override
+  Future<void> deleteCashAdvance(String id) async {
+    try {
+      await _apiClient.delete(ApiEndpoints.cashAdvanceDetail(id));
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

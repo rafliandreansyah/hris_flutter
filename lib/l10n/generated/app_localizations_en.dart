@@ -375,4 +375,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get latestCompanyAnnouncement => 'Latest · Company Announcement';
+
+  @override
+  String get titleLeave => 'Leave & Time Off';
+
+  @override
+  String get titleLeaveDetail => 'Leave Request Detail';
+
+  @override
+  String get titleOvertime => 'Overtime Requests';
+
+  @override
+  String get titleOvertimeDetail => 'Overtime Request Detail';
+
+  @override
+  String get titleAttendanceLogs => 'Attendance Logs';
+
+  @override
+  String get titleActivityReports => 'Activity Reports';
+
+  @override
+  String get titleActivityDetail => 'Activity Detail';
+
+  @override
+  String get titleCreateActivity => 'Create Activity';
+
+  @override
+  String get statusWaitingApproval => 'Waiting for Approval';
+
+  @override
+  String get statusApproved => 'Approved';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get clockInLabel => 'Clock In';
+
+  @override
+  String get clockOutLabel => 'Clock Out';
+
+  @override
+  String get titleEmployeeDirectory => 'Employee Directory';
+
+  @override
+  String get consentTitle => 'Privacy Policy & Terms';
+
+  @override
+  String get consentIntro =>
+      'Before using Oasish, please read and accept how we collect and process your data.';
+
+  @override
+  String get consentDataHeader => 'DATA WE PROCESS';
+
+  @override
+  String get consentDataLocation =>
+      'Precise location for attendance. While you are clocked in and during field tasks, your work route is recorded, including when the app is closed or in the background.';
+
+  @override
+  String get consentDataCamera =>
+      'Camera and photos for attendance selfies, activity proof, and claim documents.';
+
+  @override
+  String get consentDataBiometric =>
+      'Biometrics (fingerprint / Face ID) are processed on the device and never sent to our servers.';
+
+  @override
+  String get consentDataDevice =>
+      'Employment data, device ID, battery level, and notification token to run the service.';
+
+  @override
+  String get consentDocumentsHeader => 'LEGAL DOCUMENTS';
+
+  @override
+  String get consentAgreement =>
+      'I have read and agree to the Oasish Privacy Policy and Terms & Conditions.';
+
+  @override
+  String get consentAccept => 'Agree & Continue';
+
+  @override
+  String get legalPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get legalTerms => 'Terms & Conditions';
+
+  @override
+  String get legalRefundPolicy => 'Refund Policy';
+
+  @override
+  String get legalFaq => 'FAQ';
+
+  @override
+  String get legalDeleteData => 'Delete Account & Data';
+
+  @override
+  String get legalDeleteDataSubtitle =>
+      'Request deletion of your account and personal data';
+
+  @override
+  String get legalContact => 'Contact';
+
+  @override
+  String get legalAndHelp => 'LEGAL & HELP';
+
+  @override
+  String get legalLinkOpenFailed =>
+      'The page could not be opened. Check your internet connection and try again.';
+
+  @override
+  String get trackingResumeTitle => 'Work location tracking paused';
+
+  @override
+  String get trackingResumeBody =>
+      'Tap to resume tracking during your working hours.';
 }

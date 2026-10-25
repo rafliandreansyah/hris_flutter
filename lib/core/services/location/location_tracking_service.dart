@@ -5,9 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hris_flutter/core/services/location/location_local_storage.dart';
 import 'package:hris_flutter/core/services/location/location_service.dart';
+import 'package:hris_flutter/core/services/location/tracking_session_store.dart';
+import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/features/tracking/data/datasources/tracking_remote_datasource.dart';
 import 'package:hris_flutter/features/tracking/data/models/tracking_batch_payload.dart';
+import 'package:hris_flutter/features/tracking/data/models/tracking_config_model.dart';
 import 'package:hris_flutter/features/tracking/data/repositories/tracking_repository_impl.dart';
 import 'package:hris_flutter/features/tracking/domain/repositories/tracking_repository.dart';
 
@@ -52,17 +55,21 @@ class LocationTrackingService {
     LocationService? locationService,
     LocationLocalStorage? localStorage,
     TrackingRepository? trackingRepository,
+    TrackingSessionStore? sessionStore,
   })  : _locationService = locationService ?? LocationService(),
         _localStorage = localStorage ?? LocationLocalStorage.instance,
-        _trackingRepository = trackingRepository ?? TrackingRepositoryImpl();
+        _trackingRepository = trackingRepository ?? TrackingRepositoryImpl(),
+        _sessionStore = sessionStore ?? TrackingSessionStore();
 
   LocationTrackingService.withDependencies({
     LocationService? locationService,
     LocationLocalStorage? localStorage,
     TrackingRepository? trackingRepository,
+    TrackingSessionStore? sessionStore,
   })  : _locationService = locationService ?? LocationService(),
         _localStorage = localStorage ?? LocationLocalStorage.instance,
-        _trackingRepository = trackingRepository ?? TrackingRepositoryImpl();
+        _trackingRepository = trackingRepository ?? TrackingRepositoryImpl(),
+        _sessionStore = sessionStore ?? TrackingSessionStore();
 
   factory LocationTrackingService({
     LocationService? locationService,
@@ -75,6 +82,7 @@ class LocationTrackingService {
   final LocationService _locationService;
   final LocationLocalStorage _localStorage;
   final TrackingRepository _trackingRepository;
+  final TrackingSessionStore _sessionStore;
 
   TrackingState _state = TrackingState.idle;
   TrackingState get state => _state;
@@ -97,6 +105,14 @@ class LocationTrackingService {
       ? _activityIntervalSeconds
       : _attendanceIntervalSeconds;
 
+  /// Kebijakan terakhir dari server (GET /tracking/config). Null = belum disinkronkan,
+  /// dalam kondisi itu pelacakan tetap diizinkan (perilaku lama) sampai config diterima.
+  bool? _trackingAllowed;
+  bool? _attendancePolicyEnabled;
+  bool? _activityPolicyEnabled;
+
+  static const int _minIntervalSeconds = 10;
+
   StreamSubscription<Position>? _positionSubscription;
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   Timer? _flushTimer;
@@ -112,6 +128,10 @@ class LocationTrackingService {
     int? intervalMinutes,
     int? intervalSeconds,
   }) {
+    if (_trackingAllowed == false || _attendancePolicyEnabled == false) {
+      debugPrint('ℹ️ [LocationTrackingService] Pelacakan presensi dinonaktifkan perusahaan, tidak dimulai.');
+      return;
+    }
     _activeAttendanceId = attendanceId;
     if (intervalMinutes != null && intervalMinutes > 0) {
       _attendanceIntervalMinutes = intervalMinutes;
@@ -132,6 +152,10 @@ class LocationTrackingService {
     int? intervalMinutes,
     int? intervalSeconds,
   }) {
+    if (_trackingAllowed == false || _activityPolicyEnabled == false) {
+      debugPrint('ℹ️ [LocationTrackingService] Pelacakan aktivitas dinonaktifkan perusahaan, tidak dimulai.');
+      return;
+    }
     _activeActivityId = activityId;
     _activeActivityTitle = activityTitle;
     if (intervalMinutes != null && intervalMinutes > 0) {
@@ -169,6 +193,20 @@ class LocationTrackingService {
     _transitionTo(TrackingState.idle);
   }
 
+  /// Dipanggil saat logout / sesi kedaluwarsa: hentikan pelacakan dan buang antrean lokal
+  /// agar titik milik pengguna lama tidak terunggah memakai token pengguna berikutnya.
+  Future<void> stopAndClearQueue() async {
+    stopAllTracking();
+    _trackingAllowed = null;
+    _attendancePolicyEnabled = null;
+    _activityPolicyEnabled = null;
+    try {
+      await _localStorage.clearAll();
+    } catch (e) {
+      debugPrint('⚠️ [LocationTrackingService.stopAndClearQueue] $e');
+    }
+  }
+
   /// Mengelola perpindahan State Machine dan restart stream GPS sesuai konfigurasi
   void _transitionTo(TrackingState newState) {
     _state = newState;
@@ -179,8 +217,18 @@ class LocationTrackingService {
     if (_state == TrackingState.idle) {
       _flushTimer?.cancel();
       _flushTimer = null;
+      unawaited(_sessionStore.clear());
       return;
     }
+
+    unawaited(_sessionStore.save(TrackingSessionSnapshot(
+      onActivity: _state == TrackingState.onActivity,
+      attendanceId: _activeAttendanceId,
+      activityId: _activeActivityId,
+      activityTitle: _activeActivityTitle,
+      attendanceIntervalSeconds: _attendanceIntervalSeconds,
+      activityIntervalSeconds: _activityIntervalSeconds,
+    )));
 
     _startLocationUpdates();
     _startGpsStatusListener();
@@ -248,13 +296,20 @@ class LocationTrackingService {
       return;
     }
 
+    // Batalkan listener lama agar restart (mis. GPS dimatikan lalu dinyalakan) tidak
+    // menyisakan subscription yatim yang menduplikasi titik dan menahan foreground service.
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
+    _fastIntervalTimer?.cancel();
+    _fastIntervalTimer = null;
+
     final isActivity = _state == TrackingState.onActivity;
     final intervalSecs = activeIntervalSeconds;
     final isFastTestingInterval = intervalSecs < 60;
 
     final String notificationText = isActivity
-        ? 'HRIS memantau rute dinas: ${_activeActivityTitle ?? 'Tugas Lapangan'}'
-        : 'HRIS memantau lokasi kerja aktif Anda';
+        ? 'Oasish merekam rute dinas: ${_activeActivityTitle ?? 'Tugas Lapangan'}'
+        : 'Oasish merekam lokasi kerja selama Anda clock-in';
 
     late LocationSettings locationSettings;
 
@@ -299,12 +354,26 @@ class LocationTrackingService {
         },
       );
 
+      _fastIntervalTimer?.cancel();
       if (isFastTestingInterval) {
-        _fastIntervalTimer?.cancel();
         _fastIntervalTimer = Timer.periodic(
           Duration(seconds: intervalSecs),
           (_) {
             if (_state != TrackingState.idle) {
+              unawaited(_recordInitialPosition());
+            }
+          },
+        );
+      } else {
+        // Heartbeat: distanceFilter 10 m membuat karyawan yang diam tidak mengirim titik sama
+        // sekali sehingga terlihat offline. Rekam titik bila sudah melewati satu interval tanpa titik baru.
+        _fastIntervalTimer = Timer.periodic(
+          Duration(seconds: intervalSecs),
+          (_) {
+            if (_state == TrackingState.idle) return;
+            final last = _lastRecordedTime;
+            final dueAfter = Duration(seconds: (intervalSecs * 0.9).floor());
+            if (last == null || DateTime.now().difference(last) >= dueAfter) {
               unawaited(_recordInitialPosition());
             }
           },
@@ -353,7 +422,7 @@ class LocationTrackingService {
       longitude: position.longitude,
       accuracy: position.accuracy,
       speed: position.speed,
-      heading: position.heading,
+      heading: position.heading >= 0 ? position.heading : null,
       altitude: position.altitude,
       batteryLevel: battery,
       isMock: _locationService.isMockLocation(position),
@@ -412,16 +481,19 @@ class LocationTrackingService {
 
       final lastPos = _lastRecordedPosition ??
           await _locationService.getLastKnownPosition();
+      // Tanpa koordinat yang diketahui, titik "GPS mati" tidak dikirim (server menolak (0,0)
+      // sebagai lokasi palsu); status akan terlihat dari tidak adanya titik baru.
+      if (lastPos == null) return;
       final battery = await _locationService.getBatteryLevel();
 
       final point = TrackingLocationPoint(
         id: 'gps_off_${DateTime.now().millisecondsSinceEpoch}',
-        latitude: lastPos?.latitude ?? 0.0,
-        longitude: lastPos?.longitude ?? 0.0,
-        accuracy: lastPos?.accuracy,
+        latitude: lastPos.latitude,
+        longitude: lastPos.longitude,
+        accuracy: lastPos.accuracy,
         speed: 0.0,
-        heading: lastPos?.heading,
-        altitude: lastPos?.altitude,
+        heading: lastPos.heading >= 0 ? lastPos.heading : null,
+        altitude: lastPos.altitude,
         batteryLevel: battery,
         isMock: false,
         isGpsOff: true,
@@ -447,6 +519,7 @@ class LocationTrackingService {
           ) ??
           _lastRecordedPosition ??
           await _locationService.getLastKnownPosition();
+      if (currentPos == null && _lastRecordedPosition == null) return;
       final battery = await _locationService.getBatteryLevel();
 
       final point = TrackingLocationPoint(
@@ -455,7 +528,7 @@ class LocationTrackingService {
         longitude: currentPos?.longitude ?? _lastRecordedPosition?.longitude ?? 0.0,
         accuracy: currentPos?.accuracy ?? _lastRecordedPosition?.accuracy,
         speed: currentPos?.speed ?? 0.0,
-        heading: currentPos?.heading,
+        heading: (currentPos?.heading ?? -1) >= 0 ? currentPos?.heading : null,
         altitude: currentPos?.altitude,
         batteryLevel: battery,
         isMock: currentPos != null ? _locationService.isMockLocation(currentPos) : false,
@@ -500,39 +573,124 @@ class LocationTrackingService {
 
   Future<void> _performFlush() async {
     try {
-      final batches = await _localStorage.getBatchesForUpload(limit: 50);
-      if (batches.isEmpty) {
-        return;
-      }
+      // Ulangi sampai antrean habis (tiap putaran maksimal 50 titik) dengan batas pengaman.
+      for (var round = 0; round < 20; round++) {
+        final batches = await _localStorage.getBatchesForUpload(limit: 50);
+        if (batches.isEmpty) return;
 
-      for (final payload in batches) {
-        try {
-          await _trackingRepository.uploadBatch(payload);
+        var transientFailure = false;
+        for (final payload in batches) {
+          try {
+            await _trackingRepository.uploadBatch(payload);
 
-          final successIds = payload.locations.map((e) => e.id).toList();
-          await _localStorage.removePoints(successIds);
-        } on SessionClosedException catch (e) {
-          debugPrint('🚨 [LocationTrackingService] SessionClosedException: ${e.message}');
-          await _localStorage.purgeQueueForReference(e.referenceId);
+            final successIds = payload.locations.map((e) => e.id).toList();
+            await _localStorage.removePoints(successIds);
+          } on SessionClosedException catch (e) {
+            debugPrint('🚨 [LocationTrackingService] SessionClosedException: ${e.message}');
+            await _localStorage.purgeQueueForReference(e.referenceId);
 
-          if (e.sourceType == 'attendance') {
-            stopAllTracking();
-          } else if (e.sourceType == 'activity') {
-            fallbackToAttendanceTracking();
+            // Titik sisa dari sesi lama tidak boleh menghentikan sesi yang sedang berjalan.
+            if (e.sourceType == 'attendance' && e.referenceId == _activeAttendanceId) {
+              stopAllTracking();
+            } else if (e.sourceType == 'activity' && e.referenceId == _activeActivityId) {
+              fallbackToAttendanceTracking();
+            }
+          } catch (e) {
+            if (_isPermanentUploadFailure(e)) {
+              // Ditolak server secara permanen (mis. dinonaktifkan, sesi tidak ada, validasi):
+              // buang batch ini agar tidak memblokir antrean di belakangnya.
+              debugPrint('🗑️ [LocationTrackingService] Batch ditolak permanen, dibuang: $e');
+              await _localStorage.removePoints(payload.locations.map((p) => p.id).toList());
+              if (e is ApiException && (e.code == 'TRACKING_DISABLED' || e.code == 'NO_SUBSCRIPTION')) {
+                stopAllTracking();
+              }
+            } else {
+              debugPrint('⚠️ [LocationTrackingService.flushPendingQueue] Upload gagal, ditahan di lokal: $e');
+              transientFailure = true;
+              break;
+            }
           }
-        } catch (e) {
-          debugPrint('⚠️ [LocationTrackingService.flushPendingQueue] Upload gagal, ditahan di lokal: $e');
-          break;
         }
+        if (transientFailure) return;
       }
     } finally {
       _activeFlushFuture = null;
     }
   }
 
+  /// 4xx selain 401 (token) / 408 (timeout) / 429 (rate limit) berarti server tidak akan
+  /// pernah menerima batch tersebut; 5xx dan kegagalan jaringan layak dicoba ulang.
+  bool _isPermanentUploadFailure(Object error) {
+    if (error is! ApiException) return false;
+    final status = error.statusCode;
+    if (status == null) return false;
+    if (status == 401 || status == 408 || status == 429) return false;
+    return status >= 400 && status < 500;
+  }
+
+  /// Dipanggil saat app dibuka (termasuk dibangunkan iOS di background atau dari notifikasi
+  /// "ketuk untuk melanjutkan" setelah reboot): lanjutkan sesi tersimpan, lalu cocokkan dengan server.
+  Future<void> restoreOnAppStart() async {
+    try {
+      final token = await SecureStorageService.instance.getAccessToken();
+      if (token == null || token.isEmpty) return;
+      await restoreFromLocal();
+    } catch (e) {
+      debugPrint('ℹ️ [LocationTrackingService.restoreOnAppStart] $e');
+    }
+    await syncWithServerConfig();
+  }
+
+  /// Memulai ulang stream GPS untuk sesi yang sedang aktif, mis. setelah izin lokasi yang
+  /// hilang (reinstall / dicabut di Pengaturan) diberikan kembali.
+  void restartActiveSession() {
+    if (_state == TrackingState.idle) return;
+    _transitionTo(_state);
+  }
+
+  /// Melanjutkan sesi terakhir dari penyimpanan lokal tanpa menunggu server (mis. offline).
+  /// Server tetap sumber kebenaran: [syncWithServerConfig] menghentikan sesi yang sudah selesai.
+  @visibleForTesting
+  Future<void> restoreFromLocal() async {
+    if (_state != TrackingState.idle) return;
+    final snapshot = await _sessionStore.load();
+    if (snapshot == null) return;
+
+    final activityId = snapshot.activityId;
+    final attendanceId = snapshot.attendanceId;
+    if (snapshot.onActivity && activityId != null && activityId.isNotEmpty) {
+      _activeAttendanceId = attendanceId;
+      _attendanceIntervalSeconds = snapshot.attendanceIntervalSeconds;
+      _attendanceIntervalMinutes =
+          (_attendanceIntervalSeconds / 60).ceil().clamp(1, 1440);
+      elevateToActivityTracking(
+        activityId: activityId,
+        activityTitle: snapshot.activityTitle ?? 'Tugas Lapangan Aktif',
+        intervalSeconds: snapshot.activityIntervalSeconds,
+      );
+    } else if (attendanceId != null && attendanceId.isNotEmpty) {
+      _activityIntervalSeconds = snapshot.activityIntervalSeconds;
+      _activityIntervalMinutes =
+          (_activityIntervalSeconds / 60).ceil().clamp(1, 1440);
+      startAttendanceTracking(
+        attendanceId: attendanceId,
+        intervalSeconds: snapshot.attendanceIntervalSeconds,
+      );
+    } else {
+      await _sessionStore.clear();
+    }
+  }
+
   /// Sinkronisasi dengan konfigurasi dan sesi aktif di server (GET /tracking/config)
   /// Dipanggil saat aplikasi dibuka kembali atau selesai login untuk memulihkan sesi
-  Future<void> syncWithServerConfig() async {
+  Future<void> syncWithServerConfig() {
+    // Satu sinkronisasi pada satu waktu; pemanggilan bersamaan (dashboard reload + resume) digabung.
+    return _activeSyncFuture ??= _performSync().whenComplete(() => _activeSyncFuture = null);
+  }
+
+  Future<void>? _activeSyncFuture;
+
+  Future<void> _performSync() async {
     if (!_isServicesBindingInitialized) {
       return;
     }
@@ -543,42 +701,78 @@ class LocationTrackingService {
       }
 
       final config = await _trackingRepository.getTrackingConfig();
-
-      if (!config.hasAccess || !config.isTrackingEnabled) {
-        debugPrint('ℹ️ [LocationTrackingService] Pelacakan dinonaktifkan oleh perusahaan/tenant.');
-        if (_state != TrackingState.idle) {
-          stopAllTracking();
-        }
-        return;
-      }
-
-      _attendanceIntervalMinutes = config.attendance.intervalMinutes;
-      _activityIntervalMinutes = config.activity.intervalMinutes;
-      _attendanceIntervalSeconds = config.attendance.intervalSeconds;
-      _activityIntervalSeconds = config.activity.intervalSeconds;
-
-      final activeAttId = config.attendance.activeSessionId;
-      final activeActId = config.activity.activeSessionId;
-
-      if (activeActId != null && activeActId.isNotEmpty) {
-        _activeAttendanceId = activeAttId;
-        elevateToActivityTracking(
-          activityId: activeActId,
-          activityTitle: 'Tugas Lapangan Aktif',
-          intervalMinutes: _activityIntervalMinutes,
-          intervalSeconds: _activityIntervalSeconds,
-        );
-      } else if (activeAttId != null && activeAttId.isNotEmpty) {
-        startAttendanceTracking(
-          attendanceId: activeAttId,
-          intervalMinutes: _attendanceIntervalMinutes,
-          intervalSeconds: _attendanceIntervalSeconds,
-        );
-      } else if (_state != TrackingState.idle) {
-        stopAllTracking();
-      }
+      applyTrackingConfig(config);
     } catch (e) {
       debugPrint('ℹ️ [LocationTrackingService.syncWithServerConfig] $e');
+    }
+  }
+
+  /// Menerapkan konfigurasi dari server ke state machine (dipisah dari fetch agar bisa diuji).
+  @visibleForTesting
+  void applyTrackingConfig(TrackingConfigModel config) {
+    _trackingAllowed = config.hasAccess && config.isTrackingEnabled;
+    _attendancePolicyEnabled = config.attendance.enabled;
+    _activityPolicyEnabled = config.activity.enabled;
+
+    if (!config.hasAccess || !config.isTrackingEnabled) {
+      debugPrint('ℹ️ [LocationTrackingService] Pelacakan dinonaktifkan oleh perusahaan/tenant.');
+      if (_state != TrackingState.idle) {
+        stopAllTracking();
+      }
+      return;
+    }
+
+    final prevAttendanceSeconds = _attendanceIntervalSeconds;
+    final prevActivitySeconds = _activityIntervalSeconds;
+
+    // Interval 0 dari server membuat Timer.periodic berputar tanpa jeda; beri batas bawah.
+    _attendanceIntervalSeconds =
+        config.attendance.intervalSeconds < _minIntervalSeconds
+            ? _minIntervalSeconds
+            : config.attendance.intervalSeconds;
+    _activityIntervalSeconds =
+        config.activity.intervalSeconds < _minIntervalSeconds
+            ? _minIntervalSeconds
+            : config.activity.intervalSeconds;
+    _attendanceIntervalMinutes = (_attendanceIntervalSeconds / 60).ceil().clamp(1, 1440);
+    _activityIntervalMinutes = (_activityIntervalSeconds / 60).ceil().clamp(1, 1440);
+
+    final activeAttId = config.attendance.activeSessionId;
+    final activeActId = config.activity.activeSessionId;
+
+    // Idempoten: sesi, id, dan interval yang sama tidak perlu me-restart stream GPS
+    // (restart menutup foreground service, merekam titik ekstra, dan mereset judul aktivitas).
+    if (activeActId != null && activeActId.isNotEmpty) {
+      if (_state == TrackingState.onActivity &&
+          _activeActivityId == activeActId &&
+          _activeAttendanceId == activeAttId &&
+          prevActivitySeconds == _activityIntervalSeconds) {
+        return;
+      }
+    } else if (activeAttId != null && activeAttId.isNotEmpty) {
+      if (_state == TrackingState.inAttendance &&
+          _activeAttendanceId == activeAttId &&
+          prevAttendanceSeconds == _attendanceIntervalSeconds) {
+        return;
+      }
+    }
+
+    if (activeActId != null && activeActId.isNotEmpty) {
+      _activeAttendanceId = activeAttId;
+      elevateToActivityTracking(
+        activityId: activeActId,
+        activityTitle: 'Tugas Lapangan Aktif',
+        intervalMinutes: _activityIntervalMinutes,
+        intervalSeconds: _activityIntervalSeconds,
+      );
+    } else if (activeAttId != null && activeAttId.isNotEmpty) {
+      startAttendanceTracking(
+        attendanceId: activeAttId,
+        intervalMinutes: _attendanceIntervalMinutes,
+        intervalSeconds: _attendanceIntervalSeconds,
+      );
+    } else if (_state != TrackingState.idle) {
+      stopAllTracking();
     }
   }
 

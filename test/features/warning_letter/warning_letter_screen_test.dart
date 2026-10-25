@@ -224,12 +224,12 @@ void main() {
 
       // Bottom sheet header & fields
       expect(find.text('Filter Surat Peringatan'), findsOneWidget);
-      expect(find.text('Reset Filter'), findsOneWidget);
+      expect(find.text('Reset'), findsOneWidget);
       expect(find.text('Rentang Tanggal'), findsOneWidget);
       expect(find.text('Tipe Surat Peringatan'), findsOneWidget);
       expect(find.text('Status Surat Peringatan'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
-      expect(find.text('Batal'), findsOneWidget);
+      expect(find.text('Batal'), findsNothing);
     });
 
     testWidgets('Tab 1 hides FAB when user lacks warning_letter.create permission',

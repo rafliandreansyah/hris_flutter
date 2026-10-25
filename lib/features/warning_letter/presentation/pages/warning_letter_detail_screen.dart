@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,7 @@ import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_image_preview_dialog.dart';
 import 'package:hris_flutter/core/widgets/app_image_thumbnail_preview.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_detail_person_card.dart';
 import 'package:hris_flutter/features/warning_letter/data/models/warning_letter_detail_model.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_detail/warning_letter_detail_bloc.dart';
 import 'package:hris_flutter/features/warning_letter/presentation/bloc/warning_letter_detail/warning_letter_detail_event.dart';
@@ -422,62 +423,40 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
     );
   }
 
-  Widget _buildRecipientCard(WarningLetterDetail detail, bool isDark) {
-    final surfaceCol = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
-
+  Widget _buildRecipientCard(WarningLetterDetail detail) {
     final employee = detail.employee;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: surfaceCol,
-        borderRadius: BorderRadius.circular(AppRadius.input),
-        border: Border.all(color: borderCol, width: 1),
-      ),
-      child: EmployeeInfoRow(
-        name: employee?.fullName ?? 'Pegawai',
-        role: employee?.position?.name ?? '',
-        department: employee?.department?.name ?? '',
-        company: employee?.company?.name,
-        employeeId: employee?.employeeNumber ?? employee?.idNumber ?? '',
-        avatarUrl: employee?.photoUrl,
-        initials: employee?.initials,
-        avatarSize: 44,
-      ),
+    return RequestDetailPersonCard(
+      title: 'Penerima Surat Peringatan',
+      name: employee?.fullName ?? 'Pegawai',
+      position: employee?.position?.name,
+      level: employee?.levelName,
+      department: employee?.department?.name,
+      company: employee?.company?.name,
+      employeeNumber: employee?.employeeNumber,
+      email: employee?.email,
+      phone: employee?.phone,
+      avatarUrl: employee?.resolvedAvatarUrl,
+      initials: employee?.initials,
+      // Penerbit (HRD/atasan) perlu bisa menghubungi penerima; penerima sendiri tidak.
+      showContactActions:
+          RequestDetailPersonCard.isOtherPerson(employee?.id),
     );
   }
 
-  Widget _buildIssuerCard(WarningLetterDetail detail, bool isDark) {
-    final surfaceCol = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
+  Widget _buildIssuerCard(WarningLetterDetail detail) {
     final issuer = detail.issuedByEmployee;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: surfaceCol,
-        borderRadius: BorderRadius.circular(AppRadius.input),
-        border: Border.all(color: borderCol, width: 1),
-      ),
-      child: EmployeeInfoRow(
-        name: issuer?.fullName ?? 'Pejabat Penerbit',
-        role: issuer?.position?.name ?? 'Manajemen Sumber Daya Manusia',
-        department: issuer?.department?.name ?? '',
-        company: issuer?.company?.name,
-        employeeId: issuer?.employeeNumber ?? issuer?.idNumber ?? '',
-        avatarUrl: issuer?.photoUrl,
-        initials: issuer?.initials,
-        avatarSize: 44,
-      ),
+    return RequestDetailPersonCard(
+      title: 'Pejabat Penerbit',
+      name: issuer?.fullName ?? 'Pejabat Penerbit',
+      position: issuer?.position?.name,
+      level: issuer?.levelName,
+      department: issuer?.department?.name,
+      company: issuer?.company?.name,
+      employeeNumber: issuer?.employeeNumber,
+      avatarUrl: issuer?.resolvedAvatarUrl,
+      initials: issuer?.initials,
     );
   }
 
@@ -617,7 +596,7 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
               imageUrl: detail.attachmentUrl,
               title: 'Foto Surat Peringatan',
               subtitle: 'Ref: ${detail.referenceNumber ?? detail.displayTitle}',
-              height: 190,
+              height: 280,
               hintText: 'Ketuk foto untuk memperbesar tampilan (zoom)',
               hintIcon: LucideIcons.zoomIn,
             ),
@@ -883,8 +862,6 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
         ? AppColors.darkSurfaceContainerLowest
         : AppColors.surfaceContainerLowest;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
@@ -910,11 +887,7 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
               onPressed: () => context.pop(),
             ),
             titleSpacing: 0,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+            title: Text(
                   'Detail Surat Peringatan',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -924,73 +897,42 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  detail != null
-                      ? 'Ref: ${detail.referenceNumber ?? '-'} • ${detail.displayTitle}'
-                      : 'Memuat informasi...',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
             actions: [
-              if (detail != null) ...[
-                IconButton(
-                  icon: Icon(
-                    LucideIcons.share2,
-                    color: textCol,
-                    size: 20,
-                  ),
-                  tooltip: 'Bagikan',
-                  onPressed: () => _handleShare(detail!),
+              if (detail != null)
+                AppDetailMoreMenu(
+                  items: [
+                    AppDetailMenuItem.share(() => _handleShare(detail!)),
+                    if (detail.hasAttachment)
+                      AppDetailMenuItem(
+                        icon: detail.isAttachmentImage
+                            ? LucideIcons.image
+                            : (detail.isAttachmentPdf
+                                  ? LucideIcons.fileText
+                                  : LucideIcons.download),
+                        label: detail.isAttachmentImage
+                            ? 'Lihat Foto'
+                            : (detail.isAttachmentPdf
+                                  ? 'Lihat Dokumen'
+                                  : 'Unduh Dokumen'),
+                        onTap: () {
+                          if (detail!.isAttachmentImage) {
+                            AppImagePreviewDialog.show(
+                              context,
+                              imageUrl: detail.attachmentUrl,
+                              title: 'Foto Surat Peringatan',
+                              subtitle:
+                                  'No. ${detail.referenceNumber ?? detail.displayTitle}',
+                            );
+                          } else if (detail.isAttachmentPdf) {
+                            _openPdfViewer(detail);
+                          } else {
+                            _handleDownloadAttachment(detail);
+                          }
+                        },
+                      ),
+                  ],
                 ),
-                if (detail.hasAttachment)
-                  IconButton(
-                    icon: Icon(
-                      detail.isAttachmentImage
-                          ? LucideIcons.image
-                          : (detail.isAttachmentPdf
-                              ? LucideIcons.printer
-                              : LucideIcons.download),
-                      color: textCol,
-                      size: 20,
-                    ),
-                    tooltip: detail.isAttachmentImage
-                        ? 'Lihat Foto'
-                        : (detail.isAttachmentPdf
-                            ? 'Lihat Dokumen'
-                            : 'Unduh Dokumen'),
-                    onPressed: () {
-                      if (detail!.isAttachmentImage) {
-                        AppImagePreviewDialog.show(
-                          context,
-                          imageUrl: detail.attachmentUrl,
-                          title: 'Foto Surat Peringatan',
-                          subtitle:
-                              'Ref: ${detail.referenceNumber ?? detail.displayTitle}',
-                        );
-                      } else if (detail.isAttachmentPdf) {
-                        _openPdfViewer(detail);
-                      } else {
-                        _handleDownloadAttachment(detail);
-                      }
-                    },
-                  ),
-              ],
-              const SizedBox(width: 8),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Divider(
-                height: 1,
-                thickness: 1,
-                color: borderCol,
-              ),
-            ),
           ),
           body: () {
             if (state is WarningLetterDetailLoading ||
@@ -1031,17 +973,9 @@ class _WarningLetterDetailScreenState extends State<WarningLetterDetailScreen> {
                   children: [
                     _buildMainBannerCard(detail, isDark),
                     const SizedBox(height: 24),
-                    _buildSectionHeader(
-                      'PENERIMA SURAT PERINGATAN',
-                      isDark,
-                    ),
-                    _buildRecipientCard(detail, isDark),
+                    _buildRecipientCard(detail),
                     const SizedBox(height: 24),
-                    _buildSectionHeader(
-                      'PEJABAT PENERBIT (ISSUED BY)',
-                      isDark,
-                    ),
-                    _buildIssuerCard(detail, isDark),
+                    _buildIssuerCard(detail),
                     const SizedBox(height: 24),
                     _buildSectionHeader(
                       'LAMPIRAN DOKUMEN RESMI',

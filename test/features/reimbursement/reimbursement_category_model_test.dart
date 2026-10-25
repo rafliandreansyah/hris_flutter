@@ -67,7 +67,7 @@ void main() {
       expect(ExpenseStatus.requested.label, 'Menunggu Persetujuan');
       expect(ExpenseStatus.approved.label, 'Disetujui');
       expect(ExpenseStatus.disbursed.label, 'Dicairkan');
-      expect(ExpenseStatus.settlementInProgress.label, 'Proses Settlement');
+      expect(ExpenseStatus.settlementInProgress.label, 'Proses Penyelesaian');
       expect(ExpenseStatus.settled.label, 'Selesai');
       expect(ExpenseStatus.rejected.label, 'Ditolak');
     });

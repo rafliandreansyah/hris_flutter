@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -681,34 +682,18 @@ class _LocationSelectionSheetState extends State<_LocationSelectionSheet> {
             ],
 
             // Tombol "Terapkan Lokasi"
-            SizedBox(
-              width: double.infinity,
+            AppButton(
+              text: 'Terapkan Lokasi',
               height: 48,
-              child: FilledButton(
-                onPressed: _tempSelectedLocation != null
-                    ? () {
-                        widget.onApply(
-                          _tempSelectedLocation!,
-                          setAsDefault:
-                              _setAsDefault && !_isSelectedAlreadyDefault,
-                        );
-                      }
-                    : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandTeal,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                ),
-                child: Text(
-                  'Terapkan Lokasi',
-                  style: AppTypography.titleSmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              onPressed: _tempSelectedLocation != null
+                  ? () {
+                      widget.onApply(
+                        _tempSelectedLocation!,
+                        setAsDefault:
+                            _setAsDefault && !_isSelectedAlreadyDefault,
+                      );
+                    }
+                  : null,
             ),
           ],
         ),

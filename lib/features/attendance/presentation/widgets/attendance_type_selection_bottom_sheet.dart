@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Menampilkan Modal Bottom Sheet "Pilih Metode Presensi Luar"
@@ -9,6 +11,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 Future<AttendanceOutsideMethod?> showAttendanceTypeSelectionBottomSheet(
   BuildContext context,
 ) {
+  // Presensi Langsung & Terjadwal diaktifkan terpisah per perusahaan; default aktif bila setelan belum dimuat.
+  final setting = SubmissionSettingCubit.maybeOf(context)?.state.data;
+  final liveEnabled = setting?.isLiveEnabled ?? true;
+  final scheduledEnabled = setting?.isScheduledEnabled ?? true;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final surfaceColor = isDark
       ? AppColors.darkSurfaceContainerLowest
@@ -24,12 +30,22 @@ Future<AttendanceOutsideMethod?> showAttendanceTypeSelectionBottomSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
     barrierColor: Colors.black.withValues(alpha: 0.5),
-    builder: (ctx) => const AttendanceTypeSelectionBottomSheet(),
+    builder: (ctx) => AttendanceTypeSelectionBottomSheet(
+      liveEnabled: liveEnabled,
+      scheduledEnabled: scheduledEnabled,
+    ),
   );
 }
 
 class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
-  const AttendanceTypeSelectionBottomSheet({super.key});
+  final bool liveEnabled;
+  final bool scheduledEnabled;
+
+  const AttendanceTypeSelectionBottomSheet({
+    super.key,
+    this.liveEnabled = true,
+    this.scheduledEnabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -93,11 +109,20 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
+          if (!liveEnabled && !scheduledEnabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Absen luar kantor dinonaktifkan oleh perusahaan Anda.',
+                style: AppTypography.bodyMedium.copyWith(color: subtitleCol),
+              ),
+            ),
+
           // Option 1: Live Attendance (Real-Time)
-          _buildOptionCard(
+          if (liveEnabled) _buildOptionCard(
             context: context,
             icon: LucideIcons.mapPin,
-            title: 'Live Attendance (Real-Time)',
+            title: 'Presensi Langsung (Real-Time)',
             description:
                 'Catat kehadiran secara langsung di lokasi saat ini menggunakan koordinat GPS real-time.',
             badgeText: 'Instant Check-In / Out',
@@ -117,13 +142,13 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
             },
           ),
 
-          const SizedBox(height: 14),
+          if (liveEnabled && scheduledEnabled) const SizedBox(height: 14),
 
           // Option 2: Schedule Attendance (Terencana)
-          _buildOptionCard(
+          if (scheduledEnabled) _buildOptionCard(
             context: context,
             icon: LucideIcons.calendarClock,
-            title: 'Schedule Attendance (Terencana)',
+            title: 'Presensi Terjadwal',
             description:
                 'Ajukan presensi untuk tanggal dan jam tertentu (misal: dinas luar kota atau tugas terjadwal).',
             badgeText: 'Custom Date & Time',
@@ -148,27 +173,12 @@ class AttendanceTypeSelectionBottomSheet extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Bottom Button: Batal
-          SizedBox(
-            width: double.infinity,
+          AppButton(
+            text: 'Batal',
+            variant: AppButtonVariant.outlined,
             height: 48,
-            child: OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: borderCol, width: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9999),
-                ),
-                foregroundColor: subtitleCol,
-              ),
-              child: Text(
-                'Batal',
-                style: AppTypography.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: subtitleCol,
-                  fontSize: 14.5,
-                ),
-              ),
-            ),
+            foregroundColor: subtitleCol,
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ],
       ),

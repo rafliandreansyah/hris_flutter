@@ -87,7 +87,7 @@ void main() {
       expect(find.byIcon(LucideIcons.idCard), findsNothing);
     });
 
-    testWidgets('uses employee id fallback when employeeNumber is null or empty in model',
+    testWidgets('never shows internal id when employeeNumber is null or empty in model',
         (tester) async {
       const item = EmployeeDirectoryItem(
         id: 'ID-ONLY-99',
@@ -106,7 +106,8 @@ void main() {
         ),
       );
 
-      expect(find.text('ID-ONLY-99'), findsOneWidget);
+      expect(find.text('ID-ONLY-99'), findsNothing);
+      expect(find.byIcon(LucideIcons.idCard), findsNothing);
     });
 
     testWidgets('renders in dark mode without error', (tester) async {

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -67,7 +68,7 @@ class AssetDetailBloc extends Bloc<AssetDetailEvent, AssetDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: AssetDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
         canHandover: canHandover,
         canCreate: canCreate,
         currentEmployeeId: employeeId,
@@ -92,7 +93,7 @@ class AssetDetailBloc extends Bloc<AssetDetailEvent, AssetDetailState> {
     } on ApiException catch (e) {
       emit(state.copyWith(errorMessage: e.message));
     } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+      emit(state.copyWith(errorMessage: AppErrorMessage.from(e)));
     }
   }
 

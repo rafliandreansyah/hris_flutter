@@ -77,7 +77,7 @@ class AttendanceProofCard extends StatelessWidget {
           // Clickable Photo Container with Watermark Overlay & Center Zoom Icon
           AppImageThumbnailPreview(
             imageUrl: photoUrl,
-            height: 200,
+            height: 300,
             title: l10n?.proofAttachment ?? 'Bukti Foto Presensi',
             hintText: l10n?.tapToPreview ?? 'Ketuk untuk memperbesar foto',
             customOverlay: Positioned(

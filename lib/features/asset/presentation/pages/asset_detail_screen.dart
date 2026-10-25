@@ -162,10 +162,7 @@ class _AssetDetailView extends StatelessWidget {
               onPressed: () => Navigator.of(context).maybePop(),
             ),
             titleSpacing: 0,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Detail Fasilitas',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
@@ -173,15 +170,6 @@ class _AssetDetailView extends StatelessWidget {
                     fontSize: 18,
                   ),
                 ),
-                Text(
-                  'Spesifikasi & Riwayat Handover',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
           ),
           bottomNavigationBar: _buildBottomBar(context, state),
           body: _buildBody(context, state, primaryCol, textCol, subtitleCol),

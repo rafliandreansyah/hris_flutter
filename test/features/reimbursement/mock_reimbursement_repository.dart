@@ -88,6 +88,21 @@ class MockReimbursementRepository implements ReimbursementRepository {
     return mockCategories;
   }
 
+  /// ID pengajuan yang dihapus lewat [deleteReimbursement] / [deleteCashAdvance].
+  final List<String> deletedIds = [];
+
+  @override
+  Future<void> deleteReimbursement(String id) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    deletedIds.add(id);
+  }
+
+  @override
+  Future<void> deleteCashAdvance(String id) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    deletedIds.add(id);
+  }
+
   @override
   Future<ReimbursementDetailModel> getReimbursementDetail(String id) async {
     if (errorToThrow != null) throw errorToThrow!;

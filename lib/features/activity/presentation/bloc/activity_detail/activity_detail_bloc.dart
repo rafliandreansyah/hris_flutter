@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
@@ -120,7 +121,7 @@ class ActivityDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: ActivityDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -172,7 +173,7 @@ class ActivityDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: ActivityDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -224,7 +225,7 @@ class ActivityDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: ActivityDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -283,7 +284,7 @@ class ActivityDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: ActivityDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

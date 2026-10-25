@@ -1,5 +1,5 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:hris_flutter/features/activity/data/repositories/activity_repository_impl.dart';
 import 'package:hris_flutter/features/activity/domain/repositories/activity_repository.dart';
@@ -51,7 +51,7 @@ class CreatePlanActivityBloc
         ),
       );
     } catch (e) {
-      final errorMsg = e is ApiException ? e.message : e.toString();
+      final errorMsg = AppErrorMessage.from(e);
       emit(
         state.copyWith(
           status: CreatePlanActivityStatus.failure,
@@ -101,7 +101,7 @@ class CreatePlanActivityBloc
         ),
       );
     } catch (e) {
-      final errorMsg = e is ApiException ? e.message : e.toString();
+      final errorMsg = AppErrorMessage.from(e);
       emit(
         state.copyWith(
           status: CreatePlanActivityStatus.failure,

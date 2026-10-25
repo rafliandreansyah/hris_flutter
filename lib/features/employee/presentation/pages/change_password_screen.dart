@@ -353,21 +353,13 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           ),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(
+            child: AppButton(
+              text: 'Lupa Password?',
+              variant: AppButtonVariant.ghost,
+              width: null,
+              height: 32,
+              foregroundColor: AppColors.brandTeal,
               onPressed: () => context.push(Routes.RESET),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                'Lupa Password?',
-                style: AppTypography.labelMedium.copyWith(
-                  color: AppColors.brandTeal,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

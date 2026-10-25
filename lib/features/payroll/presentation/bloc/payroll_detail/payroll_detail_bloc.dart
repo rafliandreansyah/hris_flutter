@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/payroll/data/repositories/payroll_repository_impl.dart';
@@ -39,7 +40,7 @@ class PayrollDetailBloc extends Bloc<PayrollDetailEvent, PayrollDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: PayrollDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -72,7 +73,7 @@ class PayrollDetailBloc extends Bloc<PayrollDetailEvent, PayrollDetailState> {
     } catch (e) {
       emit(state.copyWith(
         isDownloading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

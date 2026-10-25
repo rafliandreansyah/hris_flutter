@@ -114,7 +114,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Jadwal Pegawai'), findsOneWidget);
-      expect(find.text('Pilih pegawai untuk melihat jadwal kerja'), findsOneWidget);
+      expect(find.text('Pilih pegawai untuk melihat jadwal kerja'), findsNothing);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text('Budi Santoso'), findsOneWidget);
       expect(find.text('Siti Aminah'), findsOneWidget);

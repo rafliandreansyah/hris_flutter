@@ -306,7 +306,7 @@ void main() {
 
       expect(mockRepo.lastDetailId, '123e4567-e89b-12d3-a456-426614174000');
       expect(find.text('John Doe'), findsWidgets);
-      expect(find.text('EMP-2024-777 • Technology'), findsOneWidget);
+      expect(find.text('EMP-2024-777'), findsOneWidget);
       // Coworkers must be shown when viewing own profile
       expect(find.text('Alice Wong'), findsOneWidget);
       // Edit icon must be visible when opened from user profile

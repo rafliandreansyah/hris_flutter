@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -181,7 +184,6 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
     final l10n = AppLocalizations.of(context);
     final state = context.watch<WarningLetterListBloc>().state;
     final filterCriteria = state.filterCriteria;
-    final searchQuery = state.searchQuery;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark
         ? AppColors.darkBackground
@@ -209,10 +211,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Surat Peringatan',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
@@ -222,16 +221,6 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              'Manajemen sanksi, teguran & disiplin tim',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             onPressed: _openFilterBottomSheet,
@@ -422,65 +411,11 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
                     opacity: showSearchBar ? 1.0 : 0.0,
                     child: IgnorePointer(
                       ignoring: !showSearchBar,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: surfaceCol,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: borderCol, width: 1),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.2 : 0.02,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            onTapOutside: (event) =>
-                                FocusManager.instance.primaryFocus?.unfocus(),
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: textCol,
-                              fontSize: 14,
-                            ),
-                            onChanged: _onSearchChanged,
-                            decoration: InputDecoration(
-                              hintText:
-                                  'Cari nama pegawai, divisi, atau nomor SP...',
-                              hintStyle: AppTypography.bodyMedium.copyWith(
-                                color: subtitleCol,
-                                fontSize: 13.5,
-                              ),
-                              prefixIcon: Icon(
-                                LucideIcons.search,
-                                size: 18,
-                                color: subtitleCol,
-                              ),
-                              suffixIcon: searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: Icon(
-                                        LucideIcons.x,
-                                        size: 16,
-                                        color: subtitleCol,
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _onSearchChanged('');
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 13,
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: AppSearchBar(
+                        controller: _searchController,
+                        hintText: 'Cari nama pegawai, divisi, atau nomor SP...',
+                        onChanged: _onSearchChanged,
+                        onClear: () => _onSearchChanged(''),
                       ),
                     ),
                   ),
@@ -564,12 +499,6 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
 
     if (state.myError != null && state.myLetters.isEmpty) {
       return _buildErrorState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
         errorMessage: state.myError!,
         onRetry: () {
           context.read<WarningLetterListBloc>().add(
@@ -627,11 +556,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
             return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2.5),
-                ),
+                child: AppLoadingIndicator.small(),
               ),
             );
           }
@@ -662,14 +587,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
   }) {
     // 1. Error 403 Forbidden: Tampilkan "Tidak Memiliki Hak Akses"
     if (state.isTeamForbidden) {
-      return _buildForbiddenState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
-      );
+      return _buildForbiddenState();
     }
 
     if (state.isTeamLoading) {
@@ -678,12 +596,6 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
 
     if (state.teamError != null && state.teamLetters.isEmpty) {
       return _buildErrorState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
         errorMessage: state.teamError!,
         onRetry: () {
           context.read<WarningLetterListBloc>().add(
@@ -741,11 +653,7 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
             return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2.5),
-                ),
+                child: AppLoadingIndicator.small(),
               ),
             );
           }
@@ -765,226 +673,37 @@ class _WarningLetterScreenViewState extends State<_WarningLetterScreenView>
   }
 
   // ── Forbidden state (HTTP 403, khusus tab Diterbitkan) ───────────────
-  Widget _buildForbiddenState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color borderCol,
-    required Color brandColor,
-  }) {
+  Widget _buildForbiddenState() {
+    void refresh() => context.read<WarningLetterListBloc>().add(
+          const WarningLetterListFetchRequested(isRefresh: true, isTeam: true),
+        );
+
     return RefreshIndicator(
-      onRefresh: () async {
-        context.read<WarningLetterListBloc>().add(
-              const WarningLetterListFetchRequested(
-                isRefresh: true,
-                isTeam: true,
-              ),
-            );
-        await Future.delayed(const Duration(milliseconds: 300));
-      },
-      color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: surfaceCol,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.shieldAlert,
-                      color: Color(0xFFD97706),
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Tidak Memiliki Hak Akses',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Anda tidak memiliki otoritas untuk melihat atau menerbitkan surat peringatan bagi pegawai lain. Fitur ini khusus untuk akun Supervisor, Manajer, atau HR.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          context.read<WarningLetterListBloc>().add(
-                                const WarningLetterListFetchRequested(
-                                  isRefresh: true,
-                                  isTeam: true,
-                                ),
-                              );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textCol,
-                          side: BorderSide(color: borderCol),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.rotateCcw,
-                              size: 14,
-                              color: textCol,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Coba Lagi',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          _tabController.animateTo(0);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor:
-                              isDark ? AppColors.darkOnPrimary : Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                        ),
-                        child: Text(
-                          'Surat Diterima',
-                          style: AppTypography.bodySmall.copyWith(
-                            color:
-                                isDark ? AppColors.darkOnPrimary : Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      onRefresh: () async => refresh(),
+      color: AppColors.brandTeal,
+      child: AppForbiddenState(
+        message:
+            'Anda tidak memiliki otoritas untuk melihat atau menerbitkan surat peringatan bagi pegawai lain. Fitur ini khusus untuk akun Supervisor, Manajer, atau HR.',
+        onRetry: refresh,
+        actionText: 'Surat Diterima',
+        actionIcon: LucideIcons.triangleAlert,
+        onAction: () => _tabController.animateTo(0),
       ),
     );
   }
 
-  // ── Error State Card ────────────────────────────────────────────────
+  // ── Error State ─────────────────────────────────────────────────────
   Widget _buildErrorState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color borderCol,
-    required Color brandColor,
     required String errorMessage,
     required VoidCallback onRetry,
   }) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: surfaceCol,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: borderCol),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                LucideIcons.alertCircle,
-                size: 40,
-                color: AppColors.errorRed,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Gagal Memuat Data',
-                style: AppTypography.titleSmall.copyWith(
-                  color: textCol,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                errorMessage,
-                style: AppTypography.bodySmall.copyWith(
-                  color: subtitleCol,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(LucideIcons.rotateCcw, size: 14),
-                label: const Text('Coba Lagi'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return AppEmptyState(
+      icon: LucideIcons.circleAlert,
+      title: 'Gagal Memuat Data',
+      message: errorMessage,
+      actionText: 'Coba Lagi',
+      actionIcon: LucideIcons.rotateCcw,
+      onAction: onRetry,
     );
   }
-
-
 }

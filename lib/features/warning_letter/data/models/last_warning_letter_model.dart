@@ -60,7 +60,7 @@ class LastWarningLetterModel extends Equatable {
       sanction: json['sanction']?.toString(),
       issuedDate: parseDate(json['issuedDate']),
       expiredDate: parseDate(json['expiredDate']),
-      timezone: json['timezone']?.toString() ?? 'WIB',
+      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
       isActive: json['isActive'] == true,
       employee: json['employee'] is Map<String, dynamic>
           ? WarningLetterEmployee.fromJson(

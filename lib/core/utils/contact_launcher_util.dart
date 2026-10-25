@@ -121,6 +121,39 @@ class ContactLauncherUtil {
     }
   }
 
+  /// Langsung membuka aplikasi telepon ke nomor pegawai.
+  static Future<void> callPhone(BuildContext context, {String? phone}) =>
+      _launchPhone(context, phone: phone, whatsapp: false);
+
+  /// Langsung membuka chat WhatsApp ke nomor pegawai.
+  static Future<void> openWhatsApp(BuildContext context, {String? phone}) =>
+      _launchPhone(context, phone: phone, whatsapp: true);
+
+  static Future<void> _launchPhone(
+    BuildContext context, {
+    required String? phone,
+    required bool whatsapp,
+  }) async {
+    final number = normalizePhone(phone);
+    if (number == null) {
+      await AppDialogUtil.showError(
+        context,
+        title: 'Nomor Belum Tersedia',
+        message: 'Pegawai ini belum memiliki nomor telepon.',
+      );
+      return;
+    }
+    final ok = await _launch(whatsapp ? whatsappUri(number) : telUri(number));
+    if (!ok && context.mounted) {
+      await AppDialogUtil.showError(
+        context,
+        message: whatsapp
+            ? 'Tidak dapat membuka WhatsApp.'
+            : 'Tidak dapat membuka aplikasi telepon.',
+      );
+    }
+  }
+
   /// Tombol email: buka aplikasi email dengan alamat pegawai sebagai penerima.
   static Future<void> composeEmail(
     BuildContext context, {

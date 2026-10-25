@@ -1,4 +1,7 @@
 
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -92,11 +95,17 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
   }
 
   Future<void> _pickStartDateTime(DateTime current) async {
+    final now = DateTime.now();
+    final range = resolvePickerRange(
+      SubmissionSettingCubit.windowOf(context, SubmissionWindowType.overtime),
+      fallbackFirst: now.subtract(const Duration(days: 30)),
+      fallbackLast: now.add(const Duration(days: 365)),
+    );
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: current,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: range.clamp(current),
+      firstDate: range.first,
+      lastDate: range.last,
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
@@ -164,11 +173,17 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
   }
 
   Future<void> _pickEndDateTime(DateTime current, DateTime minStart) async {
+    final startDay = DateTime(minStart.year, minStart.month, minStart.day);
+    final window = SubmissionSettingCubit.windowOf(context, SubmissionWindowType.overtime);
+    // Selesai boleh melewati tengah malam (maks. 1 hari setelah mulai) walau mulai di batas akhir.
+    final endRange = (window == null || window.isUnlimited)
+        ? PickerRange(startDay, DateTime.now().add(const Duration(days: 365)))
+        : PickerRange(startDay, startDay.add(const Duration(days: 1)));
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: current.isBefore(minStart) ? minStart : current,
-      firstDate: DateTime(minStart.year, minStart.month, minStart.day),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: endRange.clamp(current.isBefore(minStart) ? minStart : current),
+      firstDate: endRange.first,
+      lastDate: endRange.last,
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
@@ -229,7 +244,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
     );
 
     if (newDateTime.isBefore(minStart)) {
-      _showWarningSnackBar(
+      _showValidationDialog(
         'Waktu selesai tidak boleh lebih awal dari waktu mulai.',
       );
       return;
@@ -244,41 +259,27 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
 
 
 
-  void _showWarningSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(LucideIcons.alertCircle, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.errorRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  void _showValidationDialog(String message) {
+    AppDialogUtil.showValidationError(context, message: message);
   }
 
   void _handleSubmit(CreateOvertimeState state) {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_notesController.text.trim().isEmpty) {
-      _showWarningSnackBar('Alasan pengajuan lembur wajib diisi.');
+      _showValidationDialog('Alasan pengajuan lembur wajib diisi.');
       return;
     }
     if (_pickedPhoto == null) {
-      _showWarningSnackBar('Foto bukti lembur wajib dilampirkan.');
+      _showValidationDialog('Foto bukti lembur wajib dilampirkan.');
       return;
     }
     if (state.startOvertime == null || state.endOvertime == null) {
-      _showWarningSnackBar('Waktu mulai dan selesai lembur harus dipilih.');
+      _showValidationDialog('Waktu mulai dan selesai lembur harus dipilih.');
       return;
     }
     if (state.isCheckOutRequiredBlocked) {
-      _showWarningSnackBar(
+      _showValidationDialog(
         'Anda belum melakukan check-out kehadiran. Harap check-out terlebih dahulu.',
       );
       return;
@@ -381,15 +382,10 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
           ],
         ),
         actions: [
-          TextButton(
+          AppButton(
+            text: 'Mengerti',
+            height: 44,
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Mengerti',
-              style: TextStyle(
-                color: AppColors.brandTeal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ],
       ),
@@ -490,10 +486,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
               icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Ajukan Lembur',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -502,16 +495,6 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  'Formulir permohonan lembur karyawan',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               IconButton(
                 icon: Icon(
@@ -690,7 +673,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                           key: const ValueKey('end_time_picker'),
                           onTap: () {
                             if (state.isEndTimeLocked) {
-                              _showWarningSnackBar(
+                              _showValidationDialog(
                                 'Waktu selesai terkunci otomatis sesuai jam check-out kehadiran.',
                               );
                             } else if (end != null && start != null) {
@@ -925,7 +908,7 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                         _isCompressingPhoto = false;
                       });
                     },
-                    onError: _showWarningSnackBar,
+                    onError: _showValidationDialog,
                   ),
                 ],
               ),

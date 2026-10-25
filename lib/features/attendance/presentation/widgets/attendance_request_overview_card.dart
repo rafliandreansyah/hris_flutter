@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -406,12 +407,12 @@ class AttendanceRequestOverviewCard extends StatelessWidget {
 
   Widget _buildStatusPill(bool isDark) {
     if (detail.isApproved) {
-      return const AppStatusChip(label: 'Disetujui', tone: AppStatusTone.success);
+      return const AppStatusIcon(label: 'Disetujui', tone: AppStatusTone.success);
     }
     if (detail.isRejected) {
-      return const AppStatusChip(label: 'Ditolak', tone: AppStatusTone.error);
+      return const AppStatusIcon(label: 'Ditolak', tone: AppStatusTone.error);
     }
-    return const AppStatusChip(
+    return const AppStatusIcon(
       label: 'Menunggu Persetujuan',
       tone: AppStatusTone.warning,
     );

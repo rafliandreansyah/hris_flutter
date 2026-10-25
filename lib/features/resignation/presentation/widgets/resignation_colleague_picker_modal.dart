@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_avatar.dart';
+import 'package:hris_flutter/core/widgets/app_empty_state.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/features/resignation/data/models/resignation_initial_form_model.dart';
 
 Future<ResignationColleagueModel?> showResignationColleaguePickerModal(
@@ -80,46 +83,18 @@ Future<ResignationColleagueModel?> showResignationColleaguePickerModal(
                         ),
                       ),
 
-                      // Search box
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
+                      // Search box (widget pencarian standar)
+                      AppSearchBar(
+                        hintText: 'Cari nama, jabatan, atau divisi...',
+                        margin: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        child: TextField(
-                          onTapOutside: (event) =>
-                              FocusManager.instance.primaryFocus?.unfocus(),
-                          decoration: InputDecoration(
-                            hintText: 'Cari nama, jabatan, atau divisi...',
-                            hintStyle: AppTypography.bodySmall.copyWith(
-                              color: isDark
-                                  ? AppColors.darkOnSurfaceVariant
-                                  : AppColors.onSurfaceVariant,
-                            ),
-                            prefixIcon: const Icon(
-                              LucideIcons.search,
-                              size: 18,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                            filled: true,
-                            fillColor: isDark
-                                ? AppColors.darkSurfaceContainer
-                                : AppColors.surfaceContainerLow,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onChanged: (val) {
-                            setModalState(() {
-                              searchQuery = val;
-                            });
-                          },
-                        ),
+                        onChanged: (val) {
+                          setModalState(() {
+                            searchQuery = val;
+                          });
+                        },
                       ),
 
                       const Divider(height: 1),
@@ -127,32 +102,11 @@ Future<ResignationColleagueModel?> showResignationColleaguePickerModal(
                       // List
                       Expanded(
                         child: filtered.isEmpty
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        LucideIcons.users,
-                                        size: 40,
-                                        color: isDark
-                                            ? AppColors.darkOnSurfaceVariant
-                                            : AppColors.onSurfaceVariant,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Rekan kerja tidak ditemukan',
-                                        style: AppTypography.bodyMedium
-                                            .copyWith(
-                                          color: isDark
-                                              ? AppColors.darkOnSurfaceVariant
-                                              : AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                            ? const AppEmptyState(
+                                icon: LucideIcons.users,
+                                title: 'Rekan Kerja Tidak Ditemukan',
+                                message:
+                                    'Tidak ada rekan kerja yang cocok dengan kata kunci pencarian.',
                               )
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
@@ -186,17 +140,17 @@ Future<ResignationColleagueModel?> showResignationColleaguePickerModal(
                                     selected: isSelected,
                                     selectedTileColor: AppColors.primary
                                         .withValues(alpha: 0.08),
-                                    leading: CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: AppColors.primary,
-                                      child: Text(
-                                        initials,
-                                        style:
-                                            AppTypography.titleSmall.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                    leading: AppAvatar(
+                                      name: colleague.name,
+                                      initials: initials,
+                                      size: 40,
+                                      backgroundColor: isDark
+                                          ? AppColors.darkPrimaryContainer
+                                          : AppColors.accentTealLight,
+                                      textColor: isDark
+                                          ? AppColors.darkOnPrimaryContainer
+                                          : AppColors.primary,
+                                      fontSize: 15,
                                     ),
                                     title: Text(
                                       colleague.name,

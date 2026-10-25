@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -206,8 +207,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           ),
         );
       }
-    } else {
-      _showAddActivityBottomSheet();
     }
   }
 
@@ -256,11 +255,8 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Activity Reports',
+        title: Text(
+              AppLocalizations.of(context)?.titleActivityReports ?? 'Laporan Aktivitas',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -269,16 +265,6 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              'Track work logs & operational tasks',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             onPressed: _openFilterBottomSheet,
@@ -487,7 +473,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
                             ),
                             onChanged: _onSearchChanged,
                             decoration: InputDecoration(
-                              hintText: 'Search by employee name or keyword...',
+                              hintText: 'Cari nama pegawai atau kata kunci...',
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: subtitleCol,
                                 fontSize: 13.5,
@@ -665,14 +651,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -781,14 +760,7 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -796,404 +768,5 @@ class _ActivityScreenViewState extends State<_ActivityScreenView>
         },
       ),
     );
-  }
-
-  void _showAddActivityBottomSheet() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
-    final borderCol = isDark
-        ? AppColors.darkOutlineMuted
-        : AppColors.outlineMuted;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
-    final fieldBg = isDark
-        ? AppColors.darkBackgroundSubtle
-        : AppColors.backgroundSubtle;
-
-    final titleController = TextEditingController();
-    final descController = TextEditingController();
-    final locationController = TextEditingController();
-    ActivityStatus selectedStatus = ActivityStatus.completed;
-    final bloc = context.read<ActivityListBloc>();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: surfaceColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Title & Close
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Tambah Aktivitas Kerja',
-                            style: AppTypography.titleMedium.copyWith(
-                              color: textCol,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              LucideIcons.x,
-                              size: 20,
-                              color: subtitleCol,
-                            ),
-                            onPressed: () => Navigator.of(sheetContext).pop(),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Catat log aktivitas harian ke feed aktivitas Anda',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Field 1: Judul Aktivitas
-                      Text(
-                        'Judul Aktivitas',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: titleController,
-                        onTapOutside: (event) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: textCol,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Misal: Review PR #142 & Sprint Planning',
-                          hintStyle: AppTypography.bodyMedium.copyWith(
-                            color: subtitleCol,
-                          ),
-                          filled: true,
-                          fillColor: fieldBg,
-                          prefixIcon: Icon(
-                            LucideIcons.fileText,
-                            size: 18,
-                            color: brandColor,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: brandColor,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 2: Deskripsi / Catatan Kerja
-                      Text(
-                        'Deskripsi / Catatan Kerja',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: descController,
-                        maxLines: 3,
-                        onTapOutside: (event) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: textCol,
-                        ),
-                        decoration: InputDecoration(
-                          hintText:
-                              'Rincian tugas yang diselesaikan atau catatan progres...',
-                          hintStyle: AppTypography.bodyMedium.copyWith(
-                            color: subtitleCol,
-                          ),
-                          filled: true,
-                          fillColor: fieldBg,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: brandColor,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 3: Lokasi Kerja
-                      Text(
-                        'Lokasi Kerja',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: locationController,
-                        onTapOutside: (event) =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: textCol,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Misal: Kantor Pusat, Remote / WFH',
-                          hintStyle: AppTypography.bodyMedium.copyWith(
-                            color: subtitleCol,
-                          ),
-                          filled: true,
-                          fillColor: fieldBg,
-                          prefixIcon: Icon(
-                            LucideIcons.mapPin,
-                            size: 18,
-                            color: brandColor,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: borderCol),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: brandColor,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Field 4: Status Aktivitas
-                      Text(
-                        'Status Aktivitas',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: textCol,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ChoiceChip(
-                              label: const Text('In Progress'),
-                              selected:
-                                  selectedStatus == ActivityStatus.inProgress,
-                              onSelected: (sel) {
-                                if (sel) {
-                                  setSheetState(
-                                    () => selectedStatus =
-                                        ActivityStatus.inProgress,
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ChoiceChip(
-                              label: const Text('Completed'),
-                              selected:
-                                  selectedStatus == ActivityStatus.completed,
-                              onSelected: (sel) {
-                                if (sel) {
-                                  setSheetState(
-                                    () => selectedStatus =
-                                        ActivityStatus.completed,
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Action Buttons: Batal & Simpan Aktivitas
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: OutlinedButton(
-                                onPressed: () =>
-                                    Navigator.of(sheetContext).pop(),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: borderCol),
-                                  shape: const StadiumBorder(),
-                                ),
-                                child: Text(
-                                  'Batal',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: subtitleCol,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  final title = titleController.text.trim();
-                                  if (title.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Judul aktivitas tidak boleh kosong!',
-                                        ),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                    return;
-                                  }
-
-                                  final now = DateTime.now();
-                                  final newActivity = ActivityItem(
-                                    id: 'ACT-${now.millisecondsSinceEpoch}',
-                                    title: title,
-                                    description:
-                                        descController.text.trim().isEmpty
-                                        ? 'Aktivitas operasional harian'
-                                        : descController.text.trim(),
-                                    userName: 'Sarah Jenkins',
-                                    userRole: 'Senior HR Specialist',
-                                    department: 'Human Resources',
-                                    company: 'PT Oasish Tech Nusantara',
-                                    initials: 'SJ',
-                                    status: selectedStatus,
-                                    location:
-                                        locationController.text.trim().isEmpty
-                                        ? 'Kantor Pusat'
-                                        : locationController.text.trim(),
-                                    time:
-                                        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-                                    date: now,
-                                    isMyActivity: true,
-                                  );
-
-                                  bloc.add(
-                                    ActivityListActivityAdded(newActivity),
-                                  );
-
-                                  Navigator.of(sheetContext).pop();
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Aktivitas "$title" berhasil ditambahkan!',
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                      backgroundColor: AppColors.primaryHover,
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: brandColor,
-                                  foregroundColor: isDark
-                                      ? AppColors.darkOnPrimary
-                                      : Colors.white,
-                                  shape: const StadiumBorder(),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Simpan Aktivitas',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: isDark
-                                        ? AppColors.darkOnPrimary
-                                        : Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(() {
-      // Tunda dispose sampai animasi tutup bottom sheet selesai agar
-      // controller tidak dipakai setelah di-dispose.
-      Future<void>.delayed(const Duration(milliseconds: 400), () {
-        titleController.dispose();
-        descController.dispose();
-        locationController.dispose();
-      });
-    });
   }
 }

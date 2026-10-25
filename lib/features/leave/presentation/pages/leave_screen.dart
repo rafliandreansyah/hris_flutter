@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -19,7 +21,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
-/// Halaman "Leave & Time Off" — slice dari desain Stitch
+/// Halaman "Cuti & Izin" — slice dari desain Stitch
 /// (screen "Oasish Team Leave Requests - List View", project
 /// "Oasish Flutter M3 HRIS").
 ///
@@ -230,11 +232,8 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Leave & Time Off',
+        title: Text(
+              AppLocalizations.of(context)?.titleLeave ?? 'Cuti & Izin',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -243,16 +242,6 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              'Team approvals & time-off management',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             onPressed: _openFilterBottomSheet,
@@ -460,7 +449,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
                             ),
                             onChanged: _onSearchChanged,
                             decoration: InputDecoration(
-                              hintText: 'Search by employee name or keyword...',
+                              hintText: 'Cari nama pegawai atau kata kunci...',
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: subtitleCol,
                                 fontSize: 13.5,
@@ -609,14 +598,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -649,14 +631,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
 
     // 1. Penanganan khusus HTTP 403 Forbidden (bukan approver)
     if (isForbidden) {
-      return _buildForbiddenState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
-      );
+      return _buildForbiddenState();
     }
 
     // 2. Loading awal / refresh
@@ -694,14 +669,7 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -747,180 +715,21 @@ class _LeaveScreenViewState extends State<_LeaveScreenView>
     );
   }
 
-  // ── Forbidden state (403, khusus tab Team Requests) ───────────────────
-  Widget _buildForbiddenState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color borderCol,
-    required Color brandColor,
-  }) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<LeaveListBloc>().add(
+  // ── Forbidden state (HTTP 403, khusus tab tim) ───────────────────────
+  Widget _buildForbiddenState() {
+    void refresh() => context.read<LeaveListBloc>().add(
           const LeaveListFetchRequested(isRefresh: true, isTeam: true),
         );
-        await Future.delayed(const Duration(milliseconds: 300));
-      },
-      color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: surfaceCol,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.shieldAlert,
-                      color: Color(0xFFD97706),
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Tidak Memiliki Hak Akses',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Anda tidak memiliki otoritas sebagai approver untuk melihat pengajuan cuti tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          context.read<LeaveListBloc>().add(
-                            const LeaveListFetchRequested(
-                              isRefresh: true,
-                              isTeam: true,
-                            ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textCol,
-                          side: BorderSide(color: borderCol),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          alignment: Alignment.center,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.rotateCcw,
-                              size: 14,
-                              color: textCol,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Coba Lagi',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w600,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          _tabController.animateTo(0);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor: isDark
-                              ? AppColors.darkOnPrimary
-                              : Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.calendarClock,
-                              size: 14,
-                              color: isDark
-                                  ? AppColors.darkOnPrimary
-                                  : Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Ke Pengajuan Saya',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: isDark
-                                    ? AppColors.darkOnPrimary
-                                    : Colors.white,
-                                fontWeight: FontWeight.w600,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+
+    return RefreshIndicator(
+      onRefresh: () async => refresh(),
+      color: AppColors.brandTeal,
+      child: AppForbiddenState(
+        message:
+            'Anda tidak memiliki otoritas sebagai approver untuk melihat pengajuan cuti tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
+        onRetry: refresh,
+        actionText: 'Ke Pengajuan Saya',
+        onAction: () => _tabController.animateTo(0),
       ),
     );
   }

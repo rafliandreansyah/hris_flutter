@@ -115,7 +115,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Returns to empty state
-      expect(find.text('Tap to Capture or Upload Photo'), findsOneWidget);
+      expect(find.text('Ketuk untuk ambil atau unggah foto'), findsOneWidget);
       expect(find.text('my_proof.jpg'), findsNothing);
     });
 

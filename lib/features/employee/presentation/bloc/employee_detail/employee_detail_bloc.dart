@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -101,7 +102,7 @@ class EmployeeDetailBloc
       } catch (e) {
         emit(state.copyWith(
           status: EmployeeDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: AppErrorMessage.from(e),
           currentEmployeeId: currentEmployeeId,
         ));
         return;

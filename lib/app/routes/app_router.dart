@@ -41,6 +41,7 @@ import 'package:hris_flutter/features/notification/presentation/pages/notificati
 import 'package:hris_flutter/features/overtime/presentation/pages/create_overtime_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_detail_screen.dart';
 import 'package:hris_flutter/features/overtime/presentation/pages/overtime_requests_screen.dart';
+import 'package:hris_flutter/features/legal/presentation/pages/privacy_consent_screen.dart';
 import 'package:hris_flutter/features/splash/presentation/pages/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/features/warning_letter/data/repositories/warning_letter_repository_impl.dart';
@@ -87,6 +88,7 @@ class AppRouter {
     Routes.SPLASH,
     Routes.LOGIN,
     Routes.RESET,
+    Routes.PRIVACY_CONSENT,
   };
 
   static final GoRouter router = GoRouter(
@@ -99,6 +101,15 @@ class AppRouter {
         path: Routes.SPLASH,
         name: Routes.SPLASH,
         builder: (context, state) => const SplashScreenPage(),
+      ),
+
+      // 1b. Persetujuan Kebijakan Privasi (sebelum login)
+      GoRoute(
+        path: Routes.PRIVACY_CONSENT,
+        name: Routes.PRIVACY_CONSENT,
+        builder: (context, state) => PrivacyConsentScreen(
+          pendingLink: state.uri.queryParameters['from'],
+        ),
       ),
 
       // 2. Login Screen

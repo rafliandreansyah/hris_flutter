@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -124,8 +125,6 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
     final bgColor =
         isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.textSecondary;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return Scaffold(
@@ -143,11 +142,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           onPressed: () => context.pop(),
         ),
         titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
+        title: Text(
               widget.fileName,
               style: AppTypography.titleSmall.copyWith(
                 color: textCol,
@@ -157,29 +152,11 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              widget.title,
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
         actions: [
           // Tombol Share PDF
           IconButton(
             icon: _isSharing
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: brandColor,
-                    ),
-                  )
+                ? AppLoadingIndicator.small(color: brandColor)
                 : Icon(
                     LucideIcons.share2,
                     color: textCol,
@@ -192,14 +169,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           // Tombol Download PDF
           IconButton(
             icon: _isDownloading
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: brandColor,
-                    ),
-                  )
+                ? AppLoadingIndicator.small(color: brandColor)
                 : Icon(
                     LucideIcons.download,
                     color: brandColor,

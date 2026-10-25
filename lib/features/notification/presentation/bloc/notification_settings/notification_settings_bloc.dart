@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_settings_model.dart';
@@ -49,7 +50,7 @@ class NotificationSettingsBloc
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -69,7 +70,7 @@ class NotificationSettingsBloc
       emit(state.copyWith(errorMessage: e.message));
     } catch (e) {
       emit(state.copyWith(
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -180,7 +181,7 @@ class NotificationSettingsBloc
     } catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

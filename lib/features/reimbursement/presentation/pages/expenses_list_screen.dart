@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -517,13 +519,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             curr.errorMessage != prev.errorMessage && !curr.isTeamForbidden,
         listener: (context, state) {
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColors.errorRed,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppDialogUtil.showError(context, message: state.errorMessage!);
           }
         },
         builder: (context, state) {
@@ -681,9 +677,6 @@ class _ExpensesListViewState extends State<_ExpensesListView>
           message: isFiltered
               ? 'Tidak ada pengajuan yang sesuai dengan kriteria filter yang dipilih.'
               : 'Anda belum memiliki pengajuan klaim reimbursement atau kasbon.',
-          actionLabel: isFiltered ? null : 'Buat Pengajuan',
-          actionIcon: isFiltered ? null : LucideIcons.plus,
-          onAction: isFiltered ? null : _showCreateActionSheet,
           onResetFilter: isFiltered
               ? () {
                   _searchController.clear();
@@ -714,11 +707,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+                child: AppLoadingIndicator.small(),
               ),
             );
           }
@@ -811,11 +800,7 @@ class _ExpensesListViewState extends State<_ExpensesListView>
             return const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+                child: AppLoadingIndicator.small(),
               ),
             );
           }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -17,23 +18,29 @@ class ProfileHeroCard extends StatelessWidget {
   final VoidCallback? onCall;
   final VoidCallback? onEmail;
   final VoidCallback? onChat;
+
+  /// Aksi lihat jadwal kerja. Null = tombol disembunyikan (tidak berwenang).
+  final VoidCallback? onViewSchedule;
   final bool isSelf;
 
   const ProfileHeroCard({
     super.key,
-    this.name = 'Sarah Jenkins',
-    this.role = 'Senior Frontend Engineer',
-    this.level = 'Level Senior Specialist (L4)',
-    this.department = 'Engineering',
-    this.company = 'PT Oasish Tech Nusantara',
-    this.employmentStatus = 'Active Employee',
-    this.contractType = 'Permanent / Tetap',
+    this.name = '-',
+    this.role = '-',
+    this.level = '-',
+    this.department = '-',
+    this.company = '-',
+    this.employmentStatus = '-',
+    this.contractType = '-',
     this.avatarUrl,
     this.onCall,
     this.onEmail,
     this.onChat,
+    this.onViewSchedule,
     this.isSelf = false,
   });
+
+  static bool _has(String v) => v.trim().isNotEmpty && v.trim() != '-';
 
   @override
   Widget build(BuildContext context) {
@@ -68,81 +75,17 @@ class ProfileHeroCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Top Badges Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Active Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      '● ',
-                      style: TextStyle(
-                        color: Color(0xFF15803D),
-                        fontSize: 10,
-                        height: 1,
-                      ),
-                    ),
-                    Text(
-                      employmentStatus,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: const Color(0xFF15803D),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Contract Type Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkPrimaryContainer
-                      : AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  contractType,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isDark
-                        ? AppColors.inversePrimary
-                        : AppColors.brandTeal,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
           // Avatar Image with Teal Ring
           AppAvatar(
             imageUrl: avatarUrl,
             name: name,
-            size: 76,
+            size: 80,
             showBorder: true,
             borderColor: AppColors.brandTeal,
             borderWidth: 2.5,
             fontSize: 24,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md - 4),
 
           // Name
           Text(
@@ -154,74 +97,202 @@ class ProfileHeroCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
 
-          // Role & Level
-          Text(
-            '$role • $level',
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColors.brandTeal,
-              fontWeight: FontWeight.w600,
-              fontSize: 12.5,
+          // Jabatan
+          if (_has(role))
+            Text(
+              role,
+              style: AppTypography.labelMedium.copyWith(
+                color: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 2),
+          if (_has(level)) ...[
+            const SizedBox(height: 2),
+            Text(
+              level,
+              style: AppTypography.bodySmall.copyWith(
+                color: labelCol,
+                fontSize: 12.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md - 4),
 
-          // Department & Company
-          Text(
-            '$department • $company',
-            style: AppTypography.bodySmall.copyWith(
-              color: labelCol,
-              fontSize: 12,
-            ),
-            textAlign: TextAlign.center,
+          // Badge status kepegawaian & tipe kontrak
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm - 2,
+            children: [
+              if (_has(employmentStatus))
+                _Badge(
+                  label: employmentStatus,
+                  bg: isDark
+                      ? AppColors.success.withValues(alpha: 0.18)
+                      : AppColors.successContainer,
+                  fg: isDark
+                      ? AppColors.success
+                      : AppColors.onSuccessContainer,
+                ),
+              if (_has(contractType))
+                _Badge(
+                  label: contractType,
+                  bg: isDark
+                      ? AppColors.darkPrimaryContainer
+                      : AppColors.primaryContainer,
+                  fg: isDark ? AppColors.inversePrimary : AppColors.brandTeal,
+                ),
+            ],
           ),
-          if (!isSelf) ...[
-            const SizedBox(height: 20),
-            // Quick Action Buttons (Call, Email)
+
+          // Departemen & perusahaan — baris terpisah agar teks panjang tidak terpotong
+          if (_has(department) || _has(company)) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md - 2,
+                vertical: AppSpacing.sm + 2,
+              ),
+              decoration: BoxDecoration(
+                color: actionBg,
+                borderRadius: AppRadius.borderInput,
+              ),
+              child: Column(
+                children: [
+                  if (_has(department))
+                    _OrgLine(
+                      icon: LucideIcons.layers,
+                      text: department,
+                      color: textCol,
+                      iconColor: labelCol,
+                    ),
+                  if (_has(department) && _has(company))
+                    const SizedBox(height: AppSpacing.sm),
+                  if (_has(company))
+                    _OrgLine(
+                      icon: LucideIcons.building2,
+                      text: company,
+                      color: textCol,
+                      iconColor: labelCol,
+                    ),
+                ],
+              ),
+            ),
+          ],
+
+          // Aksi cepat
+          if (!isSelf || onViewSchedule != null) ...[
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: LucideIcons.phone,
-                    label: 'Call',
-                    backgroundColor: actionBg,
-                    onTap:
-                        onCall ??
-                        () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Menghubungi nomor telepon karyawan...',
-                              ),
-                            ),
-                          );
-                        },
+                if (!isSelf) ...[
+                  Expanded(
+                    child: _QuickActionButton(
+                      icon: LucideIcons.phone,
+                      label: 'Hubungi',
+                      backgroundColor: actionBg,
+                      onTap: onCall ?? () {},
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: LucideIcons.mail,
-                    label: 'Email',
-                    backgroundColor: actionBg,
-                    onTap:
-                        onEmail ??
-                        () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Membuka email client...'),
-                            ),
-                          );
-                        },
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _QuickActionButton(
+                      icon: LucideIcons.mail,
+                      label: 'Email',
+                      backgroundColor: actionBg,
+                      onTap: onEmail ?? () {},
+                    ),
                   ),
-                ),
+                ],
+                if (onViewSchedule != null) ...[
+                  if (!isSelf) const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _QuickActionButton(
+                      key: const ValueKey('profile_view_schedule_button'),
+                      icon: LucideIcons.calendarClock,
+                      label: 'Jadwal Kerja',
+                      backgroundColor: actionBg,
+                      onTap: onViewSchedule!,
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
         ],
       ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color bg;
+  final Color fg;
+
+  const _Badge({required this.label, required this.bg, required this.fg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm + 2,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.borderFull),
+      child: Text(
+        label,
+        style: AppTypography.labelSmall.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+          fontSize: 11.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrgLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+  final Color iconColor;
+
+  const _OrgLine({
+    required this.icon,
+    required this.text,
+    required this.color,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icon, size: 15, color: iconColor),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTypography.bodySmall.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -233,6 +304,7 @@ class _QuickActionButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _QuickActionButton({
+    super.key,
     required this.icon,
     required this.label,
     required this.backgroundColor,
@@ -260,13 +332,17 @@ class _QuickActionButton extends StatelessWidget {
             children: [
               Icon(icon, size: 16, color: fg),
               const SizedBox(width: 6),
-              Text(
+              Flexible(
+                child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTypography.labelMedium.copyWith(
                   color: fg,
                   fontWeight: FontWeight.w600,
                   fontSize: 12.5,
                 ),
+              ),
               ),
             ],
           ),

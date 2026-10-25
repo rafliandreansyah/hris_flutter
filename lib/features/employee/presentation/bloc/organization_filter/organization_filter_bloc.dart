@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
 import 'package:hris_flutter/features/employee/data/repositories/organization_filter_repository_impl.dart';
@@ -45,7 +46,7 @@ class OrganizationFilterBloc
     } catch (e) {
       emit(state.copyWith(
         status: OrganizationFilterStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -106,7 +107,7 @@ class OrganizationFilterBloc
     } catch (e) {
       emit(state.copyWith(
         status: OrganizationFilterStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

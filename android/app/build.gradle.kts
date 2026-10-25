@@ -69,6 +69,8 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // NotificationCompat untuk TrackingBootReceiver
+    implementation("androidx.core:core:1.13.1")
     androidTestImplementation("androidx.test:runner:1.5.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestUtil("androidx.test:orchestrator:1.5.1")

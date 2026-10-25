@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:hris_flutter/features/payroll/data/models/payroll_employee_model.dart';
 import 'package:dio/dio.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
@@ -83,7 +84,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -130,7 +131,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -168,7 +169,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
   @override
@@ -200,7 +201,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -215,7 +216,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -238,7 +239,7 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
       throw ApiException.fromDioException(e);
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 }

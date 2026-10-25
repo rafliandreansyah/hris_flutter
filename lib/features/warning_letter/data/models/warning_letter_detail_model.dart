@@ -58,7 +58,7 @@ class WarningLetterDetail extends Equatable {
           : null,
       issuedDate: parseDate(json['issuedDate']),
       expiredDate: parseDate(json['expiredDate']),
-      timezone: json['timezone']?.toString() ?? 'WIB',
+      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
       isActive: json['isActive'] == true,
       issuedByEmployee: json['issuedByEmployee'] is Map<String, dynamic>
           ? WarningLetterEmployee.fromJson(

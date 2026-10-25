@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/filter/app_filter_sheet_frame.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/filter/app_date_range_picker.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
 import 'package:hris_flutter/core/widgets/filter/filter_field_selector.dart';
@@ -229,245 +229,152 @@ class _ExpensesFilterBottomSheetState extends State<ExpensesFilterBottomSheet> {
         ? ['Semua Jabatan', ...orgState.positions.map((p) => p.name)]
         : ['Semua Jabatan'];
 
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Modal
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: brandColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.slidersHorizontal,
-                      size: 18,
-                      color: brandColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: AppTypography.titleMedium.copyWith(
-                        color: textCol,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _resetFilters,
-                    icon: Icon(
-                      LucideIcons.rotateCcw,
-                      size: 14,
-                      color: brandColor,
-                    ),
-                    label: Text(
-                      'Reset Filter',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: brandColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
+    return AppFilterSheetFrame(
+      title: widget.title,
+      onReset: _resetFilters,
+      onApply: _applyFilters,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Field 1: Rentang Tanggal
+          FilterFieldSelector(
+            label: 'Rentang Tanggal',
+            value: _dateRangeDisplay,
+            icon: LucideIcons.calendar,
+            helperText: 'Pilih rentang tanggal mulai hingga selesai',
+            onTap: _pickDateRange,
+            onClear: _selectedDateRange != null
+                ? () => setState(() => _selectedDateRange = null)
+                : null,
+          ),
+          const SizedBox(height: 18),
 
-            // Scrollable Filters
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Field 1: Rentang Tanggal
-                    FilterFieldSelector(
-                      label: 'Rentang Tanggal (Date Range)',
-                      value: _dateRangeDisplay,
-                      icon: LucideIcons.calendar,
-                      helperText: 'Pilih rentang tanggal mulai hingga selesai',
-                      onTap: _pickDateRange,
-                      onClear: _selectedDateRange != null
-                          ? () => setState(() => _selectedDateRange = null)
-                          : null,
-                    ),
-                    const SizedBox(height: 18),
+          // Field 2: Status Pengajuan (Wrap Chips)
+          _buildStatusWrapSection(isDark, brandColor, textCol),
+          const SizedBox(height: 18),
 
-                    // Field 2: Status Pengajuan (Wrap Chips)
-                    _buildStatusWrapSection(isDark, brandColor, textCol),
-                    const SizedBox(height: 18),
+          // Field 3: Perusahaan
+          FilterFieldSelector(
+            label: 'Perusahaan',
+            value: _selectedCompany,
+            icon: LucideIcons.building,
+            isLoading: orgState.isLoadingCompanies,
+            onTap: () {
+              showFilterOptionSelector(
+                context,
+                title: 'Pilih Perusahaan',
+                options: companiesList,
+                selectedValue: _selectedCompany,
+                onSelected: (val) {
+                  setState(() {
+                    _selectedCompany = val;
+                    if (val == 'Semua Perusahaan') {
+                      _selectedCompanyId = null;
+                      _selectedDepartmentId = null;
+                      _selectedDepartment = 'Semua Departemen';
+                      _selectedPositionId = null;
+                      _selectedPosition = 'Semua Jabatan';
+                    } else {
+                      final found = orgState.companies
+                          .where((c) => c.name == val);
+                      _selectedCompanyId = found.isNotEmpty
+                          ? found.first.id
+                          : null;
+                      _selectedDepartmentId = null;
+                      _selectedDepartment = 'Semua Departemen';
+                      _selectedPositionId = null;
+                      _selectedPosition = 'Semua Jabatan';
+                    }
+                  });
+                  context.read<OrganizationFilterBloc>().add(
+                        OrganizationFilterCompanySelected(
+                          companyId: _selectedCompanyId,
+                        ),
+                      );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 14),
 
-                    // Field 3: Perusahaan
-                    FilterFieldSelector(
-                      label: 'Perusahaan (Company)',
-                      value: _selectedCompany,
-                      icon: LucideIcons.building,
-                      isLoading: orgState.isLoadingCompanies,
-                      onTap: () {
-                        showFilterOptionSelector(
-                          context,
-                          title: 'Pilih Perusahaan',
-                          options: companiesList,
-                          selectedValue: _selectedCompany,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedCompany = val;
-                              if (val == 'Semua Perusahaan') {
-                                _selectedCompanyId = null;
-                                _selectedDepartmentId = null;
-                                _selectedDepartment = 'Semua Departemen';
-                                _selectedPositionId = null;
-                                _selectedPosition = 'Semua Jabatan';
-                              } else {
-                                final found = orgState.companies
-                                    .where((c) => c.name == val);
-                                _selectedCompanyId = found.isNotEmpty
-                                    ? found.first.id
-                                    : null;
-                                _selectedDepartmentId = null;
-                                _selectedDepartment = 'Semua Departemen';
-                                _selectedPositionId = null;
-                                _selectedPosition = 'Semua Jabatan';
-                              }
-                            });
-                            context.read<OrganizationFilterBloc>().add(
-                                  OrganizationFilterCompanySelected(
-                                    companyId: _selectedCompanyId,
-                                  ),
-                                );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 14),
+          // Field 4: Departemen
+          FilterFieldSelector(
+            label: 'Departemen',
+            value: _selectedDepartment,
+            icon: LucideIcons.briefcase,
+            isLoading: orgState.isLoadingDepartments,
+            isEnabled: _isCompanySelected,
+            helperText: _isCompanySelected
+                ? 'Filter berdasarkan divisi organisasi kerja'
+                : 'Pilih perusahaan terlebih dahulu',
+            onTap: () {
+              showFilterOptionSelector(
+                context,
+                title: 'Pilih Departemen',
+                options: departmentsList,
+                selectedValue: _selectedDepartment,
+                onSelected: (val) {
+                  setState(() {
+                    _selectedDepartment = val;
+                    if (val == 'Semua Departemen') {
+                      _selectedDepartmentId = null;
+                    } else {
+                      final found = orgState.departments
+                          .where((d) => d.name == val);
+                      _selectedDepartmentId = found.isNotEmpty
+                          ? found.first.id
+                          : null;
+                    }
+                    _selectedPositionId = null;
+                    _selectedPosition = 'Semua Jabatan';
+                  });
+                  context.read<OrganizationFilterBloc>().add(
+                        OrganizationFilterDepartmentSelected(
+                          companyId: _selectedCompanyId,
+                          departmentId: _selectedDepartmentId,
+                        ),
+                      );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 14),
 
-                    // Field 4: Departemen
-                    FilterFieldSelector(
-                      label: 'Departemen (Division)',
-                      value: _selectedDepartment,
-                      icon: LucideIcons.briefcase,
-                      isLoading: orgState.isLoadingDepartments,
-                      isEnabled: _isCompanySelected,
-                      helperText: _isCompanySelected
-                          ? 'Filter berdasarkan divisi organisasi kerja'
-                          : 'Pilih perusahaan terlebih dahulu',
-                      onTap: () {
-                        showFilterOptionSelector(
-                          context,
-                          title: 'Pilih Departemen',
-                          options: departmentsList,
-                          selectedValue: _selectedDepartment,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedDepartment = val;
-                              if (val == 'Semua Departemen') {
-                                _selectedDepartmentId = null;
-                              } else {
-                                final found = orgState.departments
-                                    .where((d) => d.name == val);
-                                _selectedDepartmentId = found.isNotEmpty
-                                    ? found.first.id
-                                    : null;
-                              }
-                              _selectedPositionId = null;
-                              _selectedPosition = 'Semua Jabatan';
-                            });
-                            context.read<OrganizationFilterBloc>().add(
-                                  OrganizationFilterDepartmentSelected(
-                                    companyId: _selectedCompanyId,
-                                    departmentId: _selectedDepartmentId,
-                                  ),
-                                );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Field 5: Jabatan
-                    FilterFieldSelector(
-                      label: 'Jabatan (Position)',
-                      value: _selectedPosition,
-                      icon: LucideIcons.userCheck,
-                      isLoading: orgState.isLoadingPositions,
-                      isEnabled: _isCompanySelected,
-                      helperText: _isCompanySelected
-                          ? 'Filter pengajuan berdasarkan jabatan pegawai'
-                          : 'Pilih perusahaan terlebih dahulu',
-                      onTap: () {
-                        showFilterOptionSelector(
-                          context,
-                          title: 'Pilih Jabatan',
-                          options: positionsList,
-                          selectedValue: _selectedPosition,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedPosition = val;
-                              if (val == 'Semua Jabatan') {
-                                _selectedPositionId = null;
-                              } else {
-                                final found = orgState.positions
-                                    .where((p) => p.name == val);
-                                _selectedPositionId = found.isNotEmpty
-                                    ? found.first.id
-                                    : null;
-                              }
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Footer Buttons
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      text: 'Batal',
-                      variant: AppButtonVariant.outlined,
-                      height: 50,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: AppButton(
-                      text: 'Terapkan Filter',
-                      leadingIcon: LucideIcons.filter,
-                      variant: AppButtonVariant.primary,
-                      height: 50,
-                      onPressed: _applyFilters,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          // Field 5: Jabatan
+          FilterFieldSelector(
+            label: 'Jabatan',
+            value: _selectedPosition,
+            icon: LucideIcons.userCheck,
+            isLoading: orgState.isLoadingPositions,
+            isEnabled: _isCompanySelected,
+            helperText: _isCompanySelected
+                ? 'Filter pengajuan berdasarkan jabatan pegawai'
+                : 'Pilih perusahaan terlebih dahulu',
+            onTap: () {
+              showFilterOptionSelector(
+                context,
+                title: 'Pilih Jabatan',
+                options: positionsList,
+                selectedValue: _selectedPosition,
+                onSelected: (val) {
+                  setState(() {
+                    _selectedPosition = val;
+                    if (val == 'Semua Jabatan') {
+                      _selectedPositionId = null;
+                    } else {
+                      final found = orgState.positions
+                          .where((p) => p.name == val);
+                      _selectedPositionId = found.isNotEmpty
+                          ? found.first.id
+                          : null;
+                    }
+                  });
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

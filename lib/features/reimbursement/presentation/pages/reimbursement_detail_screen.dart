@@ -1,5 +1,9 @@
+import 'package:hris_flutter/core/widgets/request_detail_person_card.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:hris_flutter/core/widgets/app_status_chip.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -128,6 +132,29 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
     }
   }
 
+  /// Pengajuan hanya boleh dihapus pemiliknya selama masih menunggu persetujuan.
+  bool _canDelete(String status, String ownerEmployeeId) {
+    final s = status.toLowerCase();
+    final isPending = s == 'requested' || s == 'submitted' || s == 'draft';
+    return isPending && !RequestDetailPersonCard.isOtherPerson(ownerEmployeeId);
+  }
+
+  Future<void> _handleDelete() async {
+    final confirmed = await AppDialogUtil.showWarning<bool>(
+      context,
+      title: 'Hapus Pengajuan',
+      message:
+          'Pengajuan reimbursement yang dihapus tidak dapat dikembalikan. Lanjutkan?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      onConfirm: () {},
+    );
+    if (confirmed == true && mounted) {
+      _hasMutated = true;
+      context.read<ReimbursementDetailBloc>().add(const ReimbursementDetailDeleted());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -168,22 +195,23 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
             BlocBuilder<ReimbursementDetailBloc, ReimbursementDetailState>(
               builder: (context, state) {
                 if (state.detail == null) return const SizedBox();
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(LucideIcons.link, color: textCol),
-                      tooltip: 'Salin Link',
-                      onPressed: () => ShareLinkUtil.copyLink(
+                return AppDetailMoreMenu(
+                  iconColor: textCol,
+                  items: [
+                    AppDetailMenuItem.share(() => _handleShare(state.detail!)),
+                    AppDetailMenuItem.copyLink(
+                      () => ShareLinkUtil.copyLink(
                         context,
                         ShareLinkUtil.webUrl(ShareModule.reimbursement, state.detail!.id),
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(LucideIcons.share2, color: textCol),
-                      tooltip: 'Bagikan',
-                      onPressed: () => _handleShare(state.detail!),
-                    ),
+                    if (_canDelete(state.detail!.status, state.detail!.employee.id))
+                      AppDetailMenuItem(
+                        icon: LucideIcons.trash2,
+                        label: 'Hapus Pengajuan',
+                        isDestructive: true,
+                        onTap: _handleDelete,
+                      ),
                   ],
                 );
               },
@@ -272,32 +300,28 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
           },
         ),
         body: BlocConsumer<ReimbursementDetailBloc, ReimbursementDetailState>(
+          listenWhen: (prev, curr) =>
+              prev.errorMessage != curr.errorMessage ||
+              prev.actionSuccessMessage != curr.actionSuccessMessage ||
+              prev.isDeleted != curr.isDeleted,
           listener: (context, state) {
+            if (state.isDeleted) {
+              context.pop(true);
+              return;
+            }
             if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage!),
-                  backgroundColor: AppColors.errorRed,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppDialogUtil.showError(context, message: state.errorMessage!);
             }
 
             if (state.actionSuccessMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.actionSuccessMessage!),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppDialogUtil.showSuccess(context, message: state.actionSuccessMessage!);
             }
           },
           builder: (context, state) {
             if (state.status == ReimbursementDetailStatus.loading &&
                 state.detail == null) {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: AppLoadingIndicator(),
               );
             }
 
@@ -478,7 +502,11 @@ class _ReimbursementDetailViewState extends State<_ReimbursementDetailView> {
                 ),
               ),
               const SizedBox(width: 8),
-              AppStatusChip(label: statusEnum.label, tone: statusEnum.tone),
+              AppStatusIcon(
+                label: statusEnum.label,
+                tone: statusEnum.tone,
+                icon: statusEnum.icon,
+              ),
             ],
           ),
           const SizedBox(height: 6),

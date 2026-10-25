@@ -244,9 +244,9 @@ void main() {
 
       // Check header and labels
       expect(find.text('Filter Data Pegawai'), findsOneWidget);
-      expect(find.text('Perusahaan (Company)'), findsOneWidget);
-      expect(find.text('Departemen (Department)'), findsOneWidget);
-      expect(find.text('Jabatan (Position)'), findsOneWidget);
+      expect(find.text('Perusahaan'), findsOneWidget);
+      expect(find.text('Departemen'), findsOneWidget);
+      expect(find.text('Jabatan'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
 
       // Tap on Perusahaan to open selector
@@ -321,7 +321,7 @@ void main() {
       expect(find.text('Engineering'), findsOneWidget);
 
       // Tap Reset Filter
-      await tester.tap(find.text('Reset Filter'));
+      await tester.tap(find.text('Reset'));
       await tester.pumpAndSettle();
 
       expect(find.text('Semua Perusahaan'), findsOneWidget);

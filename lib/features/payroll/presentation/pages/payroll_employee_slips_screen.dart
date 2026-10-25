@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -215,10 +216,7 @@ class _PayrollEmployeeSlipsViewState extends State<_PayrollEmployeeSlipsView> {
               icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Slip Gaji Pegawai',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.bold,
@@ -226,15 +224,6 @@ class _PayrollEmployeeSlipsViewState extends State<_PayrollEmployeeSlipsView> {
                     fontSize: 17,
                   ),
                 ),
-                Text(
-                  employee.displayName,
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               IconButton(
                 icon: Icon(
@@ -374,7 +363,7 @@ class _PayrollEmployeeSlipsViewState extends State<_PayrollEmployeeSlipsView> {
                                   employee.employeeNumber!.isNotEmpty) ...[
                                 const SizedBox(height: 2),
                                 Text(
-                                  'NIK: ${employee.employeeNumber}',
+                                  'No. Pegawai: ${employee.employeeNumber}',
                                   style: AppTypography.labelSmall.copyWith(
                                     color: subtitleCol,
                                     fontSize: 11,
@@ -515,10 +504,7 @@ class _PayrollEmployeeSlipsViewState extends State<_PayrollEmployeeSlipsView> {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.brandTeal,
-              ),
+              child: AppLoadingIndicator(color: AppColors.brandTeal),
             ),
           );
         }

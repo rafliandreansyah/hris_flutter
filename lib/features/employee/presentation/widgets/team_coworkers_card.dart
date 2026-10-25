@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/utils/contact_launcher_util.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_avatar.dart';
@@ -161,18 +163,10 @@ class TeamCoworkersCard extends StatelessWidget {
                                       shape: const CircleBorder(),
                                       padding: const EdgeInsets.all(8),
                                     ),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            item.phone != null && item.phone!.isNotEmpty
-                                                ? 'Menghubungi ${item.name} (${item.phone})...'
-                                                : 'Menghubungi ${item.name}... (Nomor telepon belum tersedia)',
-                                          ),
-                                        ),
-                                      );
-                                    },
+                                    onPressed: () => ContactLauncherUtil.callPhone(
+                                      context,
+                                      phone: item.phone,
+                                    ),
                                     icon: const Icon(
                                       LucideIcons.phone,
                                       size: 16,
@@ -239,37 +233,14 @@ class TeamCoworkersCard extends StatelessWidget {
         if (hasCoworkers) ...[
           const SizedBox(height: 14),
           // Outlined "Lihat Semua Rekan Kerja" Button
-          SizedBox(
-            width: double.infinity,
+          AppButton(
+            text: 'Lihat Semua Rekan Kerja ($total)',
+            leadingIcon: LucideIcons.users,
+            variant: AppButtonVariant.outlined,
             height: 48,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.brandTeal, width: 1.2),
-                shape: const StadiumBorder(),
-                foregroundColor: AppColors.brandTeal,
-              ),
-              onPressed: onViewAll ??
-                  () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Daftar lengkap rekan kerja segera dibuka')),
-                    );
-                  },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(LucideIcons.users, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Lihat Semua Rekan Kerja ($total)',
-                    style: AppTypography.labelMedium.copyWith(
-                      color: AppColors.brandTeal,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            foregroundColor: AppColors.brandTeal,
+            borderColor: AppColors.brandTeal,
+            onPressed: onViewAll ?? () {},
           ),
         ],
       ],

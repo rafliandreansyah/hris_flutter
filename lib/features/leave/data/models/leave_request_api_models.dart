@@ -305,13 +305,13 @@ LeaveRequestItem leaveRequestItemFromApiJson(
     employeeNumber: emp?.employeeNumber,
     avatarUrl: resolveFileUrl(emp?.photoUrl),
     initials: emp?.initials ?? '?',
-    leaveType: model.leaveType?.name ?? 'Leave',
+    leaveType: model.leaveType?.name ?? 'Cuti',
     days: model.days,
     startDate: model.startDate,
     endDate: model.endDate,
     note: model.note,
     status: status,
-    timezone: model.timezone ?? 'WIB',
+    timezone: model.timezone ?? 'Asia/Jakarta',
     isSelf: !isApprover,
   );
 }

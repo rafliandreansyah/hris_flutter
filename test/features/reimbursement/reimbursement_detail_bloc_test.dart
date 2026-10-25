@@ -119,5 +119,39 @@ void main() {
       expect(states.any((s) => s.isActionSuccess), isTrue);
       expect(states.last.actionSuccessMessage, contains('ditolak'));
     });
+
+    test('ReimbursementDetailDeleted sukses -> isDeleted true & id terkirim ke repository', () async {
+      repository.mockReimbursementDetail = sampleDetail;
+      bloc.add(const ReimbursementDetailFetched('clm-001'));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      final states = <ReimbursementDetailState>[];
+      bloc.stream.listen(states.add);
+      bloc.add(const ReimbursementDetailDeleted());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(states.first.isActionLoading, isTrue);
+      expect(states.last.isActionLoading, isFalse);
+      expect(states.last.isDeleted, isTrue);
+      expect(states.last.actionSuccessMessage, contains('berhasil dihapus'));
+      expect(repository.deletedIds, ['clm-001']);
+    });
+
+    test('ReimbursementDetailDeleted gagal -> pesan dari API & tidak ditandai terhapus', () async {
+      repository.mockReimbursementDetail = sampleDetail;
+      bloc.add(const ReimbursementDetailFetched('clm-001'));
+      await Future.delayed(const Duration(milliseconds: 50));
+      repository.errorToThrow = const ApiException(
+        message: 'Pengajuan yang sudah diproses tidak dapat dihapus.',
+        statusCode: 400,
+      );
+
+      bloc.add(const ReimbursementDetailDeleted());
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.isDeleted, isFalse);
+      expect(bloc.state.isActionLoading, isFalse);
+      expect(bloc.state.errorMessage, 'Pengajuan yang sudah diproses tidak dapat dihapus.');
+    });
   });
 }

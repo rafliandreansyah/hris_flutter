@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -161,7 +162,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
         emit(state.copyWith(
           status: ActivityListStatus.failure,
           isMyLoading: false,
-          errorMessage: e.toString(),
+          errorMessage: AppErrorMessage.from(e),
         ));
       }
     } else {
@@ -211,7 +212,7 @@ class ActivityListBloc extends Bloc<ActivityListEvent, ActivityListState> {
           emit(state.copyWith(
             status: ActivityListStatus.failure,
             isTeamLoading: false,
-            errorMessage: e.toString(),
+            errorMessage: AppErrorMessage.from(e),
           ));
         }
       }

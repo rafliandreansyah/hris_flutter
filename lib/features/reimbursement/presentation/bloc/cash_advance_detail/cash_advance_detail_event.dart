@@ -8,6 +8,10 @@ abstract class CashAdvanceDetailEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class CashAdvanceDetailDeleted extends CashAdvanceDetailEvent {
+  const CashAdvanceDetailDeleted();
+}
+
 class CashAdvanceDetailFetched extends CashAdvanceDetailEvent {
   final String id;
   const CashAdvanceDetailFetched(this.id);

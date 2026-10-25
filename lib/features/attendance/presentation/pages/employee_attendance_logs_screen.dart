@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -111,10 +113,7 @@ class _EmployeeAttendanceLogsViewState
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Absensi Pegawai',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
@@ -124,18 +123,6 @@ class _EmployeeAttendanceLogsViewState
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              widget.employee.name,
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11.5,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
         actions: [
           BlocBuilder<AttendanceLogsBloc, AttendanceLogsState>(
             builder: (context, state) {
@@ -336,10 +323,7 @@ class _EmployeeAttendanceLogsViewState
   }) {
     if (state.status == AttendanceLogsStatus.loading && state.logs.isEmpty) {
       return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
+        child: AppLoadingIndicator(color: brandColor),
       );
     }
 
@@ -439,34 +423,21 @@ class _EmployeeAttendanceLogsViewState
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
           if (state.hasMorePages) {
             return Center(
-              child: OutlinedButton.icon(
+              child: AppButton(
+                text: 'Muat Periode Sebelumnya',
+                leadingIcon: LucideIcons.history,
+                variant: AppButtonVariant.outlined,
+                width: null,
+                height: 44,
                 onPressed: () => context.read<AttendanceLogsBloc>().add(
                       const AttendanceLogsLoadMore(),
                     ),
-                icon: const Icon(LucideIcons.history, size: 18),
-                label: const Text('Load Previous Period'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: brandColor,
-                  side: BorderSide(color: brandColor),
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
               ),
             );
           }
@@ -499,7 +470,6 @@ class _EmployeeAttendanceLogsViewState
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
     final l10n = AppLocalizations.of(context);
 
     final IconData iconData;
@@ -556,61 +526,36 @@ class _EmployeeAttendanceLogsViewState
             ),
             const SizedBox(height: 20),
             if (isNotFound && isLastMonth && onSwitchToCurrentMonth != null) ...[
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey(
                   'employee_attendance_view_current_month_button',
                 ),
+                text: l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+                width: null,
                 onPressed: onSwitchToCurrentMonth,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                child: Text(
-                  l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
               ),
               const SizedBox(height: 10),
-              TextButton(
+              AppButton(
                 key: const ValueKey('employee_attendance_back_button'),
+                text: 'Kembali',
+                variant: AppButtonVariant.ghost,
+                width: null,
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text(
-                  'Kembali',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
               ),
             ] else if (isNotFound)
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey('employee_attendance_back_button'),
+                text: 'Kembali',
+                width: null,
                 onPressed: () => Navigator.of(context).maybePop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: const Text('Kembali'),
               )
             else
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey('employee_attendance_retry_button'),
+                text: 'Coba Lagi',
+                leadingIcon: LucideIcons.rotateCcw,
+                width: null,
                 onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: const Text('Coba Lagi'),
               ),
           ],
         ),

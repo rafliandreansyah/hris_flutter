@@ -123,7 +123,7 @@ class ResignationEarlyNoticeCard extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Ajukan Percepatan Tanggal Efektif (Early Waiver)',
+                      'Ajukan Percepatan Tanggal Efektif',
                       style: AppTypography.labelMedium.copyWith(
                         fontWeight: FontWeight.w600,
                       ),

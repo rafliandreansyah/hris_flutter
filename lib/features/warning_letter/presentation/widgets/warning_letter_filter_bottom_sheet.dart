@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/filter/app_filter_sheet_frame.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
-import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/filter/app_date_range_picker.dart';
 import 'package:hris_flutter/core/widgets/filter/filter_field_selector.dart';
 import 'package:hris_flutter/core/widgets/filter/filter_option_selector_modal.dart';
@@ -156,14 +155,6 @@ class _WarningLetterFilterBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final borderCol =
-        isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     final dateRangeText = _selectedDateRange != null
         ? _formatDateRange(_selectedDateRange!)
@@ -171,149 +162,51 @@ class _WarningLetterFilterBottomSheetState
 
     final typeText = _selectedLetterTypeName ?? 'Semua Tipe SP';
 
-    return Container(
-      color: surfaceColor,
+    return AppFilterSheetFrame(
+      title: 'Filter Surat Peringatan',
+      onReset: _resetFilters,
+      onApply: _applyFilters,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header (Icon Sliders + Title + Reset Filter) ──────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: brandColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    LucideIcons.slidersHorizontal,
-                    size: 18,
-                    color: brandColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Filter Surat Peringatan',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: _resetFilters,
-                  icon: Icon(
-                    LucideIcons.rotateCcw,
-                    size: 14,
-                    color: brandColor,
-                  ),
-                  label: Text(
-                    'Reset Filter',
-                    style: AppTypography.labelMedium.copyWith(
-                      color: brandColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
-            ),
+          // 1. Rentang Tanggal
+          FilterFieldSelector(
+            label: 'Rentang Tanggal',
+            value: dateRangeText,
+            icon: LucideIcons.calendar,
+            onTap: _pickDateRange,
+            onClear: _selectedDateRange != null
+                ? () => setState(() => _selectedDateRange = null)
+                : null,
           ),
-          Divider(height: 1, color: borderCol, thickness: 1),
+          const SizedBox(height: 16),
 
-          // ── Body Fields (Scrollable) ──────────────────────────────────
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Rentang Tanggal
-                  FilterFieldSelector(
-                    label: 'Rentang Tanggal',
-                    value: dateRangeText,
-                    icon: LucideIcons.calendar,
-                    onTap: _pickDateRange,
-                    onClear: _selectedDateRange != null
-                        ? () => setState(() => _selectedDateRange = null)
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 2. Tipe Surat Peringatan
-                  FilterFieldSelector(
-                    label: 'Tipe Surat Peringatan',
-                    value: typeText,
-                    icon: LucideIcons.fileText,
-                    onTap: _pickLetterType,
-                    onClear: _selectedLetterTypeId != null
-                        ? () => setState(() {
-                              _selectedLetterTypeId = null;
-                              _selectedLetterTypeName = null;
-                            })
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 3. Status Surat Peringatan (Horizontal Segmented Chips)
-                  FilterStatusSegmentedRow(
-                    title: 'Status Surat Peringatan',
-                    options: _warningLetterStatusOptions,
-                    selectedValue: _selectedStatus,
-                    onSelected: (val) {
-                      setState(() {
-                        _selectedStatus = val;
-                      });
-                    },
-                    helperText: 'Pilih status keaktifan surat peringatan',
-                  ),
-                ],
-              ),
-            ),
+          // 2. Tipe Surat Peringatan
+          FilterFieldSelector(
+            label: 'Tipe Surat Peringatan',
+            value: typeText,
+            icon: LucideIcons.fileText,
+            onTap: _pickLetterType,
+            onClear: _selectedLetterTypeId != null
+                ? () => setState(() {
+                      _selectedLetterTypeId = null;
+                      _selectedLetterTypeName = null;
+                    })
+                : null,
           ),
+          const SizedBox(height: 16),
 
-          // ── Footer Actions (Batal & Terapkan Filter) ──────────────────
-          Divider(height: 1, color: borderCol, thickness: 1),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: AppButton(
-                      text: 'Batal',
-                      variant: AppButtonVariant.outlined,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: AppButton(
-                      text: 'Terapkan Filter',
-                      variant: AppButtonVariant.primary,
-                      leadingIcon: LucideIcons.filter,
-                      onPressed: _applyFilters,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // 3. Status Surat Peringatan (Horizontal Segmented Chips)
+          FilterStatusSegmentedRow(
+            title: 'Status Surat Peringatan',
+            options: _warningLetterStatusOptions,
+            selectedValue: _selectedStatus,
+            onSelected: (val) {
+              setState(() {
+                _selectedStatus = val;
+              });
+            },
+            helperText: 'Pilih status keaktifan surat peringatan',
           ),
         ],
       ),

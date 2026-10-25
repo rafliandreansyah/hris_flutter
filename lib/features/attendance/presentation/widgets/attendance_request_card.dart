@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hris_flutter/core/widgets/app_status_chip.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_request_item.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -17,202 +18,44 @@ class AttendanceRequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceCol = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
-    final subtitleCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.surfaceVariant;
-    final borderCol = isDark
-        ? AppColors.darkOutlineMuted
-        : AppColors.darkOnBackground;
-    final innerBoxBg = isDark
-        ? AppColors.darkSurfaceContainerLow
-        : AppColors.backgroundSubtle;
-    final brandColor = isDark
-        ? AppColors.inversePrimary
-        : AppColors.brandTeal;
 
-    final status = item.status;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: surfaceCol,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderCol, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header: Info Pegawai (via EmployeeInfoRow) + Badge Status ────────
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (item.isSelf)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  LucideIcons.user,
-                                  size: 13,
-                                  color: brandColor,
-                                ),
-                                const SizedBox(width: 5),
-                                Flexible(
-                                  child: Text(
-                                    'Your request',
-                                    style: AppTypography.labelSmall.copyWith(
-                                      color: brandColor,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        EmployeeInfoRow(
-                          name: item.name,
-                          role: item.role,
-                          department: item.department,
-                          company: item.company.isNotEmpty ? item.company : null,
-                          employeeId: item.employeeNumber,
-                          avatarUrl: item.avatarUrl,
-                          initials: item.initials,
-                          avatarSize: 42,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Status Badge
-                  _buildStatusBadge(status),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── Kotak Informasi Presensi (Inner Box) ─────────────────
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: innerBoxBg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: borderCol.withValues(alpha: 0.6),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Baris 1: Tanggal & Badge Tipe
-                    Row(
-                      children: [
-                        Icon(
-                          LucideIcons.calendar,
-                          size: 15,
-                          color: subtitleCol,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item.formattedDate,
-                            style: AppTypography.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: textCol,
-                              fontSize: 13.5,
-                            ),
-                          ),
-                        ),
-                        if (item.attendanceTypeBadge.isNotEmpty)
-                          _buildTypeBadge(item, isDark),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    // Baris 2: Jam Kerja / Jam Presensi
-                    Row(
-                      children: [
-                        Icon(LucideIcons.clock, size: 15, color: subtitleCol),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item.formattedWorkHours,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: subtitleCol,
-                              fontSize: 12.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Baris 3: Catatan / Alasan (jika ada)
-                    if (item.notes.trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 23),
-                        child: Text(
-                          '"${item.notes.trim()}"',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: subtitleCol,
-                            fontStyle: FontStyle.italic,
-                            fontSize: 12.5,
-                            height: 1.35,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── Footer: Waktu Pengajuan & Action Link ────────────────
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      item.formattedSubmittedAt,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: subtitleCol,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+    return RequestListCardFrame(
+      onTap: onTap,
+      header: RequestCardHeader(
+        name: item.name,
+        role: item.role,
+        department: item.department,
+        avatarUrl: item.avatarUrl,
+        initials: item.initials,
+        isSelf: item.isSelf,
+        trailing: _buildStatusBadge(item.status),
       ),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: RequestCardInfoLine(
+                icon: LucideIcons.calendar,
+                text: item.formattedDate,
+                emphasize: true,
+              ),
+            ),
+            if (item.attendanceTypeBadge.isNotEmpty) ...[
+              const SizedBox(width: AppSpacing.sm),
+              _buildTypeBadge(item, isDark),
+            ],
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        RequestCardInfoLine(
+          icon: LucideIcons.clock,
+          text: item.formattedWorkHours,
+        ),
+        if (item.notes.trim().isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          RequestCardNote(text: item.notes),
+        ],
+      ],
     );
   }
 
@@ -261,5 +104,5 @@ class AttendanceRequestCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(AttendanceRequestStatus status) =>
-      AppStatusChip(label: status.label, tone: status.tone);
+      AppStatusIcon(label: status.label, tone: status.tone, size: 30);
 }

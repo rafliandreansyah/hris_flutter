@@ -487,7 +487,7 @@ void main() {
     });
 
     test('AttendanceRequestStatusExtension badge colors and dot colors', () {
-      expect(AttendanceRequestStatus.requested.label, 'Menunggu');
+      expect(AttendanceRequestStatus.requested.label, 'Menunggu Persetujuan');
       expect(AttendanceRequestStatus.approved.label, 'Disetujui');
       expect(AttendanceRequestStatus.rejected.label, 'Ditolak');
 

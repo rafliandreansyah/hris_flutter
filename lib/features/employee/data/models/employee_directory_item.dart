@@ -23,10 +23,9 @@ class EmployeeDirectoryItem {
 
   /// Identifier untuk tampilan UI (mengutamakan [employeeNumber] seperti "SUP-001" / "EMP-092",
   /// fallback ke [id] / EMP-000 jika null/kosong).
-  String get displayId =>
-      (employeeNumber != null && employeeNumber!.isNotEmpty)
-          ? employeeNumber!
-          : (id.isNotEmpty ? id : 'EMP-000');
+  /// Nomor pegawai untuk ditampilkan. Kosong bila tidak ada — id internal
+  /// (UUID) tidak pernah ditampilkan ke pengguna.
+  String get displayId => employeeNumber?.trim() ?? '';
 
   const EmployeeDirectoryItem({
     required this.id,
@@ -89,8 +88,8 @@ class EmployeeDirectoryItem {
       id: primaryId,
       rawId: rawId.isNotEmpty ? rawId : primaryId,
       name: fullName.isNotEmpty ? fullName : 'Pegawai',
-      role: positionName.isNotEmpty ? positionName : 'Staff',
-      department: departmentName.isNotEmpty ? departmentName : 'Umum',
+      role: positionName,
+      department: departmentName,
       email: json['email']?.toString() ?? '-',
       phone: json['phone']?.toString(),
       avatarUrl: json['photoUrl']?.toString() ?? json['avatarUrl']?.toString(),
@@ -114,7 +113,7 @@ class EmployeeDirectoryItem {
       'email': email,
       'phone': phone,
       'idNumber': idNumber,
-      'employeeNumber': employeeNumber ?? displayId,
+      'employeeNumber': employeeNumber,
       if (company != null || companyId != null)
         'company': {
           if (companyId != null) 'id': companyId,

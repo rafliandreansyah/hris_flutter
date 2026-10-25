@@ -79,7 +79,7 @@ class OvertimeDetailData extends Equatable {
       approverNotes: json['approverNotes']?.toString() ??
           json['approverNote']?.toString(),
       filePath: json['filePath']?.toString(),
-      timezone: json['timezone']?.toString() ?? 'WIB',
+      timezone: json['timezone']?.toString() ?? 'Asia/Jakarta',
       createdAt: parseDate(json['createdAt']),
     );
   }
@@ -200,9 +200,9 @@ class OvertimeDetailData extends Equatable {
   }
 
   String get statusLabel {
-    if (isApproved) return 'Approved';
-    if (isRejected) return 'Rejected';
-    return 'Pending Approval';
+    if (isApproved) return 'Disetujui';
+    if (isRejected) return 'Ditolak';
+    return 'Menunggu Persetujuan';
   }
 
   // ==========================================
@@ -217,7 +217,7 @@ class OvertimeDetailData extends Equatable {
     return '${date.day} $monthName ${date.year}';
   }
 
-  /// Format rentang waktu lembur (misal: "17:00 - 21:00 WIB")
+  /// Format rentang waktu lembur (misal: "17:00 - 21:00 Asia/Jakarta")
   String get formattedTimeRange {
     if (startOvertime == null && endOvertime == null) return '-';
 
@@ -231,7 +231,7 @@ class OvertimeDetailData extends Equatable {
     final endStr = endOvertime != null ? fmtTime(endOvertime!) : '--:--';
     final tz = (timezone != null && timezone!.trim().isNotEmpty)
         ? timezone!.trim()
-        : 'WIB';
+        : 'Asia/Jakarta';
 
     return '$startStr - $endStr $tz';
   }
@@ -256,7 +256,7 @@ class OvertimeDetailData extends Equatable {
     return '$formatted Jam Kerja';
   }
 
-  /// Format waktu pengajuan (misal: "28 Agustus 2026, 09:33 WIB")
+  /// Format waktu pengajuan (misal: "28 Agustus 2026, 09:33 Asia/Jakarta")
   String get formattedCreatedAt {
     final dt = createdAt ?? startOvertime;
     if (dt == null) return '-';
@@ -266,7 +266,7 @@ class OvertimeDetailData extends Equatable {
     final minute = dt.minute.toString().padLeft(2, '0');
     final tz = (timezone != null && timezone!.trim().isNotEmpty)
         ? timezone!.trim()
-        : 'WIB';
+        : 'Asia/Jakarta';
 
     return '${dt.day} $monthName ${dt.year}, $hour:$minute $tz';
   }

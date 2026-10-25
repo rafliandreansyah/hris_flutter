@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -532,7 +533,7 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
               )
             else
               const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+                child: AppLoadingIndicator(color: AppColors.primary),
               ),
 
             AnimatedBuilder(
@@ -720,27 +721,7 @@ class _LivenessCameraScreenState extends State<LivenessCameraScreen>
                       borderRadius: AppRadius.borderLg,
                       border: Border.all(color: Colors.white24),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: AppColors.brandTeal,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md - 2),
-                        Text(
-                          'Memproses foto...',
-                          style: AppTypography.titleSmall.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: const AppLoadingIndicator(color: Colors.white),
                   ),
                 ),
               ),

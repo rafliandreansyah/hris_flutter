@@ -18,11 +18,13 @@ class _FakeEmployeeDetailRepo implements EmployeeRepository {
   final bool shouldFail;
   final int failStatus;
   final Duration delay;
+  final bool? canViewWorkSchedule;
 
   _FakeEmployeeDetailRepo({
     this.shouldFail = false,
     this.failStatus = 404,
     this.delay = Duration.zero,
+    this.canViewWorkSchedule,
   });
 
   @override
@@ -37,7 +39,8 @@ class _FakeEmployeeDetailRepo implements EmployeeRepository {
       );
     }
 
-    return const EmployeeDetailData(
+    return EmployeeDetailData(
+      canViewWorkSchedule: canViewWorkSchedule,
       id: 'emp-101',
       firstName: 'Budi',
       lastName: 'Santoso',
@@ -46,26 +49,26 @@ class _FakeEmployeeDetailRepo implements EmployeeRepository {
       employeeNumber: 'EMP-777',
       employmentType: 'Permanent / Tetap',
       joinDate: '2024-08-28',
-      position: DetailPosition(
+      position: const DetailPosition(
         id: 'pos-1',
         name: 'Backend Engineer',
       ),
-      department: DetailDepartment(
+      department: const DetailDepartment(
         id: 'dept-1',
         name: 'Finance Ops',
       ),
-      company: DetailCompany(
+      company: const DetailCompany(
         id: 'comp-1',
         name: 'PT Contoh Abadi',
       ),
-      level: DetailLevel(
+      level: const DetailLevel(
         id: 'lvl-4',
         name: 'Level Staff (L2)',
       ),
       status: true,
-      leaveBalances: [],
-      employeeWorkLocation: [],
-      coworkers: [],
+      leaveBalances: const [],
+      employeeWorkLocation: const [],
+      coworkers: const [],
     );
   }
 
@@ -131,10 +134,12 @@ void main() {
       await tester.pumpWidget(buildTestableWidget(repository: repo));
       await tester.pumpAndSettle();
 
-      expect(find.text('Employee Detail'), findsOneWidget);
+      expect(find.text('Profil Saya'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsWidgets);
       expect(find.textContaining('Backend Engineer'), findsWidgets);
-      expect(find.text('EMP-777 • Finance Ops'), findsOneWidget);
+      // No. pegawai & departemen tampil di konten (bukan subtitle header).
+      expect(find.text('EMP-777'), findsOneWidget);
+      expect(find.text('Finance Ops'), findsWidgets);
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
       expect(find.byIcon(LucideIcons.share2), findsOneWidget);
     });
@@ -149,8 +154,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('Call'), findsNothing);
-      expect(find.text('Email'), findsNothing);
+      expect(find.text('Hubungi'), findsNothing);
+      // Hanya label data "Email" di kartu Data Pegawai, bukan tombol aksi.
+      expect(find.text('Email'), findsOneWidget);
     });
 
     testWidgets('menampilkan tombol Call dan Email saat melihat profil rekan kerja (isFromDirectory: true)', (tester) async {
@@ -164,8 +170,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('Call'), findsOneWidget);
-      expect(find.text('Email'), findsOneWidget);
+      expect(find.text('Hubungi'), findsOneWidget);
+      // Tombol aksi "Email" + label data "Email".
+      expect(find.text('Email'), findsNWidgets(2));
     });
 
     testWidgets('menyembunyikan tombol Call dan Email dari direktori jika ID cocok dengan akun sendiri', (tester) async {
@@ -180,8 +187,38 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('Call'), findsNothing);
-      expect(find.text('Email'), findsNothing);
+      expect(find.text('Hubungi'), findsNothing);
+      // Hanya label data "Email" di kartu Data Pegawai, bukan tombol aksi.
+      expect(find.text('Email'), findsOneWidget);
+    });
+
+    testWidgets('tombol Jadwal Kerja selalu tampil di profil sendiri', (tester) async {
+      await tester.pumpWidget(buildTestableWidget(
+        repository: _FakeEmployeeDetailRepo(canViewWorkSchedule: false),
+        isFromDirectory: false,
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('profile_view_schedule_button')), findsOneWidget);
+    });
+
+    testWidgets('tombol Jadwal Kerja pegawai lain mengikuti flag canViewWorkSchedule', (tester) async {
+      SecureStorageService.instance.setEmployeeIdInMemory('my-logged-in-id');
+
+      await tester.pumpWidget(buildTestableWidget(
+        repository: _FakeEmployeeDetailRepo(canViewWorkSchedule: false),
+        isFromDirectory: true,
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('profile_view_schedule_button')), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(buildTestableWidget(
+        repository: _FakeEmployeeDetailRepo(canViewWorkSchedule: true),
+        isFromDirectory: true,
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('profile_view_schedule_button')), findsOneWidget);
     });
 
     testWidgets('menampilkan bottom sheet share dengan pilihan WhatsApp, Email, Salin Link, dan Bagikan Lainnya', (tester) async {
@@ -243,7 +280,7 @@ void main() {
       // Pump initial frame before async resolution
       await tester.pump();
 
-      expect(find.text('Employee Detail'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'^(Profil Saya|Detail Pegawai)$')), findsOneWidget);
       // Saat memuat: skeleton shimmer, bukan konten/loader linear
       expect(find.byType(EmployeeDetailShimmerLoading), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNothing);
@@ -258,7 +295,7 @@ void main() {
       await tester.pumpWidget(buildTestableWidget(repository: repo));
       await tester.pumpAndSettle();
 
-      expect(find.text('Employee Detail'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'^(Profil Saya|Detail Pegawai)$')), findsOneWidget);
       expect(find.text('Data pegawai tidak ditemukan'), findsOneWidget);
       expect(find.widgetWithText(AppButton, 'Kembali'), findsOneWidget);
       expect(find.text('Coba Lagi'), findsNothing);

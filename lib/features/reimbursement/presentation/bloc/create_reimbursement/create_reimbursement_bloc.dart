@@ -1,5 +1,5 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
@@ -198,7 +198,7 @@ class CreateReimbursementBloc
     } catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

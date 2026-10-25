@@ -56,7 +56,7 @@ class CreateOvertimeState extends Equatable {
   /// Label durasi terformat, misal: "4 Jam (4.0 Hours)" atau "2 Jam 30 Menit (2.5 Hours)".
   String get durationLabel {
     final diff = duration;
-    if (diff == Duration.zero) return '0 Jam (0.0 Hours)';
+    if (diff == Duration.zero) return '0 Jam';
     final hours = diff.inHours;
     final minutes = diff.inMinutes % 60;
     final fraction = (diff.inMinutes / 60.0).toStringAsFixed(1);

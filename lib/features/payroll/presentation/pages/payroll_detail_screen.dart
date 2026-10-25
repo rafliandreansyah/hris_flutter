@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -240,10 +241,7 @@ class _PayrollDetailView extends StatelessWidget {
   ) {
     if (state.status == PayrollDetailStatus.loading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.brandTeal,
-          strokeWidth: 2.5,
-        ),
+        child: AppLoadingIndicator(color: AppColors.brandTeal),
       );
     }
 

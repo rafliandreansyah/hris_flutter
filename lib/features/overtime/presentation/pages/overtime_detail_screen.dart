@@ -1,4 +1,7 @@
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -26,7 +29,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// Logika Akses & Approval:
 /// - 3 Status Utama: `requested`, `approved`, `rejected`.
 /// - Sebagai Approver (`isApprover: true`):
-///   Jika status masih `requested`, muncul tombol aksi "Reject" dan "Approve Overtime" di Bottom Bar.
+///   Jika status masih `requested`, muncul tombol aksi "Tolak" dan "Setujui Lembur" di Bottom Bar.
 /// - Sebagai Pengaju (`isApprover: false`):
 ///   Jika status masih `requested`, muncul opsi "Hapus Pengajuan" di AppBar.
 /// - Jika status sudah final (`approved` atau `rejected`):
@@ -88,7 +91,6 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
   void _handleShare(OvertimeDetailData detail) {
     final text = StringBuffer()
       ..writeln('📋 DETAIL PENGAJUAN LEMBUR')
-      ..writeln('ID: ${detail.id}')
       ..writeln('Karyawan: ${detail.employee.fullName}')
       ..writeln('Departemen: ${detail.employee.department?.name ?? '-'}')
       ..writeln('Status: ${detail.statusLabel}')
@@ -143,8 +145,6 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.onSurfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
     final cardBg = isDark
@@ -192,10 +192,6 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
       },
       builder: (context, state) {
         final detail = state.detail;
-        final shortId = detail != null && detail.id.isNotEmpty
-            ? (detail.id.length >= 8 ? detail.id.substring(0, 8) : detail.id)
-            : widget.id;
-        final statusText = detail?.status ?? 'requested';
 
         // Tampilkan bottom bar aksi HANYA jika:
         // 1. User membuka sebagai approver (state.isApprover == true)
@@ -231,73 +227,32 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
                 icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
                 onPressed: _handlePop,
               ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Overtime Request Detail',
+              title: Text(
+                    AppLocalizations.of(context)?.titleOvertimeDetail ?? 'Detail Lembur',
                     style: AppTypography.titleMedium.copyWith(
                       color: textCol,
                       fontWeight: FontWeight.w700,
                       fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Request ID: $shortId • $statusText',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 11.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
               actions: [
                 if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
-                    tooltip: 'Salin Link',
-                    onPressed: () => ShareLinkUtil.copyLink(
-                      context,
-                      ShareLinkUtil.webUrl(ShareModule.overtime, detail.id),
-                    ),
-                  ),
-                if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.share2, color: textCol, size: 20),
-                    tooltip: 'Bagikan',
-                    onPressed: () => _handleShare(detail),
-                  ),
-                // Menu pojok kanan atas: Opsi Hapus bila pengajuan milik sendiri & status masih requested
-                if (canDelete)
-                  PopupMenuButton<String>(
-                    icon: Icon(LucideIcons.ellipsisVertical, color: textCol, size: 20),
-                    onSelected: (val) {
-                      if (val == 'delete') {
-                        _handleDelete(context);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(LucideIcons.trash2,
-                                color: AppColors.errorRed, size: 18),
-                            SizedBox(width: 10),
-                            Text(
-                              'Hapus Pengajuan',
-                              style: TextStyle(
-                                color: AppColors.errorRed,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                  AppDetailMoreMenu(
+                    items: [
+                      AppDetailMenuItem.share(() => _handleShare(detail)),
+                      AppDetailMenuItem.copyLink(
+                        () => ShareLinkUtil.copyLink(
+                          context,
+                          ShareLinkUtil.webUrl(ShareModule.overtime, detail.id),
                         ),
                       ),
+                      if (canDelete)
+                        AppDetailMenuItem(
+                          icon: LucideIcons.trash2,
+                          label: 'Hapus Pengajuan',
+                          isDestructive: true,
+                          onTap: () => _handleDelete(context),
+                        ),
                     ],
                   ),
               ],
@@ -321,10 +276,7 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
     if (state.status == OvertimeDetailStatus.loading ||
         (state.status == OvertimeDetailStatus.initial && state.detail == null)) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.brandTeal,
-          strokeWidth: 2.5,
-        ),
+        child: AppLoadingIndicator(color: AppColors.brandTeal),
       );
     }
 
@@ -364,20 +316,17 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
               ),
               const SizedBox(height: 24),
               if (is404)
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Kembali',
+                  leadingIcon: LucideIcons.arrowLeft,
+                  width: null,
                   onPressed: _handlePop,
-                  icon: const Icon(LucideIcons.arrowLeft, size: 18),
-                  label: const Text('Kembali'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 )
               else
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Coba Lagi',
+                  leadingIcon: LucideIcons.rotateCcw,
+                  width: null,
                   onPressed: () {
                     context.read<OvertimeDetailBloc>().add(
                           OvertimeDetailStarted(
@@ -386,15 +335,6 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
                           ),
                         );
                   },
-                  icon: const Icon(LucideIcons.rotateCcw, size: 18),
-                  label: const Text('Coba Lagi'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -426,7 +366,10 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
           const SizedBox(height: 14),
 
           // ── Card 2: Requester Employee Information ──────────────────
-          OvertimeDetailEmployeeCard(employee: detail.employee),
+          OvertimeDetailEmployeeCard(
+            employee: detail.employee,
+            showContactActions: state.isApprover,
+          ),
           const SizedBox(height: 14),
 
           // ── Card 3: Assigned Approver (Sembunyi jika approver == null)
@@ -434,6 +377,7 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
             OvertimeDetailApproverCard(
               approver: detail.approver!,
               approverNotes: detail.approverNotes,
+              isRejected: detail.isRejected,
             ),
             const SizedBox(height: 14),
           ],
@@ -486,7 +430,7 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
           Expanded(
             child: AppButton(
               key: const ValueKey('overtime_detail_reject_button'),
-              text: isRejecting ? 'Memproses...' : 'Reject',
+              text: isRejecting ? 'Memproses...' : 'Tolak',
               leadingIcon: isRejecting ? null : LucideIcons.x,
               isLoading: isRejecting,
               variant: AppButtonVariant.outlined,
@@ -505,7 +449,7 @@ class _OvertimeDetailViewState extends State<_OvertimeDetailView> {
             flex: 1,
             child: AppButton(
               key: const ValueKey('overtime_detail_approve_button'),
-              text: isApproving ? 'Memproses...' : 'Approve Overtime',
+              text: isApproving ? 'Memproses...' : 'Setujui Lembur',
               leadingIcon: isApproving ? null : LucideIcons.check,
               isLoading: isApproving,
               variant: AppButtonVariant.primary,

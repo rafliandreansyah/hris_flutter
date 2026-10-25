@@ -91,10 +91,7 @@ class BiometricService {
     try {
       final isSupported = await canAuthenticate();
       if (!isSupported) {
-        throw const BiometricException(
-          'Perangkat tidak mendukung atau belum ada kunci keamanan (PIN/Pola/Biometrik) yang didaftarkan.',
-          code: 'NOT_ENROLLED',
-        );
+        throw const BiometricException(_notEnrolledMessage, code: 'NOT_ENROLLED');
       }
 
       final authenticated = await _auth.authenticate(
@@ -104,6 +101,9 @@ class BiometricService {
       );
 
       return authenticated;
+    } on LocalAuthException catch (e) {
+      debugPrint('⚠️ [BiometricService.authenticate LocalAuthException] ${e.code}');
+      return _handleLocalAuthException(e);
     } on PlatformException catch (e) {
       debugPrint(
           '⚠️ [BiometricService.authenticate PlatformException] code: ${e.code}, msg: ${e.message}');
@@ -111,23 +111,46 @@ class BiometricService {
           e.code == 'PasscodeNotSet' ||
           e.code == 'notEnrolled' ||
           e.code == 'noBiometricsEnrolled') {
-        throw const BiometricException(
-          'Kunci keamanan belum diaktifkan pada perangkat Anda. Silakan atur kunci layar atau biometrik di Pengaturan perangkat.',
-          code: 'NOT_ENROLLED',
-        );
+        throw const BiometricException(_notEnrolledMessage, code: 'NOT_ENROLLED');
       } else if (e.code == 'LockedOut' || e.code == 'PermanentlyLockedOut') {
-        throw const BiometricException(
-          'Autentikasi perangkat terkunci karena terlalu banyak percobaan gagal. Silakan coba beberapa saat lagi.',
-          code: 'LOCKED_OUT',
-        );
+        throw const BiometricException(_lockedOutMessage, code: 'LOCKED_OUT');
       }
-      throw BiometricException(
-        e.message ?? 'Verifikasi keamanan perangkat gagal.',
-        code: e.code,
-      );
+      throw const BiometricException(_genericMessage, code: 'FAILED');
     } catch (e) {
       if (e is BiometricException) rethrow;
-      throw BiometricException(e.toString());
+      debugPrint('⚠️ [BiometricService.authenticate] $e');
+      throw const BiometricException(_genericMessage, code: 'FAILED');
     }
   }
+
+  static const _notEnrolledMessage =
+      'Kunci layar belum diatur di perangkat Anda. Aktifkan PIN, pola, sandi, atau biometrik di Pengaturan perangkat, lalu coba lagi.';
+  static const _lockedOutMessage =
+      'Verifikasi terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi beberapa saat lagi.';
+  static const _genericMessage =
+      'Verifikasi keamanan perangkat belum berhasil. Silakan coba lagi.';
+
+  /// Memetakan [LocalAuthException] ke perilaku yang ramah pengguna:
+  /// dibatalkan pengguna/sistem -> `false` (tanpa dialog), lainnya -> [BiometricException].
+  @visibleForTesting
+  static bool handleLocalAuthCode(LocalAuthExceptionCode code) {
+    switch (code) {
+      case LocalAuthExceptionCode.userCanceled:
+      case LocalAuthExceptionCode.systemCanceled:
+      case LocalAuthExceptionCode.timeout:
+        return false;
+      case LocalAuthExceptionCode.noCredentialsSet:
+      case LocalAuthExceptionCode.noBiometricsEnrolled:
+      case LocalAuthExceptionCode.noBiometricHardware:
+        throw const BiometricException(_notEnrolledMessage, code: 'NOT_ENROLLED');
+      case LocalAuthExceptionCode.temporaryLockout:
+      case LocalAuthExceptionCode.biometricLockout:
+        throw const BiometricException(_lockedOutMessage, code: 'LOCKED_OUT');
+      default:
+        throw const BiometricException(_genericMessage, code: 'FAILED');
+    }
+  }
+
+  bool _handleLocalAuthException(LocalAuthException e) =>
+      handleLocalAuthCode(e.code);
 }

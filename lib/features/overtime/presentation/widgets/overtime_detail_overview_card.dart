@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -71,7 +72,7 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Overtime Shift',
+                      'Jam Lembur',
                       style: AppTypography.labelMedium.copyWith(
                         color: isDark
                             ? AppColors.inversePrimary
@@ -255,7 +256,7 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
                     Icon(LucideIcons.globe, size: 14, color: subtitleCol),
                     const SizedBox(width: 6),
                     Text(
-                      'Timezone: ${detail.timezone ?? 'WIB'}',
+                      'Timezone: ${detail.timezone ?? 'Asia/Jakarta'}',
                       style: AppTypography.labelMedium.copyWith(
                         fontSize: 12,
                         color: subtitleCol,
@@ -273,13 +274,13 @@ class OvertimeDetailOverviewCard extends StatelessWidget {
 
   Widget _buildStatusPill(bool isDark) {
     if (detail.isApproved) {
-      return const AppStatusChip(label: 'Approved', tone: AppStatusTone.success);
+      return const AppStatusIcon(label: 'Disetujui', tone: AppStatusTone.success);
     }
     if (detail.isRejected) {
-      return const AppStatusChip(label: 'Rejected', tone: AppStatusTone.error);
+      return const AppStatusIcon(label: 'Ditolak', tone: AppStatusTone.error);
     }
-    return const AppStatusChip(
-      label: 'Pending Approval',
+    return const AppStatusIcon(
+      label: 'Menunggu Persetujuan',
       tone: AppStatusTone.warning,
     );
   }

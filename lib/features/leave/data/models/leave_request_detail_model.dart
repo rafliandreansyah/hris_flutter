@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/level_name_util.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart'
     show resolveFileUrl;
@@ -71,6 +72,7 @@ class LeaveEmployeeDetailModel extends Equatable {
   final LeaveOrgItemModel? department;
   final LeaveOrgItemModel? position;
   final String? photoUrl;
+  final String? levelName;
 
   const LeaveEmployeeDetailModel({
     required this.id,
@@ -84,6 +86,7 @@ class LeaveEmployeeDetailModel extends Equatable {
     this.department,
     this.position,
     this.photoUrl,
+    this.levelName,
   });
 
   factory LeaveEmployeeDetailModel.fromJson(Map<String, dynamic> json) {
@@ -106,6 +109,7 @@ class LeaveEmployeeDetailModel extends Equatable {
           ? LeaveOrgItemModel.fromJson(json['position'] as Map<String, dynamic>)
           : null,
       photoUrl: json['photoUrl']?.toString(),
+      levelName: parseLevelName(json['level']),
     );
   }
 
@@ -171,6 +175,7 @@ class LeaveApproverDetailModel extends Equatable {
   final LeaveOrgItemModel? department;
   final LeaveOrgItemModel? position;
   final String? photoUrl;
+  final String? levelName;
 
   const LeaveApproverDetailModel({
     required this.id,
@@ -184,6 +189,7 @@ class LeaveApproverDetailModel extends Equatable {
     this.department,
     this.position,
     this.photoUrl,
+    this.levelName,
   });
 
   factory LeaveApproverDetailModel.fromJson(Map<String, dynamic> json) {
@@ -206,6 +212,7 @@ class LeaveApproverDetailModel extends Equatable {
           ? LeaveOrgItemModel.fromJson(json['position'] as Map<String, dynamic>)
           : null,
       photoUrl: json['photoUrl']?.toString(),
+      levelName: parseLevelName(json['level']),
     );
   }
 
@@ -385,13 +392,12 @@ class LeaveRequestDetailData extends Equatable {
   }
 
   String get statusLabel {
-    if (isApproved) return 'Approved';
-    if (isRejected) return 'Rejected';
-    return 'Pending Approval';
+    if (isApproved) return 'Disetujui';
+    if (isRejected) return 'Ditolak';
+    return 'Menunggu Persetujuan';
   }
 
-  String get durationLabel =>
-      totalDays == 1 ? '1 Work Day(s)' : '$totalDays Work Day(s)';
+  String get durationLabel => '$totalDays Hari Kerja';
 
   static const List<String> _months = [
     'Januari',
@@ -407,6 +413,14 @@ class LeaveRequestDetailData extends Equatable {
     'November',
     'Desember',
   ];
+
+  static String _fmtDate(DateTime d) =>
+      '${d.day} ${_months[d.month - 1]} ${d.year}';
+
+  String get formattedStartDate =>
+      startDate == null ? '-' : _fmtDate(startDate!);
+
+  String get formattedEndDate => endDate == null ? '-' : _fmtDate(endDate!);
 
   /// Format tanggal sesuai desain Stitch (misal: "28 Agustus 2026"
   /// atau "28 Agustus 2026 - 30 Agustus 2026").

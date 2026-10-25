@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -110,11 +113,17 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
   }
 
   Future<void> _selectStartDate() async {
+    final now = DateTime.now();
+    final range = resolvePickerRange(
+      SubmissionSettingCubit.windowOf(context, SubmissionWindowType.leave),
+      fallbackFirst: now.subtract(const Duration(days: 30)),
+      fallbackLast: now.add(const Duration(days: 365)),
+    );
     final picked = await showDatePicker(
       context: context,
-      initialDate: _startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: range.clamp(_startDate),
+      firstDate: range.first,
+      lastDate: range.last,
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
@@ -377,37 +386,23 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
 
 
 
-  void _showWarningSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(LucideIcons.alertCircle, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.errorRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  void _showValidationDialog(String message) {
+    AppDialogUtil.showValidationError(context, message: message);
   }
 
   void _handleSubmit() {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_selectedType == null) {
-      _showWarningSnackBar('Silakan pilih jenis cuti/izin terlebih dahulu.');
+      _showValidationDialog('Silakan pilih jenis cuti/izin terlebih dahulu.');
       return;
     }
     if (_notesController.text.trim().isEmpty) {
-      _showWarningSnackBar('Alasan pengajuan cuti/izin wajib diisi.');
+      _showValidationDialog('Alasan pengajuan cuti/izin wajib diisi.');
       return;
     }
     if (_selectedType!.requiresFile && _pickedPhoto == null) {
-      _showWarningSnackBar(
+      _showValidationDialog(
         'Dokumen pendukung (surat dokter/bukti) wajib dilampirkan untuk jenis ${_selectedType!.name}.',
       );
       return;
@@ -476,10 +471,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
               icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Ajukan Cuti / Izin',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -488,16 +480,6 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 1),
-                Text(
-                  'Formulir permohonan cuti & izin karyawan',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
           ),
           body: GestureDetector(
             behavior: HitTestBehavior.translucent,
@@ -1002,7 +984,7 @@ class _CreateLeaveViewState extends State<_CreateLeaveView> {
                         _isCompressingPhoto = false;
                       });
                     },
-                    onError: _showWarningSnackBar,
+                    onError: _showValidationDialog,
                   ),
                 ],
               ),

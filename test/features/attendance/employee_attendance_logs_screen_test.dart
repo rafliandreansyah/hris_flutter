@@ -197,12 +197,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify header card content
-      expect(find.text('Sarah Jenkins'), findsNWidgets(2)); // in header card & in appbar subtitle
+      expect(find.text('Sarah Jenkins'), findsOneWidget); // header card saja (tanpa subtitle appbar)
       expect(
         find.text('Senior Frontend Engineer • Engineering'),
         findsOneWidget,
       );
-      expect(find.text('EMP-092'), findsOneWidget);
+      // `id` internal tidak pernah ditampilkan (fixture tanpa employeeNumber).
+      expect(find.text('EMP-092'), findsNothing);
       expect(find.text('PT Oasish Group'), findsOneWidget);
       expect(find.text('Lihat Profil Pegawai'), findsOneWidget);
 
@@ -212,8 +213,8 @@ void main() {
 
       // Verify logs rendered
       expect(find.byType(AttendanceLogCard), findsNWidgets(2));
-      expect(find.text('Clock In'), findsOneWidget);
-      expect(find.text('Clock Out'), findsOneWidget);
+      expect(find.textContaining('Absen Masuk', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Absen Pulang', findRichText: true), findsOneWidget);
     });
 
     testWidgets('handles month chip toggle between current and last month', (

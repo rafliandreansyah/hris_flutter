@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -53,7 +54,7 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: LeaveDetailStatus.failure,
-        errorMessage: 'Gagal memuat detail pengajuan cuti: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -79,7 +80,7 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: LeaveDetailStatus.failure,
-        errorMessage: 'Gagal memuat ulang detail pengajuan cuti: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -127,7 +128,7 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: LeaveDetailStatus.actionFailure,
-        errorMessage: 'Gagal memproses persetujuan cuti: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -160,7 +161,7 @@ class LeaveDetailBloc extends Bloc<LeaveDetailEvent, LeaveDetailState> {
     } catch (e) {
       emit(state.copyWith(
         status: LeaveDetailStatus.actionFailure,
-        errorMessage: 'Gagal menghapus pengajuan cuti: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

@@ -123,7 +123,7 @@ void main() {
 
       // Check AppBar
       expect(find.text('Notifikasi'), findsOneWidget);
-      expect(find.text('Pemberitahuan aktivitas & pengumuman'), findsOneWidget);
+      expect(find.text('Pemberitahuan aktivitas & pengumuman'), findsNothing);
       expect(find.text('Tandai Dibaca'), findsOneWidget);
 
       // Check Filter Chips

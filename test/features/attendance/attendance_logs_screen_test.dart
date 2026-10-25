@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/features/attendance/domain/models/attendance_break.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
@@ -240,8 +241,8 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Attendance Logs'), findsOneWidget);
-      expect(find.text('Track clock-in & clock-out activity'), findsOneWidget);
+      expect(find.text('Riwayat Presensi'), findsOneWidget);
+      expect(find.text('Track clock-in & clock-out activity'), findsNothing);
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
       expect(find.byIcon(LucideIcons.calendar), findsNothing);
@@ -272,13 +273,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(AttendanceLogCard), findsNWidgets(3));
-      expect(find.text('Thursday, 27 Aug 2026'), findsNWidgets(2));
-      expect(find.text('08:45'), findsOneWidget);
-      expect(find.text('17:30'), findsOneWidget);
-      expect(find.text('09:18'), findsOneWidget);
-      expect(find.text('Asia/Jakarta'), findsNWidgets(3));
-      expect(find.text('Late by 18 mins'), findsOneWidget);
-      expect(find.text('On Time'), findsOneWidget);
+      expect(find.text('Kamis, 27 Agustus 2026 • Asia/Jakarta'), findsNWidgets(2));
+      expect(find.textContaining('08:45', findRichText: true), findsOneWidget);
+      expect(find.textContaining('17:30', findRichText: true), findsOneWidget);
+      expect(find.textContaining('09:18', findRichText: true), findsOneWidget);
+      // Zona waktu ditampilkan sebagai nama IANA (bukan singkatan WIB).
+      expect(find.textContaining('Asia/Jakarta', findRichText: true), findsNWidgets(3));
+      expect(find.textContaining('WIB', findRichText: true), findsNothing);
+      expect(find.text('Terlambat 18 menit'), findsOneWidget);
+      expect(find.text('Tepat Waktu'), findsOneWidget);
       expect(find.text('Location: '), findsNothing);
     });
 
@@ -288,7 +291,7 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Load Previous Period'), findsOneWidget);
+      expect(find.text('Muat Periode Sebelumnya'), findsOneWidget);
       expect(find.byIcon(LucideIcons.history), findsWidgets);
     });
 
@@ -301,11 +304,13 @@ void main() {
       await tester.tap(find.text('Tim Saya'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Search team member...'), findsOneWidget);
+      expect(find.text('Cari anggota tim...'), findsOneWidget);
+      // Memakai komponen pegawai global (EmployeeCard).
+      expect(find.byType(EmployeeCard), findsNWidgets(2));
       expect(find.text('Sarah Jenkins'), findsOneWidget);
-      expect(find.text('Frontend Engineer • Engineering'), findsOneWidget);
+      expect(find.text('Frontend Engineer'), findsOneWidget);
       expect(find.text('Brian Smith'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.chevronRight), findsNWidgets(2));
+      expect(find.text('Lihat Absensi'), findsNWidgets(2));
     });
 
     testWidgets('renders month selector chips and handles month toggle', (

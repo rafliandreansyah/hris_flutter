@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -83,14 +84,7 @@ class PayrollEmployeeCard extends StatelessWidget {
                             imageUrl: photoUrl,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Center(
-                              child: SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: brandColor,
-                                ),
-                              ),
+                              child: AppLoadingIndicator.small(color: brandColor),
                             ),
                             errorWidget: (context, url, error) => Center(
                               child: Text(

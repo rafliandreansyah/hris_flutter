@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:pro_dialog/pro_dialog.dart';
@@ -153,14 +154,7 @@ class AppDialogUtil {
             border: border,
           ),
           child: isLoading
-              ? SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(fgColor),
-                  ),
-                )
+              ? AppLoadingIndicator.small(color: fgColor)
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
@@ -209,6 +203,15 @@ class AppDialogUtil {
       semanticLabel: semanticLabel,
       customWidget: wrappedCustomWidget,
     );
+  }
+
+  /// Dialog untuk validasi form (data belum lengkap) — pengganti SnackBar peringatan.
+  static Future<void> showValidationError(
+    BuildContext context, {
+    required String message,
+    String title = 'Data Belum Lengkap',
+  }) {
+    return showError<void>(context, title: title, message: message);
   }
 
   /// Menampilkan dialog error terstandarisasi dengan animasi dan opsi Retry/Tutup.

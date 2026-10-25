@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -53,7 +54,7 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
     } catch (e) {
       emit(state.copyWith(
         status: OvertimeDetailStatus.failure,
-        errorMessage: 'Gagal memuat detail pengajuan lembur: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -79,7 +80,7 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
     } catch (e) {
       emit(state.copyWith(
         status: OvertimeDetailStatus.failure,
-        errorMessage: 'Gagal memuat ulang detail pengajuan lembur: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -127,7 +128,7 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
     } catch (e) {
       emit(state.copyWith(
         status: OvertimeDetailStatus.actionFailure,
-        errorMessage: 'Gagal memproses persetujuan lembur: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -160,7 +161,7 @@ class OvertimeDetailBloc extends Bloc<OvertimeDetailEvent, OvertimeDetailState> 
     } catch (e) {
       emit(state.copyWith(
         status: OvertimeDetailStatus.actionFailure,
-        errorMessage: 'Gagal menghapus pengajuan lembur: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

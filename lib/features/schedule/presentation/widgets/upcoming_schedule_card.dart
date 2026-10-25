@@ -187,7 +187,7 @@ class UpcomingScheduleCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${AppDateUtil.formatTimeHHmm(item.shift?.startTime ?? "08:00")} - ${AppDateUtil.formatTimeHHmm(item.shift?.endTime ?? "17:00")} WIB',
+                                '${AppDateUtil.formatTimeHHmm(item.shift?.startTime ?? "08:00")} - ${AppDateUtil.formatTimeHHmm(item.shift?.endTime ?? "17:00")}',
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: textCol,
                                   fontWeight: FontWeight.w700,

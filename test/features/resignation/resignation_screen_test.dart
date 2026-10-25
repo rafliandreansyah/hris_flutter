@@ -356,8 +356,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Review 1-on-1'), findsNothing);
-      await tester.ensureVisible(find.text('Lihat Detail'));
-      await tester.tap(find.text('Lihat Detail'));
+      // Seluruh kartu dapat diketuk untuk membuka detail (tanpa tombol "Lihat Detail").
+      expect(find.text('Lihat Detail'), findsNothing);
+      await tester.tap(find.text('Rina'));
       await tester.pumpAndSettle();
 
       expect(find.text('Detail Pengajuan Resign'), findsOneWidget);

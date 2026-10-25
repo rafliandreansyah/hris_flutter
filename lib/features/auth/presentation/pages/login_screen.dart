@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
+import 'package:hris_flutter/core/constants/legal_links.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/legal_link_util.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_name_version_text.dart';
@@ -15,6 +17,7 @@ import 'package:hris_flutter/features/auth/presentation/bloc/auth_event.dart';
 import 'package:hris_flutter/features/auth/presentation/bloc/auth_state.dart';
 import 'package:hris_flutter/features/auth/presentation/widgets/contact_admin_bottom_sheet.dart';
 import 'package:hris_flutter/gen/assets.gen.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Halaman Login Oasish HRIS menggunakan Global Widgets (AppTextField & AppButton)
@@ -370,7 +373,11 @@ class _LoginFormViewState extends State<_LoginFormView> {
                               const Spacer(),
                               const SizedBox(height: 24),
 
-                              // 6. Bottom Brand & Version Text
+                              // 6. Tautan legal (Kebijakan Privasi & S&K)
+                              _LegalFooterLinks(color: labelCol),
+                              const SizedBox(height: 8),
+
+                              // 7. Bottom Brand & Version Text
                               const AppNameVersionText(),
                             ],
                           ),
@@ -384,6 +391,41 @@ class _LoginFormViewState extends State<_LoginFormView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LegalFooterLinks extends StatelessWidget {
+  final Color color;
+
+  const _LegalFooterLinks({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        AppButton(
+          text: l10n?.legalPrivacyPolicy ?? 'Kebijakan Privasi',
+          variant: AppButtonVariant.ghost,
+          width: null,
+          height: 36,
+          foregroundColor: AppColors.brandTeal,
+          onPressed: () => LegalLinkUtil.open(context, LegalLinks.privacyPolicy),
+        ),
+        Text('·', style: AppTypography.bodySmall.copyWith(color: color)),
+        AppButton(
+          text: l10n?.legalTerms ?? 'Syarat & Ketentuan',
+          variant: AppButtonVariant.ghost,
+          width: null,
+          height: 36,
+          foregroundColor: AppColors.brandTeal,
+          onPressed: () =>
+              LegalLinkUtil.open(context, LegalLinks.termsConditions),
+        ),
+      ],
     );
   }
 }

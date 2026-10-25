@@ -246,7 +246,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get outsideAttendanceDesc =>
-      'Absen dari pengajuan Outside Attendance / Kehadiran luar kantor';
+      'Absen dari pengajuan presensi luar kantor';
 
   @override
   String get requestReference => 'Referensi Pengajuan';
@@ -375,4 +375,118 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get latestCompanyAnnouncement => 'Terbaru · Pengumuman Perusahaan';
+
+  @override
+  String get titleLeave => 'Cuti & Izin';
+
+  @override
+  String get titleLeaveDetail => 'Detail Cuti / Izin';
+
+  @override
+  String get titleOvertime => 'Pengajuan Lembur';
+
+  @override
+  String get titleOvertimeDetail => 'Detail Lembur';
+
+  @override
+  String get titleAttendanceLogs => 'Riwayat Presensi';
+
+  @override
+  String get titleActivityReports => 'Laporan Aktivitas';
+
+  @override
+  String get titleActivityDetail => 'Detail Aktivitas';
+
+  @override
+  String get titleCreateActivity => 'Buat Aktivitas';
+
+  @override
+  String get statusWaitingApproval => 'Menunggu Persetujuan';
+
+  @override
+  String get statusApproved => 'Disetujui';
+
+  @override
+  String get statusRejected => 'Ditolak';
+
+  @override
+  String get clockInLabel => 'Absen Masuk';
+
+  @override
+  String get clockOutLabel => 'Absen Pulang';
+
+  @override
+  String get titleEmployeeDirectory => 'Direktori Pegawai';
+
+  @override
+  String get consentTitle => 'Kebijakan Privasi & Syarat Ketentuan';
+
+  @override
+  String get consentIntro =>
+      'Sebelum menggunakan Oasish, mohon baca dan setujui cara kami mengumpulkan dan memproses data Anda.';
+
+  @override
+  String get consentDataHeader => 'DATA YANG KAMI PROSES';
+
+  @override
+  String get consentDataLocation =>
+      'Lokasi presisi untuk presensi. Selama Anda clock-in hingga clock-out dan saat tugas lapangan, rute kerja direkam termasuk saat aplikasi ditutup atau di latar belakang.';
+
+  @override
+  String get consentDataCamera =>
+      'Kamera dan foto untuk swafoto presensi, bukti aktivitas, dan dokumen klaim.';
+
+  @override
+  String get consentDataBiometric =>
+      'Biometrik (sidik jari / Face ID) diproses di perangkat dan tidak dikirim ke server.';
+
+  @override
+  String get consentDataDevice =>
+      'Data kepegawaian, ID perangkat, level baterai, dan token notifikasi untuk menjalankan layanan.';
+
+  @override
+  String get consentDocumentsHeader => 'DOKUMEN LEGAL';
+
+  @override
+  String get consentAgreement =>
+      'Saya telah membaca dan menyetujui Kebijakan Privasi dan Syarat & Ketentuan Oasish.';
+
+  @override
+  String get consentAccept => 'Setuju & Lanjutkan';
+
+  @override
+  String get legalPrivacyPolicy => 'Kebijakan Privasi';
+
+  @override
+  String get legalTerms => 'Syarat & Ketentuan';
+
+  @override
+  String get legalRefundPolicy => 'Kebijakan Pengembalian Dana';
+
+  @override
+  String get legalFaq => 'FAQ';
+
+  @override
+  String get legalDeleteData => 'Hapus Akun & Data';
+
+  @override
+  String get legalDeleteDataSubtitle =>
+      'Ajukan penghapusan akun dan data pribadi Anda';
+
+  @override
+  String get legalContact => 'Kontak';
+
+  @override
+  String get legalAndHelp => 'LEGAL & BANTUAN';
+
+  @override
+  String get legalLinkOpenFailed =>
+      'Halaman tidak dapat dibuka. Periksa koneksi internet Anda lalu coba lagi.';
+
+  @override
+  String get trackingResumeTitle => 'Pelacakan lokasi kerja dijeda';
+
+  @override
+  String get trackingResumeBody =>
+      'Ketuk untuk melanjutkan pelacakan selama jam kerja Anda.';
 }

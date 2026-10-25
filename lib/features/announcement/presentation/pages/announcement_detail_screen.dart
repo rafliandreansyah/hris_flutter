@@ -118,8 +118,6 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
     final bgColor =
         isDark ? AppColors.darkBackgroundSubtle : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.textSecondary;
 
     return BlocConsumer<AnnouncementDetailBloc, AnnouncementDetailState>(
       listener: (context, state) {
@@ -162,11 +160,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
                 onPressed: _handlePop,
               ),
               titleSpacing: 0,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+              title: Text(
                     'Detail Pengumuman',
                     style: AppTypography.titleMedium.copyWith(
                       color: textCol,
@@ -174,19 +168,6 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
                       fontSize: 17,
                     ),
                   ),
-                  Text(
-                    detail != null
-                        ? detail.scopeAndCategorySubtitle
-                        : 'Official Announcement',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: subtitleCol,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 11,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
               actions: [
                 if (detail != null)
                   IconButton(
@@ -318,10 +299,15 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section 1: Tags & Title & Date
-            _buildTagsRow(detail, isDark),
-            const SizedBox(height: 12),
+            // Section 1: Hero Image (Dihilangkan jika imageUrl null/kosong)
+            if (hasHeroImage) ...[
+              _buildHeroImage(detail.imageUrl!, isDark),
+              const SizedBox(height: AppSpacing.md),
+            ],
 
+            // Section 2: Tag, Judul & tanggal terbit
+            _buildTagsRow(detail, isDark),
+            const SizedBox(height: AppSpacing.md - 4),
             Text(
               detail.title,
               style: AppTypography.headlineMedium.copyWith(
@@ -330,40 +316,33 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
                 height: 1.35,
               ),
             ),
-            const SizedBox(height: 8),
-
             if (detail.formattedDateTime.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    LucideIcons.calendar,
-                    size: 15,
-                    color: AppColors.textSecondary,
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: Icon(
+                      LucideIcons.calendar,
+                      size: 15,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Diterbitkan: ${detail.formattedDateTime}',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
+                  Expanded(
+                    child: Text(
+                      detail.formattedDateTime,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
             ],
-
-            // Section 2: Hero Image (Dihilangkan jika imageUrl null/kosong)
-            if (hasHeroImage) ...[
-              _buildHeroImage(detail.imageUrl!, isDark),
-              const SizedBox(height: 20),
-            ],
-
-            // Section 3: Published By Card (Dihilangkan jika author null)
-            if (hasAuthor) ...[
-              AnnouncementDetailAuthorCard(author: detail.author!),
-              const SizedBox(height: 20),
-            ],
+            const SizedBox(height: AppSpacing.md),
 
             // Section 4: Content Card (Perender HTML)
             AnnouncementDetailHtmlContent(htmlContent: detail.content),
@@ -372,7 +351,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
             // Section 5: Attachments (Dihilangkan jika attachments null/kosong)
             if (hasAttachments) ...[
               Text(
-                'DOKUMEN LAMPIRAN (${detail.attachments.length})',
+                'LAMPIRAN (${detail.attachments.length})',
                 style: AppTypography.labelSmall.copyWith(
                   color: isDark
                       ? AppColors.darkOnSurfaceVariant
@@ -398,6 +377,9 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
               ),
               const SizedBox(height: 20),
             ],
+
+            // Section 4: Penerbit (Dihilangkan jika author null)
+            if (hasAuthor) AnnouncementDetailAuthorCard(author: detail.author!),
           ],
         ),
       ),
@@ -406,8 +388,9 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
 
   Widget _buildTagsRow(AnnouncementDetailModel detail, bool isDark) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         // Category Badge
         Container(
@@ -471,7 +454,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'PINNED',
+                  'Disematkan',
                   style: AppTypography.labelSmall.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -494,24 +477,24 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
       case 'urgent':
         bg = const Color(0xFFFEE2E2);
         fg = const Color(0xFFB91C1C);
-        label = 'URGENT NOTICE';
+        label = 'Sangat Penting';
         break;
       case 'high':
         bg = AppColors.warningContainer;
         fg = const Color(0xFFB45309);
-        label = 'HIGH PRIORITY';
+        label = 'Prioritas Tinggi';
         break;
       case 'medium':
         bg = isDark ? AppColors.darkSurfaceContainer : AppColors.darkOnBackground;
         fg = isDark ? AppColors.darkOnSurface : AppColors.onSurfaceVariant;
-        label = 'MEDIUM';
+        label = 'Prioritas Sedang';
         break;
       case 'low':
       default:
         bg =
             isDark ? AppColors.darkSurfaceContainerLow : AppColors.backgroundSubtle;
         fg = isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
-        label = 'LOW';
+        label = 'Prioritas Rendah';
         break;
     }
 
@@ -537,7 +520,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
         isDark ? AppColors.darkOutlineMuted : AppColors.outlineMuted;
 
     return Container(
-      height: 190,
+      height: 260,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -557,7 +540,7 @@ class _AnnouncementDetailViewState extends State<_AnnouncementDetailView> {
           child: Container(
             color: Colors.white,
             width: double.infinity,
-            height: 190,
+            height: 260,
           ),
         ),
         errorWidget: (context, url, error) => Container(

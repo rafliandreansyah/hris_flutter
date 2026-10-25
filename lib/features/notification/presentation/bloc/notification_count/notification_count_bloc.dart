@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:hris_flutter/features/notification/domain/repositories/notification_repository.dart';
@@ -32,7 +33,7 @@ class NotificationCountBloc
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

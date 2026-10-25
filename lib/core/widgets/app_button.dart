@@ -109,10 +109,10 @@ class AppButton extends StatelessWidget {
         );
 
     final buttonChild = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: defaultFg),
           )
         : Row(
             mainAxisSize: width == null ? MainAxisSize.min : MainAxisSize.max,

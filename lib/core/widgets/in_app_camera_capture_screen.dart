@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -208,10 +209,7 @@ class _InAppCameraCaptureScreenState extends State<InAppCameraCaptureScreen>
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          color: AppColors.brandTeal,
-        ),
+        child: AppLoadingIndicator(color: AppColors.brandTeal),
       );
     }
     return Center(child: CameraPreview(controller));

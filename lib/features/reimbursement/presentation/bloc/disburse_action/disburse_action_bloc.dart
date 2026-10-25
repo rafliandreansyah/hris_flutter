@@ -1,5 +1,5 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursement_repository_impl.dart';
 import 'package:hris_flutter/features/reimbursement/domain/repositories/reimbursement_repository.dart';
 import 'package:hris_flutter/features/reimbursement/presentation/bloc/disburse_action/disburse_action_event.dart';
@@ -63,7 +63,7 @@ class DisburseActionBloc
     } catch (e) {
       emit(state.copyWith(
         isSubmitting: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

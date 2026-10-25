@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -195,25 +196,13 @@ class _NotificationViewState extends State<_NotificationView> {
           icon: Icon(LucideIcons.arrowLeft, color: textCol),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Notifikasi',
               style: AppTypography.headlineMedium.copyWith(
                 fontWeight: FontWeight.bold,
                 color: textCol,
               ),
             ),
-            Text(
-              'Pemberitahuan aktivitas & pengumuman',
-              style: AppTypography.bodySmall.copyWith(
-                color: labelCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           BlocBuilder<NotificationListBloc, NotificationListState>(
             builder: (context, state) {
@@ -221,8 +210,14 @@ class _NotificationViewState extends State<_NotificationView> {
                   ? state.localUnreadCount
                   : 0;
 
-              return TextButton.icon(
+              return AppButton(
                 key: const ValueKey('mark_all_read_btn'),
+                text: 'Tandai Dibaca',
+                leadingIcon: LucideIcons.checkCheck,
+                variant: AppButtonVariant.ghost,
+                width: null,
+                height: 36,
+                foregroundColor: AppColors.brandTeal,
                 onPressed: unreadCount > 0
                     ? () {
                         context.read<NotificationListBloc>().add(
@@ -230,22 +225,6 @@ class _NotificationViewState extends State<_NotificationView> {
                             );
                       }
                     : null,
-                icon: Icon(
-                  LucideIcons.checkCheck,
-                  size: 16,
-                  color: unreadCount > 0
-                      ? AppColors.brandTeal
-                      : labelCol.withValues(alpha: 0.4),
-                ),
-                label: Text(
-                  'Tandai Dibaca',
-                  style: AppTypography.labelSmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: unreadCount > 0
-                        ? AppColors.brandTeal
-                        : labelCol.withValues(alpha: 0.4),
-                  ),
-                ),
               );
             },
           ),
@@ -423,14 +402,7 @@ class _NotificationViewState extends State<_NotificationView> {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16),
                                 child: Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: AppColors.brandTeal,
-                                    ),
-                                  ),
+                                  child: AppLoadingIndicator.small(color: AppColors.brandTeal),
                                 ),
                               );
                             }

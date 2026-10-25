@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
@@ -153,15 +154,11 @@ class _DisburseActionViewState extends State<_DisburseActionView> {
         ),
       ),
       body: BlocConsumer<DisburseActionBloc, DisburseActionState>(
+        listenWhen: (prev, curr) => curr.errorMessage != prev.errorMessage ||
+            curr.isSuccess != prev.isSuccess,
         listener: (context, state) {
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColors.errorRed,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppDialogUtil.showError(context, message: state.errorMessage!);
           }
 
           if (state.isSuccess) {

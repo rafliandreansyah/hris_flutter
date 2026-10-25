@@ -92,11 +92,7 @@ class _NotificationSettingsView extends StatelessWidget {
               icon: Icon(LucideIcons.arrowLeft, color: textCol),
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+            title: Text(
                   'Pengaturan Notifikasi',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
@@ -104,16 +100,6 @@ class _NotificationSettingsView extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Kelola preferensi pemberitahuan & alarm push',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               IconButton(
                 icon: Icon(LucideIcons.rotateCcw, size: 19, color: textCol),
@@ -543,7 +529,7 @@ class _NotificationSettingsView extends StatelessWidget {
 
     final updatedAt = state.currentSettings?.updatedAt;
     final updatedText = updatedAt != null
-        ? 'Terakhir diperbarui: ${AppDateUtil.formatDateShort(updatedAt)}, ${AppDateUtil.formatTimeHHmm(updatedAt.toIso8601String())} WIB'
+        ? 'Terakhir diperbarui: ${AppDateUtil.formatDateShort(updatedAt)}, ${AppDateUtil.formatTimeHHmm(updatedAt.toIso8601String())} ${AppDateUtil.defaultTimezone}'
         : 'Terakhir diperbarui: Baru saja';
 
     return SafeArea(

@@ -164,10 +164,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Title & Subtitle
-      expect(find.text('Create Activity'), findsOneWidget);
+      expect(find.text('Buat Aktivitas'), findsOneWidget);
       expect(
         find.text('Phase 1: Log initial activity & check-in'),
-        findsOneWidget,
+        findsNothing,
       );
 
       // Back button & Locate Fixed icon
@@ -213,7 +213,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Tap submit immediately without filling form
-      final submitBtn = find.text('Submit & Start Activity');
+      final submitBtn = find.text('Kirim & Mulai Aktivitas');
       expect(submitBtn, findsOneWidget);
 
       await tester.tap(submitBtn);
@@ -222,7 +222,7 @@ void main() {
 
       // Warns about Activity Type first
       expect(
-        find.text('Silakan pilih Activity Type terlebih dahulu.'),
+        find.text('Silakan pilih jenis aktivitas terlebih dahulu.'),
         findsAtLeast(1),
       );
     });
@@ -235,7 +235,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // 1. Select Activity Type
-      await tester.tap(find.text('Select activity type...'));
+      await tester.tap(find.text('Pilih jenis aktivitas...'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -249,8 +249,8 @@ void main() {
       expect(find.text('Site Inspection'), findsOneWidget);
 
       // 2. Open Photo Options Modal
-      await tester.ensureVisible(find.text('Tap to Capture or Upload Photo'));
-      await tester.tap(find.text('Tap to Capture or Upload Photo'));
+      await tester.ensureVisible(find.text('Ketuk untuk ambil atau unggah foto'));
+      await tester.tap(find.text('Ketuk untuk ambil atau unggah foto'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -305,7 +305,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
 
       // 1. Select Activity Type
-      await tester.tap(find.text('Select activity type...'));
+      await tester.tap(find.text('Pilih jenis aktivitas...'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Site Inspection'));
@@ -345,8 +345,8 @@ void main() {
       await tester.pump();
 
       // 5. Select Sample Photo
-      await tester.ensureVisible(find.text('Tap to Capture or Upload Photo'));
-      await tester.tap(find.text('Tap to Capture or Upload Photo'));
+      await tester.ensureVisible(find.text('Ketuk untuk ambil atau unggah foto'));
+      await tester.tap(find.text('Ketuk untuk ambil atau unggah foto'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Gunakan Foto Sampel Lapangan'));
@@ -354,7 +354,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // 6. Submit
-      final submitBtn = find.text('Submit & Start Activity');
+      final submitBtn = find.text('Kirim & Mulai Aktivitas');
       await tester.ensureVisible(submitBtn);
       await tester.tap(submitBtn);
       await tester.pump();

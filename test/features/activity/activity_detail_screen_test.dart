@@ -195,11 +195,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         // Title and ID
-        expect(find.text('Activity Detail'), findsOneWidget);
-        expect(find.text('ID: ACT-002 • Completed'), findsOneWidget);
+        expect(find.text('Detail Aktivitas'), findsOneWidget);
+        // ID internal tidak lagi ditampilkan di header.
+        expect(find.text('ID: ACT-002 • Completed'), findsNothing);
 
-        // ONLY share action icon must be in AppBar
-        expect(find.byIcon(LucideIcons.share2), findsOneWidget);
+        // Share & salin link digabung dalam menu titik tiga
+        expect(find.byIcon(LucideIcons.ellipsisVertical), findsOneWidget);
+        expect(find.byIcon(LucideIcons.share2), findsNothing);
 
         // Verification: more_vert / filter icons should NOT exist in AppBar
         expect(find.byIcon(Icons.more_vert), findsNothing);
@@ -218,7 +220,7 @@ void main() {
       expect(find.text('Site Inspection'), findsAtLeast(1));
 
       // Status chip
-      expect(find.text('Completed'), findsAtLeast(1));
+      expect(find.text('Selesai'), findsAtLeast(1));
 
       // Employee Information
       expect(find.text('Budi Santoso'), findsOneWidget);
@@ -270,16 +272,16 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         expect(find.byType(ActivityTimelineSection), findsOneWidget);
-        expect(find.text('Activity Progress Timeline'), findsOneWidget);
+        expect(find.text('Riwayat Progres Aktivitas'), findsOneWidget);
 
         // Phase 1
-        expect(find.text('Phase 1: Start & Check-In'), findsOneWidget);
-        expect(find.text('Initial Description / Task Scope'), findsOneWidget);
+        expect(find.text('Tahap 1: Mulai & Check-In'), findsOneWidget);
+        expect(find.text('Deskripsi Awal / Lingkup Tugas'), findsOneWidget);
         expect(find.byIcon(LucideIcons.play), findsOneWidget);
 
         // Phase 2
-        expect(find.text('Phase 2: Completion & Report'), findsOneWidget);
-        expect(find.text('Completion Notes / Outcome'), findsOneWidget);
+        expect(find.text('Tahap 2: Penyelesaian & Laporan'), findsOneWidget);
+        expect(find.text('Catatan Penyelesaian / Hasil'), findsOneWidget);
         expect(find.byIcon(LucideIcons.check), findsOneWidget);
       },
     );
@@ -537,11 +539,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         // Phase 1 verification
-        expect(find.text('Phase 1: Start & Check-In'), findsOneWidget);
+        expect(find.text('Tahap 1: Mulai & Check-In'), findsOneWidget);
         expect(find.text('Mempresentasikan modul absensi dan activity feed.'), findsOneWidget);
 
         // Phase 2 verification
-        expect(find.text('Phase 2: Completion & Report'), findsOneWidget);
+        expect(find.text('Tahap 2: Penyelesaian & Laporan'), findsOneWidget);
         expect(find.text('Klien sangat puas dengan demo aplikasi.'), findsOneWidget);
       },
     );

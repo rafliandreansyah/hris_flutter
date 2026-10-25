@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -66,7 +67,7 @@ class CreateResignationBloc
     } catch (e) {
       emit(state.copyWith(
         status: CreateResignationStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -209,7 +210,7 @@ class CreateResignationBloc
     } catch (e) {
       emit(state.copyWith(
         status: CreateResignationStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

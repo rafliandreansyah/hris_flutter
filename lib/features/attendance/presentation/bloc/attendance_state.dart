@@ -111,7 +111,7 @@ class AttendanceLoaded extends AttendanceState {
     );
   }
 
-  /// Format waktu jam:menit:detik tanpa 'WIB' karena timezone sudah ditampilkan secara terpisah di chip.
+  /// Format waktu jam:menit:detik tanpa nama zona waktu karena timezone sudah ditampilkan secara terpisah di chip.
   String get formattedClockTime =>
       AppDateUtil.formatTimeWithSeconds(currentClockTime);
 

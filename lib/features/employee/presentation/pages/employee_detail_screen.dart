@@ -25,6 +25,7 @@ import 'package:hris_flutter/features/employee/presentation/widgets/profile_hero
 import 'package:hris_flutter/features/employee/presentation/widgets/team_coworkers_card.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/work_location_card.dart';
 import 'package:hris_flutter/features/lifecycle/domain/repositories/lifecycle_repository.dart';
+import 'package:hris_flutter/features/schedule/data/models/work_schedule_response_model.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/widgets/lifecycle_profile_section.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -90,6 +91,34 @@ class _EmployeeDetailView extends StatelessWidget {
     this.isFromDirectory,
     this.lifecycleRepository,
   });
+
+  /// Label Indonesia untuk nilai enum API (gender, status nikah, agama).
+  String _labelOf(String? raw) {
+    final v = raw?.trim() ?? '';
+    if (v.isEmpty) return '-';
+    const labels = {
+      'permanent': 'Karyawan Tetap',
+      'contract': 'Kontrak',
+      'freelance': 'Freelance',
+      'internship': 'Magang',
+      'male': 'Laki-laki',
+      'female': 'Perempuan',
+      'single': 'Belum Menikah',
+      'married': 'Menikah',
+      'divorced': 'Cerai',
+      'widowed': 'Cerai Mati',
+      'islam': 'Islam',
+      'christian': 'Kristen',
+      'protestant': 'Kristen',
+      'catholic': 'Katolik',
+      'hindu': 'Hindu',
+      'buddha': 'Buddha',
+      'buddhist': 'Buddha',
+      'konghucu': 'Konghucu',
+      'confucian': 'Konghucu',
+    };
+    return labels[v.toLowerCase()] ?? v;
+  }
 
   String _formatDate(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '-';
@@ -168,7 +197,7 @@ class _EmployeeDetailView extends StatelessWidget {
 
     final displayId = detail?.employeeNumber?.isNotEmpty == true
         ? detail!.employeeNumber!
-        : (employee?.id ?? '-');
+        : (employee?.employeeNumber ?? '');
 
     final displayCompany = detail?.company?.name.isNotEmpty == true
         ? detail!.company!.name
@@ -188,7 +217,16 @@ class _EmployeeDetailView extends StatelessWidget {
                 employee?.id == currentEmpId ||
                 employeeId == currentEmpId));
 
-    // Gagal memuat (mis. 403/404): sembunyikan seluruh konten, tampilkan error di tengah halaman.
+    // Jadwal kerja: milik sendiri selalu boleh; pegawai lain mengikuti flag API
+    // `canViewWorkSchedule` (fallback ke permission lokal untuk server lama).
+    final canViewSchedule = isSelf ||
+        (detail?.canViewWorkSchedule ??
+            SecureStorageService.instance.hasPermissionInMemory(
+              AppPermissions.workScheduleView,
+            ));
+    final scheduleEmployeeId = detail?.id ?? employee?.rawId ?? employee?.id;
+
+        // Gagal memuat (mis. 403/404): sembunyikan seluruh konten, tampilkan error di tengah halaman.
     final hasError =
         state.status == EmployeeDetailStatus.failure && detail == null;
     // Pemuatan awal (belum ada data & belum gagal): tampilkan skeleton shimmer.
@@ -205,11 +243,8 @@ class _EmployeeDetailView extends StatelessWidget {
           onPressed: () => context.pop(),
           icon: Icon(LucideIcons.arrowLeft, color: textCol),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Employee Detail',
+        title: Text(
+              isSelf ? 'Profil Saya' : 'Detail Pegawai',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w800,
@@ -217,15 +252,6 @@ class _EmployeeDetailView extends StatelessWidget {
                 height: 1.1,
               ),
             ),
-            Text(
-              '$displayId • $displayDept',
-              style: AppTypography.labelSmall.copyWith(
-                color: labelCol,
-                fontSize: 11.5,
-              ),
-            ),
-          ],
-        ),
         actions: [
           if (!hasError)
             IconButton(
@@ -261,8 +287,8 @@ class _EmployeeDetailView extends StatelessWidget {
                   name: displayName,
                   role: displayRole,
                   status: detail != null
-                      ? (detail.status ? 'Active Employee' : 'Inactive')
-                      : 'Active Employee',
+                      ? (detail.status ? 'Pegawai Aktif' : 'Inactive')
+                      : 'Pegawai Aktif',
                   avatarUrl: displayAvatar,
                 );
               },
@@ -342,9 +368,9 @@ class _EmployeeDetailView extends StatelessWidget {
                         department: displayDept,
                         company: displayCompany,
                         employmentStatus: detail != null
-                            ? (detail.status ? 'Active Employee' : 'Inactive')
+                            ? (detail.status ? 'Pegawai Aktif' : 'Nonaktif')
                             : '-',
-                        contractType: detail?.employmentType ?? '-',
+                        contractType: _labelOf(detail?.employmentType),
                         avatarUrl: displayAvatar,
                         isSelf: isSelf,
                         onCall: () => ContactLauncherUtil.showPhoneOptions(
@@ -357,6 +383,29 @@ class _EmployeeDetailView extends StatelessWidget {
                           name: displayName,
                           email: detail?.email ?? employee?.email,
                         ),
+                        onViewSchedule: !canViewSchedule
+                            ? null
+                            : () {
+                                if (isSelf || scheduleEmployeeId == null) {
+                                  context.push(Routes.WORK_SCHEDULE);
+                                  return;
+                                }
+                                context.push(
+                                  '${Routes.WORK_SCHEDULE}?employeeId=$scheduleEmployeeId',
+                                  extra: WorkScheduleEmployee(
+                                    id: scheduleEmployeeId,
+                                    firstName: detail?.firstName ?? displayName,
+                                    lastName: detail?.lastName,
+                                    email: detail?.email ?? employee?.email,
+                                    phone: detail?.phone ?? employee?.phone,
+                                    photoUrl: displayAvatar,
+                                    employeeNumber: displayId,
+                                    companyName: displayCompany,
+                                    departmentName: displayDept,
+                                    positionName: displayRole,
+                                  ),
+                                );
+                              },
                       ),
                       const SizedBox(height: 16),
 
@@ -393,25 +442,35 @@ class _EmployeeDetailView extends StatelessWidget {
 
                       // 5. Employment & Personal Data
                       EmploymentDataCard(
-                        joinDate: detail?.joinDate != null
-                            ? _formatDate(detail!.joinDate)
-                            : '-',
+                        joinDate: _formatDate(detail?.joinDate),
+                        tenure: EmploymentDataCard.formatTenure(
+                          detail?.joinDate,
+                        ),
                         contractExpiry: detail?.contractExpiryDate != null
                             ? _formatDate(detail!.contractExpiryDate)
-                            : (detail?.employmentType ?? '-'),
+                            : '-',
                         employeeId: displayId,
                         nik: detail?.idNumber ?? '-',
-                        placeDob:
-                            (detail?.placeOfBirth != null ||
-                                detail?.dob != null)
-                            ? '${detail?.placeOfBirth ?? ""}, ${_formatDate(detail?.dob)}'
-                            : '-',
-                        gender: detail?.gender ?? '-',
+                        email: detail?.email ?? employee?.email ?? '-',
+                        phone: detail?.phone ?? employee?.phone ?? '-',
+                        emergencyContact: detail?.emergencyContact ?? '-',
+                        placeDob: [
+                          detail?.placeOfBirth?.trim() ?? '',
+                          if (detail?.dob != null) _formatDate(detail?.dob),
+                        ].where((e) => e.isNotEmpty).join(', '),
+                        gender: _labelOf(detail?.gender),
                         bloodType: detail?.bloodType ?? '-',
+                        maritalStatus: _labelOf(detail?.maritalStatus),
+                        religion: _labelOf(detail?.religion),
                         bankName: detail?.bankName ?? '-',
                         accountNumber:
                             detail?.bankNumber ?? (detail?.bankAccount ?? '-'),
-                        accountHolder: displayName,
+                        accountHolder:
+                            (detail?.bankNumber != null &&
+                                (detail?.bankAccount?.trim().isNotEmpty ??
+                                    false))
+                            ? detail!.bankAccount!
+                            : displayName,
                       ),
                       const SizedBox(height: 16),
 
@@ -458,7 +517,7 @@ class _EmployeeDetailView extends StatelessWidget {
                                             id: c.id,
                                             rawId: c.id,
                                             name: c.fullName,
-                                            role: 'Team Member',
+                                            role: 'Anggota Tim',
                                             department: displayDept,
                                             company: displayCompany,
                                             email: c.email,

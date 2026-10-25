@@ -153,7 +153,8 @@ void main() {
       expect(find.text('Budi Santoso'), findsWidgets);
       expect(find.text('PEJABAT PENYETUJU'), findsOneWidget);
       expect(find.text('Siti Rahma'), findsWidgets);
-      expect(find.text('MGR-2024-002'), findsOneWidget);
+      // Kartu approver ringkas: nomor pegawai approver tidak ditampilkan.
+      expect(find.text('MGR-2024-002'), findsNothing);
       expect(find.text('emp-mgr'), findsNothing);
       expect(
         find.descendant(

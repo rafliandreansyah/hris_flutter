@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -135,7 +138,7 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
       title: 'Panduan Kebijakan Resign',
       message:
           '1. Notice Period: Standar pengajuan adalah minimal $noticeDays hari kerja sebelum tanggal efektif berhenti.\n\n'
-          '2. Early Waiver: Pengajuan di bawah notice period membutuhkan persetujuan manajerial khusus dan alasan yang jelas.\n\n'
+          '2. Percepatan tanggal efektif: Pengajuan di bawah notice period membutuhkan persetujuan khusus dari atasan dan alasan yang jelas.\n\n'
           '3. Serah Terima (Handover): Wajib menunjuk rekan kerja pengganti untuk kelancaran transisi tugas & aset.\n\n'
           '4. Surat Resmi: Unggah surat pernyataan resign bertanda tangan basah atau digital.',
       cancelText: 'Saya Mengerti',
@@ -147,11 +150,17 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
     final now = DateTime.now();
     final initialDate = state.selectedEffectiveDate ?? now;
 
+    final range = resolvePickerRange(
+      SubmissionSettingCubit.windowOf(context, SubmissionWindowType.resignation),
+      fallbackFirst: now,
+      fallbackLast: now.add(const Duration(days: 365)),
+      minFloor: DateTime(now.year, now.month, now.day), // tanggal efektif tidak boleh lampau
+    );
     final picked = await showDatePicker(
       context: context,
-      initialDate: initialDate.isBefore(now) ? now : initialDate,
-      firstDate: now,
-      lastDate: now.add(const Duration(days: 365)),
+      initialDate: range.clamp(initialDate.isBefore(now) ? now : initialDate),
+      firstDate: range.first,
+      lastDate: range.last,
       locale: const Locale('id', 'ID'),
       builder: (context, child) {
         return Theme(
@@ -436,9 +445,9 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
       if (!state.isEarlyNotice) {
         AppDialogUtil.showWarning(
           context,
-          title: 'Early Notice Diperlukan',
+          title: 'Pemberitahuan Dini Diperlukan',
           message:
-              'Tanggal efektif kurang dari ketentuan notice period. Silakan centang Early Waiver.',
+              'Tanggal efektif kurang dari ketentuan notice period. Silakan aktifkan opsi percepatan tanggal efektif.',
         );
         return;
       }
@@ -650,24 +659,12 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                 ),
               ),
             ),
-            title: Column(
-              children: [
-                Text(
+            title: Text(
                   'Formulir Pengunduran Diri',
                   style: AppTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Text(
-                  'Pengajuan Mandiri Karyawan',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isDark
-                        ? AppColors.darkOnSurfaceVariant
-                        : AppColors.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
             centerTitle: true,
             actions: [
               Padding(
@@ -1050,15 +1047,13 @@ class _CreateResignationViewState extends State<_CreateResignationView> {
                                   ],
                                 ),
                               ),
-                              TextButton(
+                              AppButton(
+                                text: 'Ganti',
+                                variant: AppButtonVariant.ghost,
+                                width: null,
+                                height: 36,
+                                foregroundColor: AppColors.primary,
                                 onPressed: () => _handleSelectColleague(state),
-                                child: Text(
-                                  'Ganti',
-                                  style: AppTypography.labelMedium.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                               ),
                             ],
                           ),

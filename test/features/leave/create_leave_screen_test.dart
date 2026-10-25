@@ -108,7 +108,8 @@ void main() {
 
       // Verify AppBar
       expect(find.text('Ajukan Cuti / Izin'), findsOneWidget);
-      expect(find.text('Formulir permohonan cuti & izin karyawan'), findsOneWidget);
+      // Header tanpa subtitle (standar baru: subtitle dihapus).
+      expect(find.text('Formulir permohonan cuti & izin karyawan'), findsNothing);
 
       // Verify Sections
       expect(find.text('JENIS CUTI / IZIN'), findsOneWidget);

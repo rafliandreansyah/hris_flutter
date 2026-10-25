@@ -1,11 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/filter/app_filter_sheet_frame.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/features/attendance/data/models/attendance_log_item.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:hris_flutter/core/widgets/app_button.dart';
 
 class AttendanceLogFilterCriteria extends Equatable {
   final DateTime? startDate;
@@ -155,9 +155,6 @@ class _AttendanceLogsFilterBottomSheetState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
     final fieldBg = isDark
         ? AppColors.darkBackgroundSubtle
         : AppColors.backgroundSubtle;
@@ -172,224 +169,167 @@ class _AttendanceLogsFilterBottomSheetState
     final brandFg = isDark ? AppColors.darkOnPrimary : Colors.white;
     final dateFormat = DateFormat('dd MMM yyyy', 'en_US');
 
-    return Material(
-      color: surfaceColor,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Filter Riwayat Absensi',
-                      style: AppTypography.titleMedium.copyWith(
-                        color: textCol,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(LucideIcons.x, size: 20, color: subtitleCol),
-                      onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Periode Bulan',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildOptionRow(
-                  options: const ['Bulan Ini', 'Bulan Lalu'],
-                  selectedIndex: _criteria.lastMonth ? 1 : 0,
-                  onSelected: (index) {
-                    setState(() {
-                      _criteria = _criteria.copyWith(lastMonth: index == 1);
-                    });
-                  },
-                  fieldBg: fieldBg,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                  brandColor: brandColor,
-                  brandFg: brandFg,
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Rentang Tanggal Kustom (Opsional)',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDateField(
-                        label: 'Mulai',
-                        value: _criteria.startDate == null
-                            ? null
-                            : dateFormat.format(_criteria.startDate!),
-                        onTap: () => _pickDate(isStart: true),
-                        onClear: _criteria.startDate == null
-                            ? null
-                            : () => setState(() {
-                                  _criteria = _criteria.copyWith(
-                                    clearStartDate: true,
-                                  );
-                                }),
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        brandColor: brandColor,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildDateField(
-                        label: 'Selesai',
-                        value: _criteria.endDate == null
-                            ? null
-                            : dateFormat.format(_criteria.endDate!),
-                        onTap: () => _pickDate(isStart: false),
-                        onClear: _criteria.endDate == null
-                            ? null
-                            : () => setState(() {
-                                  _criteria = _criteria.copyWith(
-                                    clearEndDate: true,
-                                  );
-                                }),
-                        fieldBg: fieldBg,
-                        borderCol: borderCol,
-                        textCol: textCol,
-                        subtitleCol: subtitleCol,
-                        brandColor: brandColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Jenis Absensi',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildOptionRow(
-                  options: const ['Semua', 'Clock In', 'Clock Out'],
-                  selectedIndex: _criteria.type == null
-                      ? 0
-                      : (_criteria.type == AttendanceLogType.clockIn ? 1 : 2),
-                  onSelected: (index) {
-                    setState(() {
-                      _criteria = _criteria.copyWith(
-                        clearType: index == 0,
-                        type: index == 1
-                            ? AttendanceLogType.clockIn
-                            : (index == 2
-                                  ? AttendanceLogType.clockOut
-                                  : null),
-                      );
-                    });
-                  },
-                  fieldBg: fieldBg,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                  brandColor: brandColor,
-                  brandFg: brandFg,
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Status Kehadiran',
-                  style: AppTypography.labelMedium.copyWith(
-                    color: textCol,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildOptionRow(
-                  options: const ['Semua', 'On Time', 'Terlambat'],
-                  selectedIndex: _criteria.punctuality == null
-                      ? 0
-                      : (_criteria.punctuality ==
-                                AttendanceLogPunctuality.onTime
-                            ? 1
-                            : 2),
-                  onSelected: (index) {
-                    setState(() {
-                      _criteria = _criteria.copyWith(
-                        clearPunctuality: index == 0,
-                        punctuality: index == 1
-                            ? AttendanceLogPunctuality.onTime
-                            : (index == 2
-                                  ? AttendanceLogPunctuality.late
-                                  : null),
-                      );
-                    });
-                  },
-                  fieldBg: fieldBg,
-                  borderCol: borderCol,
-                  textCol: textCol,
-                  subtitleCol: subtitleCol,
-                  brandColor: brandColor,
-                  brandFg: brandFg,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AppButton(
-                        text: 'Reset',
-                        variant: AppButtonVariant.outlined,
-                        height: 48,
-                        borderRadius: 12,
-                        onPressed: () {
-                          setState(() {
-                            _criteria = const AttendanceLogFilterCriteria();
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: AppButton(
-                        text: 'Terapkan Filter',
-                        variant: AppButtonVariant.primary,
-                        height: 48,
-                        borderRadius: 12,
-                        onPressed: () =>
-                            Navigator.of(context).pop(_criteria),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return AppFilterSheetFrame(
+      title: 'Filter Riwayat Absensi',
+      onReset: () {
+        setState(() {
+          _criteria = const AttendanceLogFilterCriteria();
+        });
+      },
+      onApply: () => Navigator.of(context).pop(_criteria),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+        Text(
+          'Periode Bulan',
+          style: AppTypography.labelMedium.copyWith(
+            color: textCol,
+            fontWeight: FontWeight.w700,
           ),
         ),
+        const SizedBox(height: 8),
+        _buildOptionRow(
+          options: const ['Bulan Ini', 'Bulan Lalu'],
+          selectedIndex: _criteria.lastMonth ? 1 : 0,
+          onSelected: (index) {
+            setState(() {
+              _criteria = _criteria.copyWith(lastMonth: index == 1);
+            });
+          },
+          fieldBg: fieldBg,
+          borderCol: borderCol,
+          textCol: textCol,
+          subtitleCol: subtitleCol,
+          brandColor: brandColor,
+          brandFg: brandFg,
+        ),
+        const SizedBox(height: 18),
+        Text(
+          'Rentang Tanggal Kustom (Opsional)',
+          style: AppTypography.labelMedium.copyWith(
+            color: textCol,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDateField(
+                label: 'Mulai',
+                value: _criteria.startDate == null
+                    ? null
+                    : dateFormat.format(_criteria.startDate!),
+                onTap: () => _pickDate(isStart: true),
+                onClear: _criteria.startDate == null
+                    ? null
+                    : () => setState(() {
+                          _criteria = _criteria.copyWith(
+                            clearStartDate: true,
+                          );
+                        }),
+                fieldBg: fieldBg,
+                borderCol: borderCol,
+                textCol: textCol,
+                subtitleCol: subtitleCol,
+                brandColor: brandColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDateField(
+                label: 'Selesai',
+                value: _criteria.endDate == null
+                    ? null
+                    : dateFormat.format(_criteria.endDate!),
+                onTap: () => _pickDate(isStart: false),
+                onClear: _criteria.endDate == null
+                    ? null
+                    : () => setState(() {
+                          _criteria = _criteria.copyWith(
+                            clearEndDate: true,
+                          );
+                        }),
+                fieldBg: fieldBg,
+                borderCol: borderCol,
+                textCol: textCol,
+                subtitleCol: subtitleCol,
+                brandColor: brandColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        Text(
+          'Jenis Absensi',
+          style: AppTypography.labelMedium.copyWith(
+            color: textCol,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildOptionRow(
+          options: const ['Semua', 'Absen Masuk', 'Absen Pulang'],
+          selectedIndex: _criteria.type == null
+              ? 0
+              : (_criteria.type == AttendanceLogType.clockIn ? 1 : 2),
+          onSelected: (index) {
+            setState(() {
+              _criteria = _criteria.copyWith(
+                clearType: index == 0,
+                type: index == 1
+                    ? AttendanceLogType.clockIn
+                    : (index == 2
+                          ? AttendanceLogType.clockOut
+                          : null),
+              );
+            });
+          },
+          fieldBg: fieldBg,
+          borderCol: borderCol,
+          textCol: textCol,
+          subtitleCol: subtitleCol,
+          brandColor: brandColor,
+          brandFg: brandFg,
+        ),
+        const SizedBox(height: 18),
+        Text(
+          'Status Kehadiran',
+          style: AppTypography.labelMedium.copyWith(
+            color: textCol,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildOptionRow(
+          options: const ['Semua', 'Tepat Waktu', 'Terlambat'],
+          selectedIndex: _criteria.punctuality == null
+              ? 0
+              : (_criteria.punctuality ==
+                        AttendanceLogPunctuality.onTime
+                    ? 1
+                    : 2),
+          onSelected: (index) {
+            setState(() {
+              _criteria = _criteria.copyWith(
+                clearPunctuality: index == 0,
+                punctuality: index == 1
+                    ? AttendanceLogPunctuality.onTime
+                    : (index == 2
+                          ? AttendanceLogPunctuality.late
+                          : null),
+              );
+            });
+          },
+          fieldBg: fieldBg,
+          borderCol: borderCol,
+          textCol: textCol,
+          subtitleCol: subtitleCol,
+          brandColor: brandColor,
+          brandFg: brandFg,
+        ),
+        ],
       ),
     );
   }

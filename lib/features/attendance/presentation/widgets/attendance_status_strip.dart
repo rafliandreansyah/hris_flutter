@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_state.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_status_resolver.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/status_banner_card.dart';
@@ -45,76 +46,53 @@ class AttendanceStatusStrip extends StatelessWidget {
         borderRadius: AppRadius.borderLg,
         border: Border.all(color: accent.withValues(alpha: 0.45)),
       ),
-      child: Row(
+      // Disusun vertikal: judul + ikon, pesan lebar penuh, lalu tombol aksi —
+      // agar tidak sempit seperti susunan horizontal sebelumnya.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(spec.icon, color: accent, size: 20),
-          ),
-          const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(spec.icon, color: accent, size: 18),
+              ),
+              const SizedBox(width: AppSpacing.sm + 2),
+              Expanded(
+                child: Text(
                   spec.title,
                   style: AppTypography.titleSmall.copyWith(
                     fontWeight: FontWeight.w700,
                     color: onBg,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  spec.message,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: onBgVariant,
-                    height: 1.35,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm - 2),
+          Text(
+            spec.message,
+            style: AppTypography.bodySmall.copyWith(
+              color: onBgVariant,
+              height: 1.45,
             ),
           ),
           if (spec.actionText != null) ...[
-            const SizedBox(width: AppSpacing.sm),
-            TextButton(
+            const SizedBox(height: AppSpacing.sm + 2),
+            AppButton(
               key: const ValueKey('attendance_status_strip_action'),
+              text: spec.actionText!,
+              variant: AppButtonVariant.outlined,
+              leadingIcon: LucideIcons.refreshCw,
+              height: 40,
+              foregroundColor: accent,
+              borderColor: accent.withValues(alpha: 0.6),
+              isLoading: isBusy,
               onPressed: isBusy ? null : onAction,
-              style: TextButton.styleFrom(
-                foregroundColor: accent,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                minimumSize: const Size(0, 40),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: isBusy
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: accent,
-                      ),
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.refreshCw, size: 16),
-                        const SizedBox(height: 2),
-                        Text(
-                          spec.actionText!,
-                          textAlign: TextAlign.center,
-                          style: AppTypography.labelSmall.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: accent,
-                          ),
-                        ),
-                      ],
-                    ),
             ),
           ],
         ],

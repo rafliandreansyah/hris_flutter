@@ -274,7 +274,7 @@ void main() {
             path: Routes.ATTENDANCE_LOGS,
             builder: (context, state) {
               navigatedRoute = Routes.ATTENDANCE_LOGS;
-              return const Scaffold(body: Text('Attendance Logs'));
+              return const Scaffold(body: Text('Riwayat Presensi'));
             },
           ),
         ],

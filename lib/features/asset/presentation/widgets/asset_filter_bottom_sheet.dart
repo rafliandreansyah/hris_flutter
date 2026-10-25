@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/filter/app_filter_sheet_frame.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
-import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_category_model.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_filter_criteria.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -180,449 +180,330 @@ class _AssetFilterBottomSheetState extends State<AssetFilterBottomSheet> {
       ),
     ];
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // 1. Header Filter Fasilitas (drag handle dari showDragHandle)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.xs,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: primaryCol.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.slidersHorizontal,
-                      size: 18,
-                      color: primaryCol,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Filter Fasilitas',
-                    style: AppTypography.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: textCol,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (_activeCount > 0) ...[
-                    const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.brandTeal.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Text(
-                        '$_activeCount Aktif',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.brandTeal,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: _handleReset,
-                    icon: Icon(
-                      LucideIcons.rotateCcw,
-                      size: 14,
-                      color: primaryCol,
-                    ),
-                    label: Text(
-                      'Reset Filter',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: primaryCol,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(height: 1),
-
-            // 3. Scrollable Filter Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.md,
+    return AppFilterSheetFrame(
+      title: _activeCount > 0 ? 'Filter Fasilitas ($_activeCount)' : 'Filter Fasilitas',
+      onReset: _handleReset,
+      onApply: _handleApply,
+      expandBody: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // --- SECTION 1: Status Fasilitas ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'STATUS FASILITAS',
+                style: AppTypography.labelMedium.copyWith(
+                  color: subtitleCol,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- SECTION 1: Status Fasilitas ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'STATUS FASILITAS',
-                          style: AppTypography.labelMedium.copyWith(
-                            color: subtitleCol,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          'Pilih salah satu',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: subtitleCol,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
+              ),
+              Text(
+                'Pilih salah satu',
+                style: AppTypography.labelSmall.copyWith(
+                  color: subtitleCol,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
 
-                    // Card Radio Container
-                    Container(
-                      decoration: BoxDecoration(
-                        color: surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: borderCol),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: List.generate(statusOptions.length, (index) {
-                          final opt = statusOptions[index];
-                          final isSelected = _selectedStatus == opt.value;
-                          final isLast = index == statusOptions.length - 1;
+          // Card Radio Container
+          Container(
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderCol),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: List.generate(statusOptions.length, (index) {
+                final opt = statusOptions[index];
+                final isSelected = _selectedStatus == opt.value;
+                final isLast = index == statusOptions.length - 1;
 
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedStatus = opt.value;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primaryContainer
-                                        .withValues(alpha: 0.5)
-                                    : Colors.transparent,
-                                border: isLast
-                                    ? null
-                                    : Border(
-                                        bottom: BorderSide(
-                                          color: borderCol.withValues(alpha: 0.5),
-                                        ),
-                                      ),
-                              ),
-                              child: Row(
-                                children: [
-                                  // Radio Dot
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? primaryCol
-                                            : subtitleCol,
-                                        width: isSelected ? 2 : 1.5,
-                                      ),
-                                      color: Colors.white,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: isSelected
-                                        ? Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: primaryCol,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                  const SizedBox(width: AppSpacing.md),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            if (opt.dotColor != primaryCol) ...[
-                                              Container(
-                                                width: 8,
-                                                height: 8,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: opt.dotColor,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                            ],
-                                            Text(
-                                              opt.title,
-                                              style: AppTypography.titleSmall
-                                                  .copyWith(
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w600,
-                                                color: textCol,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            if (opt.badge != null) ...[
-                                              const SizedBox(width: 6),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 1.5,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors
-                                                      .primaryContainer,
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                  opt.badge!,
-                                                  style: AppTypography.labelSmall
-                                                      .copyWith(
-                                                    color: AppColors.brandTeal,
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          opt.subtitle,
-                                          style:
-                                              AppTypography.labelSmall.copyWith(
-                                            color: subtitleCol,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedStatus = opt.value;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryContainer
+                              .withValues(alpha: 0.5)
+                          : Colors.transparent,
+                      border: isLast
+                          ? null
+                          : Border(
+                              bottom: BorderSide(
+                                color: borderCol.withValues(alpha: 0.5),
                               ),
                             ),
-                          );
-                        }),
-                      ),
                     ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // --- SECTION 2: Kategori Aset ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Row(
                       children: [
-                        Text(
-                          'KATEGORI ASET',
-                          style: AppTypography.labelMedium.copyWith(
-                            color: subtitleCol,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          'Pilih kategori',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: subtitleCol,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        // Chip Semua
-                        _buildCategoryChip(
-                          label: 'Semua',
-                          isSelected: _selectedCategoryId == null,
-                          onTap: () {
-                            setState(() {
-                              _selectedCategoryId = null;
-                              _selectedCategoryName = null;
-                            });
-                          },
-                        ),
-                        // Dynamic Categories
-                        ...widget.categories.map((cat) {
-                          final isSelected = _selectedCategoryId == cat.id;
-                          return _buildCategoryChip(
-                            label: cat.name,
-                            icon: _getCategoryIcon(cat.code, cat.name),
-                            isSelected: isSelected,
-                            onTap: () {
-                              setState(() {
-                                if (isSelected) {
-                                  _selectedCategoryId = null;
-                                  _selectedCategoryName = null;
-                                } else {
-                                  _selectedCategoryId = cat.id;
-                                  _selectedCategoryName = cat.name;
-                                }
-                              });
-                            },
-                          );
-                        }),
-                      ],
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // --- SECTION 3: Urutkan Berdasarkan ---
-                    Text(
-                      'URUTKAN BERDASARKAN',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: subtitleCol,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-
-                    // Grid 2x2 Sort Options
-                    GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: sortOptions.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.7,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemBuilder: (context, index) {
-                        final sort = sortOptions[index];
-                        final isSelected = _selectedSortBy == sort.value;
-
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedSortBy = sort.value;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
+                        // Radio Dot
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
                               color: isSelected
-                                  ? AppColors.primaryContainer
-                                      .withValues(alpha: 0.5)
-                                  : surfaceColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? primaryCol : borderCol,
-                                width: isSelected ? 2 : 1,
-                              ),
+                                  ? primaryCol
+                                  : subtitleCol,
+                              width: isSelected ? 2 : 1.5,
                             ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  sort.icon,
-                                  size: 16,
-                                  color: isSelected ? primaryCol : subtitleCol,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    sort.title,
-                                    style: AppTypography.labelMedium.copyWith(
+                            color: Colors.white,
+                          ),
+                          alignment: Alignment.center,
+                          child: isSelected
+                              ? Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: primaryCol,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  if (opt.dotColor != primaryCol) ...[
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: opt.dotColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                  ],
+                                  Text(
+                                    opt.title,
+                                    style: AppTypography.titleSmall
+                                        .copyWith(
                                       fontWeight: isSelected
                                           ? FontWeight.w700
-                                          : FontWeight.w500,
-                                      color: isSelected ? primaryCol : textCol,
-                                      fontSize: 12,
+                                          : FontWeight.w600,
+                                      color: textCol,
+                                      fontSize: 13,
                                     ),
                                   ),
+                                  if (opt.badge != null) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors
+                                            .primaryContainer,
+                                        borderRadius:
+                                            BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        opt.badge!,
+                                        style: AppTypography.labelSmall
+                                            .copyWith(
+                                          color: AppColors.brandTeal,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                opt.subtitle,
+                                style:
+                                    AppTypography.labelSmall.copyWith(
+                                  color: subtitleCol,
                                 ),
-                                if (isSelected)
-                                  Icon(
-                                    LucideIcons.circleCheck,
-                                    size: 16,
-                                    color: primaryCol,
-                                  )
-                                else
-                                  Container(
-                                    width: 14,
-                                    height: 14,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: borderCol),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
+                  ),
+                );
+              }),
+            ),
+          ),
 
-                    const SizedBox(height: AppSpacing.md),
-                  ],
+          const SizedBox(height: AppSpacing.lg),
+
+          // --- SECTION 2: Kategori Aset ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'KATEGORI ASET',
+                style: AppTypography.labelMedium.copyWith(
+                  color: subtitleCol,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
               ),
-            ),
-
-            // 4. Sticky Bottom Action Bar
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: surfaceColor,
-                border: Border(top: BorderSide(color: borderCol)),
+              Text(
+                'Pilih kategori',
+                style: AppTypography.labelSmall.copyWith(
+                  color: subtitleCol,
+                ),
               ),
-              child: Column(
-                children: [
-                  AppButton(
-                    text: 'Terapkan Filter',
-                    leadingIcon: LucideIcons.slidersHorizontal,
-                    onPressed: _handleApply,
-                    height: 50,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Tutup',
-                      style: AppTypography.labelMedium.copyWith(
-                        color: subtitleCol,
-                      ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              // Chip Semua
+              _buildCategoryChip(
+                label: 'Semua',
+                isSelected: _selectedCategoryId == null,
+                onTap: () {
+                  setState(() {
+                    _selectedCategoryId = null;
+                    _selectedCategoryName = null;
+                  });
+                },
+              ),
+              // Dynamic Categories
+              ...widget.categories.map((cat) {
+                final isSelected = _selectedCategoryId == cat.id;
+                return _buildCategoryChip(
+                  label: cat.name,
+                  icon: _getCategoryIcon(cat.code, cat.name),
+                  isSelected: isSelected,
+                  onTap: () {
+                    setState(() {
+                      if (isSelected) {
+                        _selectedCategoryId = null;
+                        _selectedCategoryName = null;
+                      } else {
+                        _selectedCategoryId = cat.id;
+                        _selectedCategoryName = cat.name;
+                      }
+                    });
+                  },
+                );
+              }),
+            ],
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // --- SECTION 3: Urutkan Berdasarkan ---
+          Text(
+            'URUTKAN BERDASARKAN',
+            style: AppTypography.labelMedium.copyWith(
+              color: subtitleCol,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+
+          // Grid 2x2 Sort Options
+          GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: sortOptions.length,
+            gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2.7,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemBuilder: (context, index) {
+              final sort = sortOptions[index];
+              final isSelected = _selectedSortBy == sort.value;
+
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedSortBy = sort.value;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryContainer
+                            .withValues(alpha: 0.5)
+                        : surfaceColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? primaryCol : borderCol,
+                      width: isSelected ? 2 : 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        sort.icon,
+                        size: 16,
+                        color: isSelected ? primaryCol : subtitleCol,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          sort.title,
+                          style: AppTypography.labelMedium.copyWith(
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected ? primaryCol : textCol,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(
+                          LucideIcons.circleCheck,
+                          size: 16,
+                          color: primaryCol,
+                        )
+                      else
+                        Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: borderCol),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+        ],
       ),
     );
   }

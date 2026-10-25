@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -19,7 +21,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 
-/// Halaman "Overtime Requests" — slice dari desain Stitch
+/// Halaman "Pengajuan Lembur" — slice dari desain Stitch
 /// (screen "Oasish Team Overtime Requests - List View", project
 /// "Oasish Flutter M3 HRIS").
 ///
@@ -237,11 +239,8 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
           icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Overtime Requests',
+        title: Text(
+              AppLocalizations.of(context)?.titleOvertime ?? 'Pengajuan Lembur',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -250,16 +249,6 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              'Team approvals & overtime management',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             onPressed: _openFilterBottomSheet,
@@ -469,7 +458,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
                             ),
                             onChanged: _onSearchChanged,
                             decoration: InputDecoration(
-                              hintText: 'Search by employee name or keyword...',
+                              hintText: 'Cari nama pegawai atau kata kunci...',
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: subtitleCol,
                                 fontSize: 13.5,
@@ -618,14 +607,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -658,14 +640,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
 
     // 1. Penanganan khusus HTTP 403 Forbidden (bukan approver)
     if (isForbidden) {
-      return _buildForbiddenState(
-        isDark: isDark,
-        surfaceCol: surfaceCol,
-        textCol: textCol,
-        subtitleCol: subtitleCol,
-        borderCol: borderCol,
-        brandColor: brandColor,
-      );
+      return _buildForbiddenState();
     }
 
     // 2. Loading awal / refresh
@@ -703,14 +678,7 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
@@ -758,180 +726,21 @@ class _OvertimeScreenViewState extends State<_OvertimeScreenView>
     );
   }
 
-  // ── Forbidden state (403, khusus tab Team Overtime) ─────────────────
-  Widget _buildForbiddenState({
-    required bool isDark,
-    required Color surfaceCol,
-    required Color textCol,
-    required Color subtitleCol,
-    required Color borderCol,
-    required Color brandColor,
-  }) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<OvertimeListBloc>().add(
+  // ── Forbidden state (HTTP 403, khusus tab tim) ───────────────────────
+  Widget _buildForbiddenState() {
+    void refresh() => context.read<OvertimeListBloc>().add(
           const OvertimeListFetchRequested(isRefresh: true, isTeam: true),
         );
-        await Future.delayed(const Duration(milliseconds: 300));
-      },
-      color: brandColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: surfaceCol,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.shieldAlert,
-                      color: Color(0xFFD97706),
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    'Tidak Memiliki Hak Akses',
-                    style: AppTypography.titleMedium.copyWith(
-                      color: textCol,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 17,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Anda tidak memiliki otoritas sebagai approver untuk melihat permintaan lembur tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 13,
-                      height: 1.45,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          context.read<OvertimeListBloc>().add(
-                            const OvertimeListFetchRequested(
-                              isRefresh: true,
-                              isTeam: true,
-                            ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textCol,
-                          side: BorderSide(color: borderCol),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          alignment: Alignment.center,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.rotateCcw,
-                              size: 14,
-                              color: textCol,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Coba Lagi',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: textCol,
-                                fontWeight: FontWeight.w600,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          _tabController.animateTo(0);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brandColor,
-                          foregroundColor: isDark
-                              ? AppColors.darkOnPrimary
-                              : Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.alarmClock,
-                              size: 14,
-                              color: isDark
-                                  ? AppColors.darkOnPrimary
-                                  : Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Ke Lembur Saya',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: isDark
-                                    ? AppColors.darkOnPrimary
-                                    : Colors.white,
-                                fontWeight: FontWeight.w600,
-                                height: 1.0,
-                                leadingDistribution:
-                                    TextLeadingDistribution.even,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+
+    return RefreshIndicator(
+      onRefresh: () async => refresh(),
+      color: AppColors.brandTeal,
+      child: AppForbiddenState(
+        message:
+            'Anda tidak memiliki otoritas sebagai approver untuk melihat permintaan lembur tim. Fitur ini khusus untuk akun dengan otoritas Approver atau Supervisor.',
+        onRetry: refresh,
+        actionText: 'Ke Lembur Saya',
+        onAction: () => _tabController.animateTo(0),
       ),
     );
   }

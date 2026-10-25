@@ -132,7 +132,7 @@ class WorkScheduleEmptyState extends StatelessWidget {
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        'Jadwal kerja dapat diatur oleh Admin melalui menu Work Schedule di Dashboard Web HRIS.',
+                        'Jadwal kerja dapat diatur oleh Admin melalui menu Jadwal Kerja di dashboard web HRIS.',
                         style: AppTypography.bodySmall.copyWith(
                           color: subtitleCol,
                           fontSize: 12,
@@ -179,20 +179,13 @@ class WorkScheduleEmptyState extends StatelessWidget {
                   ],
                   if (onRefresh != null) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    TextButton.icon(
+                    AppButton(
+                      text: 'Segarkan Data',
+                      leadingIcon: LucideIcons.refreshCw,
+                      variant: AppButtonVariant.ghost,
+                      foregroundColor: accentTeal,
+                      height: 40,
                       onPressed: onRefresh,
-                      icon: Icon(
-                        LucideIcons.refreshCw,
-                        size: 14,
-                        color: accentTeal,
-                      ),
-                      label: Text(
-                        'Segarkan Data',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: accentTeal,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ),
                   ],
                 ],

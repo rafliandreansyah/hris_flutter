@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
@@ -177,47 +178,23 @@ class AssetCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 38,
-                  child: OutlinedButton.icon(
-                    onPressed: onReject,
-                    icon: const Icon(LucideIcons.x, size: 16),
-                    label: const Text('Tolak'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.errorRed,
-                      side: const BorderSide(color: Color(0xFFFCA5A5)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      textStyle: AppTypography.labelMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                child: AppButton(
+                  text: 'Tolak',
+                  leadingIcon: LucideIcons.x,
+                  variant: AppButtonVariant.outlined,
+                  height: 40,
+                  foregroundColor: AppColors.errorRed,
+                  borderColor: AppColors.errorRed.withValues(alpha: 0.4),
+                  onPressed: onReject,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: SizedBox(
-                  height: 38,
-                  child: ElevatedButton.icon(
-                    onPressed: onAccept,
-                    icon: const Icon(LucideIcons.check, size: 16),
-                    label: const Text('Terima'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandTeal,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      textStyle: AppTypography.labelMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                child: AppButton(
+                  text: 'Terima',
+                  leadingIcon: LucideIcons.check,
+                  height: 40,
+                  onPressed: onAccept,
                 ),
               ),
             ],

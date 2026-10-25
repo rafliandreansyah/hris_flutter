@@ -111,17 +111,17 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // 1. Header and AppBar
-      expect(find.text('Employee Directory'), findsOneWidget);
+      expect(find.text('Direktori Pegawai'), findsOneWidget);
       expect(
         find.text('Find colleagues, departments & contact info'),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
 
       // 2. Search Bar
       expect(find.byType(TextField), findsOneWidget);
       expect(
-        find.text('Search by name, role, department, or email...'),
+        find.text('Cari nama, jabatan, departemen, atau email...'),
         findsOneWidget,
       );
 
@@ -134,9 +134,9 @@ void main() {
       expect(find.text('Head of People & Culture'), findsOneWidget);
 
       // 4. Badges and Meta
-      expect(find.text('ID: EMP-092'), findsOneWidget);
-      expect(find.text('ID: EMP-145'), findsOneWidget);
-      expect(find.text('ID: EMP-003'), findsOneWidget);
+      expect(find.text('ID: EMP-092'), findsNothing); // id internal tidak ditampilkan
+      expect(find.text('ID: EMP-145'), findsNothing); // id internal tidak ditampilkan
+      expect(find.text('ID: EMP-003'), findsNothing); // id internal tidak ditampilkan
 
       // 5. Initials Avatar for Jessica Pranata
       expect(find.text('JP'), findsOneWidget);
@@ -264,7 +264,7 @@ void main() {
 
       expect(find.text('Test Employee'), findsOneWidget);
       expect(find.text('Software Architect'), findsOneWidget);
-      expect(find.text('View Profile'), findsOneWidget);
+      expect(find.text('Lihat Profil'), findsOneWidget);
 
       // Tombol telepon & email tidak memicu tap kartu (aksi kontak diuji di contact_launcher_util_test)
       expect(find.byIcon(LucideIcons.phone), findsOneWidget);
@@ -272,7 +272,7 @@ void main() {
       expect(cardTapped, isFalse);
 
       // Tap whole card
-      await tester.tap(find.text('View Profile'));
+      await tester.tap(find.text('Lihat Profil'));
       await tester.pump();
 
       expect(cardTapped, isTrue);
@@ -294,7 +294,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('View Profile'), findsNothing);
+      expect(find.text('Lihat Profil'), findsNothing);
       expect(find.byIcon(LucideIcons.phone), findsOneWidget);
     });
 
@@ -335,8 +335,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       // Should be on Employee Detail Screen with Budi Santoso's details
-      expect(find.text('Employee Detail'), findsOneWidget);
-      expect(find.text('EMP-145 • Operations'), findsOneWidget);
+      expect(find.text('Detail Pegawai'), findsOneWidget);
+      expect(find.text('Operations'), findsWidgets);
       expect(find.text('Site Operations Supervisor'), findsOneWidget);
     });
 
@@ -357,11 +357,11 @@ void main() {
 
       // Bottom sheet elements should be displayed
       expect(find.text('Filter Data Pegawai'), findsOneWidget);
-      expect(find.text('Perusahaan (Company)'), findsOneWidget);
-      expect(find.text('Departemen (Department)'), findsOneWidget);
-      expect(find.text('Jabatan (Position)'), findsOneWidget);
-      expect(find.text('Reset Filter'), findsOneWidget);
-      expect(find.text('Batal'), findsOneWidget);
+      expect(find.text('Perusahaan'), findsOneWidget);
+      expect(find.text('Departemen'), findsOneWidget);
+      expect(find.text('Jabatan'), findsOneWidget);
+      expect(find.text('Reset'), findsOneWidget);
+      expect(find.text('Batal'), findsNothing);
       expect(find.text('Terapkan Filter'), findsOneWidget);
 
       // Verify department and position are disabled with helper text before company is chosen

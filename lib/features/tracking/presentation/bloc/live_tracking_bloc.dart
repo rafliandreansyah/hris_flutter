@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -183,7 +184,7 @@ class LiveTrackingBloc extends Bloc<LiveTrackingEvent, LiveTrackingState> {
       if (seq != _fetchSeq) return;
       emit(state.copyWith(
         status: LiveTrackingStatus.failure,
-        errorMessage: () => 'Gagal memuat data live tracking: $e',
+        errorMessage: () => AppErrorMessage.from(e),
       ));
     }
   }

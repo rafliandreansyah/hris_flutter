@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -52,7 +53,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal memuat jumlah notifikasi: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -80,7 +81,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal memuat daftar notifikasi: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -101,7 +102,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal menandai semua notifikasi dibaca: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -122,7 +123,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal menandai notifikasi dibaca: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -143,7 +144,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
     } on ApiException {
       rethrow;
     } catch (e) {
-      throw ApiException(message: 'Gagal memuat pengaturan notifikasi: $e');
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 
@@ -168,7 +169,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       rethrow;
     } catch (e) {
       throw ApiException(
-        message: 'Gagal memperbarui pengaturan notifikasi: $e',
+        message: AppErrorMessage.from(e),
       );
     }
   }

@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
+import 'package:hris_flutter/core/utils/permission_util.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/widgets/onboarding_progress_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -107,9 +110,34 @@ class _DashboardViewState extends State<_DashboardView>
     }
   }
 
+  bool _isCheckingTrackingPermission = false;
+
+  /// Sesi clock-in masih aktif di server tetapi izin lokasi hilang (reinstall / dicabut):
+  /// minta izin kembali lalu lanjutkan pelacakan.
+  Future<void> _ensureTrackingPermission() async {
+    if (_isCheckingTrackingPermission) return;
+    _isCheckingTrackingPermission = true;
+    try {
+      final tracking = LocationTrackingService.instance;
+      await tracking.syncWithServerConfig();
+      if (!mounted || tracking.state == TrackingState.idle) return;
+      if (await PermissionUtil.hasLocationPermission()) return;
+      if (!mounted) return;
+
+      final result =
+          await PermissionUtil.requestLocationPermission(context: context);
+      if (!result.isGranted || !mounted) return;
+      await PermissionUtil.requestBackgroundLocationPermission(context: context);
+      tracking.restartActiveSession();
+    } finally {
+      _isCheckingTrackingPermission = false;
+    }
+  }
+
   void _reload() {
     if (!mounted) return;
     context.read<DashboardBloc>().add(const DashboardFetchRequested(isRefresh: true, silent: true));
+    SubmissionSettingCubit.maybeOf(context)?.load();
     context.read<NotificationCountBloc>().add(const NotificationCountFetchRequested());
   }
 
@@ -120,6 +148,7 @@ class _DashboardViewState extends State<_DashboardView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         NotificationNavigationHandler.instance.consumePendingPayload(context);
+        SubmissionSettingCubit.maybeOf(context)?.load();
       }
     });
   }
@@ -413,6 +442,9 @@ class _DashboardViewState extends State<_DashboardView>
       body: SafeArea(
         child: BlocConsumer<DashboardBloc, DashboardState>(
           listener: (context, state) {
+            if (state is DashboardLoaded) {
+              _ensureTrackingPermission();
+            }
             if (state is DashboardDeviceMismatch) {
               AppDialogUtil.showForcedLogoutDialog(
                 context,

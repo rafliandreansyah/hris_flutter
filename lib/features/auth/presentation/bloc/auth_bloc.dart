@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -110,7 +111,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         statusCode: e.statusCode,
       ));
     } catch (e) {
-      emit(AuthFailure(message: 'Terjadi kesalahan: $e'));
+      emit(AuthFailure(message: AppErrorMessage.from(e)));
     }
   }
 

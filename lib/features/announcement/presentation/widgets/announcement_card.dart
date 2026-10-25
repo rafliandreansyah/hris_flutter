@@ -105,7 +105,7 @@ class AnnouncementCard extends StatelessWidget {
                       _buildImageCover(announcement.imageUrl!, isDark),
                     ],
 
-                    // 6. Footer Strip: Status Konfirmasi & Aksi "Lihat Detail"
+                    // 6. Footer Strip: Status Konfirmasi & penanda buka detail
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.only(top: 10),
@@ -129,25 +129,11 @@ class AnnouncementCard extends StatelessWidget {
                           else
                             const SizedBox.shrink(),
 
-                          // Aksi Lihat Detail
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Lihat Detail',
-                                style: AppTypography.labelMedium.copyWith(
-                                  color: brandColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                LucideIcons.arrowRight,
-                                size: 15,
-                                color: brandColor,
-                              ),
-                            ],
+                          // Seluruh kartu dapat diketuk; cukup penanda panah.
+                          Icon(
+                            LucideIcons.chevronRight,
+                            size: 18,
+                            color: brandColor,
                           ),
                         ],
                       ),

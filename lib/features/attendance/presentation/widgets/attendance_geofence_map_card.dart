@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -568,16 +569,9 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!_isTestOrDesktop)
-              SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: isDark
+              AppLoadingIndicator.small(color: isDark
                       ? AppColors.darkOnSurfaceVariant
-                      : AppColors.surfaceVariant,
-                ),
-              )
+                      : AppColors.surfaceVariant)
             else
               Icon(
                 LucideIcons.loader,
@@ -741,14 +735,7 @@ class _AttendanceGeofenceMapCardState extends State<AttendanceGeofenceMapCard>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isLoading)
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: fg,
-                    ),
-                  )
+                  AppLoadingIndicator.small(color: fg)
                 else
                   Icon(icon, size: 16, color: fg),
                 const SizedBox(width: 6),

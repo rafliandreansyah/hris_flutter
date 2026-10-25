@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +14,8 @@ import 'package:hris_flutter/features/attendance/domain/repositories/attendance_
 import 'package:hris_flutter/features/attendance/presentation/bloc/attendance_logs/attendance_logs_bloc.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_logs_filter_bottom_sheet.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_team_member_card.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_card.dart';
+import 'package:hris_flutter/core/widgets/app_search_bar.dart';
 import 'package:hris_flutter/features/employee/domain/repositories/employee_repository.dart';
 import 'package:hris_flutter/features/employee/presentation/bloc/employee_list/employee_list_bloc.dart';
 import 'package:hris_flutter/features/employee/presentation/widgets/employee_filter_bottom_sheet.dart';
@@ -237,11 +240,8 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
             onPressed: _handleBack,
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-              'Attendance Logs',
+          title: Text(
+              AppLocalizations.of(context)?.titleAttendanceLogs ?? 'Riwayat Presensi',
               style: AppTypography.titleMedium.copyWith(
                 color: textCol,
                 fontWeight: FontWeight.w700,
@@ -250,16 +250,6 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              'Track clock-in & clock-out activity',
-              style: AppTypography.labelSmall.copyWith(
-                color: subtitleCol,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             key: const ValueKey('attendance_logs_filter_button'),
@@ -561,10 +551,7 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
   }) {
     if (state.status == AttendanceLogsStatus.loading && state.logs.isEmpty) {
       return Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-        ),
+        child: AppLoadingIndicator(color: brandColor),
       );
     }
 
@@ -629,33 +616,20 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
-                ),
+                child: AppLoadingIndicator.small(color: brandColor),
               ),
             );
           }
           if (state.hasMorePages) {
             return Center(
-              child: OutlinedButton.icon(
+              child: AppButton(
+                text: 'Muat Periode Sebelumnya',
+                leadingIcon: LucideIcons.history,
+                variant: AppButtonVariant.outlined,
+                width: null,
+                height: 44,
                 onPressed: () => context.read<AttendanceLogsBloc>().add(
                   const AttendanceLogsLoadMore(),
-                ),
-                icon: const Icon(LucideIcons.history, size: 18),
-                label: const Text('Load Previous Period'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: brandColor,
-                  side: BorderSide(color: brandColor),
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
                 ),
               ),
             );
@@ -668,87 +642,26 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
 
   Widget _buildTeamAttendanceTab() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceCol = isDark
-        ? AppColors.darkSurfaceContainerLowest
-        : AppColors.surfaceContainerLowest;
-    final textCol = isDark ? AppColors.darkOnSurface : AppColors.onSurface;
-    final subtitleCol = isDark
-        ? AppColors.darkOnSurfaceVariant
-        : AppColors.onSurfaceVariant;
-    final borderCol = isDark
-        ? AppColors.darkOutlineMuted
-        : AppColors.outlineMuted;
     final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: surfaceCol,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderCol, width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _teamSearchController,
-              onTapOutside: (event) =>
-                  FocusManager.instance.primaryFocus?.unfocus(),
-              style: AppTypography.bodyMedium.copyWith(
-                color: textCol,
-                fontSize: 14,
-              ),
-              onChanged: _onTeamSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search team member...',
-                hintStyle: AppTypography.bodyMedium.copyWith(
-                  color: subtitleCol,
-                  fontSize: 13.5,
-                ),
-                prefixIcon: Icon(
-                  LucideIcons.search,
-                  size: 18,
-                  color: subtitleCol,
-                ),
-                suffixIcon: _teamSearchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          LucideIcons.x,
-                          size: 16,
-                          color: subtitleCol,
-                        ),
-                        onPressed: () {
-                          _teamSearchController.clear();
-                          _onTeamSearchChanged('');
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 13,
-                ),
-              ),
-            ),
-          ),
+        AppSearchBar(
+          controller: _teamSearchController,
+          hintText: 'Cari anggota tim...',
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          onChanged: _onTeamSearchChanged,
+          onClear: () {
+            _onTeamSearchChanged('');
+            setState(() {});
+          },
         ),
         Expanded(
           child: BlocBuilder<EmployeeListBloc, EmployeeListState>(
             builder: (context, state) {
               if (state.isLoading && state.employees.isEmpty) {
                 return Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                  ),
+                  child: AppLoadingIndicator(color: brandColor),
                 );
               }
 
@@ -807,22 +720,14 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                brandColor,
-                              ),
-                            ),
-                          ),
+                          child: AppLoadingIndicator.small(color: brandColor,),
                         ),
                       );
                     }
                     final employee = state.employees[index];
-                    return AttendanceTeamMemberCard(
+                    return EmployeeCard(
                       employee: employee,
+                      actionLabel: 'Lihat Absensi',
                       onTap: () => context.push(
                         Routes.EMPLOYEE_ATTENDANCE_LOGS,
                         extra: employee,
@@ -862,7 +767,6 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
     final subtitleCol = isDark
         ? AppColors.darkOnSurfaceVariant
         : AppColors.onSurfaceVariant;
-    final brandColor = isDark ? AppColors.inversePrimary : AppColors.brandTeal;
     final l10n = AppLocalizations.of(context);
 
     final IconData iconData;
@@ -919,59 +823,34 @@ class _AttendanceLogsViewState extends State<_AttendanceLogsView>
             ),
             const SizedBox(height: 20),
             if (isNotFound && isLastMonth && onSwitchToCurrentMonth != null) ...[
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey('attendance_logs_view_current_month_button'),
+                text: l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
+                width: null,
                 onPressed: onSwitchToCurrentMonth,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                child: Text(
-                  l10n?.viewCurrentMonth ?? 'Lihat Bulan Ini',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
               ),
               const SizedBox(height: 10),
-              TextButton(
+              AppButton(
                 key: const ValueKey('attendance_logs_back_button'),
+                text: 'Kembali',
+                variant: AppButtonVariant.ghost,
+                width: null,
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text(
-                  'Kembali',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
               ),
             ] else if (isNotFound)
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey('attendance_logs_back_button'),
+                text: 'Kembali',
+                width: null,
                 onPressed: () => Navigator.of(context).maybePop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: const Text('Kembali'),
               )
             else
-              ElevatedButton(
+              AppButton(
                 key: const ValueKey('attendance_logs_retry_button'),
+                text: 'Coba Lagi',
+                leadingIcon: LucideIcons.rotateCcw,
+                width: null,
                 onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandColor,
-                  foregroundColor:
-                      isDark ? AppColors.darkOnPrimary : Colors.white,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: const Text('Coba Lagi'),
               ),
           ],
         ),

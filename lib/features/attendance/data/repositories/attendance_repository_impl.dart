@@ -97,7 +97,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         final isAnyWhere = wl['isAnyWhere'] == true || locMap['isAnyWhere'] == true;
         final id = (wl['id'] ?? locMap['workLocationId'] ?? locMap['id'] ?? '').toString();
         final employeeWorkLocationId = locMap['id']?.toString();
-        final name = (wl['name'] ?? locMap['name']) as String? ?? 'Unnamed Location';
+        final name = (wl['name'] ?? locMap['name']) as String? ?? 'Lokasi Tanpa Nama';
         final address = (wl['address'] ?? locMap['address']) as String? ?? '';
         final radius = ((wl['radius'] ?? locMap['radius']) as num?)?.toDouble() ?? 50.0;
 
@@ -247,7 +247,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       timezone: data['timezone'] as String? ?? 'Asia/Jakarta',
       serverTime: serverDateTime,
       employeeName: fullName,
-      employeeRole: pos?['name'] as String? ?? 'Staff',
+      employeeRole: pos?['name'] as String? ?? '',
       employeeId: employeeId,
       photoUrl: data['photoUrl'] as String?,
       companyName: company?['name'] as String? ?? '',

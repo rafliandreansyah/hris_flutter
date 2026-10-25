@@ -1,4 +1,6 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -95,7 +97,6 @@ class _AttendanceRequestDetailViewState
   void _handleShare(AttendanceRequestDetailData detail) {
     final text = StringBuffer()
       ..writeln('📋 DETAIL PRESENSI LUAR KANTOR')
-      ..writeln('ID: ${detail.id}')
       ..writeln('Pegawai: ${detail.employee.fullName}')
       ..writeln('Departemen: ${detail.employee.department?.name ?? '-'}')
       ..writeln('Status: ${detail.statusLabel}')
@@ -169,8 +170,6 @@ class _AttendanceRequestDetailViewState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCol = isDark ? AppColors.darkBackground : AppColors.backgroundSubtle;
     final textCol = isDark ? AppColors.darkOnSurface : AppColors.darkBackgroundSubtle;
-    final subtitleCol =
-        isDark ? AppColors.darkOnSurfaceVariant : AppColors.surfaceVariant;
     final borderCol =
         isDark ? AppColors.darkOutlineMuted : AppColors.darkOnBackground;
     final cardBg = isDark
@@ -218,10 +217,6 @@ class _AttendanceRequestDetailViewState
       },
       builder: (context, state) {
         final detail = state.detail;
-        final shortId = detail != null && detail.id.isNotEmpty
-            ? (detail.id.length >= 8 ? detail.id.substring(0, 8) : detail.id)
-            : widget.id;
-        final statusText = detail?.status.toUpperCase() ?? 'REQUESTED';
 
         // Tampilkan bottom bar aksi HANYA jika:
         // 1. User membuka sebagai approver (state.isApprover == true)
@@ -257,11 +252,7 @@ class _AttendanceRequestDetailViewState
                 icon: Icon(LucideIcons.arrowLeft, color: textCol, size: 22),
                 onPressed: _handlePop,
               ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+              title: Text(
                     'Detail Presensi Luar',
                     style: AppTypography.titleMedium.copyWith(
                       color: textCol,
@@ -269,68 +260,24 @@ class _AttendanceRequestDetailViewState
                       fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'Request ID: $shortId • $statusText',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: subtitleCol,
-                      fontSize: 11.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
               actions: [
                 if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.link, color: textCol, size: 20),
-                    tooltip: 'Salin Link',
-                    onPressed: () => ShareLinkUtil.copyLink(
-                      context,
-                      ShareLinkUtil.webUrl(ShareModule.attendance, detail.id),
-                    ),
-                  ),
-                if (detail != null)
-                  IconButton(
-                    icon: Icon(LucideIcons.share2, color: textCol, size: 20),
-                    tooltip: 'Bagikan',
-                    onPressed: () => _handleShare(detail),
-                  ),
-                // Menu pojok kanan atas: Opsi Hapus bila pengajuan milik sendiri & status masih requested
-                if (canDelete)
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      LucideIcons.ellipsisVertical,
-                      color: textCol,
-                      size: 20,
-                    ),
-                    onSelected: (val) {
-                      if (val == 'delete') {
-                        _handleDelete(context);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(
-                              LucideIcons.trash2,
-                              color: AppColors.errorRed,
-                              size: 18,
-                            ),
-                            SizedBox(width: 10),
-                            Text(
-                              'Hapus Pengajuan',
-                              style: TextStyle(
-                                color: AppColors.errorRed,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                  AppDetailMoreMenu(
+                    items: [
+                      AppDetailMenuItem.share(() => _handleShare(detail)),
+                      AppDetailMenuItem.copyLink(
+                        () => ShareLinkUtil.copyLink(
+                          context,
+                          ShareLinkUtil.webUrl(ShareModule.attendance, detail.id),
                         ),
                       ),
+                      if (canDelete)
+                        AppDetailMenuItem(
+                          icon: LucideIcons.trash2,
+                          label: 'Hapus Pengajuan',
+                          isDestructive: true,
+                          onTap: () => _handleDelete(context),
+                        ),
                     ],
                   ),
               ],
@@ -354,10 +301,7 @@ class _AttendanceRequestDetailViewState
         (state.status == AttendanceRequestDetailStatus.initial &&
             state.detail == null)) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.brandTeal,
-          strokeWidth: 2.5,
-        ),
+        child: AppLoadingIndicator(color: AppColors.brandTeal),
       );
     }
 
@@ -398,34 +342,22 @@ class _AttendanceRequestDetailViewState
               ),
               const SizedBox(height: 24),
               if (is404)
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Kembali',
+                  leadingIcon: LucideIcons.arrowLeft,
+                  width: null,
                   onPressed: _handlePop,
-                  icon: const Icon(LucideIcons.arrowLeft, size: 18),
-                  label: const Text('Kembali'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 )
               else
-                ElevatedButton.icon(
+                AppButton(
+                  text: 'Coba Lagi',
+                  leadingIcon: LucideIcons.refreshCw,
+                  width: null,
                   onPressed: () {
                     context.read<AttendanceRequestDetailBloc>().add(
                           const AttendanceRequestDetailRefreshRequested(),
                         );
                   },
-                  icon: const Icon(LucideIcons.refreshCw, size: 18),
-                  label: const Text('Coba Lagi'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandTeal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 ),
             ],
           ),
@@ -459,13 +391,17 @@ class _AttendanceRequestDetailViewState
           const SizedBox(height: 16),
 
           // Section 3: Requester Profile Card
-          AttendanceRequestEmployeeCard(employee: detail.employee),
+          AttendanceRequestEmployeeCard(
+            employee: detail.employee,
+            showContactActions: state.isApprover,
+          ),
           const SizedBox(height: 16),
 
           // Section 4: Approver Profile Card
           AttendanceRequestApproverCard(
             approver: detail.approver,
             approverNotes: detail.approverNote,
+            isRejected: detail.isRejected,
           ),
 
           // Section 5: Photo Proof Card (otomatis tersembunyi jika bukan metode foto/liveness)

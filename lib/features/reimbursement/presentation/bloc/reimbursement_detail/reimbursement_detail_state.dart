@@ -10,12 +10,16 @@ class ReimbursementDetailState extends Equatable {
   final String? actionSuccessMessage;
   final String? errorMessage;
 
+  /// True setelah pengajuan berhasil dihapus; layar menutup halaman detail.
+  final bool isDeleted;
+
   const ReimbursementDetailState({
     this.status = ReimbursementDetailStatus.initial,
     this.detail,
     this.isActionLoading = false,
     this.actionSuccessMessage,
     this.errorMessage,
+    this.isDeleted = false,
   });
 
   bool get isActionSuccess => actionSuccessMessage != null;
@@ -26,6 +30,7 @@ class ReimbursementDetailState extends Equatable {
     bool? isActionLoading,
     String? actionSuccessMessage,
     String? errorMessage,
+    bool? isDeleted,
     bool clearActionMessage = false,
     bool clearErrorMessage = false,
   }) {
@@ -39,6 +44,7 @@ class ReimbursementDetailState extends Equatable {
       errorMessage: clearErrorMessage
           ? null
           : (errorMessage ?? this.errorMessage),
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -49,5 +55,6 @@ class ReimbursementDetailState extends Equatable {
         isActionLoading,
         actionSuccessMessage,
         errorMessage,
+        isDeleted,
       ];
 }

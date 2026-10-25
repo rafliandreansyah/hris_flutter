@@ -5,7 +5,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/core/widgets/app_text_field.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_detail_person_card.dart';
 import 'package:hris_flutter/features/resignation/data/models/subordinate_resignation_model.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_bloc.dart';
 import 'package:hris_flutter/features/resignation/presentation/bloc/resignation_list/resignation_list_event.dart';
@@ -127,13 +127,17 @@ class _ResignationReviewSheetState extends State<ResignationReviewSheet> {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              EmployeeInfoRow(
+              RequestDetailPersonCard(
+                title: 'Informasi Pengaju',
                 name: item.employeeName,
-                role: item.positionName,
+                position: item.positionName,
                 department: item.departmentName,
-                employeeId: item.employeeNik,
+                employeeNumber: item.employeeNik,
+                email: item.employee?.email,
+                phone: item.employee?.phone,
                 avatarUrl: item.avatarUrl,
-                avatarSize: 44,
+                // Sheet ini hanya dibuka atasan/HR, jadi pengaju selalu orang lain.
+                showContactActions: true,
               ),
               const SizedBox(height: AppSpacing.md),
               Container(

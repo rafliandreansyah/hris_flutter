@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -243,26 +244,11 @@ class AssetWarehouseCard extends StatelessWidget {
                 // 3. Tombol Aksi Cepat: Serah Terima
                 if (canHandover && onHandover != null) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 38,
-                    child: ElevatedButton.icon(
-                      onPressed: onHandover,
-                      icon: const Icon(LucideIcons.userPlus, size: 16),
-                      label: const Text('Serah Terima ke Karyawan'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandTeal,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        textStyle: AppTypography.labelMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
+                  AppButton(
+                    text: 'Serah Terima ke Karyawan',
+                    leadingIcon: LucideIcons.userPlus,
+                    height: 40,
+                    onPressed: onHandover,
                   ),
                 ],
               ],

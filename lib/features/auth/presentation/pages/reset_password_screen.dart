@@ -283,7 +283,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'Back to Login',
+                                              'Kembali ke Login',
                                               style: AppTypography.labelMedium
                                                   .copyWith(
                                                     color: AppColors.brandTeal,

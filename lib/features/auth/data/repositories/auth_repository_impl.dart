@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/services/location/location_tracking_service.dart';
 import 'dart:convert';
 import 'package:hris_flutter/core/network/api_client.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -117,6 +118,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } catch (silentError) {
         debugPrint('[diabaikan] $silentError');
       }
+    }
+
+    // 0b. Hentikan pelacakan lokasi & buang antrean lokal agar tidak bocor ke pengguna berikutnya
+    try {
+      await LocationTrackingService.instance.stopAndClearQueue();
+    } catch (silentError) {
+      debugPrint('[diabaikan] $silentError');
     }
 
     // 1. Hapus token dari secure storage

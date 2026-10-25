@@ -17,15 +17,15 @@ extension ActivityStatusExtension on ActivityStatus {
   String get label {
     switch (this) {
       case ActivityStatus.planned:
-        return 'Planned';
+        return 'Direncanakan';
       case ActivityStatus.ongoing:
-        return 'Ongoing';
+        return 'Berjalan';
       case ActivityStatus.completed:
-        return 'Completed';
+        return 'Selesai';
       case ActivityStatus.canceled:
-        return 'Canceled';
+        return 'Dibatalkan';
       case ActivityStatus.pendingReview:
-        return 'Pending Review';
+        return 'Menunggu Tinjauan';
     }
   }
 
@@ -268,9 +268,9 @@ class ActivityItem {
 
       final phase1 = ActivityPhaseItem(
         phaseNumber: 1,
-        title: 'Phase 1: Start & Check-In',
+        title: 'Tahap 1: Mulai & Check-In',
         time: phase1TimeStr,
-        label: 'Initial Description / Task Scope',
+        label: 'Deskripsi Awal / Lingkup Tugas',
         notes: description.isNotEmpty
             ? description
             : 'Memulai aktivitas kerja di lokasi.',
@@ -285,9 +285,9 @@ class ActivityItem {
       if (status == ActivityStatus.completed) {
         phase2 = ActivityPhaseItem(
           phaseNumber: 2,
-          title: 'Phase 2: Completion & Report',
+          title: 'Tahap 2: Penyelesaian & Laporan',
           time: phase2TimeStr,
-          label: 'Completion Notes / Outcome',
+          label: 'Catatan Penyelesaian / Hasil',
           notes: notes?.isNotEmpty == true
               ? notes!
               : 'Aktivitas telah selesai dikerjakan.',
@@ -297,7 +297,7 @@ class ActivityItem {
       } else if (status == ActivityStatus.canceled) {
         phase2 = ActivityPhaseItem(
           phaseNumber: 2,
-          title: 'Phase 2: Activity Canceled',
+          title: 'Tahap 2: Aktivitas Dibatalkan',
           time: phase2TimeStr,
           label: 'Alasan Pembatalan',
           notes: notes?.isNotEmpty == true
@@ -310,7 +310,7 @@ class ActivityItem {
         // Ongoing / Planned
         phase2 = const ActivityPhaseItem(
           phaseNumber: 2,
-          title: 'Phase 2: Completion & Report',
+          title: 'Tahap 2: Penyelesaian & Laporan',
           time: 'Sedang Berlangsung',
           label: 'Status Saat Ini',
           notes: 'Aktivitas sedang berjalan dan belum diselesaikan.',
@@ -326,9 +326,9 @@ class ActivityItem {
     return [
       ActivityPhaseItem(
         phaseNumber: 1,
-        title: 'Phase 1: Start & Check-In',
+        title: 'Tahap 1: Mulai & Check-In',
         time: '$time, 27 Aug 2026',
-        label: 'Initial Description / Task Scope',
+        label: 'Deskripsi Awal / Lingkup Tugas',
         notes: description.isNotEmpty
             ? description
             : 'Conducted field safety audit, inspected emergency fire exits, and reviewed worker safety gear adherence.',
@@ -338,9 +338,9 @@ class ActivityItem {
       ),
       const ActivityPhaseItem(
         phaseNumber: 2,
-        title: 'Phase 2: Completion & Report',
+        title: 'Tahap 2: Penyelesaian & Laporan',
         time: '15:30, 27 Aug 2026',
-        label: 'Completion Notes / Outcome',
+        label: 'Catatan Penyelesaian / Hasil',
         notes:
             'All inspection points passed. Fire exits clear of obstacles. Signed report handed to site coordinator.',
         imageUrl:
@@ -399,9 +399,9 @@ class ActivityItem {
         phases: const [
           ActivityPhaseItem(
             phaseNumber: 1,
-            title: 'Phase 1: Start & Check-In',
+            title: 'Tahap 1: Mulai & Check-In',
             time: '12:24, 27 Aug 2026',
-            label: 'Initial Description / Task Scope',
+            label: 'Deskripsi Awal / Lingkup Tugas',
             notes:
                 'Conducted field safety audit, inspected emergency fire exits, and reviewed worker safety gear adherence.',
             imageUrl:
@@ -411,9 +411,9 @@ class ActivityItem {
           ),
           ActivityPhaseItem(
             phaseNumber: 2,
-            title: 'Phase 2: Completion & Report',
+            title: 'Tahap 2: Penyelesaian & Laporan',
             time: '15:30, 27 Aug 2026',
-            label: 'Completion Notes / Outcome',
+            label: 'Catatan Penyelesaian / Hasil',
             notes:
                 'All inspection points passed. Fire exits clear of obstacles. Signed report handed to site coordinator.',
             imageUrl:

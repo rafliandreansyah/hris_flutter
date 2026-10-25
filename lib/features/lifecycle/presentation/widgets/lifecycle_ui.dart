@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
@@ -7,7 +8,7 @@ const _months = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
 ];
 
-/// Tanggal kalender (WIB) untuk tampilan, mis. `5 Nov 2026`.
+/// Tanggal kalender (Asia/Jakarta) untuk tampilan, mis. `5 Nov 2026`.
 String lcFormatDate(DateTime? d) =>
     d == null ? '-' : '${d.day} ${_months[d.month - 1]} ${d.year}';
 
@@ -148,7 +149,13 @@ class LifecycleErrorState extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         // 404: sumber daya tidak ada, hanya opsi kembali (tanpa coba lagi)
         if (statusCode != 404)
-          Center(child: TextButton(onPressed: onRetry, child: const Text('Coba Lagi'))),
+          Center(child: AppButton(
+            text: 'Coba Lagi',
+            variant: AppButtonVariant.ghost,
+            width: null,
+            height: 40,
+            onPressed: onRetry,
+          )),
       ],
     );
   }

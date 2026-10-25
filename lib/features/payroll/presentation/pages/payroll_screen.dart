@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -573,10 +574,7 @@ class _PayrollViewState extends State<_PayrollView>
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.brandTeal,
-              ),
+              child: AppLoadingIndicator(color: AppColors.brandTeal),
             ),
           );
         },
@@ -663,10 +661,7 @@ class _PayrollViewState extends State<_PayrollView>
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: AppColors.brandTeal,
-              ),
+              child: AppLoadingIndicator(color: AppColors.brandTeal),
             ),
           );
         }

@@ -104,6 +104,8 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
     final emp = await AssetEmployeePickerModal.show(
       context,
       title: 'Pilih Karyawan (Langsung Ditugaskan)',
+      selectedEmployeeId: _directAssignee?.id,
+      source: AssetPickerSource.directory,
     );
     if (emp != null && mounted) {
       setState(() => _directAssignee = emp);
@@ -114,8 +116,9 @@ class _CreateAssetViewState extends State<_CreateAssetView> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan pilih kategori aset')),
+      AppDialogUtil.showValidationError(
+        context,
+        message: 'Silakan pilih kategori aset.',
       );
       return;
     }

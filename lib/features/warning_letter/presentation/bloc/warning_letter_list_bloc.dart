@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -193,7 +194,7 @@ class WarningLetterListBloc
         clearMyError: true,
       ));
     } catch (e) {
-      final errorMsg = e is ApiException ? e.message : e.toString();
+      final errorMsg = AppErrorMessage.from(e);
       emit(state.copyWith(
         isMyLoading: false,
         isMyLoadingMore: false,
@@ -255,7 +256,7 @@ class WarningLetterListBloc
           clearTeamError: true,
         ));
       } else {
-        final errorMsg = e is ApiException ? e.message : e.toString();
+        final errorMsg = AppErrorMessage.from(e);
         emit(state.copyWith(
           isTeamLoading: false,
           isTeamLoadingMore: false,

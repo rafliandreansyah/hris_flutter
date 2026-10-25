@@ -1,6 +1,6 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
-import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
 import 'package:hris_flutter/core/widgets/filter/app_request_filter_bottom_sheet.dart';
@@ -74,7 +74,7 @@ class ResignationListBloc
         myStatus: result,
       ));
     } catch (e) {
-      final msg = e is ApiException ? e.message : e.toString();
+      final msg = AppErrorMessage.from(e);
       emit(state.copyWith(
         isMyStatusLoading: false,
         errorMessage: msg,
@@ -129,7 +129,7 @@ class ResignationListBloc
         subordinatesTotal: result.meta.total,
       ));
     } catch (e) {
-      final msg = e is ApiException ? e.message : e.toString();
+      final msg = AppErrorMessage.from(e);
       emit(state.copyWith(
         isSubordinatesLoading: false,
         errorMessage: msg,
@@ -210,7 +210,7 @@ class ResignationListBloc
       emit(state.copyWith(isCancelling: false, cancelSuccess: true));
       add(const ResignationListMyStatusRequested(isRefresh: true));
     } catch (e) {
-      final msg = e is ApiException ? e.message : e.toString();
+      final msg = AppErrorMessage.from(e);
       emit(state.copyWith(
         isCancelling: false,
         errorMessage: msg,
@@ -252,7 +252,7 @@ class ResignationListBloc
     } catch (e) {
       emit(state.copyWith(
         isActionSubmitting: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -280,7 +280,7 @@ class ResignationListBloc
     } catch (e) {
       emit(state.copyWith(
         isActionSubmitting: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

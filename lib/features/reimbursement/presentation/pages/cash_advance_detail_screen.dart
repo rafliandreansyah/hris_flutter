@@ -1,5 +1,9 @@
+import 'package:hris_flutter/core/widgets/request_detail_person_card.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:hris_flutter/core/widgets/app_status_chip.dart';
+import 'package:hris_flutter/core/widgets/app_status_icon.dart';
+import 'package:hris_flutter/core/widgets/app_detail_more_menu.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/core/utils/share_link_util.dart';
@@ -141,6 +145,29 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
     }
   }
 
+  /// Pengajuan hanya boleh dihapus pemiliknya selama masih menunggu persetujuan.
+  bool _canDelete(String status, String ownerEmployeeId) {
+    final s = status.toLowerCase();
+    final isPending = s == 'requested' || s == 'submitted' || s == 'draft';
+    return isPending && !RequestDetailPersonCard.isOtherPerson(ownerEmployeeId);
+  }
+
+  Future<void> _handleDelete() async {
+    final confirmed = await AppDialogUtil.showWarning<bool>(
+      context,
+      title: 'Hapus Pengajuan',
+      message:
+          'Pengajuan kasbon yang dihapus tidak dapat dikembalikan. Lanjutkan?',
+      confirmText: 'Hapus',
+      cancelText: 'Batal',
+      onConfirm: () {},
+    );
+    if (confirmed == true && mounted) {
+      _hasMutated = true;
+      context.read<CashAdvanceDetailBloc>().add(const CashAdvanceDetailDeleted());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -181,22 +208,23 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
             BlocBuilder<CashAdvanceDetailBloc, CashAdvanceDetailState>(
               builder: (context, state) {
                 if (state.detail == null) return const SizedBox();
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(LucideIcons.link, color: textCol),
-                      tooltip: 'Salin Link',
-                      onPressed: () => ShareLinkUtil.copyLink(
+                return AppDetailMoreMenu(
+                  iconColor: textCol,
+                  items: [
+                    AppDetailMenuItem.share(() => _handleShare(state.detail!)),
+                    AppDetailMenuItem.copyLink(
+                      () => ShareLinkUtil.copyLink(
                         context,
                         ShareLinkUtil.webUrl(ShareModule.cashAdvance, state.detail!.id),
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(LucideIcons.share2, color: textCol),
-                      tooltip: 'Bagikan',
-                      onPressed: () => _handleShare(state.detail!),
-                    ),
+                    if (_canDelete(state.detail!.status, state.detail!.employee.id))
+                      AppDetailMenuItem(
+                        icon: LucideIcons.trash2,
+                        label: 'Hapus Pengajuan',
+                        isDestructive: true,
+                        onTap: _handleDelete,
+                      ),
                   ],
                 );
               },
@@ -336,31 +364,27 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
           },
         ),
         body: BlocConsumer<CashAdvanceDetailBloc, CashAdvanceDetailState>(
+          listenWhen: (prev, curr) =>
+              prev.errorMessage != curr.errorMessage ||
+              prev.actionSuccessMessage != curr.actionSuccessMessage ||
+              prev.isDeleted != curr.isDeleted,
           listener: (context, state) {
+            if (state.isDeleted) {
+              context.pop(true);
+              return;
+            }
             if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage!),
-                  backgroundColor: AppColors.errorRed,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppDialogUtil.showError(context, message: state.errorMessage!);
             }
 
             if (state.actionSuccessMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.actionSuccessMessage!),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AppDialogUtil.showSuccess(context, message: state.actionSuccessMessage!);
             }
           },
           builder: (context, state) {
             if (state.status == CashAdvanceDetailStatus.loading &&
                 state.detail == null) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: AppLoadingIndicator());
             }
 
             final detail = state.detail;
@@ -509,7 +533,11 @@ class _CashAdvanceDetailViewState extends State<_CashAdvanceDetailView> {
                 ),
               ),
               const SizedBox(width: 8),
-              AppStatusChip(label: statusEnum.label, tone: statusEnum.tone),
+              AppStatusIcon(
+                label: statusEnum.label,
+                tone: statusEnum.tone,
+                icon: statusEnum.icon,
+              ),
             ],
           ),
           const SizedBox(height: 6),

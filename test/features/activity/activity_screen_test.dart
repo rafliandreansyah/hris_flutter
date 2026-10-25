@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_api_models.dart';
 import 'package:hris_flutter/features/activity/data/models/activity_item.dart';
@@ -11,6 +14,38 @@ import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
+import 'package:hris_flutter/features/employee/data/models/organization_filter_models.dart';
+import 'package:hris_flutter/features/employee/domain/repositories/organization_filter_repository.dart';
+import 'package:hris_flutter/features/employee/presentation/bloc/organization_filter/organization_filter_bloc.dart';
+
+/// Data master organisasi untuk filter (filter tidak lagi memakai daftar palsu bawaan).
+class _FakeOrganizationFilterRepository implements OrganizationFilterRepository {
+  @override
+  Future<List<CompanyItem>> getCompanies({String? search}) async => const [
+        CompanyItem(id: 'c1', name: 'PT Oasish Tech Nusantara'),
+      ];
+
+  @override
+  Future<List<DepartmentItem>> getDepartments({
+    String? companyId,
+    String? search,
+  }) async =>
+      const [
+        DepartmentItem(id: 'd1', name: 'Engineering', companyId: 'c1'),
+        DepartmentItem(id: 'd2', name: 'Operations', companyId: 'c1'),
+      ];
+
+  @override
+  Future<List<PositionItem>> getPositions({
+    String? companyId,
+    String? departmentId,
+    String? search,
+  }) async =>
+      const [
+        PositionItem(id: 'p1', name: 'QA Engineer', companyId: 'c1'),
+        PositionItem(id: 'p2', name: 'Frontend Engineer', companyId: 'c1'),
+      ];
+}
 
 void main() {
   // Tab tim hanya tampil/dimuat bila user berwenang
@@ -66,9 +101,14 @@ void main() {
   ];
 
   Widget createTestWidget() {
-    return MaterialApp(
-      home: ActivityScreen(
-        customActivities: testActivities,
+    return BlocProvider<OrganizationFilterBloc>(
+      create: (_) => OrganizationFilterBloc(
+        repository: _FakeOrganizationFilterRepository(),
+      ),
+      child: MaterialApp(
+        home: ActivityScreen(
+          customActivities: testActivities,
+        ),
       ),
     );
   }
@@ -95,8 +135,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify title & subtitle
-      expect(find.text('Activity Reports'), findsOneWidget);
-      expect(find.text('Track work logs & operational tasks'), findsOneWidget);
+      expect(find.text('Laporan Aktivitas'), findsOneWidget);
+      expect(find.text('Track work logs & operational tasks'), findsNothing);
 
       // Verify back button
       expect(find.byIcon(LucideIcons.arrowLeft), findsOneWidget);
@@ -118,7 +158,7 @@ void main() {
       // Verify search bar is present
       expect(find.byType(TextField), findsOneWidget);
       expect(
-        find.text('Search by employee name or keyword...'),
+        find.text('Cari nama pegawai atau kata kunci...'),
         findsOneWidget,
       );
 
@@ -174,33 +214,44 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
-    testWidgets('Tapping FAB on My Activities opens Add Activity bottom sheet and creates activity', (
+    testWidgets('Tapping FAB on My Activities membuka halaman buat aktivitas', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(createTestWidget());
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                ActivityScreen(customActivities: testActivities),
+          ),
+          GoRoute(
+            path: Routes.CREATE_ACTIVITY,
+            builder: (context, state) =>
+                const Scaffold(body: Text('Halaman Buat Aktivitas')),
+          ),
+          GoRoute(
+            path: Routes.CREATE_ACTIVITY_PLAN,
+            builder: (context, state) =>
+                const Scaffold(body: Text('Halaman Rencana Aktivitas')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(BlocProvider<OrganizationFilterBloc>(
+        create: (_) => OrganizationFilterBloc(
+          repository: _FakeOrganizationFilterRepository(),
+        ),
+        child: MaterialApp.router(routerConfig: router),
+      ));
       await tester.pumpAndSettle();
 
-      // Tap FAB on My Activities tab
       await tester.tap(find.byKey(const ValueKey('add_activity_fab')));
       await tester.pumpAndSettle();
 
-      // Verify bottom sheet title
-      expect(find.text('Tambah Aktivitas Kerja'), findsOneWidget);
-      expect(find.text('Simpan Aktivitas'), findsOneWidget);
-
-      // Fill in activity title
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Misal: Review PR #142 & Sprint Planning'),
-        'Pemeriksaan Deployment Staging',
-      );
-      await tester.pumpAndSettle();
-
-      // Submit
-      await tester.tap(find.text('Simpan Aktivitas'));
-      await tester.pumpAndSettle();
-
-      // Verify newly created activity appears in the list
-      expect(find.text('Pemeriksaan Deployment Staging'), findsOneWidget);
+      // Tanpa dialog/sheet mock lagi: pengguna dengan hak kelola memilih target,
+      // selain itu langsung ke halaman buat aktivitas.
+      final sheetShown = find.text('Buat Aktivitas').evaluate().isNotEmpty;
+      final pageShown = find.text('Halaman Buat Aktivitas').evaluate().isNotEmpty;
+      expect(sheetShown || pageShown, isTrue);
     });
 
     testWidgets('Search query filters activity feed correctly', (
@@ -242,19 +293,19 @@ void main() {
 
       // Verify bottom sheet title & fields
       expect(find.text('Filter Daftar Aktivitas'), findsOneWidget);
-      expect(find.text('Rentang Tanggal (Date Range)'), findsOneWidget);
-      expect(find.text('Perusahaan (Company)'), findsOneWidget);
-      expect(find.text('Departemen (Division)'), findsOneWidget);
-      expect(find.text('Jabatan (Position)'), findsOneWidget);
+      expect(find.text('Rentang Tanggal'), findsOneWidget);
+      expect(find.text('Perusahaan'), findsOneWidget);
+      expect(find.text('Departemen'), findsOneWidget);
+      expect(find.text('Jabatan'), findsOneWidget);
       // Status field is added as requested (ongoing, completed, canceled, planned)
       expect(find.text('Status Aktivitas'), findsOneWidget);
-      expect(find.text('Planned'), findsOneWidget);
-      expect(find.text('Ongoing'), findsOneWidget);
-      expect(find.text('Complete'), findsOneWidget);
-      expect(find.text('Canceled'), findsOneWidget);
+      expect(find.text('Direncanakan'), findsOneWidget);
+      expect(find.text('Berjalan'), findsOneWidget);
+      expect(find.text('Selesai'), findsWidgets);
+      expect(find.text('Dibatalkan'), findsOneWidget);
       expect(find.text('Terapkan Filter'), findsOneWidget);
-      expect(find.text('Reset Filter'), findsOneWidget);
-      expect(find.text('Batal'), findsOneWidget);
+      expect(find.text('Reset'), findsOneWidget);
+      expect(find.text('Batal'), findsNothing);
     });
 
     testWidgets('Applies planned status filter from bottom sheet', (
@@ -268,8 +319,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Planned chip exists and tap it
-      expect(find.text('Planned'), findsOneWidget);
-      await tester.tap(find.text('Planned'));
+      expect(find.text('Direncanakan'), findsOneWidget);
+      await tester.tap(find.text('Direncanakan'));
       await tester.pumpAndSettle();
 
       // Verify helper text
@@ -389,8 +440,8 @@ void main() {
       await tester.tap(find.text('Semua Jabatan'));
       await tester.pumpAndSettle();
 
-      expect(find.text('QA Engineer'), findsOneWidget);
-      await tester.tap(find.text('QA Engineer'));
+      expect(find.text('QA Engineer'), findsWidgets);
+      await tester.tap(find.text('QA Engineer').last);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Terapkan Filter'));
@@ -479,10 +530,11 @@ void main() {
 
 
       expect(find.text('Sarah Jenkins'), findsOneWidget);
-      expect(find.textContaining('Frontend Engineer'), findsOneWidget);
-      expect(find.textContaining('Engineering'), findsOneWidget);
+      expect(find.text('Frontend Engineer'), findsOneWidget);
+      // Kartu daftar ringkas: departemen tidak ditampilkan.
+      expect(find.textContaining('Engineering'), findsNothing);
       expect(find.text('Code Review'), findsOneWidget);
-      expect(find.text('Completed'), findsOneWidget);
+      expect(find.text('Selesai'), findsOneWidget);
       expect(
         find.text('Reviewed PR #204 for attendance geolocation improvements.'),
         findsOneWidget,

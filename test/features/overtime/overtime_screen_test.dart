@@ -162,16 +162,16 @@ void main() {
       binding.platformDispatcher.views.first.resetDevicePixelRatio();
     });
 
-    testWidgets('merender AppBar judul Overtime Requests + subtitle', (
+    testWidgets('merender AppBar judul Overtime Requests tanpa subtitle', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Overtime Requests'), findsOneWidget);
+      expect(find.text('Pengajuan Lembur'), findsOneWidget);
       expect(
         find.text('Team approvals & overtime management'),
-        findsOneWidget,
+        findsNothing,
       );
     });
 
@@ -205,7 +205,7 @@ void main() {
 
       expect(find.byType(TextField), findsOneWidget);
       expect(
-        find.text('Search by employee name or keyword...'),
+        find.text('Cari nama pegawai atau kata kunci...'),
         findsOneWidget,
       );
       expect(find.byIcon(LucideIcons.search), findsWidgets);
@@ -231,12 +231,13 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Identitas via EmployeeInfoRow global (role • department).
-      expect(find.text('Frontend Engineer • Engineering'), findsWidgets);
+      // Identitas ringkas via RequestCardHeader (jabatan saja).
+      expect(find.text('Frontend Engineer'), findsWidgets);
+      expect(find.text('Frontend Engineer • Engineering'), findsNothing);
 
       // Badge status dengan label desain aktivitas (dot + label).
-      expect(find.text('Pending'), findsWidgets);
-      expect(find.text('Approved'), findsWidgets);
+      expect(find.byTooltip('Menunggu Persetujuan'), findsWidgets);
+      expect(find.byTooltip('Disetujui'), findsWidgets);
     });
 
     testWidgets('card merender jadwal, durasi, catatan, dan zona waktu', (
@@ -251,7 +252,8 @@ void main() {
         find.textContaining('Assisting operational cutover'),
         findsWidgets,
       );
-      expect(find.text('WIB'), findsWidgets);
+      // Zona waktu tidak lagi ditampilkan di kartu daftar.
+      expect(find.text('WIB'), findsNothing);
     });
 
     testWidgets('HTTP 403 Team Overtime menampilkan forbidden state', (
@@ -301,7 +303,7 @@ void main() {
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);
     });
 
-    testWidgets('isSelf menampilkan penanda Your request', (
+    testWidgets('isSelf menampilkan penanda Pengajuan Anda', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -315,7 +317,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Your request'), findsOneWidget);
+      expect(find.text('Pengajuan Anda'), findsOneWidget);
     });
   });
 
@@ -344,7 +346,7 @@ void main() {
       await tester.pumpWidget(wrapCard(item));
       await tester.pumpAndSettle();
 
-      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.byTooltip('Ditolak'), findsOneWidget);
     });
 
     testWidgets('status requested tampil sebagai label Pending', (
@@ -358,20 +360,20 @@ void main() {
       await tester.pumpWidget(wrapCard(item));
       await tester.pumpAndSettle();
 
-      expect(find.text('Pending'), findsOneWidget);
+      expect(find.byTooltip('Menunggu Persetujuan'), findsOneWidget);
     });
 
-    testWidgets('View Details hanya tampil jika callback diberikan', (
+    testWidgets('seluruh kartu dapat diketuk untuk membuka detail', (
       WidgetTester tester,
     ) async {
       final item = _makeItem(id: 'ot-d', name: 'Sarah Jenkins');
-      await tester.pumpWidget(wrapCard(item));
+      var tapped = 0;
+      await tester.pumpWidget(wrapCard(item, onViewDetails: () => tapped++));
       await tester.pumpAndSettle();
       expect(find.text('View Details'), findsNothing);
 
-      await tester.pumpWidget(wrapCard(item, onViewDetails: () {}));
-      await tester.pumpAndSettle();
-      expect(find.text('View Details'), findsOneWidget);
+      await tester.tap(find.byType(OvertimeRequestCard));
+      expect(tapped, 1);
     });
   });
 
@@ -394,7 +396,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Overtime Requests'), findsOneWidget);
+      expect(find.text('Pengajuan Lembur'), findsOneWidget);
       expect(find.text('Persetujuan Tim'), findsOneWidget);
     });
   });

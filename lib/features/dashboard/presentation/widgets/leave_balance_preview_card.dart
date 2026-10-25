@@ -69,7 +69,7 @@ class LeaveBalancePreviewCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Leave Balance',
+                'Saldo Cuti',
                 style: AppTypography.titleMedium.copyWith(
                   color: textCol,
                   fontWeight: FontWeight.w700,
@@ -80,12 +80,12 @@ class LeaveBalancePreviewCard extends StatelessWidget {
                     () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Form Request Time Off segera dibuka'),
+                          content: Text('Formulir pengajuan cuti segera dibuka'),
                         ),
                       );
                     },
                 child: Text(
-                  'Request Time Off',
+                  'Ajukan Cuti',
                   style: AppTypography.labelMedium.copyWith(
                     color: AppColors.brandTeal,
                     fontWeight: FontWeight.w700,
@@ -151,7 +151,7 @@ class LeaveBalancePreviewCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '$annualLeaveRemaining Days',
+                            '$annualLeaveRemaining Hari',
                             style: AppTypography.labelMedium.copyWith(
                               color: AppColors.brandTeal,
                               fontWeight: FontWeight.w800,
@@ -199,7 +199,7 @@ class LeaveBalancePreviewCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '$sickLeaveRemaining Days',
+                            '$sickLeaveRemaining Hari',
                             style: AppTypography.labelMedium.copyWith(
                               color: AppColors.secondary,
                               fontWeight: FontWeight.w800,

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'package:camera/camera.dart' show CameraLensDirection;
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
@@ -497,14 +498,7 @@ class NonBlockingCompressIndicator extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.brandTeal,
-                            ),
-                          ),
+                          const AppLoadingIndicator.small(color: AppColors.brandTeal),
                           const SizedBox(width: 8),
                           Text(
                             message,

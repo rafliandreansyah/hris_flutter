@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:dio/dio.dart';
 import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
@@ -33,7 +34,7 @@ class WorkScheduleRemoteDataSourceImpl implements WorkScheduleRemoteDataSource {
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     } catch (e) {
-      throw ApiException(message: e.toString());
+      throw ApiException(message: AppErrorMessage.from(e));
     }
   }
 }

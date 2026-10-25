@@ -221,7 +221,7 @@ class AssetHandoverTimelineCard extends StatelessWidget {
                     ),
                     if (item.employee?.employeeNumber != null)
                       Text(
-                        'NIK: ${item.employee!.employeeNumber}',
+                        'No. Pegawai: ${item.employee!.employeeNumber}',
                         style: AppTypography.labelSmall.copyWith(
                           color: subtitleCol,
                           fontSize: 11,

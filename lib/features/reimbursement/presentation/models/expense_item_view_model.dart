@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:hris_flutter/core/widgets/app_status_chip.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 
 /// Helper pemformatan mata uang Rupiah.
@@ -32,11 +34,29 @@ extension ExpenseStatusExtension on ExpenseStatus {
       case ExpenseStatus.disbursed:
         return 'Dicairkan';
       case ExpenseStatus.settlementInProgress:
-        return 'Proses Settlement';
+        return 'Proses Penyelesaian';
       case ExpenseStatus.settled:
         return 'Selesai';
       case ExpenseStatus.rejected:
         return 'Ditolak';
+    }
+  }
+
+  /// Ikon status untuk tampilan ringkas (lihat `AppStatusIcon`).
+  IconData get icon {
+    switch (this) {
+      case ExpenseStatus.requested:
+        return LucideIcons.clock;
+      case ExpenseStatus.approved:
+        return LucideIcons.circleCheck;
+      case ExpenseStatus.disbursed:
+        return LucideIcons.wallet;
+      case ExpenseStatus.settlementInProgress:
+        return LucideIcons.hourglass;
+      case ExpenseStatus.settled:
+        return LucideIcons.badgeCheck;
+      case ExpenseStatus.rejected:
+        return LucideIcons.circleX;
     }
   }
 

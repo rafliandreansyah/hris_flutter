@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/schedule/data/repositories/work_schedule_repository_impl.dart';
@@ -43,7 +44,7 @@ class WorkScheduleBloc extends Bloc<WorkScheduleEvent, WorkScheduleState> {
     } catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
         clearStatusDetails: true,
       ));
     }
@@ -78,7 +79,7 @@ class WorkScheduleBloc extends Bloc<WorkScheduleEvent, WorkScheduleState> {
     } catch (e) {
       emit(state.copyWith(
         status: WorkScheduleStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
         clearStatusDetails: true,
       ));
     }

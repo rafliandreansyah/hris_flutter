@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/core/utils/bloc_transformers.dart';
@@ -62,7 +63,7 @@ class AnnouncementListBloc
     } catch (e) {
       emit(state.copyWith(
         status: AnnouncementStatus.failure,
-        errorMessage: 'Gagal memuat pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -103,7 +104,7 @@ class AnnouncementListBloc
     } catch (e) {
       emit(state.copyWith(
         isRefreshing: false,
-        errorMessage: 'Gagal menyegarkan pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -195,7 +196,7 @@ class AnnouncementListBloc
     } catch (e) {
       emit(state.copyWith(
         status: AnnouncementStatus.failure,
-        errorMessage: 'Gagal mencari pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -250,7 +251,7 @@ class AnnouncementListBloc
     } catch (e) {
       emit(state.copyWith(
         status: AnnouncementStatus.failure,
-        errorMessage: 'Gagal memfilter pengumuman: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -294,7 +295,7 @@ class AnnouncementListBloc
     } catch (e) {
       emit(state.copyWith(
         status: AnnouncementStatus.failure,
-        errorMessage: 'Gagal mereset filter: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

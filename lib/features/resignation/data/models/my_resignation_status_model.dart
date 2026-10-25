@@ -262,6 +262,7 @@ class ResignationEmployeeModel extends Equatable {
   final String? lastName;
   final String? nik;
   final String? email;
+  final String? phone;
   final String? avatarUrl;
   final String? departmentName;
   final String? positionName;
@@ -272,6 +273,7 @@ class ResignationEmployeeModel extends Equatable {
     this.lastName,
     this.nik,
     this.email,
+    this.phone,
     this.avatarUrl,
     this.departmentName,
     this.positionName,
@@ -307,6 +309,7 @@ class ResignationEmployeeModel extends Equatable {
       lastName: json['lastName']?.toString(),
       nik: json['nik']?.toString() ?? json['employeeNik']?.toString(),
       email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
       avatarUrl: json['avatarUrl']?.toString(),
       departmentName: dept,
       positionName: pos,
@@ -320,6 +323,7 @@ class ResignationEmployeeModel extends Equatable {
         lastName,
         nik,
         email,
+        phone,
         avatarUrl,
         departmentName,
         positionName,

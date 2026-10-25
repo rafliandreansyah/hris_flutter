@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/leave/data/repositories/leave_repository_impl.dart';
@@ -43,7 +44,7 @@ class CreateLeaveBloc extends Bloc<CreateLeaveEvent, CreateLeaveState> {
       emit(state.copyWith(
         status: CreateLeaveStatus.typesLoaded,
         leaveTypes: const [],
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -89,7 +90,7 @@ class CreateLeaveBloc extends Bloc<CreateLeaveEvent, CreateLeaveState> {
     } catch (e) {
       emit(state.copyWith(
         status: CreateLeaveStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

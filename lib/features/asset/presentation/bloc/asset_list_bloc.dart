@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
@@ -114,7 +115,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
         status: AssetListStatus.failure,
         categories: categories,
         categoriesLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -166,7 +167,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(updatedState.copyWith(
         status: AssetListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -206,7 +207,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
       ));
     } catch (e) {
       emit(state.copyWith(
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -253,7 +254,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(state.copyWith(
         isLoadingMore: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -299,7 +300,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(state.copyWith(
         status: AssetListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -349,7 +350,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(state.copyWith(
         status: AssetListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -400,7 +401,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(state.copyWith(
         status: AssetListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -458,7 +459,7 @@ class AssetListBloc extends Bloc<AssetListEvent, AssetListState> {
     } catch (e) {
       emit(state.copyWith(
         status: AssetListStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

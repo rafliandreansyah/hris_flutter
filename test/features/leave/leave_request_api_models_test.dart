@@ -232,9 +232,9 @@ void main() {
         expect(s.label.isNotEmpty, true);
         expect(s.tone, isA<AppStatusTone>());
       }
-      expect(LeaveStatus.pending.label, 'Pending');
-      expect(LeaveStatus.approved.label, 'Approved');
-      expect(LeaveStatus.rejected.label, 'Rejected');
+      expect(LeaveStatus.pending.label, 'Menunggu Persetujuan');
+      expect(LeaveStatus.approved.label, 'Disetujui');
+      expect(LeaveStatus.rejected.label, 'Ditolak');
     });
 
     test('LeaveRequestItem formatters, durationLabel, dateRangeLabel, and copyWith', () {
@@ -261,7 +261,7 @@ void main() {
         startDate: DateTime(2026, 10, 15),
         endDate: DateTime(2026, 10, 17),
       );
-      expect(itemMultiDay.durationLabel, '3 Days');
+      expect(itemMultiDay.durationLabel, '3 Hari');
       expect(itemMultiDay.dateRangeLabel, '15 Okt 2026 - 17 Okt 2026');
 
       final copied = itemMultiDay.copyWith(

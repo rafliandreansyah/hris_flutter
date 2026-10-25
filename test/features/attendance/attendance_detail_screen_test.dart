@@ -82,10 +82,11 @@ void main() {
       // Outside Attendance card: Header, notice text, and request ID
       expect(find.text('Kehadiran Luar Kantor'), findsAtLeast(1));
       expect(
-        find.text('Absen dari pengajuan Outside Attendance / Kehadiran luar kantor'),
+        find.text('Absen dari pengajuan presensi luar kantor'),
         findsOneWidget,
       );
-      expect(find.text('REQ-OUTSIDE-8829'), findsOneWidget);
+      // ID internal pengajuan tidak lagi ditampilkan.
+      expect(find.text('REQ-OUTSIDE-8829'), findsNothing);
 
       // Employee Profile
       expect(find.text('Budi Santoso'), findsOneWidget);
@@ -127,7 +128,7 @@ void main() {
 
       // Outside Attendance notice should NOT be found
       expect(
-        find.text('Absen dari pengajuan Outside Attendance / Kehadiran luar kantor'),
+        find.text('Absen dari pengajuan presensi luar kantor'),
         findsNothing,
       );
 

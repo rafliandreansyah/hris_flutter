@@ -382,7 +382,7 @@ class SelectedScheduleCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '$startTime - $endTime WIB',
+                '$startTime - $endTime',
                 style: AppTypography.headlineLargeMobile.copyWith(
                   color: textCol,
                   fontWeight: FontWeight.w800,
@@ -409,7 +409,7 @@ class SelectedScheduleCard extends StatelessWidget {
                   Icon(LucideIcons.coffee, size: 16, color: subtitleCol),
                   const SizedBox(width: 8),
                   Text(
-                    'Istirahat: $breakStart - $breakEnd WIB',
+                    'Istirahat: $breakStart - $breakEnd',
                     style: AppTypography.bodySmall.copyWith(
                       color: textCol,
                       fontWeight: FontWeight.w600,

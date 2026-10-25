@@ -116,7 +116,8 @@ void main() {
       expect(find.text('Sarah Connor'), findsWidgets);
       expect(find.text('PEJABAT PENYETUJU'), findsOneWidget);
       expect(find.text('John Doe'), findsWidgets);
-      expect(find.text('LEAD-2024-009'), findsOneWidget);
+      // Kartu approver ringkas: nomor pegawai approver tidak ditampilkan.
+      expect(find.text('LEAD-2024-009'), findsNothing);
       expect(find.text('emp-lead'), findsNothing);
       expect(find.text('Disetujui untuk operasional mendesak'), findsOneWidget);
     });

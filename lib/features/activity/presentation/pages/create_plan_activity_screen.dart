@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/core/utils/image_compress_util.dart';
@@ -422,19 +423,19 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
     FocusManager.instance.primaryFocus?.unfocus();
 
     if (_selectedEmployee == null) {
-      _showWarningSnackBar('Silakan pilih Pegawai / Bawahan yang ditugaskan.');
+      _showValidationDialog('Silakan pilih Pegawai / Bawahan yang ditugaskan.');
       return;
     }
     if (_selectedActivityType == null) {
-      _showWarningSnackBar('Silakan pilih Jenis Aktivitas terlebih dahulu.');
+      _showValidationDialog('Silakan pilih Jenis Aktivitas terlebih dahulu.');
       return;
     }
     if (_locationNameController.text.trim().isEmpty) {
-      _showWarningSnackBar('Nama lokasi / tempat aktivitas wajib diisi.');
+      _showValidationDialog('Nama lokasi / tempat aktivitas wajib diisi.');
       return;
     }
     if (_descriptionController.text.trim().isEmpty) {
-      _showWarningSnackBar('Deskripsi agenda / tugas aktivitas wajib diisi.');
+      _showValidationDialog('Deskripsi agenda / tugas aktivitas wajib diisi.');
       return;
     }
 
@@ -459,22 +460,8 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
     );
   }
 
-  void _showWarningSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(LucideIcons.alertCircle, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.errorRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _showValidationDialog(String message) {
+    AppDialogUtil.showValidationError(context, message: message);
   }
 
   @override
@@ -522,31 +509,11 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
           );
           Navigator.of(context).pop(state.createdActivity);
         } else if (state.status == CreatePlanActivityStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.alertCircle,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      state.errorMessage.isNotEmpty
-                          ? state.errorMessage
-                          : 'Gagal membuat rencana aktivitas.',
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          AppDialogUtil.showError(
+            context,
+            message: state.errorMessage.isNotEmpty
+                ? state.errorMessage
+                : 'Gagal membuat rencana aktivitas.',
           );
         }
       },
@@ -562,10 +529,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
             onPressed: () => Navigator.of(context).maybePop(),
             tooltip: 'Kembali',
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+          title: Text(
                 'Buat Rencana Aktivitas',
                 style: AppTypography.titleMedium.copyWith(
                   fontSize: 18,
@@ -573,16 +537,6 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                   color: textCol,
                 ),
               ),
-              const SizedBox(height: 1),
-              Text(
-                'Penugasan rencana kerja bawahan (Status: Plan)',
-                style: AppTypography.labelSmall.copyWith(
-                  fontSize: 11,
-                  color: subtitleCol,
-                ),
-              ),
-            ],
-          ),
         ),
         body: SafeArea(
           child: Form(
@@ -982,7 +936,7 @@ class _CreatePlanActivityViewState extends State<_CreatePlanActivityView> {
                       sheetTitle: 'Pilih Lampiran Panduan',
                       sampleTitle: 'Gunakan Sampel Panduan',
                       sampleSubtitle: 'Simulasi dokumen panduan rencana aktivitas',
-                      uploadPlaceholderTitle: 'Tap to Capture or Upload Document',
+                      uploadPlaceholderTitle: 'Ketuk untuk ambil atau unggah dokumen',
                       uploadPlaceholderSubtitle: 'Kamera atau Galeri (Maksimal 100 KB)',
                       previewTitle: 'Lampiran Panduan Aktivitas',
                       onFileChanged: (file, result) {

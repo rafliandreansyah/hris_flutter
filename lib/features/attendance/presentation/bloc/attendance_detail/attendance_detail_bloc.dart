@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/attendance/data/repositories/attendance_repository_impl.dart';
@@ -58,7 +59,7 @@ class AttendanceDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AttendanceDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

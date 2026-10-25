@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/approver_share/data/repositories/approver_share_repository_impl.dart';
@@ -45,7 +46,7 @@ class ApproverShareBloc extends Bloc<ApproverShareEvent, ApproverShareState> {
     } on ApiException catch (e) {
       emit(ApproverShareError(message: e.message, statusCode: e.statusCode));
     } catch (e) {
-      emit(ApproverShareError(message: e.toString()));
+      emit(ApproverShareError(message: AppErrorMessage.from(e)));
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
@@ -54,7 +55,7 @@ class AttendanceRequestDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AttendanceRequestDetailStatus.failure,
-        errorMessage: 'Gagal memuat detail permohonan presensi: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -80,7 +81,7 @@ class AttendanceRequestDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AttendanceRequestDetailStatus.failure,
-        errorMessage: 'Gagal memuat ulang detail permohonan presensi: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -128,7 +129,7 @@ class AttendanceRequestDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AttendanceRequestDetailStatus.actionFailure,
-        errorMessage: 'Gagal memproses persetujuan presensi: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -161,7 +162,7 @@ class AttendanceRequestDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: AttendanceRequestDetailStatus.actionFailure,
-        errorMessage: 'Gagal menghapus permohonan presensi: $e',
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

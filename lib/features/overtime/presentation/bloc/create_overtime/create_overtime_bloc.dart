@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/overtime/data/repositories/overtime_repository_impl.dart';
@@ -176,7 +177,7 @@ class CreateOvertimeBloc
         category: OvertimeTypeCategory.dayOff,
         isEndTimeLocked: false,
         isCheckOutRequiredBlocked: false,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -216,7 +217,7 @@ class CreateOvertimeBloc
     } catch (e) {
       emit(state.copyWith(
         status: CreateOvertimeStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

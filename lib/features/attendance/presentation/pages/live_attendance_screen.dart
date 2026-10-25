@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/utils/app_date_util.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:camera/camera.dart' show CameraLensDirection;
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
@@ -31,7 +34,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// Halaman Presensi Luar (Live) - Oasish Outside Office Live Attendance Screen.
 ///
 /// Fitur:
-/// - Jam server live WIB tersinkronisasi real-time.
+/// - Jam server live (Asia/Jakarta) tersinkronisasi real-time.
 /// - Segmented switch jenis presensi: Absen Masuk (In) / Absen Pulang (Out).
 /// - Peta GPS real-time (tanpa teks alamat statis pada kartu peta).
 /// - Pengisian alamat otomatis ke server melalui reverse geocoding Mapbox.
@@ -150,7 +153,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     final hour = dt.hour.toString().padLeft(2, '0');
     final minute = dt.minute.toString().padLeft(2, '0');
     final second = dt.second.toString().padLeft(2, '0');
-    return '$day $month $year, $hour:$minute:$second WIB';
+    return '$day $month $year, $hour:$minute:$second ${AppDateUtil.defaultTimezone}';
   }
 
   /// Membuka kamera depan secara langsung untuk mengambil foto selfie presensi.
@@ -200,7 +203,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
         AppDialogUtil.showError(
           context,
           title: 'Gagal Membuka Kamera',
-          message: 'Terjadi kendala saat mengakses kamera perangkat: $e',
+          message: AppErrorMessage.from(e),
         );
       }
     }
@@ -385,10 +388,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               icon: Icon(LucideIcons.arrowLeft, color: textCol),
               onPressed: () => context.pop(),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            title: Text(
                   'Presensi Luar (Live)',
                   style: AppTypography.titleMedium.copyWith(
                     color: textCol,
@@ -396,15 +396,6 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                     fontSize: 16,
                   ),
                 ),
-                Text(
-                  'Check-in / Check-out real-time di lokasi tugas',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: subtitleCol,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
             actions: [
               IconButton(
                 icon: const Icon(
@@ -496,7 +487,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
     );
   }
 
-  /// Card 1: Jam Live WIB & Switcher Presensi Masuk / Pulang
+  /// Card 1: Jam Live & Switcher Presensi Masuk / Pulang
   Widget _buildTimeAndTypeCard({
     required BuildContext context,
     required LiveAttendanceState state,
@@ -526,7 +517,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner Jam Live WIB
+          // Banner Jam Live
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
@@ -569,7 +560,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Sinkronisasi Waktu Server Standar WIB',
+                        'Waktu server (${AppDateUtil.defaultTimezone})',
                         style: AppTypography.labelSmall.copyWith(
                           fontSize: 11,
                           color: subtitleCol,
@@ -723,7 +714,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
           latitude: lat,
           longitude: lng,
           gpsAccuracy: state.gpsAccuracy,
-          mapHeight: 150.0,
+          mapHeight: 220.0,
           enableTracking: true,
           showOpenInMaps: true,
           onGpsIssue: (issue) => context.read<LiveAttendanceBloc>().add(
@@ -895,7 +886,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                'Metode: Photo Verification',
+                'Metode: Verifikasi Foto',
                 style: AppTypography.labelSmall.copyWith(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
@@ -924,7 +915,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
               childOnTop: true,
               child: Container(
                 width: double.infinity,
-                height: 130,
+                height: 160,
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.brandTeal.withValues(alpha: 0.08)
@@ -933,10 +924,7 @@ class _LiveAttendanceViewState extends State<_LiveAttendanceView> {
                 ),
                 child: _isCompressing
                     ? const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.brandTeal,
-                        ),
+                        child: AppLoadingIndicator(color: AppColors.brandTeal),
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,

@@ -110,7 +110,7 @@ void main() {
       expect(find.text('Slip Gaji Pegawai'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsWidgets);
       expect(find.textContaining('Senior Developer'), findsWidgets);
-      expect(find.text('NIK: EMP-001'), findsOneWidget);
+      expect(find.text('No. Pegawai: EMP-001'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget); // AppSearchBar
       expect(find.text('September 2026'), findsWidgets);
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsOneWidget);

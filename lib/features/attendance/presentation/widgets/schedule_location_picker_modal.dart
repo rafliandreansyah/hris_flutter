@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -583,28 +584,8 @@ class _ScheduleLocationPickerModalState
                       // Address Text / Geocoding Status
                       Expanded(
                         child: _isGeocoding
-                            ? Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.brandTeal,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Mengambil alamat dari Mapbox...',
-                                      style: AppTypography.bodySmall.copyWith(
-                                        color: subtitleCol,
-                                        fontSize: 12,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            ? const Row(
+                                children: [AppLoadingIndicator.small()],
                               )
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

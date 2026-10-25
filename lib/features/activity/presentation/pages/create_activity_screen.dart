@@ -1,3 +1,5 @@
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -216,19 +218,19 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
     // Validasi Form
     if (_selectedActivityType == null) {
-      _showWarningSnackBar('Silakan pilih Activity Type terlebih dahulu.');
+      _showValidationDialog('Silakan pilih jenis aktivitas terlebih dahulu.');
       return;
     }
     if (_locationNameController.text.trim().isEmpty) {
-      _showWarningSnackBar('Nama lokasi / venue wajib diisi.');
+      _showValidationDialog('Nama lokasi / venue wajib diisi.');
       return;
     }
     if (_descriptionController.text.trim().isEmpty) {
-      _showWarningSnackBar('Deskripsi agenda / tujuan aktivitas wajib diisi.');
+      _showValidationDialog('Deskripsi agenda / tujuan aktivitas wajib diisi.');
       return;
     }
     if (_pickedPhoto == null) {
-      _showWarningSnackBar('Silakan upload Start Proof Photo aktivitas.');
+      _showValidationDialog('Silakan unggah foto bukti mulai aktivitas.');
       return;
     }
 
@@ -263,22 +265,8 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
     );
   }
 
-  void _showWarningSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(LucideIcons.alertCircle, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppColors.errorRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _showValidationDialog(String message) {
+    AppDialogUtil.showValidationError(context, message: message);
   }
 
   @override
@@ -322,31 +310,11 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
           );
           Navigator.of(context).pop(createState.createdActivity);
         } else if (createState.status == CreateActivityStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.alertCircle,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      createState.errorMessage.isNotEmpty
-                          ? createState.errorMessage
-                          : 'Gagal membuat aktivitas.',
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          AppDialogUtil.showError(
+            context,
+            message: createState.errorMessage.isNotEmpty
+                ? createState.errorMessage
+                : 'Gagal membuat aktivitas.',
           );
         }
       },
@@ -363,27 +331,14 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
             onPressed: () => Navigator.of(context).maybePop(),
             tooltip: 'Kembali',
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Create Activity',
+          title: Text(
+                AppLocalizations.of(context)?.titleCreateActivity ?? 'Buat Aktivitas',
                 style: AppTypography.titleMedium.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: textCol,
                 ),
               ),
-              const SizedBox(height: 1),
-              Text(
-                'Phase 1: Log initial activity & check-in',
-                style: AppTypography.labelSmall.copyWith(
-                  fontSize: 11,
-                  color: subtitleCol,
-                ),
-              ),
-            ],
-          ),
           actions: [
             IconButton(
               icon: Icon(LucideIcons.locateFixed, color: textCol, size: 20),
@@ -445,7 +400,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                       children: [
                         // Field 1: Activity Type Selector
                         _buildFieldLabel(
-                          label: 'Activity Type',
+                          label: 'Jenis Aktivitas',
                           isRequired: true,
                           textCol: textCol,
                         ),
@@ -474,7 +429,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                                 Expanded(
                                   child: Text(
                                     _selectedActivityType?.name ??
-                                        'Select activity type...',
+                                        'Pilih jenis aktivitas...',
                                     style: AppTypography.bodyMedium.copyWith(
                                       color: _selectedActivityType != null
                                           ? textCol
@@ -500,7 +455,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
                         // Field 2: Location / Venue Name Input
                         _buildFieldLabel(
-                          label: 'Location / Venue Name',
+                          label: 'Nama Lokasi / Tempat',
                           isRequired: true,
                           textCol: textCol,
                         ),
@@ -519,7 +474,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
                         // Field 3: Description / Task Objective Input
                         _buildFieldLabel(
-                          label: 'Description / Task Objective',
+                          label: 'Deskripsi / Tujuan Tugas',
                           isRequired: true,
                           textCol: textCol,
                         ),
@@ -540,7 +495,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
 
                         // Field 5: Start Proof Photo Area
                         _buildFieldLabel(
-                          label: 'Start Proof Photo',
+                          label: 'Foto Bukti Mulai',
                           isRequired: true,
                           textCol: textCol,
                         ),
@@ -594,7 +549,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
                     width: double.infinity,
                     height: 52,
                     child: AppButton(
-                      text: 'Submit & Start Activity',
+                      text: 'Kirim & Mulai Aktivitas',
                       leadingIcon: LucideIcons.checkCircle2,
                       onPressed: isBusy ? null : _handleSubmit,
                       isLoading: isBusy,
@@ -698,7 +653,7 @@ class _CreateActivityViewState extends State<_CreateActivityView> {
       sheetTitle: 'Pilih Sumber Foto',
       sampleTitle: 'Gunakan Foto Sampel Lapangan',
       sampleSubtitle: 'Foto simulasi inspeksi Google Stitch',
-      uploadPlaceholderTitle: 'Tap to Capture or Upload Photo',
+      uploadPlaceholderTitle: 'Ketuk untuk ambil atau unggah foto',
       uploadPlaceholderSubtitle: 'Supports JPG, PNG • Auto Compressed',
       previewTitle: 'Foto Bukti Aktivitas',
       previewButtonKey: const ValueKey('preview_activity_photo_btn'),

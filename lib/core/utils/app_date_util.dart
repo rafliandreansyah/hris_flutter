@@ -118,6 +118,17 @@ class AppDateUtil {
     'Des',
   ];
 
+  /// Zona waktu acuan bila API tidak mengirim zona waktu.
+  static const String defaultTimezone = 'Asia/Jakarta';
+
+  /// Zona waktu untuk ditampilkan apa adanya (nama IANA, mis. `Asia/Jakarta`),
+  /// bukan singkatan seperti WIB. Kosong/placeholder -> [defaultTimezone].
+  static String timezoneLabel(String? raw) {
+    final tz = raw?.trim() ?? '';
+    if (tz.isEmpty || tz == '--:--') return defaultTimezone;
+    return tz;
+  }
+
   /// Format objek [DateTime] menjadi nama hari & tanggal lengkap (contoh: "Kamis, 9 September 2026").
   static String formatDateFull(DateTime dt, {String? locale}) {
     if (locale == 'id' || locale == 'id_ID') {

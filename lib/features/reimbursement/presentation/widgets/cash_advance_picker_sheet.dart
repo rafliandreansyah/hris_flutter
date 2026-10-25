@@ -1,3 +1,6 @@
+import 'package:hris_flutter/core/widgets/app_button.dart';
+import 'package:hris_flutter/core/widgets/app_loading_indicator.dart';
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -84,7 +87,7 @@ class _CashAdvancePickerSheetState extends State<CashAdvancePickerSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = AppErrorMessage.from(e);
         _isLoading = false;
       });
     }
@@ -177,10 +180,7 @@ class _CashAdvancePickerSheetState extends State<CashAdvancePickerSheet> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 48),
         child: Center(
-          child: CircularProgressIndicator(
-            color: brandColor,
-            strokeWidth: 2.5,
-          ),
+          child: AppLoadingIndicator(color: brandColor),
         ),
       );
     }
@@ -205,10 +205,13 @@ class _CashAdvancePickerSheetState extends State<CashAdvancePickerSheet> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              TextButton.icon(
+              AppButton(
+                text: 'Coba Lagi',
+                leadingIcon: LucideIcons.rotateCw,
+                variant: AppButtonVariant.ghost,
+                width: null,
+                height: 40,
                 onPressed: _loadCashAdvances,
-                icon: const Icon(LucideIcons.rotateCw, size: 16),
-                label: const Text('Coba Lagi'),
               ),
             ],
           ),

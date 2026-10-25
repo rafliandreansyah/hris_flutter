@@ -1,3 +1,8 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
+import 'package:hris_flutter/core/utils/app_dialog_util.dart';
+import 'package:hris_flutter/core/utils/date_window.dart';
+import 'package:hris_flutter/features/submission_setting/data/models/submission_setting_model.dart';
+import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:hris_flutter/core/utils/camera_capture_util.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -182,11 +187,10 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal memilih gambar: $e'),
-          backgroundColor: AppColors.errorRed,
-        ),
+      AppDialogUtil.showError(
+        context,
+        title: 'Gagal Memilih Gambar',
+        message: AppErrorMessage.from(e),
       );
     }
   }
@@ -388,10 +392,7 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+        title: Text(
               'Ajukan Reimbursement',
               style: AppTypography.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
@@ -400,15 +401,6 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                 letterSpacing: -0.5,
               ),
             ),
-            Text(
-              'Formulir Klaim & Penggantian Biaya',
-              style: AppTypography.bodySmall.copyWith(
-                color: subtitleCol,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
         elevation: 0,
         backgroundColor: scaffoldBg,
         leading: IconButton(
@@ -474,15 +466,11 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
         ),
       ),
       body: BlocConsumer<CreateReimbursementBloc, CreateReimbursementState>(
+        listenWhen: (prev, curr) => curr.errorMessage != prev.errorMessage ||
+            curr.isSuccess != prev.isSuccess,
         listener: (context, state) {
           if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColors.errorRed,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppDialogUtil.showError(context, message: state.errorMessage!);
           }
 
           if (state.isSuccess) {
@@ -1368,13 +1356,21 @@ class _CreateReimbursementViewState extends State<_CreateReimbursementView> {
                     const SizedBox(height: 6),
                     InkWell(
                       onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: item.expenseDate,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now().add(
+                        final range = resolvePickerRange(
+                          SubmissionSettingCubit.windowOf(
+                            context,
+                            SubmissionWindowType.reimbursement,
+                          ),
+                          fallbackFirst: DateTime(2020),
+                          fallbackLast: DateTime.now().add(
                             const Duration(days: 30),
                           ),
+                        );
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: range.clamp(item.expenseDate),
+                          firstDate: range.first,
+                          lastDate: range.last,
                         );
                         if (picked != null) {
                           setState(() => item.expenseDate = picked);

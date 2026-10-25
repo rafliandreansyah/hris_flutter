@@ -15,6 +15,7 @@ class TrackingLogItem extends Equatable {
   final double? altitude;
   final int? batteryLevel;
   final bool isMock;
+  final bool isGpsOff;
   final DateTime recordedAt;
   final DateTime? createdAt;
 
@@ -32,6 +33,7 @@ class TrackingLogItem extends Equatable {
     this.altitude,
     this.batteryLevel,
     this.isMock = false,
+    this.isGpsOff = false,
     required this.recordedAt,
     this.createdAt,
   });
@@ -51,6 +53,7 @@ class TrackingLogItem extends Equatable {
       altitude: (json['altitude'] as num?)?.toDouble(),
       batteryLevel: (json['batteryLevel'] as num?)?.toInt(),
       isMock: json['isMock'] == true,
+      isGpsOff: json['isGpsOff'] == true,
       recordedAt: DateTime.tryParse(json['recordedAt']?.toString() ?? '') ??
           DateTime.now(),
       createdAt: json['createdAt'] != null
@@ -74,6 +77,7 @@ class TrackingLogItem extends Equatable {
       'altitude': altitude,
       'batteryLevel': batteryLevel,
       'isMock': isMock,
+      'isGpsOff': isGpsOff,
       'recordedAt': recordedAt.toUtc().toIso8601String(),
       'createdAt': createdAt?.toUtc().toIso8601String(),
     };
@@ -94,6 +98,7 @@ class TrackingLogItem extends Equatable {
         altitude,
         batteryLevel,
         isMock,
+        isGpsOff,
         recordedAt,
         createdAt,
       ];

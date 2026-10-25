@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
@@ -40,7 +41,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       ));
     } catch (e) {
       emit(state.copyWith(
-        errorMessage: e.toString().replaceAll('Exception: ', ''),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

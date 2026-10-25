@@ -54,7 +54,7 @@ class ResignationClearanceSnapshotCard extends StatelessWidget {
     final financeSubtitle = hasOpenFinance
         ? '${finance.openCashAdvanceCount} kasbon terbuka, ${finance.pendingReimbursementCount} klaim pending'
         : 'Tidak ada tunggakan kasbon atau klaim gantung';
-    final financeBadgeText = hasOpenFinance ? 'Pending' : 'Beres';
+    final financeBadgeText = hasOpenFinance ? 'Menunggu' : 'Beres';
     final isFinanceOk = !hasOpenFinance;
 
     final handoverName = resignation.handoverTo?.fullName;

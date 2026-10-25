@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hris_flutter/core/network/api_exception.dart';
 import 'package:hris_flutter/features/reimbursement/data/repositories/reimbursement_repository_impl.dart';
@@ -14,6 +15,7 @@ class CashAdvanceDetailBloc
       : _repository = repository ?? ReimbursementRepositoryImpl(),
         super(const CashAdvanceDetailState()) {
     on<CashAdvanceDetailFetched>(_onFetched);
+    on<CashAdvanceDetailDeleted>(_onDeleted);
     on<CashAdvanceDetailApproved>(_onApproved);
     on<CashAdvanceRefundSubmitted>(_onRefundSubmitted);
   }
@@ -37,7 +39,7 @@ class CashAdvanceDetailBloc
     } catch (e) {
       emit(state.copyWith(
         status: CashAdvanceDetailStatus.failure,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }
@@ -74,7 +76,7 @@ class CashAdvanceDetailBloc
     } catch (e) {
       emit(state.copyWith(
         isActionLoading: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
       // 409: data sudah diproses pengguna lain. Muat ulang agar status yang tampil ikut berubah.
       if (e is ApiException && e.isAlreadyProcessed) {
@@ -120,7 +122,33 @@ class CashAdvanceDetailBloc
     } catch (e) {
       emit(state.copyWith(
         isActionLoading: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
+      ));
+    }
+  }
+
+  Future<void> _onDeleted(
+    CashAdvanceDetailDeleted event,
+    Emitter<CashAdvanceDetailState> emit,
+  ) async {
+    if (_currentId == null || state.isActionLoading) return;
+    emit(state.copyWith(
+      isActionLoading: true,
+      clearActionMessage: true,
+      clearErrorMessage: true,
+    ));
+
+    try {
+      await _repository.deleteCashAdvance(_currentId!);
+      emit(state.copyWith(
+        isActionLoading: false,
+        isDeleted: true,
+        actionSuccessMessage: 'Pengajuan kasbon berhasil dihapus',
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isActionLoading: false,
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
   }

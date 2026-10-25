@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_logs_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/pages/attendance_screen.dart';
 import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_log_card.dart';
-import 'package:hris_flutter/features/attendance/presentation/widgets/attendance_team_member_card.dart';
+import 'package:hris_flutter/features/employee/presentation/widgets/employee_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/attendance_hero_card.dart';
 import 'package:patrol/patrol.dart';
 
@@ -77,7 +77,7 @@ void main() {
 
     // Tab Tim Saya
     await tapTab($, 'Tim Saya');
-    await waitForListLoaded($, card: AttendanceTeamMemberCard);
+    await waitForListLoaded($, card: EmployeeCard);
     expectNoErrorState();
 
     await tapTab($, 'Saya');

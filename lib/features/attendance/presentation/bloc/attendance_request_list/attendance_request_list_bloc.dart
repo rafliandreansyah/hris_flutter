@@ -1,3 +1,4 @@
+import 'package:hris_flutter/core/utils/app_error_message.dart';
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,7 +71,7 @@ class AttendanceRequestListBloc
       emit(state.copyWith(
         status: AttendanceRequestListStatus.failure,
         isMyLoading: false,
-        errorMessage: e is ApiException ? e.message : e.toString(),
+        errorMessage: AppErrorMessage.from(e),
       ));
     }
 
@@ -121,7 +122,7 @@ class AttendanceRequestListBloc
         emit(state.copyWith(
           isTeamLoading: false,
           hasLoadedTeam: true,
-          errorMessage: e is ApiException ? e.message : e.toString(),
+          errorMessage: AppErrorMessage.from(e),
         ));
       }
     }
@@ -167,7 +168,7 @@ class AttendanceRequestListBloc
         emit(state.copyWith(
           status: AttendanceRequestListStatus.failure,
           isMyLoading: false,
-          errorMessage: e is ApiException ? e.message : e.toString(),
+          errorMessage: AppErrorMessage.from(e),
         ));
       }
     } else {
@@ -218,7 +219,7 @@ class AttendanceRequestListBloc
             status: AttendanceRequestListStatus.failure,
             isTeamLoading: false,
             hasLoadedTeam: true,
-            errorMessage: e is ApiException ? e.message : e.toString(),
+            errorMessage: AppErrorMessage.from(e),
           ));
         }
       }

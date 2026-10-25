@@ -145,7 +145,7 @@ class _AttendanceMapCardState extends State<AttendanceMapCard> {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              height: 150,
+              height: 260,
               width: double.infinity,
               decoration: BoxDecoration(
                 border: Border.all(color: borderCol, width: 1),
