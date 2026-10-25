@@ -225,6 +225,11 @@ void main() {
         find.text('Silakan pilih jenis aktivitas terlebih dahulu.'),
         findsAtLeast(1),
       );
+
+      // Tutup dialog validasi agar tidak ada animasi/timer tersisa.
+      await tester.tap(find.text('Tutup'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
 
     testWidgets('Selects Activity Type and opens Photo picker options', (

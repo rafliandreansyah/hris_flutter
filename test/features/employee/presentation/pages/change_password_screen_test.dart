@@ -105,7 +105,10 @@ void main() {
 
       // 5. Submit Button
       expect(find.text('Simpan & Perbarui Password'), findsOneWidget);
-      expect(find.byType(AppButton), findsOneWidget);
+      expect(
+        find.widgetWithText(AppButton, 'Simpan & Perbarui Password'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('typing valid password updates criteria checkmarks',

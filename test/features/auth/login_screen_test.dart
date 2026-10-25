@@ -169,7 +169,10 @@ void main() {
       authBloc.emitState(const AuthLoading());
       await tester.pump();
 
-      final buttonFinder = find.byType(AppButton);
+      // Tombol utama saja (tautan legal di footer juga AppButton ghost).
+      final buttonFinder = find.byWidgetPredicate(
+        (w) => w is AppButton && w.variant == AppButtonVariant.primary,
+      );
       expect(buttonFinder, findsOneWidget);
       final appButton = tester.widget<AppButton>(buttonFinder);
       expect(appButton.isLoading, isTrue);

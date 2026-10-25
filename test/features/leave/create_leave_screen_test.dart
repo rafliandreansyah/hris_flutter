@@ -185,12 +185,19 @@ void main() {
 
       final submitBtn = find.byKey(const ValueKey('submit_leave_btn'));
       await tester.tap(submitBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
+      expect(find.text('Data Belum Lengkap'), findsOneWidget);
       expect(
         find.text('Silakan pilih jenis cuti/izin terlebih dahulu.'),
         findsOneWidget,
       );
+
+      // Tutup dialog validasi agar tidak ada animasi/timer tersisa.
+      await tester.tap(find.text('Tutup'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
 
     testWidgets('selecting leave type from bottom sheet updates UI',
@@ -247,12 +254,18 @@ void main() {
       // Submit without notes
       final submitBtn = find.byKey(const ValueKey('submit_leave_btn'));
       await tester.tap(submitBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(
         find.text('Alasan pengajuan cuti/izin wajib diisi.'),
         findsOneWidget,
       );
+
+      // Tutup dialog validasi agar tidak ada animasi/timer tersisa.
+      await tester.tap(find.text('Tutup'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
   });
 }

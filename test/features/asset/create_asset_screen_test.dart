@@ -120,7 +120,7 @@ void main() {
       expect(find.widgetWithText(AppButton, 'Daftarkan Aset'), findsOneWidget);
     });
 
-    testWidgets('shows snackbar when category is not selected on submit', (tester) async {
+    testWidgets('shows validation dialog when category is not selected on submit', (tester) async {
       final repo = _FakeCreateAssetRepo();
 
       await tester.pumpWidget(buildTestableWidget(repository: repo));
@@ -128,10 +128,16 @@ void main() {
 
       final submitBtn = find.widgetWithText(AppButton, 'Daftarkan Aset');
       await tester.tap(submitBtn);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.text('Silakan pilih kategori aset'), findsOneWidget);
+      expect(find.text('Silakan pilih kategori aset.'), findsOneWidget);
       expect(repo.submittedPayload, isNull);
+
+      // Tutup dialog validasi agar tidak ada animasi/timer tersisa.
+      await tester.tap(find.text('Tutup'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
 
     testWidgets('submits form successfully when required fields are filled', (tester) async {
