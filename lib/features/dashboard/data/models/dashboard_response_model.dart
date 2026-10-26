@@ -49,6 +49,9 @@ class DashboardData {
   final List<AnnouncementItem> latestAnnouncement;
   final AttendanceSummaryInfo? attendanceSummary;
 
+  /// Jumlah antrean "menunggu saya" per kode menu (hanya nilai > 0; kosong bila bukan atasan).
+  final Map<String, int> menuBadges;
+
   const DashboardData({
     required this.id,
     required this.firstName,
@@ -67,6 +70,7 @@ class DashboardData {
     this.timeServer,
     this.latestAnnouncement = const [],
     this.attendanceSummary,
+    this.menuBadges = const {},
   });
 
   String get fullName => lastName != null && lastName!.isNotEmpty
@@ -108,6 +112,7 @@ class DashboardData {
     String? timeServer,
     List<AnnouncementItem>? latestAnnouncement,
     AttendanceSummaryInfo? attendanceSummary,
+    Map<String, int>? menuBadges,
   }) {
     return DashboardData(
       id: id ?? this.id,
@@ -127,6 +132,7 @@ class DashboardData {
       timeServer: timeServer ?? this.timeServer,
       latestAnnouncement: latestAnnouncement ?? this.latestAnnouncement,
       attendanceSummary: attendanceSummary ?? this.attendanceSummary,
+      menuBadges: menuBadges ?? this.menuBadges,
     );
   }
 
@@ -169,6 +175,7 @@ class DashboardData {
           ? AttendanceSummaryInfo.fromJson(
               json['attendanceSummary'] as Map<String, dynamic>)
           : null,
+      menuBadges: _parseMenuBadges(json['menuBadges']),
     );
   }
 
@@ -192,8 +199,18 @@ class DashboardData {
       'latestAnnouncement':
           latestAnnouncement.map((e) => e.toJson()).toList(),
       'attendanceSummary': attendanceSummary?.toJson(),
+      'menuBadges': menuBadges,
     };
   }
+}
+
+Map<String, int> _parseMenuBadges(dynamic raw) {
+  if (raw is! Map) return const {};
+  final result = <String, int>{};
+  raw.forEach((key, value) {
+    if (value is num && value > 0) result[key.toString()] = value.toInt();
+  });
+  return result;
 }
 
 class CompanyInfo {

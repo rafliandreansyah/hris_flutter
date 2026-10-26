@@ -174,3 +174,57 @@ class CareerHistoryItem extends Equatable {
   @override
   List<Object?> get props => [id, changeType, effectiveDate];
 }
+
+/// Kontrak bawahan yang akan berakhir (khusus atasan / pemegang izin).
+class TeamExpiringContract extends Equatable {
+  final String contractId;
+  final String contractNumber;
+  final String type;
+  final DateTime? endDate;
+  final int daysRemaining;
+  final String? evaluationId;
+  final String employeeId;
+  final String employeeName;
+  final String? employeeNumber;
+  final String? departmentName;
+  final String? positionName;
+  final String? photoUrl;
+
+  const TeamExpiringContract({
+    required this.contractId,
+    required this.contractNumber,
+    required this.type,
+    this.endDate,
+    required this.daysRemaining,
+    this.evaluationId,
+    required this.employeeId,
+    required this.employeeName,
+    this.employeeNumber,
+    this.departmentName,
+    this.positionName,
+    this.photoUrl,
+  });
+
+  factory TeamExpiringContract.fromJson(Map<String, dynamic> j) {
+    final e = j['employee'] is Map<String, dynamic>
+        ? j['employee'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    return TeamExpiringContract(
+      contractId: j['contractId']?.toString() ?? '',
+      contractNumber: j['contractNumber']?.toString() ?? '-',
+      type: j['type']?.toString() ?? '',
+      endDate: lcDate(j['endDate']),
+      daysRemaining: lcInt(j['daysRemaining']),
+      evaluationId: j['evaluationId']?.toString(),
+      employeeId: e['id']?.toString() ?? '',
+      employeeName: e['name']?.toString() ?? '-',
+      employeeNumber: e['employeeNumber']?.toString(),
+      departmentName: e['departmentName']?.toString(),
+      positionName: e['positionName']?.toString(),
+      photoUrl: e['photoUrl']?.toString(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [contractId, endDate, daysRemaining, evaluationId];
+}

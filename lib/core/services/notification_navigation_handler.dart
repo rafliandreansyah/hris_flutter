@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/team_expiring_contracts_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/routes/app_router.dart';
@@ -296,7 +297,7 @@ class NotificationNavigationHandler {
   }
 
   /// Pemetaan notifikasi Siklus Karyawan. Mengembalikan `false` untuk tipe yang belum punya layar
-  /// (movement/contract) sehingga pemanggil memakai fallback modal detail.
+  /// (movement) sehingga pemanggil memakai fallback modal detail.
   bool _handleLifecycle(BuildContext context, String type, String id) {
     switch (type) {
       case 'lifecycle_evaluation':
@@ -312,6 +313,11 @@ class NotificationNavigationHandler {
         return true;
       case 'lifecycle_offboarding':
         context.push(Routes.RESIGNATION);
+        return true;
+      case 'lifecycle_contract':
+        // Info kontrak berakhir hanya untuk atasan; selain itu tetap modal detail.
+        if (!TeamExpiringContractsScreen.hasAccess()) return false;
+        context.push(Routes.LIFECYCLE_TEAM_CONTRACTS);
         return true;
       case 'lifecycle_task':
       case 'lifecycle_onboarding':

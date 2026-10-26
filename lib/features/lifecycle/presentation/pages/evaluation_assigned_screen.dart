@@ -12,7 +12,9 @@ import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_evaluation
 import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_json.dart';
 import 'package:hris_flutter/features/lifecycle/domain/repositories/lifecycle_repository.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/bloc/evaluation_assigned_bloc.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/team_expiring_contracts_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/widgets/lifecycle_ui.dart';
+import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Daftar penilaian yang harus saya isi sebagai atasan/penilai.
@@ -73,6 +75,14 @@ class _ViewState extends State<_View> {
           'Penilaian Tim',
           style: AppTypography.titleMedium.copyWith(color: c.text, fontWeight: FontWeight.w800),
         ),
+        actions: [
+          if (TeamExpiringContractsScreen.hasAccess())
+            IconButton(
+              tooltip: AppLocalizations.of(context)?.teamContractsTitle ?? 'Kontrak Berakhir Tim',
+              onPressed: () => context.push(Routes.LIFECYCLE_TEAM_CONTRACTS),
+              icon: Icon(LucideIcons.calendarClock, color: c.text),
+            ),
+        ],
       ),
       body: SafeArea(
         child: BlocBuilder<EvaluationAssignedBloc, EvaluationAssignedState>(

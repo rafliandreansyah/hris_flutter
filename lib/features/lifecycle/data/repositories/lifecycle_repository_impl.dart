@@ -63,6 +63,10 @@ class LifecycleRepositoryImpl implements LifecycleRepository {
   Future<ContractOverviewModel> getMyContracts() => _ds.getMyContracts();
 
   @override
+  Future<List<TeamExpiringContract>> getTeamExpiringContracts({int days = 30}) =>
+      _ds.getTeamExpiringContracts(days: days);
+
+  @override
   Future<List<CareerHistoryItem>> getMyCareerHistory() => _ds.getMyCareerHistory();
 
   @override

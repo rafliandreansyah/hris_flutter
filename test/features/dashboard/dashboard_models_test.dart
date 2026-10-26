@@ -290,6 +290,28 @@ void main() {
     });
   });
 
+  group('DashboardData.menuBadges', () {
+    Map<String, dynamic> base() => {
+          'id': 'e1',
+          'firstName': 'Ani',
+          'email': 'a@b.c',
+        };
+
+    test('default kosong bila server lama tidak mengirim menuBadges', () {
+      expect(DashboardData.fromJson(base()).menuBadges, isEmpty);
+    });
+
+    test('memetakan hitungan dan membuang nilai <= 0 / bukan angka', () {
+      final data = DashboardData.fromJson({
+        ...base(),
+        'menuBadges': {'mobile_leave': 3, 'mobile_overtime': 0, 'mobile_asset': 'x'},
+      });
+      expect(data.menuBadges, {'mobile_leave': 3});
+      expect(data.copyWith(firstName: 'B').menuBadges, {'mobile_leave': 3});
+      expect(data.toJson()['menuBadges'], {'mobile_leave': 3});
+    });
+  });
+
   group('MenuResponseModel Tests', () {
     test('parses sample menus json successfully', () {
       final json = {

@@ -30,6 +30,7 @@ abstract class LifecycleRepository {
 
   // Profil
   Future<ContractOverviewModel> getMyContracts();
+  Future<List<TeamExpiringContract>> getTeamExpiringContracts({int days = 30});
   Future<List<CareerHistoryItem>> getMyCareerHistory();
 
   // Offboarding / onboarding / tugas

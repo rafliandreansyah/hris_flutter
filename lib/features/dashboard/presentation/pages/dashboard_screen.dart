@@ -3,6 +3,7 @@ import 'package:hris_flutter/core/utils/permission_util.dart';
 import 'package:hris_flutter/features/submission_setting/presentation/bloc/submission_setting_cubit.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/widgets/onboarding_progress_card.dart';
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/widgets/app_count_badge.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
@@ -355,50 +356,7 @@ class _DashboardViewState extends State<_DashboardView>
                       Positioned(
                         top: -3,
                         right: -3,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 1.5,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 18,
-                            minHeight: 18,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.errorRed, Color(0xFFDC2626)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.darkBackground
-                                  : Colors.white,
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFDC2626).withValues(
-                                  alpha: 0.35,
-                                ),
-                                blurRadius: 4,
-                                offset: const Offset(0, 1.5),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              unreadCount > 99 ? '99+' : unreadCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: AppCountBadge(count: unreadCount),
                       ),
                   ],
                 );
@@ -614,7 +572,10 @@ class _DashboardViewState extends State<_DashboardView>
                       const OnboardingProgressCard(),
 
                       // 2. Section: Quick Access Bento Grid (Dinamis dari /auth/menus)
-                      QuickAccessGrid(menus: menus),
+                      QuickAccessGrid(
+                        menus: menus,
+                        badges: state.dashboardData.menuBadges,
+                      ),
                       const SizedBox(height: 24),
 
                       // 3. Section: Updates / Feed Pengumuman

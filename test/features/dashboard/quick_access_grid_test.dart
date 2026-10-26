@@ -247,5 +247,58 @@ void main() {
       expect(find.text('Attendance History'), findsOneWidget);
       expect(find.byIcon(LucideIcons.calendarCheck2), findsOneWidget);
     });
+
+    group('badge antrean', () {
+      testWidgets('tile menampilkan angka, "99+" di atas 99, dan tanpa badge bila 0', (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            QuickAccessGrid(
+              menus: [
+                _menu('mobile_leave', 'Cuti'),
+                _menu('mobile_overtime', 'Lembur'),
+                _menu('mobile_employee', 'Pegawai'),
+              ],
+              badges: const {'mobile_leave': 3, 'mobile_overtime': 120},
+            ),
+          ),
+        );
+
+        final leave = find.descendant(
+          of: find.byKey(const ValueKey('menu_mobile_leave')),
+          matching: find.byKey(const ValueKey('menu_badge')),
+        );
+        expect(leave, findsOneWidget);
+        expect(find.descendant(of: leave, matching: find.text('3')), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('menu_mobile_overtime')),
+            matching: find.text('99+'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('menu_mobile_employee')),
+            matching: find.byKey(const ValueKey('menu_badge')),
+          ),
+          findsNothing,
+        );
+      });
+
+      testWidgets('tile Lainnya menjumlahkan badge menu yang tersembunyi', (tester) async {
+        // menus null → semua menu default; menu non-prioritas masuk ke "Lainnya"
+        await tester.pumpWidget(
+          _wrap(const QuickAccessGrid(badges: {'mobile_resignation': 2, 'mobile_lifecycle': 1})),
+        );
+
+        final more = find.byKey(const ValueKey('quick_access_more'));
+        expect(more, findsOneWidget);
+        expect(
+          find.descendant(of: more, matching: find.byKey(const ValueKey('menu_badge'))),
+          findsOneWidget,
+        );
+        expect(find.descendant(of: more, matching: find.text('3')), findsOneWidget);
+      });
+    });
   });
 }

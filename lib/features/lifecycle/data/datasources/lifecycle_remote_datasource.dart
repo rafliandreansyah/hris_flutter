@@ -121,6 +121,16 @@ class LifecycleRemoteDataSource {
     );
   }
 
+  Future<List<TeamExpiringContract>> getTeamExpiringContracts({int days = 30}) async {
+    final res = await _api.get(
+      ApiEndpoints.lifecycleTeamExpiringContracts,
+      queryParameters: {'days': days},
+    );
+    final data = _data(res.data, 'Gagal memuat kontrak yang akan berakhir.');
+    if (data is! List) return const [];
+    return lcList(data).map(TeamExpiringContract.fromJson).toList();
+  }
+
   Future<List<CareerHistoryItem>> getMyCareerHistory() async {
     final res = await _api.get(ApiEndpoints.lifecycleCareerHistoryMy);
     return lcList(_data(res.data, 'Gagal memuat riwayat karier.'))

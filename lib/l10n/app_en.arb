@@ -179,5 +179,31 @@
   "legalAndHelp": "LEGAL & HELP",
   "legalLinkOpenFailed": "The page could not be opened. Check your internet connection and try again.",
   "trackingResumeTitle": "Work location tracking paused",
-  "trackingResumeBody": "Tap to resume tracking during your working hours."
+  "trackingResumeBody": "Tap to resume tracking during your working hours.",
+  "menuLifecycle": "Evaluation & Contracts",
+  "teamContractsTitle": "Team Contracts Ending",
+  "teamContractsEmptyTitle": "No Contracts Ending Soon",
+  "teamContractsEmptyMessage": "No team contracts end within the next 30 days.",
+  "teamContractsDaysLeft": "{days} days left",
+  "@teamContractsDaysLeft": {
+    "description": "Contract days remaining",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "teamContractsEndsOn": "Ends {date}",
+  "@teamContractsEndsOn": {
+    "description": "Contract end date",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Nov 5, 2026"
+      }
+    }
+  },
+  "teamContractsOpenEvaluation": "View Evaluation",
+  "teamContractsNoEvaluation": "Evaluation not created yet"
 }

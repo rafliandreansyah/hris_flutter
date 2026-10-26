@@ -54,6 +54,7 @@ abstract class Routes {
   static const String LIFECYCLE_MY_EVALUATIONS = '/lifecycle/my-evaluations';
   static const String LIFECYCLE_MY_EVALUATION_DETAIL = '/lifecycle/my-evaluation-detail';
   static const String LIFECYCLE_TASKS = '/lifecycle/tasks';
+  static const String LIFECYCLE_TEAM_CONTRACTS = '/lifecycle/team-contracts';
   static const String LIVE_TRACKING = '/live-tracking';
   static const String PAYROLL = '/payroll';
   static const String PAYROLL_EMPLOYEE_SLIPS = '/payroll/employee-slips';

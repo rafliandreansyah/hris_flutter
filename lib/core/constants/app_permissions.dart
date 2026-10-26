@@ -32,6 +32,10 @@ abstract class AppPermissions {
   static const String warningLetterView = 'warning_letter.view';
   static const String warningLetterCreate = 'warning_letter.create';
 
+  // --- Modul Siklus Karyawan (Evaluasi Kontrak & Probation) ---
+  static const String lifecycleEvaluationView = 'lifecycle.evaluation.view';
+  static const String lifecycleEvaluationSubmit = 'lifecycle.evaluation.submit';
+
   // --- Modul Slip Gaji (Payroll) ---
   static const String payrollSlipView = 'payroll.slip.view';
 
@@ -91,4 +95,8 @@ abstract class AppPermissions {
     approvalReimbursementFinance,
   ];
   static const List<String> teamWarningLetter = [warningLetterView];
+  static const List<String> teamLifecycle = [
+    lifecycleEvaluationView,
+    lifecycleEvaluationSubmit,
+  ];
 }

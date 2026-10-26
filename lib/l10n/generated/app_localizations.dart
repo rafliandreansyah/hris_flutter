@@ -1015,6 +1015,54 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Ketuk untuk melanjutkan pelacakan selama jam kerja Anda.'**
   String get trackingResumeBody;
+
+  /// No description provided for @menuLifecycle.
+  ///
+  /// In id, this message translates to:
+  /// **'Evaluasi & Kontrak'**
+  String get menuLifecycle;
+
+  /// No description provided for @teamContractsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kontrak Berakhir Tim'**
+  String get teamContractsTitle;
+
+  /// No description provided for @teamContractsEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak Ada Kontrak yang Segera Berakhir'**
+  String get teamContractsEmptyTitle;
+
+  /// No description provided for @teamContractsEmptyMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada kontrak bawahan yang berakhir dalam 30 hari ke depan.'**
+  String get teamContractsEmptyMessage;
+
+  /// Sisa hari kontrak
+  ///
+  /// In id, this message translates to:
+  /// **'Sisa {days} hari'**
+  String teamContractsDaysLeft(int days);
+
+  /// Tanggal kontrak berakhir
+  ///
+  /// In id, this message translates to:
+  /// **'Berakhir {date}'**
+  String teamContractsEndsOn(String date);
+
+  /// No description provided for @teamContractsOpenEvaluation.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Evaluasi'**
+  String get teamContractsOpenEvaluation;
+
+  /// No description provided for @teamContractsNoEvaluation.
+  ///
+  /// In id, this message translates to:
+  /// **'Evaluasi belum dibuat'**
+  String get teamContractsNoEvaluation;
 }
 
 class _AppLocalizationsDelegate

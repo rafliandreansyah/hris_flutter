@@ -65,6 +65,7 @@ import 'package:hris_flutter/features/resignation/presentation/pages/create_resi
 import 'package:hris_flutter/features/lifecycle/presentation/pages/evaluation_assigned_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/pages/evaluation_form_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/pages/lifecycle_tasks_screen.dart';
+import 'package:hris_flutter/features/lifecycle/presentation/pages/team_expiring_contracts_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluation_detail_screen.dart';
 import 'package:hris_flutter/features/lifecycle/presentation/pages/my_evaluations_screen.dart';
 import 'package:hris_flutter/core/network/api_client.dart';
@@ -742,6 +743,11 @@ class AppRouter {
         builder: (context, state) => MyEvaluationDetailScreen(
           evaluationId: state.extra as String? ?? '',
         ),
+      ),
+      GoRoute(
+        path: Routes.LIFECYCLE_TEAM_CONTRACTS,
+        name: Routes.LIFECYCLE_TEAM_CONTRACTS,
+        builder: (context, state) => const TeamExpiringContractsScreen(),
       ),
       GoRoute(
         path: Routes.LIFECYCLE_TASKS,

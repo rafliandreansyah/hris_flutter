@@ -432,6 +432,7 @@ void main() {
             stub(Routes.LIFECYCLE_EVALUATION_FORM),
             stub(Routes.LIFECYCLE_EVALUATIONS),
             stub(Routes.LIFECYCLE_TASKS),
+            stub(Routes.LIFECYCLE_TEAM_CONTRACTS),
             stub(Routes.RESIGNATION),
           ],
         );
@@ -460,6 +461,13 @@ void main() {
         expect(routes, [Routes.LIFECYCLE_EVALUATIONS]);
       });
 
+      testWidgets('lifecycle_contract → kontrak berakhir tim (atasan)', (tester) async {
+        final (handled, routes, _) =
+            await run(tester, {'type': 'lifecycle_contract', 'id': 'k-1'});
+        expect(handled, isTrue);
+        expect(routes, [Routes.LIFECYCLE_TEAM_CONTRACTS]);
+      });
+
       testWidgets('lifecycle_offboarding → layar resign', (tester) async {
         final (handled, routes, _) =
             await run(tester, {'type': 'lifecycle_offboarding', 'id': 'off-1'});
@@ -475,12 +483,11 @@ void main() {
         }
       });
 
-      testWidgets('lifecycle_movement & lifecycle_contract → fallback modal (tidak ditangani)', (tester) async {
-        for (final t in ['lifecycle_movement', 'lifecycle_contract']) {
-          final (handled, routes, _) = await run(tester, {'type': t, 'id': 'x', 'module': 'LIFECYCLE'});
-          expect(handled, isFalse, reason: t);
-          expect(routes, isEmpty, reason: t);
-        }
+      testWidgets('lifecycle_movement → fallback modal (tidak ditangani)', (tester) async {
+        final (handled, routes, _) =
+            await run(tester, {'type': 'lifecycle_movement', 'id': 'x', 'module': 'LIFECYCLE'});
+        expect(handled, isFalse);
+        expect(routes, isEmpty);
       });
 
       testWidgets('module LIFECYCLE tanpa type spesifik tidak jatuh ke modul lain', (tester) async {

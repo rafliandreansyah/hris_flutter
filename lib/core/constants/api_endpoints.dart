@@ -214,6 +214,8 @@ abstract class ApiEndpoints {
   static String lifecycleEvaluationAcknowledge(String id) =>
       '/lifecycle/evaluations/$id/acknowledge';
   static const String lifecycleContractsMy = '/lifecycle/contracts/my';
+  static const String lifecycleTeamExpiringContracts =
+      '/lifecycle/contracts/team/expiring';
   static const String lifecycleCareerHistoryMy = '/lifecycle/career-history/my';
   static const String lifecycleOffboardingMy = '/lifecycle/offboarding/my';
   static const String lifecycleOnboardingMy = '/lifecycle/onboarding/my';

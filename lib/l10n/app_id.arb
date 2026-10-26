@@ -179,5 +179,31 @@
   "legalAndHelp": "LEGAL & BANTUAN",
   "legalLinkOpenFailed": "Halaman tidak dapat dibuka. Periksa koneksi internet Anda lalu coba lagi.",
   "trackingResumeTitle": "Pelacakan lokasi kerja dijeda",
-  "trackingResumeBody": "Ketuk untuk melanjutkan pelacakan selama jam kerja Anda."
+  "trackingResumeBody": "Ketuk untuk melanjutkan pelacakan selama jam kerja Anda.",
+  "menuLifecycle": "Evaluasi & Kontrak",
+  "teamContractsTitle": "Kontrak Berakhir Tim",
+  "teamContractsEmptyTitle": "Tidak Ada Kontrak yang Segera Berakhir",
+  "teamContractsEmptyMessage": "Belum ada kontrak bawahan yang berakhir dalam 30 hari ke depan.",
+  "teamContractsDaysLeft": "Sisa {days} hari",
+  "@teamContractsDaysLeft": {
+    "description": "Sisa hari kontrak",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "teamContractsEndsOn": "Berakhir {date}",
+  "@teamContractsEndsOn": {
+    "description": "Tanggal kontrak berakhir",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "5 Nov 2026"
+      }
+    }
+  },
+  "teamContractsOpenEvaluation": "Lihat Evaluasi",
+  "teamContractsNoEvaluation": "Evaluasi belum dibuat"
 }

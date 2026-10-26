@@ -489,4 +489,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get trackingResumeBody =>
       'Tap to resume tracking during your working hours.';
+
+  @override
+  String get menuLifecycle => 'Evaluation & Contracts';
+
+  @override
+  String get teamContractsTitle => 'Team Contracts Ending';
+
+  @override
+  String get teamContractsEmptyTitle => 'No Contracts Ending Soon';
+
+  @override
+  String get teamContractsEmptyMessage =>
+      'No team contracts end within the next 30 days.';
+
+  @override
+  String teamContractsDaysLeft(int days) {
+    return '$days days left';
+  }
+
+  @override
+  String teamContractsEndsOn(String date) {
+    return 'Ends $date';
+  }
+
+  @override
+  String get teamContractsOpenEvaluation => 'View Evaluation';
+
+  @override
+  String get teamContractsNoEvaluation => 'Evaluation not created yet';
 }

@@ -109,6 +109,17 @@ class FakeLifecycleRepository implements LifecycleRepository {
     return contracts;
   }
 
+  List<TeamExpiringContract> teamExpiring = const [];
+  ApiException? teamExpiringError;
+  final List<int> teamExpiringDays = [];
+
+  @override
+  Future<List<TeamExpiringContract>> getTeamExpiringContracts({int days = 30}) async {
+    teamExpiringDays.add(days);
+    if (teamExpiringError != null) throw teamExpiringError!;
+    return teamExpiring;
+  }
+
   @override
   Future<List<CareerHistoryItem>> getMyCareerHistory() async {
     if (careerError != null) throw careerError!;

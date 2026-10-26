@@ -489,4 +489,34 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get trackingResumeBody =>
       'Ketuk untuk melanjutkan pelacakan selama jam kerja Anda.';
+
+  @override
+  String get menuLifecycle => 'Evaluasi & Kontrak';
+
+  @override
+  String get teamContractsTitle => 'Kontrak Berakhir Tim';
+
+  @override
+  String get teamContractsEmptyTitle =>
+      'Tidak Ada Kontrak yang Segera Berakhir';
+
+  @override
+  String get teamContractsEmptyMessage =>
+      'Belum ada kontrak bawahan yang berakhir dalam 30 hari ke depan.';
+
+  @override
+  String teamContractsDaysLeft(int days) {
+    return 'Sisa $days hari';
+  }
+
+  @override
+  String teamContractsEndsOn(String date) {
+    return 'Berakhir $date';
+  }
+
+  @override
+  String get teamContractsOpenEvaluation => 'Lihat Evaluasi';
+
+  @override
+  String get teamContractsNoEvaluation => 'Evaluasi belum dibuat';
 }

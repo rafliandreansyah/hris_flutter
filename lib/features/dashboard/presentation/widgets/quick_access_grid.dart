@@ -6,6 +6,7 @@ import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
+import 'package:hris_flutter/core/widgets/app_count_badge.dart';
 import 'package:hris_flutter/features/dashboard/data/models/menu_response_model.dart';
 import 'package:hris_flutter/l10n/generated/app_localizations.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -39,7 +40,10 @@ class _MenuDef {
 class QuickAccessGrid extends StatelessWidget {
   final List<MenuItemModel>? menus;
 
-  const QuickAccessGrid({super.key, this.menus});
+  /// Jumlah antrean per kode menu (`DashboardData.menuBadges`).
+  final Map<String, int> badges;
+
+  const QuickAccessGrid({super.key, this.menus, this.badges = const {}});
 
   /// Jumlah menu yang tampil langsung sebelum sisanya masuk ke "Lainnya".
   static const int _maxPrimary = 7;
@@ -143,6 +147,13 @@ class QuickAccessGrid extends StatelessWidget {
       icon: LucideIcons.packageCheck,
       group: MenuGroup.employee,
       title: (l) => l?.menuAsset ?? 'Aset',
+    ),
+    _MenuDef(
+      code: 'mobile_lifecycle',
+      matchTitle: 'Evaluasi & Kontrak',
+      icon: LucideIcons.clipboardCheck,
+      group: MenuGroup.employee,
+      title: (l) => l?.menuLifecycle ?? 'Evaluasi & Kontrak',
     ),
     _MenuDef(
       code: 'mobile_resignation',
@@ -252,6 +263,12 @@ class QuickAccessGrid extends StatelessWidget {
               RegExp(r'\bsp\b').hasMatch(mName))) {
         return true;
       }
+      if (targetCode == 'mobile_lifecycle' &&
+          (mCode == 'mobile_lifecycle' ||
+              mName.contains('evaluasi') ||
+              mName.contains('penilaian'))) {
+        return true;
+      }
       if (targetCode == 'mobile_payroll' &&
           (mName.contains('gaji') ||
               mName.contains('payroll') ||
@@ -326,6 +343,8 @@ class QuickAccessGrid extends StatelessWidget {
       context.push(Routes.ASSETS);
     } else if (c == 'mobile_resignation') {
       context.push(Routes.RESIGNATION);
+    } else if (c == 'mobile_lifecycle') {
+      context.push(Routes.LIFECYCLE_EVALUATIONS);
     } else if (c == 'mobile_live_tracking') {
       context.push(Routes.LIVE_TRACKING);
     } else if (c == 'mobile_payroll') {
@@ -340,10 +359,14 @@ class QuickAccessGrid extends StatelessWidget {
   /// Direktori Pegawai butuh izin `employee.view`; tanpa izin, layar hanya menampilkan "Forbidden".
   /// Dilewati bila izin belum dimuat agar perilaku sebelum login/tes tidak berubah.
   bool _hasRequiredPermission(_MenuDef m) {
-    if (m.code != 'mobile_employee') return true;
+    final required = switch (m.code) {
+      'mobile_employee' => const [AppPermissions.employeeView],
+      'mobile_lifecycle' => AppPermissions.teamLifecycle,
+      _ => null,
+    };
+    if (required == null) return true;
     final storage = SecureStorageService.instance;
-    return !storage.hasLoadedPermissions ||
-        storage.hasAnyPermissionInMemory([AppPermissions.employeeView]);
+    return !storage.hasLoadedPermissions || storage.hasAnyPermissionInMemory(required);
   }
 
   /// Menu yang tersedia (sesuai API) dalam urutan: utama dulu, lalu sisanya.
@@ -416,6 +439,7 @@ class QuickAccessGrid extends StatelessWidget {
                             icon: m.icon,
                             label: m.title(l10n),
                             color: _groupColor(m.group),
+                            badgeCount: badges[m.code] ?? 0,
                             onTap: () {
                               Navigator.of(sheetContext).pop();
                               handleMenuTap(context, m.code, m.matchTitle);
@@ -464,6 +488,7 @@ class QuickAccessGrid extends StatelessWidget {
                 icon: m.icon,
                 label: m.title(l10n),
                 color: _groupColor(m.group),
+                badgeCount: badges[m.code] ?? 0,
                 onTap: () => handleMenuTap(context, m.code, m.matchTitle),
               ),
             if (!showAll)
@@ -474,6 +499,10 @@ class QuickAccessGrid extends StatelessWidget {
                 color: isDark
                     ? AppColors.darkOnSurfaceVariant
                     : AppColors.onSurfaceVariant,
+                // Antrean pada menu yang tersembunyi di "Lainnya" tidak boleh hilang
+                badgeCount: available
+                    .skip(primary.length)
+                    .fold<int>(0, (sum, m) => sum + (badges[m.code] ?? 0)),
                 onTap: () => _openMoreSheet(context, available),
               ),
           ],
@@ -506,6 +535,7 @@ class _MenuTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _MenuTile({
@@ -513,6 +543,7 @@ class _MenuTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.color,
+    this.badgeCount = 0,
     required this.onTap,
   });
 
@@ -527,14 +558,28 @@ class _MenuTile extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: isDark ? 0.2 : 0.12),
-              borderRadius: AppRadius.borderLg,
-            ),
-            child: Icon(icon, size: 24, color: color),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                  borderRadius: AppRadius.borderLg,
+                ),
+                child: Icon(icon, size: 24, color: color),
+              ),
+              if (badgeCount > 0)
+                Positioned(
+                  top: -4,
+                  right: -6,
+                  child: AppCountBadge(
+                    key: const ValueKey('menu_badge'),
+                    count: badgeCount,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: AppSpacing.xs + 2),
           Text(
