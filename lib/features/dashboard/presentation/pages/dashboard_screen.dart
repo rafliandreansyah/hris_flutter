@@ -399,6 +399,11 @@ class _DashboardViewState extends State<_DashboardView>
       ),
       body: SafeArea(
         child: BlocConsumer<DashboardBloc, DashboardState>(
+          // Timer jam emit DashboardLoaded tiap detik (hanya currentServerTime berubah);
+          // abaikan tick tersebut agar sinkronisasi pelacakan tidak memanggil API tiap detik.
+          listenWhen: (previous, current) => !(previous is DashboardLoaded &&
+              current is DashboardLoaded &&
+              identical(previous.dashboardData, current.dashboardData)),
           listener: (context, state) {
             if (state is DashboardLoaded) {
               _ensureTrackingPermission();
