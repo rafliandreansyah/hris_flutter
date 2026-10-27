@@ -62,6 +62,7 @@ class _LoginFormViewState extends State<_LoginFormView> {
   }
 
   void _onSignInPressed() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
         AuthLoginSubmitted(

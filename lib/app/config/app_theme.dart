@@ -307,7 +307,7 @@ abstract class AppTheme {
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.brandTeal,
         linearTrackColor: AppColors.primaryContainer,
-        circularTrackColor: AppColors.primaryContainer,
+        circularTrackColor: Colors.transparent,
       ),
 
       // Toggles (Checkbox, Radio, Switch)
@@ -647,7 +647,7 @@ abstract class AppTheme {
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.darkPrimary,
         linearTrackColor: AppColors.darkPrimaryContainer,
-        circularTrackColor: AppColors.darkPrimaryContainer,
+        circularTrackColor: Colors.transparent,
       ),
 
       // Toggles

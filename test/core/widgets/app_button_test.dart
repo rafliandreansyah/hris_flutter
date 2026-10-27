@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
+import 'package:hris_flutter/app/config/app_theme.dart';
 import 'package:hris_flutter/core/widgets/app_button.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -60,16 +61,40 @@ void main() {
       // Text should not be rendered while loading
       expect(find.text('Kirim Pengajuan'), findsNothing);
 
-      // Progress indicator should be present with strokeWidth 2.5
+      // Progress indicator should be present with strokeWidth 2.5 and transparent track
       final progressFinder = find.byType(CircularProgressIndicator);
       expect(progressFinder, findsOneWidget);
       final progressWidget = tester.widget<CircularProgressIndicator>(progressFinder);
       expect(progressWidget.strokeWidth, 2.5);
+      expect(progressWidget.backgroundColor, Colors.transparent);
 
       // Tapping should not trigger onPressed
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump();
       expect(tapped, isFalse);
+    });
+
+    testWidgets('loading spinner has transparent track under AppTheme.lightTheme',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const Scaffold(
+            body: Center(
+              child: AppButton(
+                text: 'Login',
+                isLoading: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final progressFinder = find.byType(CircularProgressIndicator);
+      expect(progressFinder, findsOneWidget);
+      final progressWidget = tester.widget<CircularProgressIndicator>(progressFinder);
+      expect(progressWidget.backgroundColor, Colors.transparent);
+      expect(progressWidget.color, AppColors.onPrimary);
     });
 
     testWidgets('renders leading and trailing icons correctly', (tester) async {

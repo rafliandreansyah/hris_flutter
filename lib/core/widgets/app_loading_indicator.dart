@@ -28,6 +28,7 @@ class AppLoadingIndicator extends StatelessWidget {
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
         color: color ?? (isDark ? AppColors.inversePrimary : AppColors.brandTeal),
+        backgroundColor: Colors.transparent,
       ),
     );
   }

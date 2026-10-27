@@ -112,7 +112,11 @@ class AppButton extends StatelessWidget {
         ? SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: defaultFg),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: defaultFg,
+              backgroundColor: Colors.transparent,
+            ),
           )
         : Row(
             mainAxisSize: width == null ? MainAxisSize.min : MainAxisSize.max,
