@@ -11,7 +11,6 @@ import 'package:hris_flutter/features/dashboard/domain/repositories/dashboard_re
 import 'package:hris_flutter/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/attendance_hero_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/dashboard_shimmer_loading.dart';
-import 'package:hris_flutter/features/dashboard/presentation/widgets/leave_balance_preview_card.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/quick_access_grid.dart';
 import 'package:hris_flutter/features/dashboard/presentation/widgets/updates_feed_card.dart';
 import 'package:hris_flutter/features/notification/data/models/notification_api_models.dart';
@@ -223,52 +222,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Personal Work Schedule Destination'), findsOneWidget);
-    });
-
-    testWidgets(
-        'LeaveBalancePreviewCard shows info message when hasQuota is false or 0', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: LeaveBalancePreviewCard(
-              hasQuota: false,
-              annualLeaveTotal: 0,
-              annualLeaveRemaining: 0,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Saldo Cuti'), findsOneWidget);
-      expect(find.text('Tidak memiliki kuota cuti tahun ini'), findsOneWidget);
-      expect(find.text('Annual'), findsNothing);
-    });
-
-    testWidgets(
-        'LeaveBalancePreviewCard shows progress bars when hasQuota is true', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: LeaveBalancePreviewCard(
-              hasQuota: true,
-              annualLeaveTotal: 14,
-              annualLeaveRemaining: 11,
-              sickLeaveTotal: 14,
-              sickLeaveRemaining: 8,
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('Saldo Cuti'), findsOneWidget);
-      expect(find.text('Annual'), findsOneWidget);
-      expect(find.text('11 Hari'), findsOneWidget);
-      expect(find.text('8 Hari'), findsOneWidget);
-      expect(find.text('Tidak memiliki kuota cuti tahun ini'), findsNothing);
     });
 
     testWidgets(

@@ -195,14 +195,12 @@ void main() {
         assignedDate: DateTime(2024, 7, 1),
         conditionOnCheckout: 'GOOD',
         checkoutNotes: 'Oper ke rekan',
-        requireApproval: true,
       );
 
       final json = payload.toJson();
       expect(json['targetEmployeeId'], 'emp-301');
       expect(json['conditionOnCheckout'], 'GOOD');
       expect(json['checkoutNotes'], 'Oper ke rekan');
-      expect(json['requireApproval'], isTrue);
     });
   });
 }

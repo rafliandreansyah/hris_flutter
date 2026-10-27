@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-/// Payload data untuk alih tangan / direct handover ke rekan kerja (POST /api/v1/assets/:id/transfer)
+/// Payload data untuk alih tangan ke pegawai lain (POST /api/v1/assets/:id/transfer).
+/// Selalu membutuhkan konfirmasi penerima.
 class DirectTransferAssetPayload extends Equatable {
   final String targetEmployeeId;
   final DateTime assignedDate;
@@ -8,7 +9,6 @@ class DirectTransferAssetPayload extends Equatable {
   final String conditionOnCheckout;
   final String? checkoutNotes;
   final String? agreementUrl;
-  final bool requireApproval;
 
   const DirectTransferAssetPayload({
     required this.targetEmployeeId,
@@ -17,7 +17,6 @@ class DirectTransferAssetPayload extends Equatable {
     this.conditionOnCheckout = 'GOOD',
     this.checkoutNotes,
     this.agreementUrl,
-    this.requireApproval = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -25,7 +24,6 @@ class DirectTransferAssetPayload extends Equatable {
       'targetEmployeeId': targetEmployeeId,
       'assignedDate': assignedDate.toIso8601String(),
       'conditionOnCheckout': conditionOnCheckout,
-      'requireApproval': requireApproval,
     };
 
     if (expectedReturnDate != null) {
@@ -49,6 +47,5 @@ class DirectTransferAssetPayload extends Equatable {
         conditionOnCheckout,
         checkoutNotes,
         agreementUrl,
-        requireApproval,
       ];
 }

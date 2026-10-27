@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hris_flutter/core/constants/api_endpoints.dart';
 import 'package:hris_flutter/core/utils/app_dialog_util.dart';
 import 'package:hris_flutter/app/config/app_colors.dart';
 import 'package:hris_flutter/app/config/app_design.dart';
@@ -9,11 +10,13 @@ import 'package:hris_flutter/core/widgets/employee_info_row.dart';
 import 'package:hris_flutter/features/asset/data/models/asset_detail_model.dart';
 import 'package:hris_flutter/features/asset/data/models/direct_transfer_asset_payload.dart';
 import 'package:hris_flutter/features/asset/presentation/widgets/asset_employee_picker_modal.dart';
+import 'package:hris_flutter/features/employee/data/datasources/employee_remote_datasource.dart';
 import 'package:hris_flutter/features/employee/data/models/employee_directory_item.dart';
+import 'package:hris_flutter/features/employee/data/repositories/employee_repository_impl.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Modal Form untuk Alih Tangan / Oper Fasilitas ke Rekan Kerja (POST /api/v1/assets/:id/transfer)
+/// Modal Form untuk Alih Tangan Fasilitas ke pegawai mana pun; selalu menunggu konfirmasi penerima (POST /api/v1/assets/:id/transfer)
 class AssetDirectTransferModal extends StatefulWidget {
   final AssetDetailData asset;
   final Future<void> Function(DirectTransferAssetPayload payload) onSubmit;
@@ -60,7 +63,6 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
   DateTime _assignedDate = DateTime.now();
   DateTime? _expectedReturnDate;
   String _condition = 'GOOD';
-  bool _requireApproval = true;
   bool _isSubmitting = false;
 
   final DateFormat _dateFormat = DateFormat('dd MMMM yyyy', 'id_ID');
@@ -75,7 +77,13 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
     final currentHolderId = widget.asset.activeAssignment?.employeeId;
     final emp = await AssetEmployeePickerModal.show(
       context,
-      title: 'Pilih Rekan Kerja Penerima',
+      title: 'Pilih Pegawai Penerima',
+      source: AssetPickerSource.directory,
+      repository: EmployeeRepositoryImpl(
+        remoteDataSource: EmployeeRemoteDataSourceImpl(
+          listEndpoint: ApiEndpoints.assetTransferRecipients,
+        ),
+      ),
       excludeEmployeeId: currentHolderId,
       selectedEmployeeId: _targetEmployee?.id,
     );
@@ -121,7 +129,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
     if (_targetEmployee == null) {
       AppDialogUtil.showValidationError(
         context,
-        message: 'Silakan pilih rekan kerja yang akan menerima fasilitas.',
+        message: 'Silakan pilih pegawai yang akan menerima fasilitas.',
       );
       return;
     }
@@ -138,7 +146,6 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
       checkoutNotes: _notesController.text.trim().isNotEmpty
           ? _notesController.text.trim()
           : null,
-      requireApproval: _requireApproval,
     );
 
     try {
@@ -201,7 +208,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Alih Tangan Fasilitas ke Rekan Kerja',
+                        'Alih Tangan Fasilitas',
                         style: AppTypography.titleMedium.copyWith(
                           fontWeight: FontWeight.w700,
                           color: textCol,
@@ -239,7 +246,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
                     // 1. Selector Rekan Kerja (Mandatory *)
                     RichText(
                       text: TextSpan(
-                        text: 'Rekan Kerja Penerima',
+                        text: 'Pegawai Penerima',
                         style: AppTypography.labelMedium.copyWith(
                           fontWeight: FontWeight.w600,
                           color: textCol,
@@ -284,7 +291,7 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Pilih rekan kerja penerima...',
+                                    'Pilih pegawai penerima...',
                                     style: AppTypography.bodySmall.copyWith(
                                       color: subtitleCol,
                                     ),
@@ -453,33 +460,6 @@ class _AssetDirectTransferModalState extends State<AssetDirectTransferModal> {
                       label: 'Catatan Alih Tangan',
                       hintText: 'Misal: Diserahkan lengkap dengan charger dan kabel...',
                       maxLines: 3,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // 5. Toggle Persetujuan Penerima
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _requireApproval,
-                      onChanged: (val) {
-                        setState(() => _requireApproval = val);
-                      },
-                      activeThumbColor: AppColors.brandTeal,
-                      title: Text(
-                        'Membutuhkan Konfirmasi Penerima',
-                        style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: textCol,
-                        ),
-                      ),
-                      subtitle: Text(
-                        _requireApproval
-                            ? 'Fasilitas akan berstatus Menunggu Konfirmasi sampai disetujui rekan kerja.'
-                            : 'Fasilitas akan langsung dialihkan secara instan.',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: subtitleCol,
-                          fontSize: 11,
-                        ),
-                      ),
                     ),
                   ],
                 ),

@@ -53,6 +53,7 @@ class AssetEmployeePickerModal extends StatefulWidget {
     String? excludeEmployeeId,
     String? selectedEmployeeId,
     AssetPickerSource source = AssetPickerSource.coworkers,
+    EmployeeRepository? repository,
   }) {
     return showModalBottomSheet<EmployeeDirectoryItem>(
       context: context,
@@ -65,6 +66,7 @@ class AssetEmployeePickerModal extends StatefulWidget {
         excludeEmployeeId: excludeEmployeeId,
         selectedEmployeeId: selectedEmployeeId,
         source: source,
+        repository: repository,
       ),
     );
   }

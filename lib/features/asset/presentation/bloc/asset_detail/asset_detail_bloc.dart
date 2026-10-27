@@ -184,9 +184,8 @@ class AssetDetailBloc extends Bloc<AssetDetailEvent, AssetDetailState> {
     try {
       await _repository.directTransferAsset(assetId, event.payload);
 
-      final successMsg = event.payload.requireApproval
-          ? 'Permintaan alih tangan berhasil dikirim, menunggu konfirmasi rekan kerja.'
-          : 'Fasilitas berhasil dialihkan.';
+      const successMsg =
+          'Permintaan alih tangan berhasil dikirim, menunggu konfirmasi penerima.';
 
       emit(state.copyWith(
         actionStatus: AssetDetailActionStatus.success,

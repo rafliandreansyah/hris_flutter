@@ -174,6 +174,7 @@ abstract class ApiEndpoints {
   // ==========================================
   static const String assets = '/assets';
   static const String assetCategories = '/assets/categories';
+  static const String assetTransferRecipients = '/assets/transfer-recipients';
   static String assetDetail(String id) => '/assets/$id';
   static String assetHandover(String id) => '/assets/$id/handover';
   static String assetTransfer(String id) => '/assets/$id/transfer';
