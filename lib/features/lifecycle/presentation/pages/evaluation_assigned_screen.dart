@@ -6,7 +6,7 @@ import 'package:hris_flutter/app/config/app_design.dart';
 import 'package:hris_flutter/app/config/app_typography.dart';
 import 'package:hris_flutter/app/routes/route_name.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
-import 'package:hris_flutter/core/widgets/employee_info_row.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_evaluation_models.dart';
 import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_json.dart';
@@ -181,62 +181,56 @@ class _AssignedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = LifecycleColors.of(context);
-    return LifecycleCard(
+    final overdue = item.isOverdue && item.isOpen;
+    return RequestListCardFrame(
       onTap: () async {
         await context.push(Routes.LIFECYCLE_EVALUATION_FORM, extra: item.id);
         if (context.mounted) {
           context.read<EvaluationAssignedBloc>().add(const EvaluationAssignedRefreshed());
         }
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          EmployeeInfoRow(
-            name: item.employee.name,
-            role: item.employee.positionName,
-            department: item.employee.departmentName,
-            employeeId: item.employee.employeeNumber,
-            avatarUrl: item.employee.photoUrl,
-            initials: item.employee.name.isNotEmpty ? item.employee.name[0] : '?',
-            avatarSize: 44,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            lcLabel(lcEvaluationTypeLabels, item.evaluationType),
-            style: AppTypography.titleSmall.copyWith(color: c.text, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Batas penilaian: ${lcFormatDate(item.dueDate)}',
-            style: AppTypography.bodySmall.copyWith(
-              color: item.isOverdue && item.isOpen ? const Color(0xFFEF4444) : c.subtitle,
-              fontWeight: item.isOverdue && item.isOpen ? FontWeight.w700 : FontWeight.w400,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              LifecycleStatusPill(
-                label: lcLabel(lcEvaluationStatusLabels, item.status),
-                tone: evaluationStatusTone(item.status),
-              ),
-              if (item.isOverdue && item.isOpen) ...[
-                const SizedBox(width: 8),
-                const LifecycleStatusPill(label: 'Terlambat', tone: LifecycleTone.danger),
-              ],
-              const Spacer(),
-              if (item.overallScore != null)
-                Text(
-                  item.overallScore!.toStringAsFixed(2),
-                  style: AppTypography.titleSmall.copyWith(
-                    color: c.brand,
-                    fontWeight: FontWeight.w800,
-                  ),
+      header: RequestCardHeader(
+        name: item.employee.name,
+        role: item.employee.positionName,
+        department: item.employee.departmentName,
+        avatarUrl: item.employee.photoUrl,
+        initials: item.employee.name.isNotEmpty ? item.employee.name[0] : '?',
+        trailing: item.overallScore != null
+            ? Text(
+                item.overallScore!.toStringAsFixed(2),
+                style: AppTypography.titleSmall.copyWith(
+                  color: c.brand,
+                  fontWeight: FontWeight.w800,
                 ),
-            ],
-          ),
-        ],
+              )
+            : null,
       ),
+      children: [
+        RequestCardInfoLine(
+          icon: LucideIcons.clipboardList,
+          text: lcLabel(lcEvaluationTypeLabels, item.evaluationType),
+          emphasize: true,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        RequestCardInfoLine(
+          icon: LucideIcons.calendarDays,
+          text: 'Batas penilaian: ${lcFormatDate(item.dueDate)}',
+          trailingText: overdue ? 'Terlambat' : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            LifecycleStatusPill(
+              label: lcLabel(lcEvaluationStatusLabels, item.status),
+              tone: evaluationStatusTone(item.status),
+            ),
+            if (overdue) ...[
+              const SizedBox(width: 8),
+              const LifecycleStatusPill(label: 'Terlambat', tone: LifecycleTone.danger),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

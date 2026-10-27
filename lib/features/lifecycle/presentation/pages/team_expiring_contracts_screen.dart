@@ -7,6 +7,8 @@ import 'package:hris_flutter/core/constants/app_permissions.dart';
 import 'package:hris_flutter/core/storage/secure_storage_service.dart';
 import 'package:hris_flutter/core/widgets/app_empty_state.dart';
 import 'package:hris_flutter/core/widgets/app_forbidden_state.dart';
+import 'package:hris_flutter/app/config/app_design.dart';
+import 'package:hris_flutter/core/widgets/request_card_header.dart';
 import 'package:hris_flutter/core/widgets/request_card_shimmer_loading.dart';
 import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_json.dart';
 import 'package:hris_flutter/features/lifecycle/data/models/lifecycle_profile_models.dart';
@@ -137,72 +139,41 @@ class _ContractCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final c = LifecycleColors.of(context);
     final tone = item.daysRemaining <= 7 ? LifecycleTone.danger : LifecycleTone.warning;
-    final job = item.positionName ?? item.departmentName;
-    return LifecycleCard(
+    return RequestListCardFrame(
       onTap: item.evaluationId == null
           ? null
           : () => context.push(
                 Routes.LIFECYCLE_EVALUATION_FORM,
                 extra: {'id': item.evaluationId, 'fallbackToResult': true},
               ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.employeeName,
-                      style: AppTypography.titleSmall.copyWith(
-                        color: c.text,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (job != null)
-                      Text(job, style: AppTypography.bodySmall.copyWith(color: c.subtitle)),
-                  ],
-                ),
-              ),
-              LifecycleStatusPill(
-                label: l10n?.teamContractsDaysLeft(item.daysRemaining) ??
-                    'Sisa ${item.daysRemaining} hari',
-                tone: tone,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${lcLabel(_contractTypeLabels, item.type)} · ${l10n?.teamContractsEndsOn(lcFormatDate(item.endDate)) ?? 'Berakhir ${lcFormatDate(item.endDate)}'}',
-            style: AppTypography.bodySmall.copyWith(color: c.subtitle),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                item.evaluationId == null ? LucideIcons.clock : LucideIcons.clipboardList,
-                size: 16,
-                color: c.brand,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                item.evaluationId == null
-                    ? (l10n?.teamContractsNoEvaluation ?? 'Evaluasi belum dibuat')
-                    : (l10n?.teamContractsOpenEvaluation ?? 'Lihat Evaluasi'),
-                style: AppTypography.labelMedium.copyWith(
-                  color: c.brand,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ],
+      header: RequestCardHeader(
+        name: item.employeeName,
+        role: item.positionName,
+        department: item.departmentName,
+        avatarUrl: item.photoUrl,
+        initials: item.employeeName.isNotEmpty ? item.employeeName[0] : '?',
+        trailing: LifecycleStatusPill(
+          label: l10n?.teamContractsDaysLeft(item.daysRemaining) ??
+              'Sisa ${item.daysRemaining} hari',
+          tone: tone,
+        ),
       ),
+      children: [
+        RequestCardInfoLine(
+          icon: LucideIcons.fileText,
+          text:
+              '${lcLabel(_contractTypeLabels, item.type)} · ${l10n?.teamContractsEndsOn(lcFormatDate(item.endDate)) ?? 'Berakhir ${lcFormatDate(item.endDate)}'}',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        RequestCardInfoLine(
+          icon: item.evaluationId == null ? LucideIcons.clock : LucideIcons.clipboardList,
+          text: item.evaluationId == null
+              ? (l10n?.teamContractsNoEvaluation ?? 'Evaluasi belum dibuat')
+              : (l10n?.teamContractsOpenEvaluation ?? 'Lihat Evaluasi'),
+          emphasize: item.evaluationId != null,
+        ),
+      ],
     );
   }
 }

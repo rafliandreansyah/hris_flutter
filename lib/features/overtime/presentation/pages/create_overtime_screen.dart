@@ -540,34 +540,41 @@ class _CreateOvertimeViewState extends State<_CreateOvertimeView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.calendarClock,
-                                  color: AppColors.brandTeal,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'PERIODE & JADWAL LEMBUR',
-                                  style: AppTypography.labelSmall.copyWith(
+                            Flexible(
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.calendarClock,
                                     color: AppColors.brandTeal,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
+                                    size: 16,
                                   ),
-                                ),
-                                const Text(
-                                  ' *',
-                                  style: TextStyle(
-                                    color: AppColors.errorRed,
-                                    fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      'PERIODE & JADWAL LEMBUR',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: AppColors.brandTeal,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const Text(
+                                    ' *',
+                                    style: TextStyle(
+                                      color: AppColors.errorRed,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             if (state.category == OvertimeTypeCategory.dayOff)
                               _buildTag(
-                                label: 'Hari Libur (Day Off)',
+                                label: 'Hari Libur',
                                 bgColor: const Color(0xFFEFF6FF),
                                 textColor: const Color(0xFF2563EB),
                                 icon: LucideIcons.calendarOff,
